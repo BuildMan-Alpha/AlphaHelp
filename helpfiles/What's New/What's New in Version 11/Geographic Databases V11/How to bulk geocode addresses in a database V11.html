@@ -1,0 +1,147 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="How_to_bulk_geocode_addresses_in_a_database">How to bulk geocode addresses in a database</h1>
+There is an Xbasic function in v11, <strong>geocode_address()</strong>, that allows you to convert addresses to latitude and longitude. See <a href="../New Xbasic Functions and Methods V11/geocode_address Function.html" title="geocode_address Function" class="wiki">geocode_address Function</a> for a full description. The function does a web service call to accomplish the conversion, which can take a good fraction of a second.<br />
+<br />
+To bulk geocode a table, you could write an Xbasic script that looped over all of the data and updated fields.<br />
+<br />
+Here is an Xbasic loop for .DBF tables:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> t <span style="color: #FF8000;">as</span> p
+t <span style="color: #008000;">=</span> table.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;addresses&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> pa <span style="color: #FF8000;">as</span> p
+<span style="color: #0600FF;">while</span> .<span style="color: #804040;">not</span>. <span style="color: #0000FF;">t</span>.<span style="color: #0000FF;">fetch_eof</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+    pa <span style="color: #008000;">=</span> geocode_address<span style="color: #000000;">&#40;</span>t.<span style="color: #0000FF;">address</span>,<span style="color: #808080;">&quot;Google&quot;</span><span style="color: #000000;">&#41;</span>
+    t.<span style="color: #0000FF;">change_begin</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+    t.<span style="color: #0000FF;">latitude</span> <span style="color: #008000;">=</span> pa.<span style="color: #0000FF;">lat</span>
+    t.<span style="color: #0000FF;">longitude</span> <span style="color: #008000;">=</span> pa.<span style="color: #0000FF;">lon</span>
+    t.<span style="color: #0000FF;">change_end</span><span style="color: #000000;">&#40;</span>.<span style="color: #0000FF;">t</span>.<span style="color: #000000;">&#41;</span>
+    t.<span style="color: #0000FF;">fetch_next</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">while</span>
+t.<span style="color: #0600FF;">close</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span></pre></div><br />
+<br />
+For a SQL table, the code is similar in spirit.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::Connection
+flag <span style="color: #008000;">=</span> cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::&amp;lt;MyConnectionString&amp;gt;&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> sql <span style="color: #FF8000;">as</span> c 
+<span style="color: #008080; font-style: italic;">'execute a query to get the primary key of each record you want to update</span>
+sql <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;select id from table1&quot;</span>
+cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span>sql<span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span>
+&nbsp;
+<span style="color: #0600FF;">dim</span> flag <span style="color: #FF8000;">as</span> l 
+&nbsp;
+<span style="color: #008080; font-style: italic;">'check to see if any rows in resultset</span>
+flag <span style="color: #008000;">=</span> rs.<span style="color: #0000FF;">nextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+delete args 
+<span style="color: #0600FF;">dim</span> args <span style="color: #FF8000;">as</span> sql::Arguments
+<span style="color: #0600FF;">dim</span> sql1 <span style="color: #FF8000;">as</span> c 
+<span style="color: #008080; font-style: italic;">'this assumes that the address field has the full address -- </span>
+<span style="color: #008080; font-style: italic;">'if not, modify the sql query appropriately</span>
+sql1 <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;select address from table1 where id = :primaryKey&quot;</span> 
+sql2 <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;update table1 set latitude = :lat, longitude = :lon where id = :primaryKey&quot;</span>
+<span style="color: #0600FF;">dim</span> pa <span style="color: #FF8000;">as</span> p
+<span style="color: #0600FF;">dim</span> rs2 <span style="color: #FF8000;">as</span> sql::ResultSet
+<span style="color: #0600FF;">while</span> flag 
+	args.<span style="color: #0000FF;">add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;primaryKey&quot;</span>,rs.<span style="color: #0000FF;">data</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+	flag <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span>sql1,args<span style="color: #000000;">&#41;</span>
+	rs2 <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span>
+	pa <span style="color: #008000;">=</span> geocode_address<span style="color: #000000;">&#40;</span>rs2.<span style="color: #0000FF;">data</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;address&quot;</span><span style="color: #000000;">&#41;</span>,<span style="color: #808080;">&quot;Google&quot;</span><span style="color: #000000;">&#41;</span>
+	args.<span style="color: #0000FF;">add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;lat&quot;</span>,pa.<span style="color: #0000FF;">lat</span><span style="color: #000000;">&#41;</span>
+	args.<span style="color: #0000FF;">add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;lon&quot;</span>,pa.<span style="color: #0000FF;">lon</span><span style="color: #000000;">&#41;</span>
+	flag <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">execute</span><span style="color: #000000;">&#40;</span>sql2,args<span style="color: #000000;">&#41;</span>
+	flag <span style="color: #008000;">=</span> rs.<span style="color: #0000FF;">nextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> flag</pre></div><br />
+<br />
+If you also want to update a Geography field named Location, the sql2 query would change to:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #993333; font-weight: bold;">UPDATE</span> table1 <span style="color: #993333; font-weight: bold;">SET</span> latitude <span style="color: #66cc66;">=</span> :lat<span style="color: #66cc66;">,</span> longitude <span style="color: #66cc66;">=</span> :lon<span style="color: #66cc66;">,</span> 
+location <span style="color: #66cc66;">=</span> GeogCreateLocation<span style="color: #66cc66;">&#40;</span>:lon<span style="color: #66cc66;">,</span> :lat<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">WHERE</span> id <span style="color: #66cc66;">=</span> :primaryKey</pre></div><br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">GeogCreateLocation is a Portable SQL function. To make it work in code, you may have to set your connection to use Portable SQL, e.g. <span style="color:blue; background:">cn.PortableSQLEnabled = .t.</span></div></div><br />
+Another way to geocode addresses would be to use <a target="_blank" class="wiki external"  href="http://geocoder.us/.">http://geocoder.us/.<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+bulk+geocode+addresses+in+a+database+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

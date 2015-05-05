@@ -1,0 +1,167 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="DotNet_Example:_Image_metadata_function">DotNet Example: Image metadata function</h1>
+This sample demonstrates implementing an Xbasic function using several .NET classes that are pre-loaded by Alpha Five. It also demonstrates calling static .NET classes, using static .NET enumerations with and without the use of a DIM statement in Xbasic, and calling the .NET garbage collector <strong>GC::Collect()</strong> to cause the .NET CLR to release unused memory from the managed heap.<br />
+<br />
+The problem this function solves is extracting metadata from a photo or screen shot. Currently it only supports the JPEG format. The fields returned correspond to the capabilities of the .NET 4.0 <strong>System::Windows::Media::Imaging::JpegBitmapDecoder</strong> class.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">FUNCTION</span> GetImageMetadata <span style="color: #FF8000;">as</span> P <span style="color: #000000;">&#40;</span> filename <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Make sure the file passed really exists</span>
+<span style="color: #0600FF;">IF</span> .<span style="color: #804040;">not</span>. <a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">file</span></a>.<span style="color: #0000FF;">exists</span><span style="color: #000000;">&#40;</span>filename<span style="color: #000000;">&#41;</span>
+  ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;File not found&quot;</span>,filename<span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">end</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'To do: </span>
+<span style="color: #008080; font-style: italic;">'  handle other potential errors better, e.g. file not a supported format</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Dim these .NET classes to make using them easier and less verbose</span>
+<span style="color: #0600FF;">dim</span> BCrOpt <span style="color: #FF8000;">as</span> System::Windows::Media::Imaging::BitmapCreateOptions
+<span style="color: #0600FF;">dim</span> BCaOpt <span style="color: #FF8000;">as</span> System::Windows::Media::Imaging::BitmapCacheOption
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Open the file using .NET and create a FileStream</span>
+<span style="color: #0600FF;">Dim</span> imageStreamSource <span style="color: #FF8000;">As</span> System::IO::FileStream <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
+  <span style="color: #FF8000;">New</span> System::IO::FileStream<span style="color: #000000;">&#40;</span>filename, <span style="color: #008000;">\</span>
+    System::IO::FileMode::<span style="color: #0600FF;">Open</span>, <span style="color: #008000;">\</span>
+    System::IO::FileAccess::Read, <span style="color: #008000;">\</span>
+    System::IO::FileShare::Read<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Pipe the FileStream into a JPEG bitmap decoder</span>
+<span style="color: #008080; font-style: italic;">'To do (Optional): </span>
+<span style="color: #008080; font-style: italic;">' add logic to use the right kind of decoder based on the type of image, </span>
+<span style="color: #008080; font-style: italic;">' if we want to support other file formats besides JPEG</span>
+<span style="color: #0600FF;">dim</span> decoder <span style="color: #FF8000;">as</span> System::Windows::Media::Imaging::JpegBitmapDecoder <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
+  <span style="color: #FF8000;">new</span> System::Windows::Media::Imaging::JpegBitmapDecoder<span style="color: #000000;">&#40;</span>imageStreamSource,<span style="color: #008000;">\</span>
+  BCrOpt.<span style="color: #0000FF;">PreservePixelFormat</span>, BCaOpt.<span style="color: #0600FF;">Default</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'extract the metadata from the first frame of the image</span>
+md <span style="color: #008000;">=</span> decoder.<span style="color: #0000FF;">Frames</span><span style="color: #000000;">&#91;</span><span style="color: #FF0000;">1</span><span style="color: #000000;">&#93;</span>.<span style="color: #0000FF;">metadata</span>
+GetImageMetadata.<span style="color: #0000FF;">ApplicationName</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">ApplicationName</span>
+GetImageMetadata.<span style="color: #0000FF;">Author</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Author</span>
+GetImageMetadata.<span style="color: #0000FF;">CameraManufacturer</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">CameraManufacturer</span>
+GetImageMetadata.<span style="color: #0000FF;">CameraModel</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">CameraModel</span>
+GetImageMetadata.<span style="color: #0000FF;">Comment</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Comment</span>
+GetImageMetadata.<span style="color: #0000FF;">Copyright</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Copyright</span>
+GetImageMetadata.<span style="color: #0000FF;">DateTaken</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">DateTaken</span>
+GetImageMetadata.<span style="color: #0600FF;">Format</span> <span style="color: #008000;">=</span> md.<span style="color: #0600FF;">Format</span>
+GetImageMetadata.<span style="color: #0000FF;">Keywords</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Keywords</span>
+GetImageMetadata.<span style="color: #0000FF;">Location</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Location</span>
+GetImageMetadata.<span style="color: #0000FF;">Rating</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Rating</span>
+GetImageMetadata.<span style="color: #0000FF;">Subject</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Subject</span>
+GetImageMetadata.<span style="color: #0000FF;">Title</span> <span style="color: #008000;">=</span> md.<span style="color: #0000FF;">Title</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'clean up</span>
+md <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+decoder <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+BCaOpt <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+BCrOpt  <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+imageStreamSource.<span style="color: #0600FF;">Close</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+imageStreamSource <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+System::GC::Collect<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a class="wiki external" target="_blank" href="http://msdn.microsoft.com/en-us/library/system.windows.media.imaging.aspx" rel="external nofollow">.NET System.Windows.Media.Imaging Namespace</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /><br />
+<a href="../../.NET Framework Support in Alpha Five V11.html" title=".NET Framework Support in Alpha Five V11" class="wiki">.NET Framework Support in Alpha Five V11</a><br />
+<a href="../DotNet__NAMESPACE__AssemblyReference.html" title="DotNet::AssemblyReference" class="wiki">DotNet::AssemblyReference</a><br />
+<a href="../DotNet__NAMESPACE__Services.html" title="DotNet::Services" class="wiki">DotNet::Services</a><br />
+<a href="../DotNet__NAMESPACE__Services/CreateObject Method.html" title="CreateObject Method" class="wiki">CreateObject Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/CallStaticFunction Method.html" title="CallStaticFunction Method" class="wiki">CallStaticFunction Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/ConstructGenericTypeName Method.html" title="ConstructGenericTypeName Method" class="wiki">ConstructGenericTypeName Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GetStaticProperty Method.html" title="GetStaticProperty Method" class="wiki">GetStaticProperty Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/SetStaticProperty Method.html" title="SetStaticProperty Method" class="wiki">SetStaticProperty Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterClass Method.html" title="RegisterClass Method" class="wiki">RegisterClass Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterAssembly Method.html" title="RegisterAssembly Method" class="wiki">RegisterAssembly Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterNamespace Method.html" title="RegisterNamespace Method" class="wiki">RegisterNamespace Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GenerateWebServiceClientFromURL Method.html" title="GenerateWebServiceClientFromURL Method" class="wiki">GenerateWebServiceClientFromURL Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GenerateWebServiceClientFromWSDL Method.html" title="GenerateWebServiceClientFromWSDL Method" class="wiki">GenerateWebServiceClientFromWSDL Method</a><br />
+<a href="../Preloaded .NET Classes V11.html" title="Preloaded .NET Classes V11" class="wiki">Preloaded .NET Classes V11</a><br />
+<a href="../Writing Xbasic wrapper classes for .NET classes V11.html" title="Writing Xbasic wrapper classes for .NET classes V11" class="wiki">Writing Xbasic wrapper classes for .NET classes V11</a><br />
+<a href="../DotNetPath Function.html" title="DotNetPath Function" class="wiki">DotNetPath Function</a><br />
+<a href="../DotNet Examples V11.html" title="DotNet Examples V11" class="wiki">DotNet Examples V11</a><br />
+<a href="DotNet Example__COLON__ Image metadata class.html" title="DotNet Example: Image metadata class" class="wiki">DotNet Example: Image metadata class</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:DotNet+Example%3A+Image+metadata+function">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

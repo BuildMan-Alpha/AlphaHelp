@@ -1,0 +1,189 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Implementing_an_Xbasic_Class">Implementing an Xbasic Class</h1>
+Following the design logic discussed in <a href="Designing an Xbasic Class V11.html" title="Designing an Xbasic Class V11" class="wiki">Designing an Xbasic Class V11</a>, we can implement the beginning of an Xbasic class to call a stored procedure as follows. Note that not all the desired features have been implemented, as discussed in the "to do" comments.<br />
+<br />
+In the first section, we define the class with global scope, and the two member properties. Notice that one property is completely protected, and the other has mixed visibility.<br />
+<br />
+We could have omitted the <strong>global</strong> scope modifier, as it is the default.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" >define <span style="color: #0600FF;">class</span> global StoredProc
+<span style="color: #0600FF;">dim</span> protected m_Connection <span style="color: #FF8000;">as</span> SQL::Connection
+<span style="color: #0600FF;">dim</span> <span style="color: #FF8000;">public</span> read protected <span style="color: #0600FF;">write</span> SPKeyword <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span></pre></div><br />
+Now we define the constructors. In addition to being able to simply DIM a class instance, we want to be able to use the <strong>new</strong> keyword to create an instance with a specific connection or connection string. Therefore, we create two constructors, one for each argument type. Constructors in Xbasic V11 have the name of the class, like C#.<br />
+<br />
+Unlike C#, however, defining one or more explicit constructors in Xbasic V11 does not suppress the automatic definition of a default constructor. If you want to forbid the use of a default constructor in Xbasic, explicitly create a <strong>private</strong> constructor with no arguments.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #008080; font-style: italic;">'constructors</span>
+<span style="color: #0600FF;">FUNCTION</span> StoredProc<span style="color: #000000;">&#40;</span>ConnectionArg <span style="color: #FF8000;">as</span> SQL::Connection<span style="color: #000000;">&#41;</span>
+  m_Connection <span style="color: #008000;">=</span> ConnectionArg
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+&nbsp;
+<span style="color: #0600FF;">FUNCTION</span> StoredProc<span style="color: #000000;">&#40;</span>ConnectionString <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">dim</span> ConnectionArg <span style="color: #FF8000;">as</span> SQL::Connection
+  ConnectionArg.<span style="color: #0000FF;">SetConnectionString</span><span style="color: #000000;">&#40;</span>ConnectionString<span style="color: #000000;">&#41;</span>
+  m_Connection <span style="color: #008000;">=</span> ConnectionArg
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+Since we are not allowing outsiders to modify the instance's connection indiscriminately, we want to have controlled ways to set the connection and connection string of the class instance after it exists. Our two setter methods are <strong>SetConnection </strong>and <strong>SetConnectionString</strong>. In each case, we reset the cached <strong>SPKeyword</strong> to a blank string so that it will be recalculated later if needed.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #008080; font-style: italic;">'Set or reset connection</span>
+<span style="color: #0600FF;">FUNCTION</span> SetConnection<span style="color: #000000;">&#40;</span>ConnectionArg <span style="color: #FF8000;">as</span> SQL::Connection<span style="color: #000000;">&#41;</span>
+  m_Connection <span style="color: #008000;">=</span> ConnectionArg
+  SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Set or reset connection string</span>
+<span style="color: #0600FF;">FUNCTION</span> SetConnectionString<span style="color: #000000;">&#40;</span>ConnectionString <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+  m_Connection.<span style="color: #0000FF;">SetConnectionString</span><span style="color: #000000;">&#40;</span>ConnectionString<span style="color: #000000;">&#41;</span>
+  SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+(Note: There is a potential bug in one of the setter methods above. Can you see what it is? How would you fix it?)<br />
+<br />
+The workhorse method of this class actually runs the stored procedure. First it figures out what keyword to use. The keyword is cached for future use in a member property.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #008080; font-style: italic;">'Run a stored procedure</span>
+<span style="color: #0600FF;">FUNCTION</span> Run <span style="color: #FF8000;">as</span> P<span style="color: #000000;">&#40;</span>SQLString <span style="color: #FF8000;">as</span> C, args <span style="color: #FF8000;">as</span> SQL::Arguments <span style="color: #008000;">=</span> null_value<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+  <span style="color: #008080; font-style: italic;">'debug(1)</span>
+  <span style="color: #0600FF;">IF</span> <span style="color: #FF8000;">len</span><span style="color: #000000;">&#40;</span>SPKeyword<span style="color: #000000;">&#41;</span><span style="color: #008000;">&amp;</span>lt;<span style="color: #FF0000;">4</span>
+    <span style="color: #0600FF;">dim</span> DBSyntax <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> m_Connection.<span style="color: #0000FF;">CurrentSyntax</span>
+&nbsp;
+    <span style="color: #008080; font-style: italic;">'to classify:</span>
+    <span style="color: #008080; font-style: italic;">'Cache</span>
+    <span style="color: #008080; font-style: italic;">'ElevateDB</span>
+    <span style="color: #008080; font-style: italic;">'QuickBooks</span>
+&nbsp;
+    <span style="color: #008080; font-style: italic;">'set Exec or Run keyword based on database syntax</span>
+    <span style="color: #008080; font-style: italic;">'to do: set other SP syntax, generate string from args</span>
+    <span style="color: #008080; font-style: italic;">'to do: set return values in the optional final SQL argument in args</span>
+    <span style="color: #0600FF;">SELECT</span>
+      <span style="color: #0600FF;">CASE</span> DBSyntax<span style="color: #008000;">=</span><span style="color: #808080;">&quot;SQLServer&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;SQLAzure&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;Sybase&quot;</span>.<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;SQLAnywhere&quot;</span>
+        SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Exec&quot;</span>
+&nbsp;
+      <span style="color: #0600FF;">CASE</span> DBSyntax<span style="color: #008000;">=</span><span style="color: #808080;">&quot;Oracle&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;DB2&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;DB2i&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;MySQL&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;Generic&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;OracleCaseSensitive&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;OracleLite&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;ODBC&quot;</span>
+        SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Call&quot;</span>
+&nbsp;
+      <span style="color: #0600FF;">CASE</span> DBSyntax<span style="color: #008000;">=</span><span style="color: #808080;">&quot;Access&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;Excel&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;Paradox&quot;</span> .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;PostgreSQL&quot;</span> <span style="color: #008000;">\</span>
+      .<span style="color: #0000FF;">or</span>. <span style="color: #0000FF;">DBSyntax</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;PostgresPlus&quot;</span>
+        SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+&nbsp;
+      <span style="color: #0600FF;">CASE</span> <span style="color: #FF8000;">else</span>
+        SPKeyword <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+&nbsp;
+    <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">SELECT</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+  <span style="color: #0600FF;">IF</span> <span style="color: #FF8000;">len</span><span style="color: #000000;">&#40;</span>SQLString<span style="color: #000000;">&#41;</span><span style="color: #008000;">&amp;</span>lt;<span style="color: #FF0000;">4</span> .<span style="color: #0000FF;">or</span>. <span style="color: #FF8000;">len</span><span style="color: #000000;">&#40;</span>SPKeyword<span style="color: #000000;">&#41;</span><span style="color: #008000;">&amp;</span>lt;<span style="color: #FF0000;">4</span>
+    <span style="color: #0600FF;">end</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+  <span style="color: #0600FF;">dim</span> state <span style="color: #FF8000;">as</span> L <span style="color: #008000;">=</span> m_Connection.<span style="color: #0000FF;">isOpen</span>
+  <span style="color: #0600FF;">IF</span> .<span style="color: #804040;">not</span>. <span style="color: #0000FF;">state</span>
+    state <span style="color: #008000;">=</span> m_Connection.<span style="color: #0600FF;">Open</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+    <span style="color: #0600FF;">IF</span> .<span style="color: #804040;">not</span>. <span style="color: #0000FF;">state</span>
+      <span style="color: #0600FF;">end</span>
+    <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+  <span style="color: #0600FF;">IF</span> m_Connection.<span style="color: #0000FF;">execute</span><span style="color: #000000;">&#40;</span>SPKeyword<span style="color: #008000;">+</span><span style="color: #808080;">&quot; &quot;</span><span style="color: #008000;">+</span>SQLString,args<span style="color: #000000;">&#41;</span>
+    Run<span style="color: #008000;">=</span>m_Connection.<span style="color: #0000FF;">ResultSet</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+&nbsp;
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">class</span></pre></div><br />
+Before actually running the stored procedure, the <strong>Run</strong> method does some sanity checking. If the connection is not already open, the method tries to open it for you.<br />
+<br />
+In this version of the class, the burden of constructing a correct SQL string for most of the stored procedure call is placed on the user. A more sophisticated implementation would <em>encapsulate</em> that functionality and automatically construct the correct string based on what arguments are provided and what database is used by the connection. The class currently only encapsulates a small part of that knowledge, the choice of the <strong>Call</strong> or <strong>Exec</strong> keyword for each database and the knowledge of which databases have no stored procedures as such.<br />
+<h2 class="showhide_heading" id="See_also">See also</h2>
+<a href="../Xbasic with Classes V11.html" title="Xbasic with Classes V11" class="wiki">Xbasic with Classes V11</a><br />
+<a href="Xbasic Class Syntax V11.html" title="Xbasic Class Syntax V11" class="wiki">Xbasic Class Syntax V11</a><br />
+<a href="Designing an Xbasic Class V11.html" title="Designing an Xbasic Class V11" class="wiki">Designing an Xbasic Class V11</a><br />
+<a href="Implementing an Xbasic Class V11.html" title="Implementing an Xbasic Class V11" class="wiki">Implementing an Xbasic Class V11</a><br />
+<a href="Testing and Using an Xbasic Class V11.html" title="Testing and Using an Xbasic Class V11" class="wiki">Testing and Using an Xbasic Class V11</a><br />
+<a href="Subclasses and Inheritance V11.html" title="Subclasses and Inheritance V11" class="wiki">Subclasses and Inheritance V11</a><br />
+<a href="Classes in Namespaces V11.html" title="Classes in Namespaces V11" class="wiki">Classes in Namespaces V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Implementing+an+Xbasic+Class+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

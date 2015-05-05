@@ -1,0 +1,725 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			
+
+<p class=A3Topic>Using Addin Variables to Create a Multi-Database Application</p>
+
+
+
+<p class=A5>Based on an Article by Tom Henkel</p>
+
+
+
+<p>Our agency is responsible for administering many programs for the needy 
+ population in our county. For over 10 years, we have used Alpha Software 
+ to handle the task. The system is currently written in Alpha5 version 
+ 1 and it has performed admirably!</p>
+
+
+
+<p>Our user interface is one where they sign into the system with a user-id 
+ and password. Once authenticated, the user is presented with a "Main 
+ Menu" application. Applications were a series of "card stacks", 
+ which are forms not associated with any table or set, only the application. 
+ From this Main Menu, a user can get to (provided they have appropriate 
+ security) whichever application they need. Application-to-application 
+ communication was fairly straightforward using an "app_run" 
+ command. We were also able to create "Global" variables that 
+ would be available to all called applications.</p>
+
+
+
+<p>With the release of version 2 of Alpha 5, card stacks were no longer 
+ being used, and Xbasic,&nbsp;as&nbsp;we knew it, had changed. The methodology 
+ we used in our system design could no longer be used!</p>
+
+
+
+<p>When version 5 came along, Alpha Software gave us access to the system 
+ variable space know&nbsp;as&nbsp;"addin variable" space. This 
+ variable space is where Alpha keeps many of the variables it uses to run 
+ the database engine. Addin variable space is open and active&nbsp;as&nbsp;long&nbsp;as&nbsp;Alpha 
+ 5 is open, and is NOT tied to any ONE database.</p>
+
+
+
+<p>This sounds like something we can use to convert our Applications without 
+ a full rethinking and redesign of our system. So, now we have a migration 
+ path for our 10 year-old application! With an incredible amount of patient 
+ help from Selwyn, I was able to take advantage of this addin variable 
+ space to bring our systems forward. Full conversion of our systems is 
+ still, probably a year away, but we now have a methodology and powerful 
+ toolset to accomplish our task.</p>
+
+
+
+<p>Addin Variable space is much like any other variable space. You define 
+ the space, assign values to defined variables, and then use these variables 
+ where you need them.</p>
+
+
+
+<p>We use the addin variable space to hold database paths, user name and 
+ security level, and agency-specific information. This information is defined 
+ in our "Main Menu" database, and is available to all "called" 
+ databases for&nbsp;as&nbsp;long&nbsp;as&nbsp;Alpha 5 stays open.</p>
+
+
+
+<p>The Main Menu database has an "autoexec" script that defines 
+ the addin variable space and then assigns values to many of the variables 
+ defined. See below:</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim aa&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>aa = addin.variables()</p>
+
+
+<p class=Code>dim aa.bcbss&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>dim aa.bcbss.access&nbsp;as&nbsp;N</p>
+
+
+<p class=Code>dim aa.bcbss.agency&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.whereto&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.wherefrom&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.level&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>' aa.bcbss.path and aa.bcbss.ppath set up relative pathing 
+ for all scripts.</p>
+
+
+<p class=Code>' This will alleviate the need to hard-code a path into any 
+ scripts.</p>
+
+
+<p class=Code>' We can change it here, and it should carry through all 
+ of the systems.</p>
+
+
+<p class=Code>dim aa.bcbss.path&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.lpath&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.ppath&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.fpath&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim aa.bcbss.drive&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim global agency&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim Global level&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim shared result&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim shared userid&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim shared passwd&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim trys&nbsp;as&nbsp;N</p>
+
+
+<p class=Code>dim global formname&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>PleaseWait()</p>
+
+
+<p class=Code>trys = 0</p>
+
+
+<p class=Code>'set the paths. This is where it needs to be changed for 
+ later use.</p>
+
+
+<p class=Code>aa.bcbss.path = "\\percy\a5share"</p>
+
+
+<p class=Code>aa.bcbss.lpath = "C:\Program Files\A5V5Runtime\shadow"</p>
+
+
+<p class=Code>aa.bcbss.ppath = "\\percy\a5share\pers$"</p>
+
+
+<p class=Code>aa.bcbss.fpath = "\\bergen\famis\famisincv5"</p>
+
+
+<p class=Code>aa.bcbss.drive = "O:"</p>
+
+
+<p class=Code>aa.bcbss.agency =</p>
+
+
+<p class=Code>trim(lookupc("F", 1, "agency", aa.bcbss.path 
+ + "\tables\agency.dbf", "rec"))</p>
+
+
+<p class=Code>agency = aa.bcbss.agency</p>
+
+
+<p class=Code>access = aa.bcbss.access</p>
+
+
+<p class=Code>level = aa.bcbss.level</p>
+
+
+<p class=Code>if aa.bcbss.wherefrom = ""</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.wherefrom = "Main_Menu"</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>DIM layout_name&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>' Make sure that the name of the Sub-menu appears on the 
+ sub-menu</p>
+
+
+<p class=Code>' instead of the called application name</p>
+
+
+<p class=Code>if (aa.bcbss.wherefrom <> "Main_Menu")</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim Global retn&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;' Retn is a variable used to turn 
+ on/off the "RETURN" custom menu Item</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;retn = "X"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;'The following code insures that 
+ the proper Menu name is displayed</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;if aa.bcbss.wherefrom = "Training_Main"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = "Integrity / Training Department"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;elseif aa.bcbss.wherefrom = "Finance_Main"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = "Finance Department"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;elseif aa.bcbss.wherefrom = "IM_Main"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = "Income Maintenance Department"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;elseif aa.bcbss.wherefrom = "Service_Main"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = "Social Services Department"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;elsif aa.bcbss.wherefrom = "Investigations_Main"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = "Investigation Unit"</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;else</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aa.bcbss.whereto 
+ = aa.bcbss.wherefrom</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>layout_name = aa.bcbss.wherefrom</p>
+
+
+<p class=Code>ControlPanel.hide()</p>
+
+
+<p class=Code>agency = aa.bcbss.agency</p>
+
+
+<p class=Code>DIM Shared varP_Formname&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>DIM layout_name&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>DIM tempP&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>' Get pointer to existing window. In case layout_name is 
+ qualified with a</p>
+
+
+<p class=Code>' dictionary name, extract up to first @. In case formname 
+ has spaces, normalize it</p>
+
+
+<p class=Code>tempP=obj(":"+object_Name_normalizelayout_name,1,"@"<a href="tiki-editpage.php?page=layout_name%2C1%2C%22%40%22" title="Create page: layout_name,1,&quot;@&quot;" class="wiki wikinew word">?</a>)</p>
+
+
+<p class=Code>' Test if pointer is valid</p>
+
+
+<p class=Code>IF is_object(tempP) THEN</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;' Test if pointer refers to a form 
+ or browse</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;IF tempP.class()= "form" 
+ .or. tempP.class()= "browse" THEN</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' If so, 
+ then activate the already open window</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP.activate()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP.show()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP.maximize()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ELSE</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' Window 
+ is not already open, so open it</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP = :Form.load(layout_name)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP.show()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tempP.maximize()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;END IF</p>
+
+
+<p class=Code>ELSE</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;tempP = :Form.load(layout_name)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;tempP.show()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;tempP.maximize()</p>
+
+
+<p class=Code>END IF</p>
+
+
+<p class=Code>END</td></tr>
+</table>
+
+<p>A big "thanks" to Jerry Brightbill for his <span class=Code1>PleaseWait()</span> 
+ function. We have modified it a little, and use it extensively throughout 
+ the system to inform the users that we didn't go away, but that we are 
+ "changing gears".</p>
+
+
+
+<p>This script defines the addin variable space: <span class=Code1>AA.BCBSS</span>. 
+ Within this space, I have several dot variables that I defined for use 
+ throughout the system. The great thing about this space is that in the 
+ "called" databases, all I need to do is define the <span class=Code1>AA.BCBSS</span> 
+ variable space, and voila!, all my dot variables are available. To make 
+ things easy and addressable in my called databases, I define global variables 
+ that I set to the dot variables in <span class=Code1>AA.BCBSS</span>. 
+ Using the Global variables, I can pull them from a drag-drop list.</p>
+
+
+
+<p>In an effort to maintain what is left of my sanity, and to insure consistency 
+ throughout the system, I developed several functions to be used when calling 
+ and starting other databases.</p>
+
+
+
+<p>This is a typical sub-database call. The code is attached to a button 
+ to open our "Client Information" database.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>' FUNCTION "SETUP" INITIALIZES THE VARIABLES TO 
+ BE SENT TO THE CALLED APPLICATION.</p>
+
+
+<p class=Code>' THE CHARACTER PARAMETERS ARE THE NAMES OF THE CALLED APPLICATION 
+ AND THE FORM</p>
+
+
+<p class=Code>' WE ARE COMING FROM. THEY ARE PLACED INTO THE AA.BCBSS.WHERETO 
+ AND AA.BCBSS.WHEREFROM</p>
+
+
+<p class=Code>' SUPER-GLOBAL VARIABLES</p>
+
+
+<p class=Code>' FUNCTION CALLSUB IS USED TO DETERMINE IF A SHADOW DATABASE 
+ EXISTS, AND IF SO,</p>
+
+
+<p class=Code>' CALL THE LOCAL COPY OF THE DATABASE INSTEAD OF THE NETWORK 
+ MASTER. INFORMATION</p>
+
+
+<p class=Code>' PASSED IS THE SUBFOLDER NAME AND APPLICATION NAME.</p>
+
+
+<p class=Code>' VARIABLE AA.BCBSS.SUBAPP CONTAINS A TEXT STRING IN THE 
+ FOLLOWING FORMAT:</p>
+
+
+<p class=Code>' aa.bcbss.lpath+chr(92)+subapp+".adb" OR</p>
+
+
+<p class=Code>' aa.bcbss.path+chr(92)+subapp+".adb"</p>
+
+
+<p class=Code>' WHERE AA.BCBSS.LPATH AND AA.BCBSS.PATH ARE FULLY QUALIFIED 
+ PATH NAMES TO EITHER THE</p>
+
+
+<p class=Code>' SHADOW DATABASE(lpath) OR THE NETWORK DATABASE(path)</p>
+
+
+<p class=Code>pleasewait(.T., "Retrieving Customer Info Menu... ")</p>
+
+
+<p class=Code>setup("Customer Information","Main_Menu")</p>
+
+
+<p class=Code>dim aa&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>aa = addin.variables()</p>
+
+
+<p class=Code>callsub("casereg\Client_info")</p>
+
+
+<p class=Code>' Open database:</p>
+
+
+<p class=Code>:A5.load(aa.bcbss.subapp)</p>
+
+
+<p class=Code>' And here is the on_init code in the called database menu 
+ form:</p>
+
+
+<p class=Code>dim aa&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>aa = addin.variables()</p>
+
+
+<p class=Code>varinit()</p>
+
+
+<p class=Code>PleaseWait(.F.)</p>
+
+
+<p class=Code>form.Refresh_Layout()</td></tr>
+</table>
+
+<p>The function <span class=Code1>varinit()</span> sets the pointers to 
+ all of my addin variables and assigns global variables for use on forms, 
+ reports, etc.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>' Initializes Variables for use throughout the whole application</p>
+
+
+<p class=Code>FUNCTION varinit ( )</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim aa&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;aa = addin.variables()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim aa.bcbss&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim global access&nbsp;as&nbsp;N</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;DIM global agency&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim global whereto&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim global wherefrom&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;DIM GLOBAL LEVEL&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim Global path&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim global ppath&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;dim global fpath&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;access = aa.bcbss.access</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;agency = aa.bcbss.agency</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;whereto = aa.bcbss.whereto</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;wherefrom = aa.bcbss.wherefrom</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;level = aa.bcbss.level</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;path = aa.bcbss.path</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ppath = aa.bcbss.ppath</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;fpath = aa.bcbss.fpath</p>
+
+
+<p class=Code>END FUNCTION</td></tr>
+</table>
+
+<p><span class=Code1>PleaseWait(.F.)</span> shuts off the <span class=Screen>PleaseWait</span> 
+ dialog box.</p>
+
+
+
+<p>At this point, all the variables I defined in my "calling" 
+ database are available in my "called" database and I know where 
+ I came from so that I can go back to the appropriate menu form if it is 
+ not the main one.</p>
+
+
+
+<p>Our "called" databases all have a "Main Menu" form 
+ that is based on a security type table and has buttons which lead us to 
+ the actual forms, reports, etc. necessary to do the task at hand. Using 
+ this method, we can quickly and easily allow or disallow users into specific 
+ portions of our system by just modifying the table.</p>
+
+
+
+<p>So far, this methodology has worked. With the many new tools in version 
+ 5, we are making changes every day. We are trying to set up standardized 
+ user menus and toolbars so that we do not clutter up our forms with buttons.</p>
+
+
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="../References/Xbasic/Xbasic Reference/What is a Variable__QUESTION__.html" title="What is a Variable?" class="wiki">What is a Variable?</a></p>
+
+
+
+<p class=A5>Thanks to</p>
+
+
+
+<p>Tom Henkel</p>
+
+
+
+<p class=A5>Supported By</p>
+
+
+
+<p>Alpha Five Version 5 and Above</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Using+Addin+Variables+to+Create+a+Multi-Database+Application">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

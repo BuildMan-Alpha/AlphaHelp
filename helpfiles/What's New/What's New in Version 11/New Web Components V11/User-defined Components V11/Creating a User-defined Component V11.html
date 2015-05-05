@@ -1,0 +1,195 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Creating_a_User-defined_Component"> Creating a User-defined Component</h1>
+Conceptually, creating a User-defined Component from a Custom Component is straightforward. All you have to do is generate the base files from the Alpha Five development environment, edit them in any text editor, drop the code from the Custom Component into the right sections, and add a Property Grid.<br />
+<br />
+In practice, it can take a day or more to go through this process, as it requires some thought and experimentation to get your properties right for all the expected Use Cases. It also requires some thought to decide what code goes into the system events and what code goes into the user events.<br />
+<br />
+Note that you are now writing a templating system for components instead of writing a component. You are also working in a text editor that probably doesn't know anything about Xbasic, even if you use one like <a class="wiki external" target="_blank" href="http://notepad-plus-plus.org/" rel="external nofollow">Notepad++</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /> that does syntax highlighting for JavaScript and HTML. This all takes some concentration and effort.<br />
+<br />
+You'll find it useful later on to copy blocks of Xbasic code out of your text files and paste them into an Alpha Five script window for syntax checking. You'll also find it useful to copy blocks of HTML and JavaScript into separate editor windows set to do syntax highlighting for the appropriate language.<br />
+<br />
+Let's go through the exercise of turning the Demo Custom Component (the light-weight grid) into a User-defined Component, and also discuss some of the choices you'll need to make for more complicated components.<br />
+<h2 class="showhide_heading" id="Generate_the_starter_files_for_the_Component">Generate the starter files for the Component</h2>
+Start by giving your Web Projects Control Panel the focus and pulling down the <strong>Edit</strong>|<strong>Advanced</strong>|<strong>Register New Component Type</strong> menu item. It will bring up a dialog which you should fill in to be roughly like this screen shot:<br />
+<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=636','HEIGHT=507','BACKGROUND=img/wiki_up/register_new_udc_type.png']);">	<img src="images/register_new_udc_type.png" height="405" width="508" alt="Image" /></a><br />
+<br />
+After you press OK, you'll see this notice:<br />
+<br />
+	<img src="images/udc_notice.png" alt="Image" /><br />
+<br />
+Then you'll see an Explorer window that contains 8 text files and 3 directories:<br />
+<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=717','HEIGHT=518','BACKGROUND=img/wiki_up/udc_directory.png']);">	<img src="images/udc_directory.png" height="388" width="537" alt="Image" /></a><br />
+<h2 class="showhide_heading" id="Edit_the_starter_files">Edit the starter files</h2>
+Use a good plain-text editor to work with the starter files. Do <em>not </em>try to edit them with Word or WordPad. Use Notepad if you must, but you'll be happier using Notepad++, TextPad, or another multi-pane editor designed primarily for programmers.<br />
+<br />
+Whenever you need to get back to this directory, you can use the <strong>Edit</strong>|<strong>Advanced</strong>|<strong>Open Folder where User-defined Components are Registered</strong> menu item from Alpha Five.<br />
+<h2 class="showhide_heading" id="Where_should_I_put_my_code_">Where should I put my code?</h2>
+The first thing you need to understand when going from a Custom Component to a User-defined Component is that the User-defined Component has additional server events. The second thing you need to understand is that the code for all the the event handlers is defined as strings inside a function called <strong>onComponentSave</strong>.<br />
+<br />
+Open <strong>builderFunctionDefinitions.txt</strong> in your editor and you'll see (in part):<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" ><span style="color: #0600FF;">function</span> onComponentSave <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>wp <span style="color: #FF8000;">as</span> p, vars <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">'This function is called when the developer is editing the component in the Builder and he/she clicks the 'Save' icon.</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'The function MUST set the following properties of the 'wp' object that is passed in:</span>
+<span style="color: #008080; font-style: italic;">'wp.systemXbasicFunctionDeclarations = A string containing function definitions that the component calls at runtime.</span>
+<span style="color: #008080; font-style: italic;">'wp.serverSideEvents.systemOnInitialRender = A string containing the defintion for this function: function systemOnInitialRender as v (e as p)</span>
+<span style="color: #008080; font-style: italic;">'wp.serverSideEvents.systemOnComponentInitialize = A string containing the defintion for this function: function systemOnComponentInitialize as v (e as p)</span>
+<span style="color: #008080; font-style: italic;">'wp.serverSideEvents.systemOnComponentExecute = A string containing the defintion for this function: function systemOnComponentExecute as v (e as p)</span>
+&nbsp;
+&nbsp;
+wp.<span style="color: #0000FF;">systemXbasicFunctionDeclarations</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%code%
+<span style="color: #008080; font-style: italic;">'define xbasic functions that the component uses when it is executing</span>
+%code%
+&nbsp;
+wp.<span style="color: #0000FF;">serverSideEvents</span>.<span style="color: #0000FF;">systemOnInitialRender</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%code%
+<span style="color: #0600FF;">function</span> systemOnInitialRender <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>e <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span> 
+%code%
+&nbsp;
+wp.<span style="color: #0000FF;">serverSideEvents</span>.<span style="color: #0000FF;">systemOnComponentInitialize</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%code%
+<span style="color: #0600FF;">function</span> systemOnComponentInitialize <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>e <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span> 
+%code%
+&nbsp;
+wp.<span style="color: #0000FF;">serverSideEvents</span>.<span style="color: #0000FF;">systemOnComponentExecute</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%code%
+<span style="color: #0600FF;">function</span> systemOnComponentExecute <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>e <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span> 
+&nbsp;
+%code%
+&nbsp;
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span></pre></div><br />
+<br />
+The code we had in the <strong>OnInitialRender </strong> function in our Custom Component will go in the <strong>systemOnInitialRender </strong>function in our User-defined Component. There will also be an <strong>OnInitialRender </strong> function in the User-defined Component that is exposed to the user: it is called <em>after</em> the <strong>systemOnInitialRender </strong>function.<br />
+<br />
+The code we had in the <strong>Xbasic Functions</strong> area of our Custom Component will go in the <strong>wp.systemXbasicFunctionDeclarations</strong> code string of our user-defined Component.<br />
+<br />
+Go ahead and do that now and save the file.<br />
+<h2 class="showhide_heading" id="What_about_client-side_event_handlers_">What about client-side event handlers?</h2>
+The three client-side event handlers found in custom and user-defined events have system equivalents. The user-modifiable handler runs before the system event handler. You can add the client-side system event handling functions to the {component.object} as methods, adding an underscore before the name. For example, here is how you'd create a system canAjaxCallback handler.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" >e.<span style="color: #0000FF;">javascript</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%js%
+<span style="color: #000000;">&#123;</span>component.<span style="color: #FF0000;">object</span><span style="color: #000000;">&#125;</span>._canAjaxCallback <span style="color: #008000;">=</span> <span style="color: #0600FF;">function</span><span style="color: #000000;">&#40;</span>e<span style="color: #000000;">&#41;</span> <span style="color: #000000;">&#123;</span>
+alert<span style="color: #000000;">&#40;</span><span style="color: #008080; font-style: italic;">'system canAjaxCallback called');</span>
+<span style="color: #FF8000;">return</span> <span style="color: #0600FF;">true</span>;
+<span style="color: #000000;">&#125;</span>
+%js%</pre></div><br />
+<h2 class="showhide_heading" id="Add_an_argument">Add an argument</h2>
+Up at the top of builderFunctionDefinitions.txt, after<strong> function onComponentSave as v (wp as p, vars as p)</strong> but before <strong>wp.systemXbasicFunctionDeclarations = &lt;&lt;%code%</strong>, add this code to define the <strong>componentArg_whatstate</strong> argument that needs to be resolved:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #0600FF;">dim</span> wp.<span style="color: #0000FF;">arguments</span><span style="color: #000000;">&#91;</span><span style="color: #FF0000;">0</span><span style="color: #000000;">&#93;</span> <span style="color: #FF8000;">as</span> p
+wp.<span style="color: #0000FF;">arguments</span>.<span style="color: #0000FF;">resize</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">0</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">with</span>  wp.<span style="color: #0000FF;">arguments</span><span style="color: #000000;">&#91;</span><span style="color: #000000;">&#93;</span>
+  .<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;componentArg_whatstate&quot;</span>
+  .<span style="color: #0000FF;">DataType</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Character&quot;</span>
+  .<span style="color: #0000FF;">Source</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;RUNTIMEBINDING&quot;</span>
+  .<span style="color: #0000FF;">VariableScope</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+  .<span style="color: #0000FF;">VariableName</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+  .<span style="color: #0000FF;">DefaultValue</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;MA&quot;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">with</span></pre></div><br />
+<br />
+We essentially stole this code from the Xbasic pane of our existing Demo Custom Component. Near the end of that listing, you'll see code that look very much like the above, except that it uses the <strong>tmpl </strong>dot variable instead of the <strong>wp </strong>dot variable. In a User-defined Component, the run-time <strong>tmpl </strong>dot variable is generated from the definition-time <strong>wp </strong>dot variable. The <strong>.VariableWithScope</strong> definition is not useful in the context of the User-defined Component.<br />
+<br />
+Now delete the first 11 or 12 lines of the file, starting with the "/****" block comment, so that the first line is <strong> function onComponentSave as v (wp as p, vars as p)</strong>, and delete the last few lines of the file with the "****/" end of the block comment, so that it ends with <strong>end function</strong>. Save the file.<br />
+<br />
+<h2 class="showhide_heading" id="Test_and_iterate">Test and iterate</h2>
+Go to your Alpha Five Web Projects Control Panel, click on <strong>New</strong>|<strong>Web Component</strong>. Scroll down and double-click on <strong>More Components...</strong>. Pick the <strong>Demo</strong> component with the Greek Alpha icon. When the Demo builder comes up, save it as Demo1. Now cross your fingers and click on the Working Preview tab. If all goes well, you will get a working light-weight grid.<br />
+<br />
+If you get an error message, close and delete the Demo1 component, go back to your text editor, and copy all of <strong>builderFunctionDefinitions.txt</strong>. Switch to Alpha Five, open the code pane of your Control Panel, click on New, and create a <strong>New Script (using Xbasic editor)</strong>. Paste the text you copied from the editor into the new script and press F4. The syntax checker should point you at the line of code that is at fault. Fix it in the script until it passes syntax checking, then copy it back into the editor and save it.<br />
+<br />
+Now try creating a Demo component again &mdash; this time it should work.<br />
+<br />
+When this is working, it's time to <a href="Creating a Property Grid for a User-defined Component V11.html" title="Creating a Property Grid for a User-defined Component V11" class="wiki">create a property grid</a> so that you aren't restricted to displaying the <strong>customer</strong> table.<br />
+<h2 class="showhide_heading" id="See_also">See also</h2>
+<a href="../User-defined Components V11.html" title="User-defined Components V11" class="wiki">User-defined Components V11</a><br />
+<a href="When to turn a Custom Component into a User-defined Component V11.html" title="When to turn a Custom Component into a User-defined Component V11" class="wiki">When to turn a Custom Component into a User-defined Component V11</a><br />
+<a href="Creating a User-defined Component V11.html" title="Creating a User-defined Component V11" class="wiki">Creating a User-defined Component V11</a><br />
+<a href="Creating a Property Grid for a User-defined Component V11.html" title="Creating a Property Grid for a User-defined Component V11" class="wiki">Creating a Property Grid for a User-defined Component V11</a><br />
+<a href="Sharing and Using a User-defined Component V11.html" title="Sharing and Using a User-defined Component V11" class="wiki">Sharing and Using a User-defined Component V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Creating+a+User-defined+Component+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

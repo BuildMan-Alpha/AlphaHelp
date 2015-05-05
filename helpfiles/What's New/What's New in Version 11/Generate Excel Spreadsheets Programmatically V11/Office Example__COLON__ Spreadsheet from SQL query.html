@@ -1,0 +1,277 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Office_Example:_Spreadsheet_from_SQL_query">Office Example: Spreadsheet from SQL query</h1>
+This example creates a simple spreadsheet from a SQL Query using Northwind.mdb. The spreadsheet is populated with a title, column headings, labels, and formulas to calculate the daily gross profit, summarize the weeks sales and expenses and the week's gross profit.<br />
+<br />
+After the spreadsheet is populated, it is opened in Microsoft Excel.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> DocumentFile <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C:\temp\A5OfficeSample3.xlsx&quot;</span>
+<span style="color: #008080; font-style: italic;">'change the above to .xls for Office 2003 and below</span>
+<span style="color: #0600FF;">dim</span> Doc  <span style="color: #FF8000;">as</span> Office::ExcelDocument  <span style="color: #008080; font-style: italic;">' Declare the document variable</span>
+<span style="color: #008080; font-style: italic;">'change the above to Excel2003Document for Office 2003 and below</span>
+&nbsp;
+CreateCategorySalesSummary<span style="color: #000000;">&#40;</span>Doc<span style="color: #000000;">&#41;</span>
+&nbsp;
+Path <span style="color: #008000;">=</span> <a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">file</span></a>.<span style="color: #0000FF;">filename_parse</span><span style="color: #000000;">&#40;</span>DocumentFile, <span style="color: #808080;">&quot;P&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">on</span> <span style="color: #FF8000;">error</span> <span style="color: #FF8000;">resume</span> <span style="color: #FF8000;">next</span>
+<a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">File</span></a>.<span style="color: #0000FF;">Dir_Create</span><span style="color: #000000;">&#40;</span>Path<span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">on</span> <span style="color: #FF8000;">error</span> goto <span style="color: #FF0000;">0</span>
+<span style="color: #0600FF;">if</span> Doc.<span style="color: #0000FF;">Save</span><span style="color: #000000;">&#40;</span>DocumentFile<span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">' Release all references to the document because we are about to open it in Excel</span>
+  delete Doc
+  sys_open<span style="color: #000000;">&#40;</span>DocumentFile<span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">else</span>  
+  ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Saving Document&quot;</span>, <span style="color: #808080;">&quot;Unable to save document to &quot;</span> <span style="color: #008000;">\</span>
+                  <span style="color: #008000;">+</span> DocumentFile <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> Doc.<span style="color: #0000FF;">ErrorMessage</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>  
+&nbsp;
+<span style="color: #0600FF;">FUNCTION</span> CreateCategorySalesSummary <span style="color: #FF8000;">as</span> V<span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet  <span style="color: #008080; font-style: italic;">' Pointer to the spreadsheet</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Layout of the spreadsheet</span>
+<span style="color: #0600FF;">dim</span> ConnectionString <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;{A5API=Access,FileName='&quot;</span> <span style="color: #008000;">+</span> a5.<span style="color: #0000FF;">get_exe_path</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                          <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;\MDBFiles\Northwind.mdb',UserName='Admin'}&quot;</span>
+<span style="color: #0600FF;">dim</span> Query <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;select categoryname as [Category], sum(productsales) as [Sales]&quot;</span><span style="color: #008000;">\</span>
+                 <span style="color: #008000;">+</span><span style="color: #808080;">&quot; from [Product Sales for 1995] group by categoryname&quot;</span>
+<span style="color: #0600FF;">dim</span> CategoryQuery <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;select * from Categories&quot;</span>
+<span style="color: #0600FF;">dim</span> Heading <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Sales by Category&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;As-of &quot;</span> <span style="color: #008000;">+</span> <span style="color: #FF0000;">Date</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">' The number of heading lines plus a blank line and the column headings</span>
+<span style="color: #0600FF;">dim</span> FirstDetailLine <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> w_count<span style="color: #000000;">&#40;</span>Heading, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #FF0000;">3</span> 
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Create a new spreadsheet</span>
+<span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::connection
+<span style="color: #0600FF;">if</span> cn.<span style="color: #0600FF;">Open</span><span style="color: #000000;">&#40;</span>ConnectionString<span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">if</span> cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span>Query<span style="color: #000000;">&#41;</span> 
+    Sheet <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddSheetFromResultSet</span><span style="color: #000000;">&#40;</span>cn.<span style="color: #0000FF;">ResultSet</span>, <span style="color: #808080;">&quot;Category Summary&quot;</span><span style="color: #000000;">&#41;</span>
+    WritePageHeadings<span style="color: #000000;">&#40;</span>Doc, Sheet, <span style="color: #FF0000;">1</span>, <span style="color: #FF0000;">2</span>, Heading<span style="color: #000000;">&#41;</span>
+    PolishUpSpreadsheet<span style="color: #000000;">&#40;</span>Doc, Sheet, FirstDetailLine<span style="color: #000000;">&#41;</span>
+&nbsp;
+    <span style="color: #008080; font-style: italic;">' Add another spreadsheet with ALL categories in the database</span>
+    <span style="color: #0600FF;">if</span> cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span>CategoryQuery<span style="color: #000000;">&#41;</span>
+      <span style="color: #008080; font-style: italic;">' Access tells us that the column is binary data.</span>
+      <span style="color: #008080; font-style: italic;">' We know it is really an OLE object with a bit map in it.</span>
+      <span style="color: #008080; font-style: italic;">' Tell the ResultSet that it is an OLE object </span>
+      <span style="color: #008080; font-style: italic;">'     and it will figure out that it is a picture.</span>
+      Cn.<span style="color: #0000FF;">ResultSet</span>.<span style="color: #0000FF;">ColumnInfo</span><span style="color: #000000;">&#91;</span><span style="color: #FF0000;">4</span><span style="color: #000000;">&#93;</span>.<span style="color: #0000FF;">IntermediateType</span> <span style="color: #008000;">=</span> OLEObject
+      Doc.<span style="color: #0000FF;">AddSheetFromResultSet</span><span style="color: #000000;">&#40;</span>cn.<span style="color: #0000FF;">ResultSet</span>, <span style="color: #808080;">&quot;All Categories&quot;</span><span style="color: #000000;">&#41;</span>
+    <span style="color: #FF8000;">else</span>
+      ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Executing Query&quot;</span>, <span style="color: #808080;">&quot;Query: &quot;</span> <span style="color: #008000;">\</span>
+                                 <span style="color: #008000;">+</span> CategoryQuery <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                                 <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>  
+    <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>  
+  <span style="color: #FF8000;">else</span>
+    ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Executing Query&quot;</span>, <span style="color: #808080;">&quot;Query: &quot;</span> <span style="color: #008000;">+</span> Query <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                         <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>  
+  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+<span style="color: #FF8000;">else</span>
+  ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Connecting to Database&quot;</span>, <span style="color: #808080;">&quot;Connection String: &quot;</span> <span style="color: #008000;">\</span>
+                 <span style="color: #008000;">+</span> ConnectionString <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                 <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>  
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>        
+&nbsp;
+&nbsp;
+<span style="color: #0600FF;">FUNCTION</span> WritePageHeadings <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, <span style="color: #008000;">\</span>
+                                 Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, <span style="color: #008000;">\</span>
+                                 StartRow <span style="color: #FF8000;">as</span> N, ColumnSpan <span style="color: #FF8000;">as</span> N, Text <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Add a title line formatted with Bold 14 point Tahoma font in Blue </span>
+<span style="color: #008080; font-style: italic;">'        and merge the first 5 columns in the first row</span>
+<span style="color: #0600FF;">dim</span> <span style="color: #0600FF;">Format</span>  <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>  <span style="color: #008080; font-style: italic;">' Pointer to the format for Page headings</span>
+<span style="color: #0600FF;">dim</span> Font  <span style="color: #FF8000;">as</span> Office::Font    <span style="color: #008080; font-style: italic;">' Pointer to the font for Page headings</span>
+<span style="color: #0600FF;">dim</span> Lines  <span style="color: #FF8000;">as</span> N  <span style="color: #008000;">=</span> w_count<span style="color: #000000;">&#40;</span>Text, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> Row    <span style="color: #FF8000;">as</span> N
+&nbsp;
+<span style="color: #0600FF;">Format</span>        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+Font        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+Font.<span style="color: #0000FF;">Color</span>      <span style="color: #008000;">=</span> Office::Color::DarkBlue
+Font.<span style="color: #0000FF;">Name</span>      <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
+Font.<span style="color: #0000FF;">Size</span>      <span style="color: #008000;">=</span> <span style="color: #FF0000;">13</span>
+Font.<span style="color: #0000FF;">Bold</span>      <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+<span style="color: #0600FF;">Format</span>.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the page heading format</span>
+<span style="color: #0600FF;">Format</span>.<span style="color: #0000FF;">HorizontalAlignment</span>  <span style="color: #008000;">=</span> Office::HorizontalAlignment::Center
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Insert new lines into the spreadsheet to make room for the title </span>
+<span style="color: #008080; font-style: italic;">'    plus a blank one afterward</span>
+Sheet.<span style="color: #0000FF;">InsertRow</span><span style="color: #000000;">&#40;</span>StartRow, StartRow <span style="color: #008000;">+</span> Lines<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> Lines
+  Row <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> i <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>
+  HeadingLine <span style="color: #008000;">=</span> AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>Text, i, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+  <span style="color: #008080; font-style: italic;">' Adjust the row to 130% of it's height to accomodate the font</span>
+  Sheet.<span style="color: #0000FF;">SetRow</span><span style="color: #000000;">&#40;</span>Row, Sheet.<span style="color: #0000FF;">RowHeight</span><span style="color: #000000;">&#40;</span>Row<span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">1.30</span><span style="color: #000000;">&#41;</span>
+  Sheet.<span style="color: #0000FF;">SetMerge</span><span style="color: #000000;">&#40;</span>Row,Row,<span style="color: #FF0000;">1</span>,ColumnSpan<span style="color: #000000;">&#41;</span>
+  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row,<span style="color: #FF0000;">1</span>,HeadingLine, <span style="color: #0600FF;">Format</span><span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">next</span>
+&nbsp;
+WritePageHeadings <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+&nbsp;
+<span style="color: #0600FF;">FUNCTION</span> PolishUpSpreadsheet <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, <span style="color: #008000;">\</span>
+                                 Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, FirstDetailRow <span style="color: #FF8000;">as</span> N<span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">' This function adds formatting to polish up the spreadsheet and shows how to do </span>
+<span style="color: #008080; font-style: italic;">' things like add total lines and set formats for data loaded from a database.</span>
+&nbsp;
+<span style="color: #0600FF;">dim</span> ColumnHeadingRow <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> FirstDetailRow <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>
+<span style="color: #0600FF;">dim</span> LastDetailRow    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> Sheet.<span style="color: #0000FF;">NextAvailableRow</span> <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>
+<span style="color: #0600FF;">dim</span> DetailRows       <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #0600FF;">if</span> <span style="color: #000000;">&#40;</span>LastDetailRow <span style="color: #008000;">&amp;</span>gt;<span style="color: #008000;">=</span> FirstDetailRow, <span style="color: #008000;">\</span>
+                                LastDetailRow <span style="color: #008000;">-</span> FirstDetailRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>, <span style="color: #FF0000;">0</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> TotalRow       <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> Sheet.<span style="color: #0000FF;">NextAvailableRow</span> <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Set the format of the categories and write the total row</span>
+<span style="color: #0600FF;">dim</span> NumericFormat    <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>  <span style="color: #008080; font-style: italic;">' Pointer to the format for numeric columns</span>
+<span style="color: #0600FF;">dim</span> LabelFormat       <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>  <span style="color: #008080; font-style: italic;">' Pointer to the format for Labels</span>
+<span style="color: #0600FF;">dim</span> LabelFormatRight <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>  <span style="color: #008080; font-style: italic;">' Pointer to the format for right-aligned labels</span>
+<span style="color: #0600FF;">dim</span> Font       <span style="color: #FF8000;">as</span> Office::Font  <span style="color: #008080; font-style: italic;">' Pointer to the font for column data</span>
+<span style="color: #0600FF;">dim</span> LabelFont       <span style="color: #FF8000;">as</span> Office::Font  <span style="color: #008080; font-style: italic;">' Pointer to the font for labels </span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Create a font for the detail data</span>
+Font      <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+Font.<span style="color: #0000FF;">Color</span>    <span style="color: #008000;">=</span> Office::Color::<span style="color: #0600FF;">Black</span>
+Font.<span style="color: #0000FF;">Name</span>    <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
+Font.<span style="color: #0000FF;">Size</span>    <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
+Font.<span style="color: #0000FF;">Bold</span>    <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>.
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Create a format for numeric columns</span>
+NumericFormat        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+NumericFormat.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> Font <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
+NumericFormat.<span style="color: #0000FF;">HorizontalAlignment</span> <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
+NumericFormat.<span style="color: #0000FF;">NumericFormat</span>    <span style="color: #008000;">=</span> Office::NumericFormat::CurrencyDec2NegBracketedInRed
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Create the formats for labels</span>
+LabelFont      <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+LabelFont.<span style="color: #0000FF;">Color</span>      <span style="color: #008000;">=</span> Office::Color::DarkBlue
+LabelFont.<span style="color: #0000FF;">Name</span>      <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
+LabelFont.<span style="color: #0000FF;">Size</span>      <span style="color: #008000;">=</span> <span style="color: #FF0000;">12</span>
+LabelFont.<span style="color: #0000FF;">Bold</span>      <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+&nbsp;
+<span style="color: #0000FF;">LabelFormat</span>      <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+LabelFormat.<span style="color: #0000FF;">Font</span>    <span style="color: #008000;">=</span> LabelFont <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
+LabelFormat.<span style="color: #0000FF;">HorizontalAlignment</span>  <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Left</span>
+&nbsp;
+LabelFormatRight    <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+LabelFormatRight.<span style="color: #0000FF;">Font</span>    <span style="color: #008000;">=</span> LabelFont <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
+LabelFormatRight.<span style="color: #0000FF;">HorizontalAlignment</span> <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Set the font on the heading to our Label Font</span>
+Sheet.<span style="color: #0000FF;">SetRow</span><span style="color: #000000;">&#40;</span>ColumnHeadingRow, Sheet.<span style="color: #0000FF;">RowHeight</span><span style="color: #000000;">&#40;</span>ColumnHeadingRow<span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">1.30</span><span style="color: #000000;">&#41;</span>
+Sheet.<span style="color: #0000FF;">SetFormat</span><span style="color: #000000;">&#40;</span>ColumnHeadingRow, <span style="color: #FF0000;">1</span>, LabelFormat<span style="color: #000000;">&#41;</span>
+Sheet.<span style="color: #0000FF;">SetFormat</span><span style="color: #000000;">&#40;</span>ColumnHeadingRow, <span style="color: #FF0000;">2</span>, LabelFormatRight<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Insert a blank line between the header and the detail</span>
+Sheet.<span style="color: #0000FF;">InsertRow</span><span style="color: #000000;">&#40;</span>FirstDetailRow, FirstDetailRow<span style="color: #000000;">&#41;</span>
+FirstDetailRow <span style="color: #008000;">=</span> FirstDetailRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>
+LastDetailRow  <span style="color: #008000;">=</span> LastDetailRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>
+TotalRow <span style="color: #008000;">=</span> TotalRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Set the formats for the detail data</span>
+Sheet.<span style="color: #0000FF;">SetColumn</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">1</span>, <span style="color: #FF0000;">1</span>, Sheet.<span style="color: #0000FF;">ColumnWidth</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">1.30</span><span style="color: #000000;">&#41;</span>
+Sheet.<span style="color: #0000FF;">SetFormat</span><span style="color: #000000;">&#40;</span>FirstDetailRow, <span style="color: #FF0000;">1</span>, LastDetailRow, <span style="color: #FF0000;">1</span>, LabelFormat<span style="color: #000000;">&#41;</span>
+Sheet.<span style="color: #0000FF;">SetFormat</span><span style="color: #000000;">&#40;</span>FirstDetailRow, <span style="color: #FF0000;">2</span>, LastDetailRow, <span style="color: #FF0000;">2</span>, NumericFormat<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">' Write the total line</span>
+Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>TotalRow, <span style="color: #FF0000;">1</span>, <span style="color: #808080;">&quot;Total&quot;</span>, LabelFormat<span style="color: #000000;">&#41;</span>
+Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>TotalRow, <span style="color: #FF0000;">2</span>, <span style="color: #808080;">&quot;SUM(B&quot;</span> <span style="color: #008000;">+</span> FirstDetailRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:B&quot;</span> <span style="color: #008000;">\</span>
+                 <span style="color: #008000;">+</span> LastDetailRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;)&quot;</span>, NumericFormat<span style="color: #000000;">&#41;</span><span style="color: #008080; font-style: italic;">' Sum of Sales</span>
+PolishUpSpreadsheet <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.  
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="../Generate Excel Spreadsheets Programmatically V11.html" title="Generate Excel Spreadsheets Programmatically V11" class="wiki">Generate Excel Spreadsheets Programmatically V11</a><br />
+<a href="Office__NAMESPACE__ExcelDocument.html" title="Office::ExcelDocument" class="wiki">Office::ExcelDocument</a><br />
+<a href="Office__NAMESPACE__Excel2003Document.html" title="Office::Excel2003Document" class="wiki">Office::Excel2003Document</a><br />
+<a href="Office__NAMESPACE__Spreadsheet.html" title="Office::Spreadsheet" class="wiki">Office::SpreadSheet</a><br />
+<a href="Office__NAMESPACE__Format.html" title="Office::Format" class="wiki">Office::Format</a><br />
+<a href="Office__NAMESPACE__Font.html" title="Office::Font" class="wiki">Office::Font</a><br />
+<a href="Office Enumerations.html" title="Office Enumerations" class="wiki">Office Enumerations</a><br />
+<a href="How to perform common spreadsheet operations.html" title="How to perform common spreadsheet operations" class="wiki">How to perform common spreadsheet operations</a><br />
+<a href="Office Example__COLON__ Hello, World spreadsheet.html" title="Office Example: Hello, World spreadsheet" class="wiki">Office Example: Hello, World Spreadsheet</a><br />
+<a href="Office Example__COLON__ Simple Weekly sales spreadsheet.html" title="Office Example: Simple Weekly sales spreadsheet" class="wiki">Office Example: Simple Weekly sales spreadsheet</a><br />
+<a href="Office Example__COLON__ Multiple spreadsheets.html" title="Office Example: Multiple spreadsheets" class="wiki">Office Example: Multiple Spreadsheets</a><br />
+<a href="Office Example__COLON__ Spreadsheet from DBF tables.html" title="Office Example: Spreadsheet from DBF tables" class="wiki">Office Example: Spreadsheet from DBF tables</a><br />
+<a href="Office Example__COLON__ Spreadsheet with picture.html" title="Office Example: Spreadsheet with picture" class="wiki">Office Example: Spreadsheet with picture</a><br />
+<a href="Office Example__COLON__ Update a spreadsheet.html" title="Office Example: Update a spreadsheet" class="wiki">Office Example: Update a spreadsheet</a><br />
+<a href="../../../Unclassified/SQL Example__COLON__ Spreadsheets from SQL schema.html" title="SQL Example: Spreadsheets from SQL schema" class="wiki">SQL Example: Spreadsheets from SQL schema</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Office+Example%3A+Spreadsheet+from+SQL+query">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

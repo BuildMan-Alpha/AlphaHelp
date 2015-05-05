@@ -1,0 +1,151 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Dynamic Column Headings</p>
+
+<p>The following technique shows how to display dynamic column headings in a grid component. The key to doing this is realizing that any property of a component can be overwritten before the component is executed. For example, the following is the code in the <span class=HTML1>&lthead></span> section of a .a5w page that contains a component. All of the code shown in blue is code that is automatically inserted by the <span class=Screen>Web Component Builder</span> when you insert a component on a page. (This is just a portion of the code.)</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>&lt%a5 <br> Delete Tmpl <br> DIM Tmpl&nbsp;as&nbsp;P <br> tmpl = a5w_load_component("dv") <br> 'Following code allows you to override settings in the saved component, and specify the component alias (componentName property). <br> 'Tip: Keep the componentName property short because this name is used in page URLs, and it will help keep the URLs short. <br> 'Each component on a page must have a unique alias (componentName property). <br> with tmpl <br> componentName = "dv" <span class=HTML1><br> field_info<a class="wiki"  href="1" rel="">1</a>.column.heading = "wow, this works"</span></p>
+
+<p class=Code>end with</td></tr> </table><p>Note that the second to last line overwrites the <span class=Code1>column.heading</span> property for column 1 in the grid. When the grid displays, it will show <span class=HTML1>"wow, this works"</span> and not the standard field label.</p>
+
+<p>Using this concept, it is easy to write a function that takes two arguments:</p>
+
+<ul style="list-style: disc;" type=disc> <li class=kadov-p-CBullet1><p class=Bullet1>the name of an array (in this case the <span class=Code1>field_info</span> array)</p>
+
+</li> <li class=kadov-p-CBullet1><p class=Bullet1>a dot variable that contains information about the field labels you want to override</p>
+
+</li> </ul><p>One of the problems with this technique is that you override settings in the <span class=Code1>field_info[]</span> array directly. If you change the order of the fields in the grid, the code to override settings will fail. Below is a generalized technique that you can you to override settings by "fieldname" rather than by field index. <br> <br> First, you would have to put this helper function on your page. you could use an <a href="../References/Functions/A5W_INCLUDE Function.html" title="A5W_INCLUDE Function" class="wiki">A5W_INCLUDE(</a>) to include the helper function.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function override_array_setting&nbsp;as&nbsp;V ( input_a&nbsp;as&nbsp;P, override&nbsp;as&nbsp;C )</p>
+
+<p class=Code>dim count&nbsp;as&nbsp;N</p>
+
+<p class=Code>dim i&nbsp;as&nbsp;N</p>
+
+<p class=Code>dim type&nbsp;as&nbsp;C</p>
+
+&nbsp;<p class=Code>count = line_count(override) <br> delete override_a <br> dim override_a<a class="wiki"  href="count" rel="">count</a>&nbsp;as&nbsp;P</p>
+
+&nbsp;<p class=Code>override_a.initialize_properties("fieldname|property|value", override) <br> count = override_a.first_empty()- 1 <br> if (count > 0) then <br> for i = 1 to count <br> indx = input_a.find(ut(override_a<a class="wiki"  href="i" rel="">i</a>.fieldname), "ut(fieldname)") <br> if (indx > 0) then <br> type = typeof( eval("input_a<a class="wiki"  href="" + indx + "" rel="">" + indx + "</a>." + override_a<a class="wiki"  href="i" rel="">i</a>.property  <br> eval("input_a<a class="wiki"  href=""+indx+"" rel="">"+indx+"</a>." + override_a<a class="wiki"  href="i" rel="">i</a>.property) = convert_type(override_a<a class="wiki"  href="i" rel="">i</a>.value,type) <br> end if <br> next i <br> end if</p>
+
+&nbsp;<p class=Code>end function</td></tr> </table><p>In the place where you override settings, you would use the following example Xbasic.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>dim override&nbsp;as&nbsp;C</p>
+
+&nbsp;<p class=Code>override = &lt&lt%txt% <br> lastname|column.heading|LAST NAME <br> lastname|column.hide|.t. <br> customer_id|column.heading|Cust# <br> %txt% <br> <br> override_array_setting(field_info, override)</td></tr> </table><p>In the string, <span class=Code1>override</span> you are specifying the properties that you want to override using the syntax: <span class=Code1>fieldname|propertyname|newpropertyvalue</span> . You can test this out by running the following script. First, the code created by the <span class=Screen>Web Component Builder</span>.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>dim tmpl&nbsp;as&nbsp;P</p>
+
+&nbsp;<p class=Code>tmpl.ComponentName = "Component1" <br> tmpl.ComponentType = "Grid" <br> tmpl.DataSourceType = "DBF" <br> tmpl.DBF.type = "Table" <br> tmpl.DBF.table_name = "c:\program files\a5v6\samples\alphasports\Customer.Dbf" <br> tmpl.DBF.filter = "" <br> tmpl.DBF.order = "" <br> tmpl.DBF.flags = "" <br> tmpl.DBF.fieldmap = &lt&lt%str% <br> CUSTOMER_ID,C,8,0=Customer_id <br> FIRSTNAME,C,20,0=Firstname <br> LASTNAME,C,20,0=Lastname <br> COMPANY,C,32,0=Company <br> PHONE,C,20,0=Phone <br> FAX,C,20,0=Fax <br> BILL_ADDRESS_1,C,40,0=Bill_address_1 <br> BILL_ADDRESS_2,C,40,0=Bill_address_2 <br> BILL_CITY,C,20,0=Bill_city <br> BILL_STATE_REGION,C,20,0=Bill_state_region <br> BILL_POSTAL_CODE,C,10,0=Bill_postal_code <br> BILL_COUNTRY,C,20,0=Bill_country <br> SHIP_ADDRESS_1,C,40,0=Ship_address_1 <br> SHIP_ADDRESS_2,C,40,0=Ship_address_2 <br> SHIP_CITY,C,20,0=Ship_city <br> SHIP_STATE_REGION,C,20,0=Ship_state_region <br> SHIP_POSTAL_CODE,C,10,0=Ship_postal_code <br> SHIP_COUNTRY,C,20,0=Ship_country <br> SHIP_SAME,L,1,0=Ship_same <br> EMAIL,C,60,0=Email <br> %str% <br> <br> tmpl.EditRegion.Grid.Top = &lt&lt%txt% <br> %txt% <br> tmpl.EditRegion.Grid.Bottom = &lt&lt%txt% <br> %txt% <br> tmpl.EditRegion.Grid.Left = &lt&lt%txt% <br> %txt% <br> tmpl.EditRegion.Grid.Right = &lt&lt%txt% <br> %txt% <br> <br> tmpl.fields = 3 <br> dim tmpl.field_info<a class="wiki"  href="tmpl.fields" rel="">tmpl.fields</a>&nbsp;as&nbsp;P</p>
+
+&nbsp;<p class=Code>with tmpl.field_info<a class="wiki"  href="1" rel="">1</a> <br> fieldname = "Customer_Id" <br> Scope = "Local" <br> DisplayFormat = "" <br> DisplayUnFormat = "" <br> Type = "C" <br> controltype = "Label" <br> Label.InLineStyle = "" <br> Column.Hide = .f. <br> Column.Heading = "Customer id" <br> Column.Sort = "Customer_id" <br> end with</p>
+
+&nbsp;<p class=Code>with tmpl.field_info<a class="wiki"  href="2" rel="">2</a> <br> fieldname = "Firstname" <br> Scope = "Local" <br> DisplayFormat = "" <br> DisplayUnFormat = "" <br> Type = "C" <br> controltype = "Label" <br> Label.InLineStyle = "" <br> Column.Hide = .f. <br> Column.Heading = "Firstname" <br> Column.Sort = "Firstname" <br> end with</p>
+
+&nbsp;<p class=Code>with tmpl.field_info<a class="wiki"  href="3" rel="">3</a> <br> fieldname = "Lastname" <br> Scope = "Local" <br> DisplayFormat = "" <br> DisplayUnFormat = "" <br> Type = "C" <br> controltype = "Label" <br> Label.InLineStyle = "" <br> Column.Hide = .f. <br> Column.Heading = "Lastname" <br> Column.Sort = "Lastname" <br> end with</p>
+
+&nbsp;<p class=Code>tmpl.style_name = "Barbie" <br> <br> dim override&nbsp;as&nbsp;C</p>
+
+&nbsp;<p class=Code>override = &lt&lt%txt% <br> lastname|column.heading|LAST NAME <br> lastname|column.hide|.t. <br> customer_id|column.heading|Cust# <br> %txt% <br> <br> with tmpl <br> override_array_setting(field_info, override) <br> end with <br> <br> ui_msg_box("", tmpl.field_info<a class="wiki"  href="3" rel="">3</a>.column.heading) <br> ui_msg_box("", "" + tmpl.field_info<a class="wiki"  href="3" rel="">3</a>.column.hide) <br> ui_msg_box("", tmpl.field_info<a class="wiki"  href="1" rel="">1</a>.column.heading)</td></tr> </table>  <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function override_array_setting&nbsp;as&nbsp;V (input_a&nbsp;as&nbsp;P, override&nbsp;as&nbsp;C)</p>
+
+<p class=Code>dim count&nbsp;as&nbsp;N</p>
+
+<p class=Code>dim i&nbsp;as&nbsp;N</p>
+
+<p class=Code>dim type&nbsp;as&nbsp;C</p>
+
+&nbsp;<p class=Code>count = line_count(override) <br> delete override_a <br> dim override_a<a class="wiki"  href="count" rel="">count</a>&nbsp;as&nbsp;P</p>
+
+&nbsp;<p class=Code>override_a.initialize_properties("fieldname|property|value", override) <br> count = override_a.first_empty()- 1</p>
+
+&nbsp;<p class=Code>if (count > 0) then <br> for i = 1 to count <br> indx = input_a.find(ut(override_a<a class="wiki"  href="i" rel="">i</a>.fieldname), "ut(fieldname)") <br> if (indx > 0) then <br> type = typeof(eval("input_a<a class="wiki"  href="" + indx + "" rel="">" + indx + "</a>." + override_a<a class="wiki"  href="i" rel="">i</a>.property) ) <br> eval("input_a<a class="wiki"  href=""+indx+"" rel="">"+indx+"</a>." + override_a<a class="wiki"  href="i" rel="">i</a>.property) = convert_type(override_a<a class="wiki"  href="i" rel="">i</a>.value,type) <br> end if <br> next i <br> end if</p>
+
+&nbsp;<p class=Code>end function</td></tr> </table><p class=A5>See Also</p>
+
+<p><a href="Contents - Web Publishing Tutorial.html" title="Contents - Web Publishing Tutorial" class="wiki">Contents</a></p>
+
+<p class=A5>Supported By</p>
+
+<p>Alpha Five Version 6</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Dynamic+Column+Headings">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

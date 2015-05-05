@@ -1,0 +1,534 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<table style="padding:opx"><tr>
+
+
+<td width="356px" valign="top"><img src="images/multiA5.jpg" width="356"></td>
+
+
+<td valign="top">
+<h1>Running Multiple Instances of the <br/>Alpha Five Application Server</h1>
+<hr style="color:#909090; margin-top:5px">
+<h2>Reduce expenses and maximize your hardware by running multiple instances of the 
+application server on one copy of Windows®.</h2>
+
+
+
+<p class="body">
+Starting with Alpha Five v10, you can now run multiple, 
+separate instances of the Application Server. This is ideal 
+in many circumstances, like when you are developing multiple 
+applications for different clients. Some of the benefits include:
+</p>
+
+<ul>
+<li class="list">You can have different URLs (www addresses) for each application.</li>
+<li class="list">If your server has a multi-core processor, you can take advantage of the machine's full capacity.</li>
+<li class="list">You can create a development environment (or "sandbox") to test your applications 
+without disrupting your production (or "live") application.</li>
+</ul>
+
+</td>
+
+</tr></table>
+
+<p class="body">Setting up your windows box to run multiple instances of the 
+Alpha Five application server is not difficult if you know how. And that's where 
+this document comes in. We'll look at the process step-by-step starting with 
+this overview. (For brevity, we'll refer to the Alpha Five Application Server, 
+simply as "AFAS" in much of this document).</p>
+
+<p class="subhead2">
+An Overview of Running Multiple Alpha Five App Server Instances
+</p>
+
+<p class="body" style="margin-top:5px">
+At the high level, here are the steps needed to run multiple instances 
+of the AFAS: 
+</p>
+
+<ol>
+<li class="list">Make a note of the IP addresses you have been assigned.</li>
+<li class="list">Point your domain name system (DNS) server to the corresponding IPs.</li>
+<li class="list">Configure Microsoft's IIS server so it doesn't conflict with the AFAS.</li>
+<li class="list">Build a Windows Shortcut for each AFAS instance.</li>
+<li class="list">Create a Configuration File for each instance.</li>
+<li class="list">Wrap each instance up to run as a service.</li>
+</ol>
+
+<p class="body">Some of these steps may be optional depending on your setup. 
+(For example if you don't plan to use the IIS web server, you can skip step 3.)</p>
+
+
+
+<p class="section">Step 1: Gather your IP Addresses</p>
+
+<p class="body2">Quick review: An IP address is like a phone number that uniquely 
+identifies your computer on the Internet (or an intranet). For example, <a target="_blank" class="wiki external"  href="http://www.alphasoftware.com">www.alphasoftware.com<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a> 
+has a an IP of: 72.32.123.61. If you type <a target="_blank" class="wiki external"  href="http://72.32.126.61">http://72.32.126.61<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a> into your web 
+browser from practically anywhere in the world, you'll get to the Alpha Software website.</p>
+
+<p class="body2">So in order to set up AFAS so that it can be seen on the Internet, you'll 
+need an IP address for each instance of AFAS you plan to run. In addition, if you 
+are planning on running Microsoft IIS as well - you will need an IP for that, too. IP addresses 
+are assigned to you by your hosting provider. So, if you are hosting your server say 
+at GoDaddy, GoDaddy will provide you with your IP addresses.</p>
+
+
+<p class="body2">Of course people don't normally type these numbers into their web browsers, 
+they type in URLs like "www.alphasoftware.com" and a separate server called the 
+DNS (domain name system) server looks up the request and then converts it to the 
+correct IP address.</p> 
+
+<p class="body2">We'll talk about the DNS in the next step, for now this is what you need to know. For each 
+separate instance of the AFAS you'll need a separate IP address and (optionally) a separate URL (like <a target="_blank" class="wiki external"  href="http://www.alphasoftware.com">www.alphasoftware.com<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a>).
+You'll also need a different IP and URL if you are planning on using the IIS server as well.</p>
+
+
+<p class="todo">· Using the chart below as a guide, fill out the URLs and IPs you plan to use.</p>
+
+
+
+<table>
+<tr style="background-color:#909090">
+<td class="ur<x>l"><span class="CellHeadings">URL</span></td>
+<td class="IP"><span class="CellHeadings">IP</span></td>
+</tr>
+<tr>
+<td class="ur<x>l"><span class="sampleIPs">www.alphasoftware.com</span></td>
+<td class="IP"><span class="sampleIPs">72.32.123.61</span></td>
+</tr>
+<tr>
+<td class="ur<x>l">&nbsp;</td>
+<td class="IP">&nbsp;</td>
+</tr>
+<tr>
+<td class="ur<x>l">&nbsp;</td>
+<td class="IP">&nbsp;</td>
+</tr>
+<tr>
+<td class="ur<x>l">&nbsp;</td>
+<td class="IP">&nbsp;</td>
+</tr>
+<tr>
+<td class="ur<x>l">&nbsp;</td>
+<td class="IP">&nbsp;</td>
+</tr>
+</table>
+
+
+
+
+
+
+<p class="section">Step 2: Point your DNS Servers to the Correct IPs</p>
+
+
+
+<p class="body">
+Quick Review: A DNS (Domain Name System) server coverts the URL a user types 
+into their browser, like <a target="_blank" class="wiki external"  href="http://www.alphasoftware.com">www.alphasoftware.com<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a>, into a numerical IP address 
+so they can find your website.<br/><br/>
+
+For each URL you want to use, like say: <a target="_blank" class="wiki external"  href="http://www.alphasoftware.com">www.alphasoftware.com<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a>, you're 
+going to need to point the domain to the correct IP address.<br/><br/>
+
+Some hosting providers (like GoDaddy) provide a self-service interface 
+that lets you manager your domain names. Here is what their interface looks like:
+<br/><br/>
+
+<img src="images/DNS2.jpg"><br/><br/>
+
+<p class="body">
+This is just one example of an interface used to manage your domain. The interface 
+you use (unless you use GoDaddy) will be different. And in some cases your web hosting 
+provider (or whoever manages your DNS servers) may need to help you.<br><br>
+
+It may take a little while for the change to propogate - depending on 
+how long the TTL setting was set to before you changed the IP. TTL (or "time to live") 
+indicates the duration a specific IP address is good for - before it is 
+considered outdated information and needs to be looked up again.  
+
+
+<br/><br/>
+Now that the DNS servers are pointed to the right IPs, it's 
+time to configure IIS so that it won't conflic with AFAS. 
+If you're not going to use IIS, you can skip the next step.
+</p>
+
+
+<p class="section">Step 3: Configure IIS to work with AFAS</p>
+
+<p class="body">
+Again, if you don't plan to use IIS - you can skip this 
+step. But many people (including Alpha Software) have 
+some legacy pages written in ASP that they would like to continue 
+to run rather than rewrite them as A5W pages. <br/><br/>
+
+To allow Alpha Five and IIS to run together and both use 
+port 80 (which is the standard port for web traffic) - you'll need to 
+assign them to different IPs.<br/><br/></p>
+
+<p class="todo">
+Set the IP address to use in the IIS Manager as shown below (except use YOUR 
+IP address, not the one in the picture):</p><br/><br/>
+
+
+<img src="images/iis.jpg">
+
+<p class="body">
+
+OK - in theory that should be all. But with IIS 6.0 there is a "gotcha". While IIS will 
+now only serve pages that are requested from this IP - 
+it still takes control of all the other IPs anyway so you can't 
+use them with the AFAS. (If you try to run the Alpha Five Application Server on port 80, you'll 
+get a message saying that there is a conflict.)<br/><br/>
+
+However, Microsoft makes a free tool that fixes this problem. You can find complete instructions 
+in a support article on Microsoft's website. The article is called 
+<a href="http://support.microsoft.com/kb/813368/EN-US/">Setting metabase property DisableSocketPooling has no effect</a>.
+(Don't let the long, technical title of this article scare you. The instructions are actually quite straightforward.)
+<br/><br/>
+</p>
+
+
+<p class="section">Step 4: Build a Windows Shortcut for each AFAS instance</p>
+
+<p class="body">In this step we're going to build desktop shortcuts that 
+you can use to manually open new instances of the Alpha Five server. Later on, 
+we'll set up AFAS to run automatically. But for now we'll start each instance 
+manually so that we can configure them.<br/><br/>
+
+This step assumes that you already have the Alpha Five Application Server (AFAS) installed. <br/><br/>
+
+If you haven't installed AFAS, please do so now. The download link to AFAS can be 
+<a href="http://downloads.alphasoftware.com/A5V10Download/PatchDownload.ASP">found here</a>.
+<br/><br/>
+
+Once installed we're going to make a new shortcut to the program, and in that shortcut we're 
+going to specify the location of the configuration file in the shortcut.</p>
+
+
+<ol>
+<li class="todo">Right click on the Windows desktop and choose New > Shortcut from the right-click menu. The Create Shortcut wizard appears.</li>
+<li class="todo">In the Type the Location of the Item box, type C:\ and click Next.</li>
+<li class="todo">Give the shortcut a name, like "Instance 1" or "www.alphasoftware.com". The name will be used so you can differentiate between different instances.</li>
+<li class="todo">Click Finish. A new shortcut icon will appear on the desktop.</li>
+<li class="todo">Right click on the shortcut you just created and choose Properties from the right-click menu.</a>
+
+<li class="todo">In the Target Box, enter the following:<br/>
+"C:\Program Files\a5V10 ApplicationServer\A5ApplicationServer.exe"  -CONFIGFILE="C:\Config1.xml"
+<br/>(The last part <Span style="color:#303030"><i>-CONFIGFILE="C:\Config1.xml"</i></span> specifies the name and location of the server's configuration file. Here we've named it Config1.xml, but feel free to give it a different name and save it in a different location.)
+</li>
+
+<li class="todo">In the Start In box, enter the following:<br/>
+"C:\Program Files\a5V10 ApplicationServer"
+</li>
+
+
+<li class="todo">Click OK to save your changes.</li>
+</ol>
+
+
+<table><tr>
+
+<td><img src="images/shortcut.jpg"></td>
+<td>
+<p class="body" style="padding-left:20px">
+Now you can test the shortcut by double clicking on it. The AFAS splash screen should 
+appear, and you should get an error saying that it can't find the configuration file. This 
+error is normal because we haven't created a configuration file yet. 
+That will happen in the next step.
+</p>
+</td>
+</tr></table>
+
+
+
+
+<p class="todo">You will need a shortcut for each instance you plan to run.</p>
+<p class="body">Each shortcut should have a different configuration filename. A quick way to create multiple shortcuts 
+is to make a copy of your first shortcut and paste it on the desktop. Then right-click on it and change its properties. You just need to change the name of 
+the shortcut and the name of the XML file.</p>
+
+
+
+<p class="section">Step 5: Create the AFAS Configuration Files</p>
+
+<p class="body">In the last step, you created shortcuts for 
+each instance of the AFAS you wanted to run. However, when you launched one 
+of these shortcuts, you got an error telling you that the AFAS couldn't find 
+the configuration file.<br/><br/>
+
+Creating this file is quite easy. All you need to do is create a 
+blank text document and give it the filename you specified when you created the shortcut.<br/><br/>
+
+In our example, the configuration file we specified was C:\Config1.xml, so we'd create a new text 
+file called config1.xml using Windows Explorer. Here are the step-by-step instructions. 
+</p>
+
+
+<ol>
+<li class="todo">Right click on the Windows Start menu and choose Explore to open Windows Explorer</li>
+
+<li class="todo">Navigate to the folder where you specified 
+the configuration file would be. (In our example this was c:\)</li>
+
+<li class="todo">From the Tools Menu, choose Folder Options. The Folder Options dialog box appears.</li>
+
+<li class="todo">Click the View tab.</li>
+
+
+<li class="todo">Make sure that that the Hide Extensions for Known File Types checkbox is unchecked. (You need to see the file extensions)
+<br/><br/>
+<img src="images/folderoptions.jpg"><br/>&nbsp;
+</li>
+
+<li class="todo">Click OK to close the Folder Options dialog box.</li>
+
+<li class="todo">From the File menu, choose New > Text Document.</li>
+
+<li class="todo">Give the new text document the name you specified earlier. 
+(In our example, it was config.xml.) Windows Explorer will warn you that you 
+are changing the file's extension.</li>
+</ol>
+
+
+<p class="body">You'll need to repeat this process for each instance. To save time, simply copy, paste and rename 
+the configuration file you just created.</p>
+
+<p class="body">So what's the with all these configuration files anyway? Well AFAS 
+uses the configuration file to store its settings. Some of these settings include 
+what port to use, whether to to enable security, the location of the Webroot, and 
+what IP it should use. <br/><br/>
+
+To create these settings in the configuration file, you'll use 
+AFAS itself to do it for you.</p>
+
+<ol>
+<li class="todo">Double click on one of the desktop shortcuts you 
+created earlier. This time you should not receive any errors because you created 
+the configuration file. The AFAS icon appears in the system tray.
+<br/><br/>
+<img src="images/afasicon.jpg">
+<br/>&nbsp;</li>
+
+
+<li class="todo">Right-click on the AFAS icon and choose Configure Server. 
+The Configuration dialog box apppears.<br/><br/>
+<img src="images/config1.jpg">
+<br/>
+<span class="caption">Don't be alarmed that your dialog 
+box doesn't read "Showcase Server" at the top of it. 
+This name is determined by what you type 
+into the Systray Caption box in a later step. </span>
+<br/>&nbsp;</li>
+
+
+
+<li class="todo">In the Document root box, choose the location of the 
+webroot for this server instance. (The webroot is where you keep your A5w pages, 
+html pages, graphics and other files. It's the "public" folder that will be 
+accesible via the Internet.)</li>
+
+<li class="todo">Check the Enable Security Framework checkbox.</li>
+
+<li class="todo">On the Sessions tab, enter the serial number you want to use for 
+the server by clicking the Add button. (You'll need a different serial number for 
+each instance.)</li>
+
+<li class="todo">Activate your license by clicking on the license to highlight it. 
+Then click the Activate button.</li>
+
+
+<li class="todo">Click the Advanced tab.<br/><br/>
+<img src="images/advanced.jpg"><br/>
+&nbsp;
+</li>
+
+<li class="todo">In the Systray Caption box, enter a name for this server instance, so 
+that you can easily identify later when you have multiple instances running. You might name it 
+after the URL that points to it. For example, we might have called this instance <a target="_blank" class="wiki external"  href="http://www.alphasoftware.com">www.alphasoftware.com<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a></li>
+
+<li class="todo">In the IP Address binding box, type in the IP address 
+associated with this instance. This tells Alpha Five only to serve pages to requests that 
+come from this IP. (Refer back to step 1 where you wrote these down.)</li>
+
+
+<li class="todo">Click OK to save your settings.</li>
+
+</ol>
+
+
+<p class="body">You're almost done. Now it's time to test.</p>
+
+<ol>
+<li class="todo">Start the server by right-clicking on the AFAS icon in the 
+system tray, and choose Start Server from the right-click menu.</li>
+
+<li class="todo">Open a web browser and type in http:// followed by the IP address for 
+the server and press Enter. In our example it was <a target="_blank" class="wiki external"  href="http://72.32.123.61.">http://72.32.123.61.<img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /></a></li>
+</ol>
+
+<p class="body">If the webroot you specified above does not contain any files, you should get back 
+a warning page telling you either that security files are incomplete 
+or that directory browsing is not allowed. Either of these are 
+indicators that you have set things up properly. And these warnings 
+will disappear once you have published your files to the webroot.</p>
+
+<p class="body">If you get an error that says "Bad Header Request" it means that you have 
+conflict with IIS, and you should check your work back in Section 3.</p>
+
+<p class="body">If you get no response back, it could mean that either you entered 
+the wrong IP into the AFAS. But it could also be caused by a firewall preventing access to 
+port 80. If your server is offsite at a hosting provider, you may need to ask them 
+to open port 80 for you.</p>
+
+
+<p class="body">Once the changes to your DNS have taken affect, you should also 
+be able to connect to the web server using its URL.</p>
+
+
+<p class="todo">Repeat these steps to configure each instance you want to run.</p>
+
+
+
+
+
+
+
+
+<p class="section">Step 6: Running Each Instance as a Service</p>
+
+<p class="body">
+So far we have set up each instance so that they can be run manually by double clicking on 
+their corresponding shortcut icon. <br/>
+<img src="images/icons.jpg"><br/><br/>
+
+However, that solution is not adequate if you want to keep the servers running 
+24/7. That's because when windows restarts (such as after a Windows update) the servers 
+are shut down, and you have to manually start them again. <br/><br/>
+
+The solution to that problem is to configure Windows so that your instances of AFAS run as services 
+(in the background) whenever the machine is reboot. Many AFAS users do this with a 
+3rd party tool called 
+<a href="http://www.coretechnologies.com/products/AlwaysUp/">AlwaysUp</a>. However it can 
+also be done using a free tool from Microsoft. <br/><br/>
+
+Instructions for running Alpha Five as a service can be found in the wiki.alphasoftware.com article 
+titled 
+<a href="How to Run Alpha Five as a Service.html">How to run Alpha Five as a service.</a> 
+But take note that you will need to make two variations to those instructions in the article. First you are going 
+to need to create a service for each instance you want to run, and you should give them different names. 
+Second when it comes time to specify the location of the AFAS, you'll need to also specify 
+the configuration files to use. <br/></p>
+
+
+<p class="body">
+<img src="images/registry.jpg"><br/>
+<span class="caption">In the example above, there are 3 instances defined in the 
+registry: A5Server, A5Server2, and A5Showcase Server. These were created using the command line: instsrv.exe <a class="wiki"  href="INSTANCE NAME" rel="">INSTANCE NAME</a> c:\srvmkr\srvany.exe, Where <a class="wiki"  href="SERVICE NAME" rel="">SERVICE NAME</a> was 
+the name of the service we wanted to create. 
+This is explained in more detail 
+<a href="How to Run Alpha Five as a Service.html">in this wiki article</a>.</span>
+
+
+<br/><br/>For your reference here is an example of the proper syntax to use when editing the registry:<br/>
+C:\Program Files\a5V10 ApplicationServer\A5ApplicationServer.exe -CONFIGFILE="C:\A5Showcase.xml"
+</p>
+
+
+<p class="section">A Few Final Notes...</p>
+
+
+<p class="body">Congratulations! You have provisioned your server to run multiple 
+instances Alpha Five. There is no strict upper limit to the number of instances you can run. At Alpha Software, 
+we currently run 5 instances along side IIS on a single server, and the performance is quite good.
+
+
+
+<br/><br/>In the introduction we said that you can run Alpha Five on different cores of 
+a multi-core processor. The AFAS actually handles this for you. So if you have a Quad processor, the AFAS will determine 
+the best core of the four available cores to run on each time you start a new instance. Everything is handled automatically.
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+Run+Multiple+Instances+of+the+Alpha+Five+Application+Server">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

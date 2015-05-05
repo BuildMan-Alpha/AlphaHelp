@@ -1,0 +1,410 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Common_Geography_Database_Tasks">Common Geography Database Tasks</h1>
+<div id='toc'><div id='toctitle'><h3>Table of contents</h3></div><ul class="toc"><li><a href="#Common_Geography_Database_Tasks" class='link'>Common Geography Database Tasks</a>
+<ul><li><a href="#Getting_Table_Information_for_Geometry_Columns" class='link'>Getting Table Information for Geometry Columns</a>
+</li><li><a href="#Define_a_Geography_Column_in_a_SQL_Table" class='link'>Define a Geography Column in a SQL Table</a>
+</li><li><a href="#Create_a_Location_Line_or_Polygon_in_Portable_SQL" class='link'>Create a Location, Line, or Polygon in Portable SQL</a>
+<ul><li><a href="#GeogCreateLocation" class='link'>GeogCreateLocation</a>
+</li><li><a href="#GeogCreateLine" class='link'>GeogCreateLine</a>
+</li><li><a href="#GeogCreatePolygon" class='link'>GeogCreatePolygon</a>
+</li></ul></li><li><a href="#Retrieving_Geography_Properties" class='link'>Retrieving Geography Properties</a>
+<ul><li><a href="#For_All_Objects" class='link'>For All Objects</a>
+</li><li><a href="#For_Points" class='link'>For Points</a>
+</li></ul></li><li><a href="#Converting_Geography_Objects_to_Well-Known_Formats" class='link'>Converting Geography Objects to Well-Known Formats</a>
+<ul><li><a href="#GeogAsBinary" class='link'>GeogAsBinary</a>
+</li><li><a href="#GeogAsText" class='link'>GeogAsText</a>
+</li><li><a href="#GeogCreateFromBinary" class='link'>GeogCreateFromBinary</a>
+</li><li><a href="#GeogCreateFromText" class='link'>GeogCreateFromText</a>
+</li></ul></li><li><a href="#Comparing_Geographic_Objects_Using_SQL" class='link'>Comparing Geographic Objects Using SQL</a>
+<ul><li><a href="#GeogDistanceBetween" class='link'>GeogDistanceBetween</a>
+</li><li><a href="#GeogLocationIntersectsLine" class='link'>GeogLocationIntersectsLine</a>
+</li><li><a href="#GeogLocationIsWithinPolygon" class='link'>GeogLocationIsWithinPolygon</a>
+</li><li><a href="#GeogLocationIsWithinRadius" class='link'>GeogLocationIsWithinRadius</a>
+</li></ul></li><li><a href="#Returning_Database_Values_into_the_Geography_Object" class='link'>Returning Database Values into the Geography Object</a>
+<ul><li><a href="#SQL::ResultSet::DataAsGeography" class='link'>SQL::ResultSet::DataAsGeography</a>
+</li><li><a href="#SQL::ResultSet::Data" class='link'>SQL::ResultSet::Data</a>
+</li></ul></li><li><a href="#See_Also" class='link'>See Also</a>
+</li></ul></li></ul><!--toc--></div><br />
+<h2 class="showhide_heading" id="Getting_Table_Information_for_Geometry_Columns">Getting Table Information for Geometry Columns</h2>
+Alpha Five’s SQL::TableInfo object describes a SQL table, its columns and indexes in a database independent way.  Column definitions in the SQL::TableInfo objects can be populated:<br />
+<ul><li>Directly in XBasic using "intermediate" types - a rich set of types independent of any specific database
+</li><li>From schema information for a SQL table using the SQL::Connection object’s GetTableInfo function
+</li><li>From a DBF table definition by calling the SQL::Connection object’s GetTableInfoFromDBF function
+</li></ul><div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> TI <span style="color: #FF8000;">as</span> SQL::TableInfo
+Connection.<span style="color: #0000FF;">GetTableInfo</span><span style="color: #000000;">&#40;</span>TI, <span style="color: #808080;">&quot;MyTable&quot;</span><span style="color: #000000;">&#41;</span>
+Connection.<span style="color: #0000FF;">GetTableInfoFromDBF</span><span style="color: #000000;">&#40;</span>TI, <span style="color: #808080;">&quot;MyTable&quot;</span><span style="color: #000000;">&#41;</span></pre></div><br />
+<h2 class="showhide_heading" id="Define_a_Geography_Column_in_a_SQL_Table">Define a Geography Column in a SQL Table</h2>
+There are several functions that can be used to create a table from a SQL::TableInfo object instance.  The simplest is to use the connection object and call its CreateTable function as shown below.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> TI <span style="color: #FF8000;">as</span> SQL::TableInfo
+Connection.<span style="color: #0000FF;">CreateTable</span><span style="color: #000000;">&#40;</span>TI<span style="color: #000000;">&#41;</span></pre></div><br />
+<br />
+The intermediate type for geography objects is predictably "geography".  To set the value of a table info column you would write the following script:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #0600FF;">dim</span> Col <span style="color: #FF8000;">as</span> SQL::DataTypeInfo
+Col.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Location&quot;</span>
+Col.<span style="color: #0000FF;">IntermediateType</span> <span style="color: #008000;">=</span> SQL::IntermediateType::Geography
+TI.<span style="color: #0000FF;">AddColumn</span><span style="color: #000000;">&#40;</span>Col<span style="color: #000000;">&#41;</span></pre></div><br />
+<br />
+Here is a more complete example of creating a table with a geometry column using XBasic:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #0600FF;">dim</span> TI <span style="color: #FF8000;">as</span> SQL::TableInfo
+<span style="color: #0600FF;">dim</span> Col <span style="color: #FF8000;">as</span> SQL::DataTypeInfo
+<span style="color: #0600FF;">dim</span> PK <span style="color: #FF8000;">as</span> SQL::IndexInfo
+<span style="color: #0600FF;">dim</span> IXC <span style="color: #FF8000;">as</span> SQL::IndexcolumnInfo
+&nbsp;
+TI.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;GeogTest&quot;</span>
+&nbsp;
+Col <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> SQL::DataTypeInfo<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+Col.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;KeyValue&quot;</span>
+Col.<span style="color: #0000FF;">AlphaType</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C&quot;</span>
+Col.<span style="color: #0000FF;">Length</span> <span style="color: #008000;">=</span> <span style="color: #FF0000;">25</span>
+Col.<span style="color: #0000FF;">Nullable</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>.
+<span style="color: #0000FF;">TI</span>.<span style="color: #0000FF;">AddColumn</span><span style="color: #000000;">&#40;</span>Col<span style="color: #000000;">&#41;</span>
+&nbsp;
+Col <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> SQL::DataTypeInfo<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+Col.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Location&quot;</span>
+Col.<span style="color: #0000FF;">IntermediateType</span> <span style="color: #008000;">=</span> SQL::IntermediateType::Geography
+Col.<span style="color: #0000FF;">Nullable</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>.
+<span style="color: #0000FF;">TI</span>.<span style="color: #0000FF;">AddColumn</span><span style="color: #000000;">&#40;</span>Col<span style="color: #000000;">&#41;</span>
+&nbsp;
+PK.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;PK&quot;</span>
+PK.<span style="color: #0000FF;">PrimaryKey</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+<span style="color: #0000FF;">PK</span>.<span style="color: #0000FF;">Unique</span>     <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+<span style="color: #0000FF;">IXC</span>.<span style="color: #0000FF;">Name</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;KeyValue&quot;</span>
+PK.<span style="color: #0000FF;">AddColumn</span><span style="color: #000000;">&#40;</span>IXC<span style="color: #000000;">&#41;</span>
+TI.<span style="color: #0000FF;">AddIndex</span><span style="color: #000000;">&#40;</span>PK<span style="color: #000000;">&#41;</span>
+&nbsp;
+CreateTestTable <span style="color: #008000;">=</span> Connection.<span style="color: #0000FF;">CreateTable</span><span style="color: #000000;">&#40;</span>TI<span style="color: #000000;">&#41;</span></pre></div><br />
+<h2 class="showhide_heading" id="Create_a_Location_Line_or_Polygon_in_Portable_SQL">Create a Location, Line, or Polygon in Portable SQL</h2>
+Location, Line and Polygon objects can be created using the portable SQL functions <strong>GeogCreateLocation</strong>, <strong>GeogCreateLine </strong>and <strong>GeogCreatePolygon </strong>respectively.<br />
+<br />
+Each of the portable function can be used to construct a native geography object in SQL.  The functions are expanded at run time into the native SQL for the target database (see the database specific notes for details).  The object can then be inserted into a table column or passed to another function, such as a comparison or conversion function.<br />
+<br />
+Here are the functions again, with some examples:<br />
+<h3 class="showhide_heading" id="GeogCreateLocation">GeogCreateLocation</h3>
+<strong>GeogCreateLocation </strong>as Geography (	<span style="color:#090; background:">Longitude </span>as N, <span style="color:#090; background:">Latitude </span>as N<br />
+[,<span style="color:#090; background:">SpatialReferenceID </span>as N])<br />
+<br />
+Constructs a geographic location from a longitude/latitude pair.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox4" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g
+&nbsp;
+<span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g
+&nbsp;
+<span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogDistanceBetween<span style="color: #66cc66;">&#40;</span>GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> 
+        GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">10</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">20</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g
+&nbsp;
+<span style="color: #808080; font-style: italic;">--in this example myLongField is an existing numeric longitude, myLatField is a numeric latitude,</span>
+<span style="color: #808080; font-style: italic;">-- and myNewGeography is a Geography field that needs to be filled in</span>
+<span style="color: #993333; font-weight: bold;">UPDATE</span> mytable <span style="color: #993333; font-weight: bold;">SET</span> myNewGeography <span style="color: #66cc66;">=</span> GeogCreateLocation<span style="color: #66cc66;">&#40;</span>myLongField<span style="color: #66cc66;">,</span> myLatField<span style="color: #66cc66;">&#41;</span></pre></div><br />
+<h3 class="showhide_heading" id="GeogCreateLine">GeogCreateLine</h3>
+<strong>GeogCreateLine </strong>as Geography (	<span style="color:#090; background:">Longitude </span>as N, <span style="color:#090; background:">Latitude </span>as N<br />
+					[…]<br />
+[,<span style="color:#090; background:">SpatialReferenceID </span>as N])<br />
+<br />
+Constructs a geographic line from two or more longitude/latitude pairs.<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox5" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreateLine<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">4</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">5</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">6</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> 
+    <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g
+&nbsp;
+<span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreateLine<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">4</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">5</span><span style="color: #66cc66;">,</span><span style="color: #cc66cc;">6</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> 
+    <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="GeogCreatePolygon">GeogCreatePolygon</h3>
+<strong>GeogCreatePolygon </strong>as Geography (	<span style="color:#090; background:">Longitude </span>as N,  <span style="color:#090; background:">Latitude </span>as N<br />
+[... ]<br />
+[,<span style="color:#090; background:">SpatialReferenceID </span>as N])<br />
+<br />
+Constructs a geographic polygon from three or more longitude/latitude pairs.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox6" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreatePolygon<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">32</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> 
+        <span style="color: #cc66cc;">32</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>
+        <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g
+&nbsp;
+<span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreatePolygon<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">32</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> 
+        <span style="color: #cc66cc;">32</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> 
+        <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">The first and last point of the polygon must be the same, and the points must be arranged in counter-clockwise order.</div></div><br />
+<h2 class="showhide_heading" id="Retrieving_Geography_Properties">Retrieving Geography Properties</h2>
+The properties of geography objects are stored in a single database column.  To retrieve these values, use the following functions:<br />
+<h3 class="showhide_heading" id="For_All_Objects">For All Objects</h3>
+Type	- <strong>GeogType</strong>(Object)<br />
+<br />
+The type function will return LOCATION, LINE, or POLYGON for any of these geographic objects.  Although not all objects are directly supported, you may also see MULTILOCATION, MULTILINE and MULTIPOLYGON as well as other values returned.  Only location, line and polygon are guaranteed to be correctly mapped for all databases.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox7" ><span style="color: #993333; font-weight: bold;">SELECT</span> GeogLongitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> GeogLatitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g 
+<span style="color: #993333; font-weight: bold;">WHERE</span> GeogType<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">=</span> <span style="color: #ff0000;">'LOCATION'</span></pre></div><br />
+<br />
+Spatial Reference Identifier (SRID) – <strong>GeogSRID</strong>(Object)<br />
+The default on most databases is 4326 (1003 on DB2).<br />
+Note:  Unless you have a specific reason to use a different SRID than the default, we recommend this one.  Using the default will get you more consistent results between database vendors.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox8" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogSRID<span style="color: #66cc66;">&#40;</span>GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">50</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">44</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="For_Points">For Points</h3>
+Longitude – <strong>GeogLongitude</strong>(Object)<br />
+<br />
+Returns the longitude value as mapped to X or Y (depending on the database implementation).<br />
+<br />
+<strong>Note</strong>:  As you may have guessed, some databases use the point value of X for longitude and some use Y.  This function handles the inconsistencies.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox9" ><span style="color: #993333; font-weight: bold;">SELECT</span> GeogLongitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> GeogLatitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g 
+<span style="color: #993333; font-weight: bold;">WHERE</span> GeogType<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">=</span> <span style="color: #ff0000;">'LOCATION'</span></pre></div><br />
+<br />
+Latitude – <strong>GeogLatitude</strong>(Object)<br />
+<br />
+Returns the latitude value as mapped to X or Y (depending on the database implementation).<br />
+<br />
+<strong>Note</strong>:  As you may have guessed, some databases use the point value of X for longitude and some use Y.  This function handles the inconsistencies.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox10" ><span style="color: #993333; font-weight: bold;">SELECT</span> GeogLongitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> GeogLatitude<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g 
+<span style="color: #993333; font-weight: bold;">WHERE</span> GeogType<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">=</span> <span style="color: #ff0000;">'LOCATION'</span></pre></div><br />
+<h2 class="showhide_heading" id="Converting_Geography_Objects_to_Well-Known_Formats">Converting Geography Objects to Well-Known Formats</h2>
+The <a class="wiki external" target="_blank" href="http://www.opengeospatial.org/standards" rel="external nofollow">Open Geospatial Consortium (OCG) standard</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /> defines several formats for serializing geography and geometry objects.  There are portable SQL functions for two that are consistently supported by databases:<br />
+<ul><li><strong>Well-known-text</strong> (WKT): for example 'POLYGON((100 200, 110 300, 120 500))'
+</li></ul>This is a text-only format that defines each of the objects in a way that is very readable and easy to construct.<br />
+<ul><li><strong>Well-known-binary</strong> (WKB): a binary equivalent of well-known-text.
+</li></ul>This format compresses the types and coordinates into standard binary format.<br />
+<br />
+While you can certainly create your own well-known-text and well-known-binary strings, you will probably want to use these formats to retrieve and store values.<br />
+<br />
+Here are the functions to convert objects to well-known-text and well-known-binary and back again, with some examples:<br />
+<h3 class="showhide_heading" id="GeogAsBinary">GeogAsBinary</h3>
+<strong>GeogAsBinary </strong>as C(<span style="color:#090; background:">Object </span>as Geography)<br />
+Return the object description in the Well Known Binary (WKB) format.<br />
+<br />
+For example: <div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox11" ><span style="color: #993333; font-weight: bold;">SELECT</span>  GeogAsBinary<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="GeogAsText">GeogAsText</h3>
+<strong>GeogAsText </strong>as C(<span style="color:#090; background:">Object </span>as Geography)<br />
+Return the object description in the Well Known Text (WKT) format.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox12" ><span style="color: #993333; font-weight: bold;">SELECT</span> GeogAsText<span style="color: #66cc66;">&#40;</span>g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="GeogCreateFromBinary">GeogCreateFromBinary</h3>
+<strong>GeogCreateFromBinary </strong>as Geography(<span style="color:#090; background:">Binary</span> as B [, SpatialReferenceID as N])<br />
+Create a geography object from Well Known Binary (WKB) format.<br />
+<br />
+Here is an example of an XBasic script passing a Blob representation of a point object to a SQL statement as an argument:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox13" ><span style="color: #0600FF;">dim</span> MyBlob <span style="color: #FF8000;">as</span> B <span style="color: #008000;">=</span> base64decode<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;AQEAAAAAAAAAAAAkwAAAAAAAAChA&quot;</span><span style="color: #000000;">&#41;</span>
+args.<span style="color: #0000FF;">add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;WKB&quot;</span>, MyBlob<span style="color: #000000;">&#41;</span>
+&nbsp;
+Connection.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;select GeogAsText(GeogCreateFromBinary(:WKB))&quot;</span> <span style="color: #008000;">+</span> <span style="color: #008000;">\</span>
+<span style="color: #808080;">&quot; from GeogTest g&quot;</span><span style="color: #000000;">&#41;</span></pre></div><br />
+<h3 class="showhide_heading" id="GeogCreateFromText">GeogCreateFromText</h3>
+<strong>GeogCreateFromText </strong>as Geography(<span style="color:#090; background:">Text </span>as C [, <span style="color:#090; background:">SpatialReferenceID </span>as N])<br />
+Create a geography object from Well Known Text (WKT) format.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox14" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">1</span> GeogAsText<span style="color: #66cc66;">&#40;</span>GeogCreateFromText<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POINT(-10 27)'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> 
+    <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h2 class="showhide_heading" id="Comparing_Geographic_Objects_Using_SQL">Comparing Geographic Objects Using SQL</h2>
+<h3 class="showhide_heading" id="GeogDistanceBetween">GeogDistanceBetween</h3>
+<strong>GeogDistanceBetween </strong>as N (		<span style="color:#090; background:">Object </span>as Geography,<br />
+<span style="color:#090; background:">Object </span>as Geography)<br />
+Returns the distance between two objects in the default unit (generally meters).<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox15" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">FIRST</span> <span style="color: #cc66cc;">200</span> id<span style="color: #66cc66;">,</span> Code<span style="color: #66cc66;">,</span> Name<span style="color: #66cc66;">,</span> City<span style="color: #66cc66;">,</span> County<span style="color: #66cc66;">,</span> State<span style="color: #66cc66;">,</span> GeogLatitude<span style="color: #66cc66;">&#40;</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">AS</span> Lat<span style="color: #66cc66;">,</span> GeogLongitude<span style="color: #66cc66;">&#40;</span>Location<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">AS</span> Lon<span style="color: #66cc66;">,</span> Elevation<span style="color: #66cc66;">,</span> Location <span style="color: #993333; font-weight: bold;">FROM</span> US_Airports <span style="color: #993333; font-weight: bold;">WHERE</span> GeogLocationIsWithinRadius<span style="color: #66cc66;">&#40;</span>Location<span style="color: #66cc66;">,</span> GeogCreateLocation<span style="color: #66cc66;">&#40;</span> <span style="color: #66cc66;">-</span> <span style="color: #cc66cc;">71.0597732</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42.3584308</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">16093</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">ORDER</span> <span style="color: #993333; font-weight: bold;">BY</span> GeogDistanceBetween<span style="color: #66cc66;">&#40;</span>Location<span style="color: #66cc66;">,</span> GeogCreateFromText<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POINT ( -71.0597732 42.3584308)'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#41;</span></pre></div><br />
+<h3 class="showhide_heading" id="GeogLocationIntersectsLine">GeogLocationIntersectsLine</h3>
+<strong>GeogLocationIntersectsLine </strong>as L (<span style="color:#090; background:">Location </span>as Geography, <span style="color:#090; background:">Line </span>as Geography, <span style="color:#090; background:">Tolerance </span>as N)<br />
+Returns true if the location intersects the line or is within the tolerance distance from it.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox16" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">IF</span><span style="color: #66cc66;">&#40;</span>GeogLocationIntersectsLine<span style="color: #66cc66;">&#40;</span>
+g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">,</span> 
+GeogCreateLine<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">42</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">3000</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It intersects'</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It does not intersect'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="GeogLocationIsWithinPolygon">GeogLocationIsWithinPolygon</h3>
+<strong>GeogLocationIsWithinPolygon </strong>as L (	<span style="color:#090; background:">Location </span>as Geography,<br />
+<span style="color:#090; background:">Polygon </span>as Geography,<br />
+<span style="color:#090; background:">Tolerance</span> as N)<br />
+Returns true if the location is contained within the polygon or within the tolerance distance from it.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox17" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">IF</span><span style="color: #66cc66;">&#40;</span>GeogLocationIsWithinPolygon<span style="color: #66cc66;">&#40;</span>
+g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">,</span> 
+GeogCreatePolygon<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">44</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">34</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">60</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">34</span><span style="color: #66cc66;">,</span> <span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">44</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">5</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It is within the polygon'</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It is not within the polygon'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h3 class="showhide_heading" id="GeogLocationIsWithinRadius">GeogLocationIsWithinRadius</h3>
+<strong>GeogLocationIsWitinRadius </strong>as L (	<span style="color:#090; background:">Location </span>as Geography,<br />
+<span style="color:#090; background:">Point </span>as Geography,<br />
+<span style="color:#090; background:">Radius </span>as N,<br />
+<span style="color:#090; background:">Tolerance </span>as N)<br />
+Returns true if the location is within the radius defined and within the tolerance defined.<br />
+<strong>Note</strong>: Each database handles tolerance differently (as it affects indexing performance).<br />
+<br />
+	For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox18" ><span style="color: #993333; font-weight: bold;">SELECT</span> <span style="color: #993333; font-weight: bold;">IF</span><span style="color: #66cc66;">&#40;</span>GeogLocationIsWithinRadius<span style="color: #66cc66;">&#40;</span>
+g<span style="color: #66cc66;">.</span>Location<span style="color: #66cc66;">,</span> 
+GeogCreateLocation<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">-</span><span style="color: #cc66cc;">70</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">41.99999</span><span style="color: #66cc66;">,</span> :SRID<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> <span style="color: #cc66cc;">50</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It is within the radius'</span><span style="color: #66cc66;">,</span> 
+<span style="color: #ff0000;">'It is not within the radius'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">FROM</span> GeogTest g</pre></div><br />
+<h2 class="showhide_heading" id="Returning_Database_Values_into_the_Geography_Object">Returning Database Values into the Geography Object</h2>
+Microsoft has made some of the user defined types used in SQL server available as a redistributable .Net assembly.  Beginning with Alpha Five Version 11, this assembly is installed with Alpha Five and the geography type is available.  As a result, SQL result sets are now "geography aware".  This means that they will attempt to return the .Net object of the type <strong>Microsoft::SQLServer::Types::SQLGeography</strong> wrapping database data whenever possible.<br />
+<br />
+There are two functions that will try to do this:<br />
+<ul><li><strong>SQL::ResultSet::DataAsGeography</strong>
+</li><li><strong>SQL::ResultSet::Data</strong>
+</li></ul><h3 class="showhide_heading" id="SQL::ResultSet::DataAsGeography">SQL::ResultSet::DataAsGeography</h3>
+When you call <strong>SQL::ResultSet::DataAsGeography</strong>, the column value will be retrieved and converted (if possible) to a <strong>Microsoft::SQLServer::Types::SQLGeography</strong> object.  The input value can be well-known-text (WKT), well-known-binary (WKB), or (for some databases) the result of simply selecting a geography column. Selecting the column directly works in SQL Server, PostgreSQL, and MySQL.<br />
+<br />
+In order to be portable, you will probably want to select the column using <strong>GeogAsText </strong>or <strong>GeogAsBinary</strong>.<br />
+<br />
+Here is a simple example using XBasic:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox19" ><span style="color: #0600FF;">dim</span> Result <span style="color: #FF8000;">as</span> C
+<span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::Connection
+<span style="color: #0600FF;">dim</span> Geography <span style="color: #FF8000;">as</span> A <span style="color: #008080; font-style: italic;">'Note that we’ve dimmed this as A to show the true type.</span>
+&nbsp;
+  <span style="color: #0600FF;">if</span> cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span>ConnectionString<span style="color: #000000;">&#41;</span>
+&nbsp;
+  Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Connection opened successfully.&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+  cn.<span style="color: #0000FF;">portableSQLEnabled</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+&nbsp;
+    <span style="color: #0600FF;">if</span> cn.<span style="color: #0000FF;">execute</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;select GeogAsText(g.Location) from GeogTest g&quot;</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Query executed successfully.&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+      ResultSet <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span> 
+&nbsp;
+      Geography <span style="color: #008000;">=</span> ResultSet.<span style="color: #0000FF;">DataAsGeography</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">1</span>, <span style="color: #FF0000;">4326</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Geography object is of type: &quot;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span>  typeof<span style="color: #000000;">&#40;</span>Geography<span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Geography as XML: &quot;</span> 
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span>  Geography.<span style="color: #0000FF;">AsGML</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>.<span style="color: #0000FF;">Value</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Geography object as Text: &quot;</span> 
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span>  Geography.<span style="color: #0000FF;">ToString</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Geography Longitude: &quot;</span> 
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span>  Geography.<span style="color: #FF0000;">Long</span>.<span style="color: #0000FF;">Value</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Geography Latitude:  &quot;</span> 
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span>  Geography.<span style="color: #0000FF;">Lat</span>.<span style="color: #0000FF;">Value</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span>
+    <span style="color: #FF8000;">else</span>
+      Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error executing query: &quot;</span> <span style="color: #008000;">+</span> CurrentQuery <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+		<span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Result is: &quot;</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span>
+    <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>			
+&nbsp;
+  <span style="color: #FF8000;">else</span>
+    Result <span style="color: #008000;">=</span> Result <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error opening connection: &quot;</span>  <span style="color: #008000;">+</span> ConnectionString <span style="color: #008000;">+</span> <span style="color: #008000;">\</span>
+                <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Result is: &quot;</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+&nbsp;
+  showvar<span style="color: #000000;">&#40;</span>Result<span style="color: #000000;">&#41;</span></pre></div><br />
+<h3 class="showhide_heading" id="SQL::ResultSet::Data">SQL::ResultSet::Data</h3>
+When you call <strong>SQL::ResultSet::Data</strong>, the column value will be retrieved and converted to a <strong>Microsoft::SQLServer::Types::SQLGeography</strong> object if and only if the database returns a geography type and the driver can tell that it has.  When calling the <strong>Data()</strong> function, there is no guarantee that data returned will be an object.  You must check the return type before calling any functions or accessing any properties on the object.<br />
+<br />
+<strong>Notes</strong>:<br />
+<ul><li>Currently SQL Server is the only database that will return a recognizable geography object.  It will also return a SQLGeometry object and a HierarchyId object.  In the future, we hope to be able to return any SQL Server user defined type implemented in .NET for which there is a registered assembly  on the client machine.
+</li><li>MySQL returns a geometry which is converted to a SQLGeometry object (from the same SQL Server assembly).  Note that you could convert one object to the other using WKT or WKB formats, but you can guarantee that you get the right object by using the <strong>DataAsGeography </strong>function instead.
+</li></ul><h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="../Geographic Databases V11.html" title="Geographic Databases V11" class="wiki">Geographic Databases V11</a><br />
+<a href="Changes to SQL Objects for Geometry V11.html" title="Changes to SQL Objects for Geometry V11" class="wiki">Changes to SQL Objects for Geometry V11</a><br />
+<a href="Portable SQL Functions for Geographies V11.html" title="Portable SQL Functions for Geographies V11" class="wiki">Portable SQL Functions for Geographies V11</a><br />
+<a href="Common Geography Database Tasks V11.html" title="Common Geography Database Tasks V11" class="wiki">Common Geography Database Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11.html" title="Database-specific Geography Tasks V11" class="wiki">Database-specific Geography Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11/DB2-specific Geography Tasks V11.html" title="DB2-specific Geography Tasks V11" class="wiki">DB2-specific Geography Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11/MySQL-specific Geography Tasks V11.html" title="MySQL-specific Geography Tasks V11" class="wiki">MySQL-specific Geography Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11/Oracle-specific Geography Tasks V11.html" title="Oracle-specific Geography Tasks V11" class="wiki">Oracle-specific Geography Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11/PostgreSQL-specific Geography Tasks V11.html" title="PostgreSQL-specific Geography Tasks V11" class="wiki">PostgreSQL-specific Geography Tasks V11</a><br />
+<a href="Database-specific Geography Tasks V11/SQL Server-specific Geography Tasks V11.html" title="SQL Server-specific Geography Tasks V11" class="wiki">SQL Server-specific Geography Tasks V11</a><br />
+<a href="SQL Geography Examples V11.html" title="SQL Geography Examples V11" class="wiki">SQL Geography Examples V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Common+Geography+Database+Tasks+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

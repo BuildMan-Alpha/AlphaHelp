@@ -1,0 +1,487 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Displaying Data from a Set</p>
+
+<p>This script demonstrates how you can use an Xdialog box to display data from a set. It shows data from the <span class=Code1>invoice.set</span> in the AlphaSports sample application.</p>
+
+<p class=A5>The Main Script</p>
+
+<p>First, dimension variables and open the set. Exit if the set cannot be found.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>dim setname&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim vl&nbsp;as&nbsp;P</p>
+
+<p class=Code>dim s&nbsp;as&nbsp;P</p>
+
+<p class=Code>dim line_number&nbsp;as&nbsp;N</p>
+
+<p class=Code>dim invoice_number&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim invoice_date&nbsp;as&nbsp;D</p>
+
+<p class=Code>dim customer&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim lastname&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim firstname&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim address1&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim address2&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim city&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim state&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim zip&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim items&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim direction&nbsp;as&nbsp;C</p>
+
+<p class=Code>dim title_bar&nbsp;as&nbsp;C</p>
+
+<p class=Code>setname = a5.Get_Exe_Path()+ chr(92) + "samples\alphasports\invoice.set"</p>
+
+<p class=Code>if file.exists(setname) = .f. then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error","Cannot run this script because '"+setname+"' not found.")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+<p class=Code>end if</p>
+
+<p class=Code>vl = local_variables()</p>
+
+<p class=Code>on error goto set_did_not_open</p>
+
+<p class=Code>s = set.open_session(setname)</td> </tr> </table><p>Next, open the parent <span class=Code1>invoice_header</span> table and the child <span class=Code1>invoice_items</span> table. Initialize variables.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>on error goto 0</p>
+
+<p class=Code>'get pointer to invoice_header table</p>
+
+<p class=Code>tih = s.invoice_header</p>
+
+<p class=Code>tih.index_primary_put("")</p>
+
+<p class=Code>tih.fetch_first()</p>
+
+<p class=Code>'get pointer to invoice_items table</p>
+
+<p class=Code>tii = s.invoice_items</p>
+
+<p class=Code>line_number = 1</p>
+
+<p class=Code>items = ""</p>
+
+<p class=Code>direction = ""</p>
+
+<p class=Code>invoice_number = ""</td> </tr> </table><p>Start creating the Xdialog with the navigation buttons. Note that the <span class=Code1>{can_exit}</span> command allows you to close the dialog by clicking the <span class=Button>X</span> button at the upper right corner of the dialog. The <span class=Code1>{startup}</span> command fires the <span class=Code1>init</span> event, which displays the first records from the parent and child tables.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>title_bar = "{F=Arial,8}{C=Dark Blue,White,Dark Blue}{B=White,Dark Blue,Blue White}#{T=0.25}Quantity{T=0.75}Description{T=3.25}Price{T=4.00}Total"</p>
+
+<p class=Code>ui_modeless_dlg_box("Invoice",<<%dlg%</p>
+
+<p class=Code>{can_exit=close}</p>
+
+<p class=Code>{startup=init}</p>
+
+<p class=Code>{region0}</p>
+
+<p class=Code><%B=T;T=First;I=$a5_record_first;%!first></p>
+
+<p class=Code><%B=T;T=Previous;I=$a5_record_previous;%!prev></p>
+
+<p class=Code><%B=T;T=Next;I=$a5_record_next;%!next></p>
+
+<p class=Code><%B=T;T=Last;I=$a5_record_last;%!last></p>
+
+<p class=Code><%B=T;T=Find;I=$a5_find_by_key;%!find></p>
+
+<p class=Code>;</td> </tr> </table><p>Create the fields to display the records from the parent table and the list box to display the records from the child table.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>{endregion0};</p>
+
+<p class=Code>{line=1,0};</p>
+
+<p class=Code>{region}</p>
+
+<p class=Code>Invoice Number: |[.20invoice_number];</p>
+
+<p class=Code>Date: |[.20invoice_date];</p>
+
+<p class=Code>Customer:|[.55customer];</p>
+
+<p class=Code>Name:|[.20firstname] [.32lastname];;</p>
+
+<p class=Code>Address1:|[.55address1];</p>
+
+<p class=Code>Address2:|[.55address2];</p>
+
+<p class=Code>City, ST Zip: |[.31city] [.5state] [.12zip];</p>
+
+<p class=Code>{endregion};</p>
+
+<p class=Code>{lf};</p>
+
+<p class=Code>[%O={@@};D%.90,1^#title_bar?.f.];</p>
+
+<p class=Code>[%O={@@};D%.90,10line_number^#items];</p>
+
+<p class=Code>{line=1,0};</p>
+
+<p class=Code>{region}</p>
+
+<p class=Code><10&Close!close> ;</p>
+
+<p class=Code>{endregion}</td> </tr> </table><p>This final block of the main script contains the event handling code, the error handler, and the <span class=Code1>end</span> command.. Note how the <a href="../../../References/Functions/INLIST Function.html" title="INLIST Function" class="wiki">INLIST(</a>)function is used to isolate the navigation events in a <span class=Code1>If ... END IF</span> block.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>%dlg%,<<%code%</p>
+
+<p class=Code>if a_dlg_button = "init" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;get_header_variables(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;line_number = 1</p>
+
+<p class=Code>end if</p>
+
+<p class=Code>if a_dlg_button = "find" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;find_invoice(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;line_number = 1</p>
+
+<p class=Code>end if</p>
+
+<p class=Code>if a_dlg_button = "close" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;s.close()</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_modeless_dlg_close("invoice")</p>
+
+<p class=Code>end if</p>
+
+<p class=Code>if inlist(a_dlg_button,"first","next","prev","last") then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;if a_dlg_button = "first" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;direction = "first"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;else if a_dlg_button = "prev" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;direction = "prev"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;else if a_dlg_button = "next" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;direction = "next"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;else if a_dlg_button = "last" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;direction = "last"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;fetch_next(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;line_number = 1</p>
+
+<p class=Code>end if</p>
+
+<p class=Code>%code%)</p>
+
+<p class=Code>end</p>
+
+<p class=Code>set_did_not_open:</p>
+
+<p class=Code>ui_msg_box("Error",setname + " not found, or could not be opened.")</td> </tr> </table><p class=A5>Supporting Functions</p>
+
+<p>The <span class=Code1>fetch_next</span> function retrieves the appropriate <span class=Code1>invoice_header</span> record, ignoring child records (because the fetch level is set to 1). It retrieves the record's field values with the <span class=Code1>get_header_variables</span> function.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function fetch_next&nbsp;as&nbsp;C (vars&nbsp;as&nbsp;P)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;with vars</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if direction = "next" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_next(1)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if direction = "prev" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_prev(1)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if direction = "last" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_last(1)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if direction = "first" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_first(1)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_header_variables(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end with</p>
+
+<p class=Code>end function</td> </tr> </table><p>The <span class=Code1>get_header_variables</span> function reads the current <span class=Code1>invoice_header</span> record and assigns the values to the fields of the Xdialog with the <span class=Code1>get_items</span> function.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function get_header_variables&nbsp;as&nbsp;v (vars&nbsp;as&nbsp;P)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;with vars</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;invoice_number = tih.eval("invoice_number")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;invoice_date = tih.eval("Date")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastname = tih.eval("customer->lastname")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;firstname = tih.eval("customer->firstname")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;company = tih.eval("customer->company")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;address1 = tih.eval("customer->Bill_Address_1")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;address2 = tih.eval("customer->Bill_Address_2")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;city = tih.eval("customer->Bill_City")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state = tih.eval("customer->Bill_State_Region")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;zip = tih.eval("customer->Bill_Postal_Code")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_items(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end with</p>
+
+<p class=Code>end function</td> </tr> </table><p>The <span class=Code1>get_items</span> function builds a list of child records for the current <span class=Code1>invoice_header</span> record. The function applies the formatting to the list that the Xdialog list box control requires with the <a href="../../../References/Functions/A5_OWNER_DRAW_LIST_FMT Function.html" title="A5_OWNER_DRAW_LIST_FMT Function" class="wiki">A5_OWNER_DRAW_LIST_FMT(</a>)function.</p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function get_items&nbsp;as&nbsp;C (vars&nbsp;as&nbsp;P)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;Dim format&nbsp;as&nbsp;P</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;with vars</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items = ""</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tii.fetch_first()</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while .not. tii.fetch_eof()</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items = items + tii.eval("quantity + '|'+product->description+'|'+ price + '|' + alltrim( str((quantity*price),12,2,'$') )")+ crlf()</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tii.fetch_next()</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end while</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.tab_stops=".5,3,3.75"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.odd_row_color="White"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.even_row_color="Blue White"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.odd_selected_color="Dark Blue"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.even_selected_color="Dark Blue"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.font="Arial,8"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.font_color_unselected="Black"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.font_color_selected="White"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.lastbutton="OK"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.group_size=1</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.number_rows=.t.</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Format.alternating_bands=.t.</p>
+
+<p class=Code>'Apply 'owner draw' formatting information to the list</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items = a5_owner_draw_list_fmt(items,Format)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end with</p>
+
+<p class=Code>end function</td> </tr> </table><p>The <span class=Code1>find_invoice</span> displays a popup menu of search alternatives. It then displays an Xdialog that accepts the search parameter. Depending on the user's choice, it sets the order of records using either the <a href="../../../References/Methods/TBL.INDEX_PRIMARY_PUT Method.html" title="TBL.INDEX_PRIMARY_PUT Method" class="wiki">&lt;TBL&gt;.INDEX_PRIMARY_PUT(</a>)or&nbsp; <a href="../../../References/Methods/TBL.ORDER Method.html" title="TBL.ORDER Method" class="wiki">&lt;TBL&gt;.ORDER(</a>)methods. It then finds the next matching record using either the <a href="../../../References/Methods/TBL.FETCH_GOTO Method.html" title="TBL.FETCH_GOTO Method" class="wiki">&lt;TBL&gt;.FETCH_GOTO(</a>)or <a href="../../../References/Methods/TBL.FETCH_FIND Method.html" title="TBL.FETCH_FIND Method" class="wiki">&lt;TBL&gt;.FETCH_FIND(</a>)methods. It uses the <span class=Code1>get_header_variables</span> function to display the results. </p>
+
+ <table class="codeTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top;" valign="top"> <td style="x-cell-content-align: top; width: 100%; padding-right: 10px; padding-left: 10px;" valign="top" width="100%"><p class=Code>function find_invoice&nbsp;as&nbsp;C (vars&nbsp;as&nbsp;P)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;with vars</p>
+
+<p class=Code>menu_choices = <<%list%</p>
+
+<p class=Code>Record Number</p>
+
+<p class=Code>Invoice Number</p>
+
+<p class=Code>Lastname</p>
+
+<p class=Code>%list%</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = ui_popup_menu(menu_choices)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text_prompt = alltrim(result) + ":"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;find_what = ""</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if result = "" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit function</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>find_result = ui_dlg_box("Find Invoice by " + result,<<%dlg%</p>
+
+<p class=Code>{on_key=enter}</p>
+
+<p class=Code>{lf};</p>
+
+<p class=Code>{text=25,1:text_prompt} [.20find_what] {sp};;</p>
+
+<p class=Code>{lf};</p>
+
+<p class=Code>{line=1,0};</p>
+
+<p class=Code><10&Find!find?.not.(find_what="")> <10&Cancel!cancel>;</p>
+
+<p class=Code>%dlg%)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (find_result = "find") .or. (find_result = "enter") then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (find_what <> "") then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if result = "record number" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.index_primary_put("")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_goto( val(find_what) )</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_header_variables(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if result = "invoice number" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.order("invoice_number")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_find(find_what)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_header_variables(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if result = "lastname" then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.order("customer->lastname")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tih.fetch_find(find_what)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_header_variables(vl)</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end with</p>
+
+<p class=Code>end function</td> </tr> </table><p class=Pix> <img src="images/XD_Displaying_data_from_a_set.gif" x-maintain-ratio=TRUE style="border: none; width: 468px; height: 452px; float: none; border-style: none; border-style: none;" width=468 height=452 border=0></p>
+
+<p class=A5>Next</p>
+
+<p> <a href="Displaying Dynamic Help When Clicking on a Label.html" title="Displaying Dynamic Help When Clicking on a Label" class="wiki">Displaying Dynamic Help When Clicking on a Label</a></p>
+
+<p class=A5>See Also</p>
+
+<p> <a href="../Miscellaneous Examples.html" title="Miscellaneous Examples" class="wiki">Miscellaneous Examples</a></p>
+
+<p class=A5>Supported By</p>
+
+<p>Alpha Five Version 5 and Above</p>
+
+<p class=A5>Limitations</p>
+
+<p>Desktop applications only.</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Displaying+Data+from+a+Set">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

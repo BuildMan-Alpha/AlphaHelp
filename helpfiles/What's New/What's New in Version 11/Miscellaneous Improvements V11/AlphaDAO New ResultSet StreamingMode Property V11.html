@@ -1,0 +1,134 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="New_AlphaDAO_lt_ResultSet_gt_.StreamingMode_Property">New AlphaDAO &lt;ResultSet&gt;.StreamingMode Property</h1>
+<strong>&lt;resultset&gt;.StreamingMode</strong> affects the behavior of <strong>&lt;resultset&gt;.ToString()</strong>, <strong>&lt;resultset&gt;.ToDBF()</strong> and <strong>&lt;resultset&gt;.NextRow()</strong><br />
+<br />
+A common pattern in Xbasic after you execute a query that returns a resultset is to use the .<strong>NextRow()</strong> method on the resultset to see if the resultset contains any data. If the <strong>.NextRow()</strong> method returns <strong>.t.</strong>, then you know that the resultset contains data. Using the <strong>.NextRow()</strong> method in this manner (before you actually try to read any data from the resultset) works well in the pattern shown below because the first call to <strong>.NextRow()</strong>, if successful, positions the record pointer on the <em>first</em> record, not the second record, as you might suspect. For example:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::connection 
+?cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::sqlserver_alphasports&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+?cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;select lastname, bill_state_region from [customer with space] where bill_state_region = 'ca'&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+<span style="color: #0000FF;">rs</span> <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span>
+?rs.<span style="color: #0000FF;">NextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>. 
+?rs.<span style="color: #0000FF;">data</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Lastname&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Winka&quot;</span>   <span style="color: #008080; font-style: italic;">'this is the first record in the query, not the second as you might suspect</span>
+rs.<span style="color: #0000FF;">NextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+?rs.<span style="color: #0000FF;">data</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Lastname&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Harrington&quot;</span> <span style="color: #008080; font-style: italic;">'this is the second record in the query</span></pre></div><br />
+The technique of using <strong>&lt;resultset&gt;.NextRow()</strong> did <em>not </em>work correctly if you then called the <strong>.ToString()</strong>, .<strong>ToDBF()</strong> or other data streaming methods on the resultset.<br />
+<br />
+For example:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox1" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::connection 
+cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::sqlserver_alphasports&quot;</span><span style="color: #000000;">&#41;</span>
+cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;select lastname, bill_state_region from [customer with space] where bill_state_region = 'ca'&quot;</span><span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span>
+?rs.<span style="color: #0000FF;">NextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+?cn.<span style="color: #0000FF;">ResultSet</span>.<span style="color: #0000FF;">ToString</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">ERROR</span>: Database API specific <span style="color: #FF8000;">error</span> <span style="color: #0600FF;">while</span> converting ResultSet <span style="color: #FF8000;">to</span> <span style="color: #FF8000;">String</span>
+<span style="color: #000000;">&#91;</span>Microsoft<span style="color: #000000;">&#93;</span><span style="color: #000000;">&#91;</span>SQL Server Native Client <span style="color: #FF0000;">10.0</span><span style="color: #000000;">&#93;</span>Invalid Descriptor Index
+SQL State <span style="color: #FF8000;">is</span>: 07009</pre></div><br />
+However, you can now set the new <strong>.StreamingMode</strong> property on the resultset, so that it is still possible to use the <strong>.NextRow()</strong> method to test if the resultset has data. For example:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox2" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> sql::connection 
+cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::sqlserver_alphasports&quot;</span><span style="color: #000000;">&#41;</span>
+cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;select lastname, bill_state_region from [customer with space] where bill_state_region = 'ca'&quot;</span><span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">ResultSet</span>
+cn.<span style="color: #0000FF;">ResultSet</span>.<span style="color: #0000FF;">StreamingMode</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+?rs.<span style="color: #0000FF;">NextRow</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+?cn.<span style="color: #0000FF;">ResultSet</span>.<span style="color: #0000FF;">ToString</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> Winka CA 
+Harrington CA 
+McAndrews CA 
+Burtonski CA 
+Harrison CA 
+Mahoney CA</pre></div><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:AlphaDAO+New+ResultSet+StreamingMode+Property+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

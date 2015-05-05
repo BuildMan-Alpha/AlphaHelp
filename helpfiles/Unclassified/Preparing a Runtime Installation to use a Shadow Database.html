@@ -1,0 +1,261 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Preparing a Runtime Installation to use a Shadow Database</p>
+
+<p>This technique describes how to run the <span class=Bolded>initial</span> 
+ network optimization after a user installs a runtime application on his 
+ computer. It involves creating a "Bootstrap" application. Here 
+ is how to create a "Bootstrap" application.</p>
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Create a dummy application 
+ with no tables, forms etc. The name of the dummy application must be the 
+ same&nbsp;as&nbsp;the "Master" application. E.g. "AutoPartsStore.adb"</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>This dummy application 
+ will have a single Autoexec script shown below. (Alternatively, create a dummy 
+	table and then create a form for this dummy table. Put a button on this form 
+	and attach the code shown below to the OnPush event on this button. Set this 
+	form to be the startup form - using the File, Database Properties command.)</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Install the "Master" 
+ copy of the application in a shared folder on the server.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Install the "Bootstrap" 
+ application on each runtime user's workstation.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>When the user starts 
+ the "Bootstrap" application (which in this example is called 
+ "AutoParts.adb" it will immediately display a dialog asking 
+ for the path to where the Master copy of "Autoparts.adb" is 
+ installed. Once the user fills this in and clicks the <span class=Button>OK</span> 
+ button, the script will automatically open the master copy of the database. 
+ It will then do the initial Network Optimize, and then open the shadow 
+ copy of the application on the user's machine.</p>
+
+</li>
+</ol>
+
+<p>The next time that the user opens "AutoParts.adb" on his machine 
+ he automatically is working with a network optimized version of the master 
+ database.</p>
+
+
+
+<p class=A5>Autoexec Script</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim master_db_name&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim shadow_db_name&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>master_db_name = ""</p>
+
+
+<p class=Code>shadow_db_name = ""</p>
+
+
+<p class=Code>ui_modeless_dlg_box("Install MyAppName",&lt&lt%dlg%</p>
+
+
+<p class=Code>{can_exit=exit}</p>
+
+
+<p class=Code>{lf};</p>
+
+
+<p class=Code>Specify the filename of the master copy of the application:;</p>
+
+
+<p class=Code>[%P=ui_get_file("Select file","(*.adb)",master_db_name)%.100master_db_name];</p>
+
+
+<p class=Code>{lf};</p>
+
+
+<p class=Code>&ltClick Here to Start Install!oK?.not.(master_db_name="")> 
+ &ltCancel!cancel>;</p>
+
+
+<p class=Code>%dlg%,&lt&lt%code%</p>
+
+
+<p class=Code>if a_dlg_button = "cancel" then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_modeless_dlg_close("Install 
+ MyAppName")</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;a_dlg_button = ""</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>if a_dlg_button = "oK" then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;if file.exists(master_db_name) = 
+ .f. then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ "Master Database not found.")</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;else</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;shadow_db_name 
+ = a5.Get_Name()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a5.Load(master_db_name)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a5_nopt_CopyAddFiles(shadow_db_name, 
+ master_db_name)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;create_shadow2(shadow_db_name, 
+ .t., .t.)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ui_modeless_dlg_close("Install 
+ MyAppName")</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end if</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>%code%)</td></tr>
+</table>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="../References/Desktop/Network Optimization.html" title="Network Optimization" class="wiki">Network Optimization</a></p>
+
+
+
+<p class=A5>Supported By</p>
+
+
+
+<p>Alpha Five Version 7 (Build 3016) and Above</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Preparing+a+Runtime+Installation+to+use+a+Shadow+Database">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

@@ -1,0 +1,142 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h2 class="showhide_heading" id="SQL_Example:_Spreadsheets_from_SQL_schema">SQL Example: Spreadsheets from SQL schema</h2>
+This example creates a multiple spreadsheets from the tables in a SQL::Schema. After the spreadsheet is populated, it is opened in Microsoft Excel.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> DocumentFile <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C:\temp\A5OfficeSample6.xls&quot;</span>
+<span style="color: #0600FF;">dim</span> ConnectionString <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;{A5API=Access,FileName='&quot;</span> <span style="color: #008000;">+</span> a5.<span style="color: #0000FF;">get_exe_path</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                          <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;\MDBFiles\Northwind.mdb',UserName='Admin'}&quot;</span>
+<span style="color: #0600FF;">dim</span> Schema	<span style="color: #FF8000;">as</span> SQL::Schema
+<span style="color: #0600FF;">dim</span> Connection 	<span style="color: #FF8000;">as</span> SQL::Connection
+&nbsp;
+<span style="color: #008080; font-style: italic;">'We can manipulate the schema any way we need to prior to saving</span>
+<span style="color: #008080; font-style: italic;">'Here we are changing the type of the data column for the </span>
+<span style="color: #008080; font-style: italic;">' Category Picture Column and the Employee Photo Column to</span>
+<span style="color: #008080; font-style: italic;">' OLEObject (Access doesn't tell us, but we know...)</span>
+<span style="color: #008080; font-style: italic;">'ToExcel automatically checks to see if an OLEObject is a </span>
+<span style="color: #008080; font-style: italic;">' bitmap and converts it if it is. If you have binary objects</span>
+<span style="color: #008080; font-style: italic;">' that are actually JPG, PNG, DIB, or BMP data, set the value</span>
+<span style="color: #008080; font-style: italic;">' accordingly.</span>
+<span style="color: #0600FF;">if</span> Connection.<span style="color: #0600FF;">Open</span><span style="color: #000000;">&#40;</span>ConnectionString<span style="color: #000000;">&#41;</span>
+	<span style="color: #0600FF;">if</span> Connection.<span style="color: #0000FF;">GetSchema</span><span style="color: #000000;">&#40;</span>Schema<span style="color: #000000;">&#41;</span> 
+	  SetColumnToOLEObject<span style="color: #000000;">&#40;</span>Schema, <span style="color: #808080;">&quot;Categories&quot;</span>, <span style="color: #808080;">&quot;Picture&quot;</span><span style="color: #000000;">&#41;</span>
+	  SetColumnToOLEObject<span style="color: #000000;">&#40;</span>Schema, <span style="color: #808080;">&quot;Employees&quot;</span>, <span style="color: #808080;">&quot;Photo&quot;</span><span style="color: #000000;">&#41;</span>
+	  <span style="color: #0600FF;">if</span> .<span style="color: #804040;">not</span>. <span style="color: #0000FF;">Schema</span>.<span style="color: #0000FF;">ToExcel</span><span style="color: #000000;">&#40;</span>DocumentFile,Connection<span style="color: #000000;">&#41;</span>
+		ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Saving Schema Tables&quot;</span>, <span style="color: #008000;">\</span>
+                   <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> Schema.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>	
+	  <span style="color: #FF8000;">else</span>
+		sys_open<span style="color: #000000;">&#40;</span>DocumentFile<span style="color: #000000;">&#41;</span>
+	  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+	<span style="color: #FF8000;">else</span>
+	  ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Loading Database Schema&quot;</span>, <span style="color: #008000;">\</span>
+                     <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">\</span>
+                    <span style="color: #008000;">+</span> Connection.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>	
+	<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+<span style="color: #FF8000;">else</span>
+	ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Connecting To Database&quot;</span>, <span style="color: #008000;">\</span>
+                   <span style="color: #808080;">&quot;Connection String: &quot;</span> <span style="color: #008000;">\</span>
+             <span style="color: #008000;">+</span> ConnectionString <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Error:&quot;</span> <span style="color: #008000;">\</span>
+             <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> Connection.<span style="color: #0000FF;">callresult</span>.<span style="color: #0000FF;">text</span><span style="color: #000000;">&#41;</span>	
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+&nbsp;
+<span style="color: #0600FF;">FUNCTION</span> SetColumnToOLEObject <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Schema <span style="color: #FF8000;">as</span> SQL::Schema, <span style="color: #008000;">\</span>
+                                    Table <span style="color: #FF8000;">as</span> C, Column <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> Dummy <span style="color: #FF8000;">as</span> SQL::IntermediateType 
+&nbsp;
+<span style="color: #0600FF;">dim</span> TableIndex <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> Schema.<span style="color: #0000FF;">TableNumber</span><span style="color: #000000;">&#40;</span>Table<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">if</span> <span style="color: #000000;">&#40;</span>TableIndex <span style="color: #008000;">&amp;</span>gt; <span style="color: #FF0000;">0</span><span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">dim</span> TableInfo <span style="color: #FF8000;">as</span> SQL::TableInfo <span style="color: #008000;">=</span> Schema.<span style="color: #0000FF;">Table</span><span style="color: #000000;">&#91;</span>TableIndex<span style="color: #000000;">&#93;</span>
+  <span style="color: #0600FF;">dim</span> ColumnIndex <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> TableInfo.<span style="color: #0000FF;">ColumnNumber</span><span style="color: #000000;">&#40;</span>Column<span style="color: #000000;">&#41;</span>
+  <span style="color: #0600FF;">if</span> <span style="color: #000000;">&#40;</span>ColumnIndex <span style="color: #008000;">&amp;</span>gt; <span style="color: #FF0000;">0</span><span style="color: #000000;">&#41;</span>
+    TableInfo.<span style="color: #0000FF;">Column</span><span style="color: #000000;">&#91;</span>ColumnIndex<span style="color: #000000;">&#93;</span>.<span style="color: #0000FF;">IntermediateType</span> <span style="color: #008000;">=</span> OLEObject
+    SetColumnToOLEObject <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="../What's New/What's New in Version 11/Generate Excel Spreadsheets Programmatically V11.html" title="Generate Excel Spreadsheets Programmatically V11" class="wiki">Generate Excel Spreadsheets Programmatically V11</a><br />
+<a href="../What's New/What's New in Version 11/Generate Excel Spreadsheets Programmatically V11/Office Example__COLON__ Spreadsheet from SQL query.html" title="Office Example: Spreadsheet from SQL query" class="wiki">Office Example: Spreadsheet from SQL query</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:SQL+Example%3A+Spreadsheets+from+SQL+schema">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

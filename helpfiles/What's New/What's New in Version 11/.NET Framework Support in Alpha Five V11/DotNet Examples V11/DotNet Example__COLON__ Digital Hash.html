@@ -1,0 +1,251 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="DotNet_Example:_Digital_Hash">DotNet Example: Digital Hash</h1>
+Digital hash functions are often used to validate executable files and digital documents. One important use of a digital hash is to sign e-commerce documents; this is required in order to do business on Amazon, for example.<br />
+<br />
+The .NET Framework has a full set of encryption functions, so it was relatively easy to create a .NET assembly and Xbasic wrapper function for the purpose of implementing an HMAC (hash-based message authentication code).<br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">The value returned for the HMAC hash is in Base64, which is what Amazon wants for e-commerce. If you try to compare Base64 with an online hash calculator that returns hexadecimal, they will not appear to match.<br />
+<br />
+See the <strong>Plain SHA-1 Hash</strong> section below if you only want a simple SHA1 hash, rather than an encrypted HMAC hash based on SHA1 or another hash algorithm.</div></div><br />
+The C# code:<br />
+<div class="plugincode" parse="csharp"><pre class="codelisting" data-syntax="csharp" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF; font-weight: bold;">using</span> <span style="color: #008080;">System</span><span style="color: #008000;">;</span>
+<span style="color: #0600FF; font-weight: bold;">using</span> <span style="color: #008080;">System.Collections.Generic</span><span style="color: #008000;">;</span>
+<span style="color: #0600FF; font-weight: bold;">using</span> <span style="color: #008080;">System.Linq</span><span style="color: #008000;">;</span>
+<span style="color: #0600FF; font-weight: bold;">using</span> <span style="color: #008080;">System.Text</span><span style="color: #008000;">;</span>
+<span style="color: #0600FF; font-weight: bold;">using</span> <span style="color: #008080;">System.Security.Cryptography</span><span style="color: #008000;">;</span>
+&nbsp;
+<span style="color: #0600FF; font-weight: bold;">namespace</span> HashLib
+<span style="color: #008000;">&#123;</span>
+    <span style="color: #0600FF; font-weight: bold;">public</span> <span style="color: #6666cc; font-weight: bold;">class</span> HMAC
+    <span style="color: #008000;">&#123;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// Computes RFC 2104-compliant HMAC signature</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;/summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;data&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;key&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;algorithm&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;returns&amp;gt;Signature&amp;lt;/returns&amp;gt;</span>
+        <span style="color: #0600FF; font-weight: bold;">public</span> <span style="color: #6666cc; font-weight: bold;">String</span> Sign<span style="color: #008000;">&#40;</span><span style="color: #6666cc; font-weight: bold;">String</span> data, <span style="color: #6666cc; font-weight: bold;">String</span> key, KeyedHashAlgorithm algorithm<span style="color: #008000;">&#41;</span>
+        <span style="color: #008000;">&#123;</span>
+            Encoding encoding <span style="color: #008000;">=</span> <a target="_blank" href="http://www.google.com/search?q=new+msdn.microsoft.com"><span style="color: #008000;">new</span></a> UTF8Encoding<span style="color: #008000;">&#40;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+            algorithm<span style="color: #008000;">.</span><span style="color: #0000FF;">Key</span> <span style="color: #008000;">=</span> encoding<span style="color: #008000;">.</span><span style="color: #0000FF;">GetBytes</span><span style="color: #008000;">&#40;</span>key<span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+            <span style="color: #0600FF; font-weight: bold;">return</span> Convert<span style="color: #008000;">.</span><span style="color: #0000FF;">ToBase64String</span><span style="color: #008000;">&#40;</span>algorithm<span style="color: #008000;">.</span><span style="color: #0000FF;">ComputeHash</span><span style="color: #008000;">&#40;</span>
+                encoding<span style="color: #008000;">.</span><span style="color: #0000FF;">GetBytes</span><span style="color: #008000;">&#40;</span>data<span style="color: #008000;">.</span><span style="color: #0000FF;">ToCharArray</span><span style="color: #008000;">&#40;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+        <span style="color: #008000;">&#125;</span>
+&nbsp;
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// Computes RFC 2104-compliant HMAC signature using SHA1</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;/summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;data&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;key&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;returns&amp;gt;Signature&amp;lt;/returns&amp;gt;</span>
+        <span style="color: #0600FF; font-weight: bold;">public</span> <span style="color: #6666cc; font-weight: bold;">String</span> Sign1<span style="color: #008000;">&#40;</span><span style="color: #6666cc; font-weight: bold;">String</span> data, <span style="color: #6666cc; font-weight: bold;">String</span> key<span style="color: #008000;">&#41;</span>
+        <span style="color: #008000;">&#123;</span>
+            KeyedHashAlgorithm algorithm <span style="color: #008000;">=</span> <a target="_blank" href="http://www.google.com/search?q=new+msdn.microsoft.com"><span style="color: #008000;">new</span></a> HMACSHA1<span style="color: #008000;">&#40;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+            <span style="color: #0600FF; font-weight: bold;">return</span> Sign<span style="color: #008000;">&#40;</span>data, key, algorithm<span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+        <span style="color: #008000;">&#125;</span>
+&nbsp;
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">///  Computes RFC 2104-compliant HMAC signature using SHA256</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;/summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;data&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;key&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;returns&amp;gt;Signature&amp;lt;/returns&amp;gt;</span>
+        <span style="color: #0600FF; font-weight: bold;">public</span> <span style="color: #6666cc; font-weight: bold;">String</span> Sign256<span style="color: #008000;">&#40;</span><span style="color: #6666cc; font-weight: bold;">String</span> data, <span style="color: #6666cc; font-weight: bold;">String</span> key<span style="color: #008000;">&#41;</span>
+        <span style="color: #008000;">&#123;</span>
+            KeyedHashAlgorithm algorithm <span style="color: #008000;">=</span> <a target="_blank" href="http://www.google.com/search?q=new+msdn.microsoft.com"><span style="color: #008000;">new</span></a> HMACSHA256<span style="color: #008000;">&#40;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+            <span style="color: #0600FF; font-weight: bold;">return</span> Sign<span style="color: #008000;">&#40;</span>data, key, algorithm<span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+        <span style="color: #008000;">&#125;</span>
+&nbsp;
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// Computes RFC 2104-compliant HMAC signature using specified signature method</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;/summary&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;data&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;key&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;param name=&quot;SignatureMethod&quot;&amp;gt;&amp;lt;/param&amp;gt;</span>
+        <span style="color: #008080; font-style: italic;">/// &amp;lt;returns&amp;gt;Signature&amp;lt;/returns&amp;gt;</span>
+        <span style="color: #0600FF; font-weight: bold;">public</span> <span style="color: #6666cc; font-weight: bold;">String</span> SignUsing<span style="color: #008000;">&#40;</span><span style="color: #6666cc; font-weight: bold;">String</span> data, <span style="color: #6666cc; font-weight: bold;">String</span> key, <span style="color: #6666cc; font-weight: bold;">String</span> SignatureMethod<span style="color: #008000;">&#41;</span>
+        <span style="color: #008000;">&#123;</span>
+            KeyedHashAlgorithm algorithm <span style="color: #008000;">=</span> KeyedHashAlgorithm<span style="color: #008000;">.</span><span style="color: #0000FF;">Create</span><span style="color: #008000;">&#40;</span>SignatureMethod<span style="color: #008000;">.</span><span style="color: #0000FF;">ToUpper</span><span style="color: #008000;">&#40;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+            <span style="color: #0600FF; font-weight: bold;">return</span> Sign<span style="color: #008000;">&#40;</span>data, key, algorithm<span style="color: #008000;">&#41;</span><span style="color: #008000;">;</span>
+        <span style="color: #008000;">&#125;</span>
+    <span style="color: #008000;">&#125;</span>
+<span style="color: #008000;">&#125;</span></pre></div><br />
+The Xbasic wrapper function:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">FUNCTION</span> HMAC_HASH <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#40;</span>data <span style="color: #FF8000;">as</span> C, key <span style="color: #FF8000;">as</span> C, assembly_path <span style="color: #FF8000;">as</span> C, algorithm <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;HMACSHA1&quot;</span><span style="color: #000000;">&#41;</span>
+  <span style="color: #008080; font-style: italic;">'debug(1)</span>
+  <span style="color: #0600FF;">dim</span> alg <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> upper<span style="color: #000000;">&#40;</span>algorithm<span style="color: #000000;">&#41;</span>
+&nbsp;
+  <span style="color: #008080; font-style: italic;">'register .NET class</span>
+  <span style="color: #0600FF;">dim</span> sv <span style="color: #FF8000;">as</span> DotNet::Services
+  <span style="color: #0600FF;">dim</span> <span style="color: #FF8000;">assembly</span> <span style="color: #FF8000;">as</span> DotNet::AssemblyReference
+  <span style="color: #FF8000;">assembly</span>.<span style="color: #0000FF;">FileName</span> <span style="color: #008000;">=</span> assembly_path<span style="color: #008000;">+</span><span style="color: #808080;">&quot;HashLib.dll&quot;</span>
+&nbsp;
+  <span style="color: #0600FF;">IF</span> .<span style="color: #804040;">not</span>. <a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">file</span></a>.<span style="color: #0000FF;">exists</span><span style="color: #000000;">&#40;</span><span style="color: #FF8000;">assembly</span>.<span style="color: #0000FF;">FileName</span><span style="color: #000000;">&#41;</span>
+    ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;File not found&quot;</span>,<span style="color: #FF8000;">assembly</span>.<span style="color: #0000FF;">FileName</span><span style="color: #000000;">&#41;</span>
+    <span style="color: #0600FF;">end</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+&nbsp;
+  <span style="color: #0600FF;">IF</span> sv.<span style="color: #0000FF;">RegisterClass</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;&quot;</span>,<span style="color: #808080;">&quot;&quot;</span>,<span style="color: #808080;">&quot;HashLib.HMAC&quot;</span>,<span style="color: #FF8000;">assembly</span><span style="color: #000000;">&#41;</span> <span style="color: #FF8000;">THEN</span>
+  <span style="color: #008080; font-style: italic;">'Call appropriate .NET method if registration succeeds</span>
+    <span style="color: #0600FF;">dim</span> hash <span style="color: #FF8000;">as</span> DotNet::HashLib::HMAC
+    <span style="color: #0600FF;">SELECT</span>
+      <span style="color: #0600FF;">CASE</span> alg<span style="color: #008000;">=</span><span style="color: #808080;">&quot;HMACSHA1&quot;</span>
+        HMAC_HASH <span style="color: #008000;">=</span> hash.<span style="color: #0000FF;">Sign1</span><span style="color: #000000;">&#40;</span>data,key<span style="color: #000000;">&#41;</span>
+&nbsp;
+      <span style="color: #0600FF;">CASE</span> alg<span style="color: #008000;">=</span><span style="color: #808080;">&quot;HMACSHA256&quot;</span>
+        HMAC_HASH <span style="color: #008000;">=</span> hash.<span style="color: #0000FF;">Sign256</span><span style="color: #000000;">&#40;</span>data,key<span style="color: #000000;">&#41;</span>
+&nbsp;
+      <span style="color: #0600FF;">CASE</span> <span style="color: #FF8000;">else</span>
+        HMAC_HASH <span style="color: #008000;">=</span> hash.<span style="color: #0000FF;">SignUsing</span><span style="color: #000000;">&#40;</span>data,key,alg<span style="color: #000000;">&#41;</span>
+    <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">SELECT</span>
+  <span style="color: #0600FF;">END</span> <span style="color: #0600FF;">IF</span>
+<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+An interactive session to test the function:<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" >path <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\&quot;</span>
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path<span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Wnw05dPAEo44+bw1luJqAWksvhE=&quot;</span>
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;HMACSHA1&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Wnw05dPAEo44+bw1luJqAWksvhE=&quot;</span>
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;HMACSHA256&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;kBhEzgLKNjSjjzQw7s240hvoY62kDG/wHDjYXry++nA=&quot;</span>
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;HMACSHA384&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;1819IdbuGcIweTIhYBwIK1mOmNrlpgRKK98gnDlVJyXug36wQoDWuBoGlB/GfMqc&quot;</span>
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;MACTripleDES&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">ERROR</span>: <span style="color: #0600FF;">command</span>:         HMAC_HASH <span style="color: #008000;">=</span> hash.<span style="color: #0000FF;">SignUsing</span><span style="color: #000000;">&#40;</span>data,key,alg<span style="color: #000000;">&#41;</span>
+Exception has been thrown by the target <span style="color: #FF8000;">of</span> an invocation.
+<span style="color: #0000FF;">Specified</span> key <span style="color: #FF8000;">is</span> <span style="color: #804040;">not</span> a valid size <span style="color: #FF8000;">for</span> this algorithm.
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;hMACmd5&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;6YeAf6EEZBgdF4BqkAQe/w==&quot;</span>
+&nbsp;
+?HMAC_HASH<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;my data&quot;</span>, <span style="color: #808080;">&quot;my key&quot;</span>, path, <span style="color: #808080;">&quot;garbage&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #FF8000;">ERROR</span>: <span style="color: #0600FF;">command</span>:         HMAC_HASH <span style="color: #008000;">=</span> hash.<span style="color: #0000FF;">SignUsing</span><span style="color: #000000;">&#40;</span>data,key,alg<span style="color: #000000;">&#41;</span>
+Exception has been thrown by the target <span style="color: #FF8000;">of</span> an invocation.
+<span style="color: #FF0000;">Object</span> reference <span style="color: #804040;">not</span> <span style="color: #FF8000;">set</span> <span style="color: #FF8000;">to</span> an instance <span style="color: #FF8000;">of</span> an <span style="color: #FF0000;">object</span>.</pre></div><br />
+A <a href="../../New Xbasic Functions and Methods V11/hmac_hash Function.html" title="hmac_hash Function" class="wiki">modified version of this function</a> and the required .NET DLL will ship with Version 11. The .NET DLL needed for running this sample (if you don't want to compile the C# yourself) is attached. (See attachments button at bottom of page)<br />
+<h2 class="showhide_heading" id="Plain_SHA-1_Hash">Plain SHA-1 Hash</h2>
+Calculating a plain SHA-1 hash is a simpler problem. The following script will accomplish the purpose.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #0600FF;">dim</span> data <span style="color: #FF8000;">as</span> b
+<span style="color: #0600FF;">dim</span> result <span style="color: #FF8000;">as</span> b
+data <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;my data&quot;</span>
+<span style="color: #0600FF;">dim</span> sham <span style="color: #FF8000;">as</span> ::System::Security::Cryptography::SHA1Managed <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
+        <span style="color: #FF8000;">new</span> ::System::Security::Cryptography::SHA1Managed<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+result <span style="color: #008000;">=</span> sham.<span style="color: #0000FF;">ComputeHash</span><span style="color: #000000;">&#40;</span>data<span style="color: #000000;">&#41;</span>
+showvar<span style="color: #000000;">&#40;</span><span style="color: #008000;">*</span>to_hex<span style="color: #000000;">&#40;</span>result<span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span></pre></div><br />
+<br />
+This gives :<br />
+<br />
+fee95d29ae5926af3375e2eb3a688471de0a2c3e<br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">The blob type in Xbasic (dim data as b) corresponds to the byte&#91;] type in the .NET framework.</div></div><br />
+<br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="../../New Xbasic Functions and Methods V11/hmac_hash Function.html" title="hmac_hash Function" class="wiki">hmac_hash Function</a><br />
+<a class="wiki external" target="_blank" href="http://msdn.microsoft.com/en-us/library/system.security.cryptography.aspx" rel="external nofollow">.NET System.Security.Cryptography Namespace</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /><br />
+<a href="../../.NET Framework Support in Alpha Five V11.html" title=".NET Framework Support in Alpha Five V11" class="wiki">.NET Framework Support in Alpha Five V11</a><br />
+<a href="../DotNet__NAMESPACE__AssemblyReference.html" title="DotNet::AssemblyReference" class="wiki">DotNet::AssemblyReference</a><br />
+<a href="../DotNet__NAMESPACE__Services.html" title="DotNet::Services" class="wiki">DotNet::Services</a><br />
+<a href="../DotNet__NAMESPACE__Services/CreateObject Method.html" title="CreateObject Method" class="wiki">CreateObject Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/CallStaticFunction Method.html" title="CallStaticFunction Method" class="wiki">CallStaticFunction Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/ConstructGenericTypeName Method.html" title="ConstructGenericTypeName Method" class="wiki">ConstructGenericTypeName Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GetStaticProperty Method.html" title="GetStaticProperty Method" class="wiki">GetStaticProperty Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/SetStaticProperty Method.html" title="SetStaticProperty Method" class="wiki">SetStaticProperty Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterClass Method.html" title="RegisterClass Method" class="wiki">RegisterClass Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterAssembly Method.html" title="RegisterAssembly Method" class="wiki">RegisterAssembly Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/RegisterNamespace Method.html" title="RegisterNamespace Method" class="wiki">RegisterNamespace Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GenerateWebServiceClientFromURL Method.html" title="GenerateWebServiceClientFromURL Method" class="wiki">GenerateWebServiceClientFromURL Method</a><br />
+<a href="../DotNet__NAMESPACE__Services/GenerateWebServiceClientFromWSDL Method.html" title="GenerateWebServiceClientFromWSDL Method" class="wiki">GenerateWebServiceClientFromWSDL Method</a><br />
+<a href="../Preloaded .NET Classes V11.html" title="Preloaded .NET Classes V11" class="wiki">Preloaded .NET Classes V11</a><br />
+<a href="../Writing Xbasic wrapper classes for .NET classes V11.html" title="Writing Xbasic wrapper classes for .NET classes V11" class="wiki">Writing Xbasic wrapper classes for .NET classes V11</a><br />
+<a href="../DotNetPath Function.html" title="DotNetPath Function" class="wiki">DotNetPath Function</a><br />
+<a href="../DotNet Examples V11.html" title="DotNet Examples V11" class="wiki">DotNet Examples V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:DotNet+Example%3A+Digital+Hash">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

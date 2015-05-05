@@ -1,0 +1,151 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Xbasic_-_DIMMing_Variables">Xbasic - DIMMing Variables</h1>
+A change has been made in how Xbasic operates when DIMMing a dot variable. If the user has not explicitly specified the scope in the DIM statement, Alpha Five will now try to see if the dot variable parent container already exists in all scopes (GLOBAL, SHARED, etc. ) and if so, it will DIM the variable in that scope rather than creating a new locally scoped variable.<br />
+<br />
+It is <em>possible</em> that this change will break an existing application in some way. We think that chance of this breaking existing applications is <em>extremely small</em>, but if so, the change to your Xbasic to fix the problem will likely be very simple, as explained below.<br />
+<br />
+The following example will illustrate the point.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> global myGvarContainer.<span style="color: #0000FF;">myvar1</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;alpha&quot;</span>
+<span style="color: #0600FF;">dim</span> myGvarContainer.<span style="color: #0000FF;">myvar2</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;beta&quot;</span></pre></div><br />
+<br />
+In the above example, the user was explicit about the scope in the first statement, but not the second statement. As a result, with the previous version of Alpha Five, the following variables were created:<br />
+<br />
+<em>myGvarContainer </em>- a pointer variable in the Global name space<br />
+<em>myGvarContainer.myvar1</em> - a character variable in the Global name space<br />
+<em>myGvarContainer </em>- a pointer variable in the Local name space (created by the second command)<br />
+<em>myGvarContainer.myvar2</em> - a character variable in the Local name space<br />
+<br />
+Now, as a result of the change, the following variables are created by the above two commands:<br />
+<em>myGvarContainer </em>- a pointer variable in the Global name space<br />
+<em>myGvarContainer.myvar1</em> - a character variable in the Global name space<br />
+<em>myGvarContainer.myvar2</em> - a character variable in the Global name space<br />
+<br />
+In the above example, had the second <strong>DIM </strong>statement been written as:<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> global myGvarContainer.<span style="color: #0000FF;">myvar2</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;beta&quot;</span></pre></div><br />
+<br />
+then the old behavior of Alpha Five and the new behavior would have been identical.<br />
+<br />
+To reiterate the point here, if you look at the second <strong>DIM </strong>statement above, you see that there is no explicit scope. But since Alpha Five can find the variable container ('myGvarContainer') in the Global name space, the new variable ('myvar2') is created as a child of the existing variable in the <em>Global </em>namespace, rather than creating a new variable in the <em>Local </em>name space.<br />
+<br />
+In the above example, if you want to preserve the old behavior, you can easily do so by adding this extra DIM statement (shown in red):<br />
+<br />
+<span style="color:BLUE; background:">dim global myGvarContainer.myvar1 as c = "alpha"</span><br />
+<span style="color:RED; background:">dim myGvarContainer as p</span><br />
+<span style="color:BLUE; background:">dim myGvarContainer.myvar2 as c = "beta"</span><br />
+<br />
+Now there will be two 'myGvarContainer' dot variables - one in the Global name space and one in the Local name space, and the DIM statement for 'myvar2' will create a Local variable (just as it did before this change was introduced).<br />
+<br />
+Why was this change made? The reason this change was made is that users were breaking their Web applications by writing code like this<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span></pre></div><br />
+<br />
+The reason for doing this was to ensure that a session variable existed before its value was tested. For example:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span>
+<span style="color: #0600FF;">if</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;value1&quot;</span> <span style="color: #FF8000;">then</span>
+    <span style="color: #008080; font-style: italic;">'do something</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span></pre></div><br />
+<br />
+This would not work as the user was probably expecting because the DIM statement was actually creating a LOCAL variable called 'session' and then DIMming 'var1' as a child of the LOCAL 'session' variable.<br />
+<br />
+The user was likely expecting the above DIM statement to DIM 'var1' in the Global 'session' object.<br />
+<br />
+Now, as a result of the change made in this build, the above statement will DIM var1 in the Global 'session' object.<br />
+<br />
+Note however, that the following code pattern would still be <em>wrong </em>and would lead to errors:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox4" ><span style="color: #0600FF;">dim</span> session <span style="color: #FF8000;">as</span> P
+<span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span>
+<span style="color: #0600FF;">if</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;value1&quot;</span> <span style="color: #FF8000;">then</span>
+    <span style="color: #008080; font-style: italic;">'do something</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span></pre></div><br />
+<br />
+This would create a LOCAL variable called 'session' that would mask the global 'session' object and 'var1' would have been created as child of the local 'session' variable.<br />
+<br />
+<div class="clearfix rbox tip"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/book_open.png" alt="tip" width="16" height="16" title="tip" class="icon" /><span>Bottom Line</span></div><div class="rbox-data">Do not put <span style="color:blue; background:">Dim session as p</span> in your Xbasic code in Web Applications unless you actually want to create a local variable of type P in the LOCAL name space. We think this is <em>incredibly </em>unlikely.</div></div><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Xbasic+-+DIMMing+Variables+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

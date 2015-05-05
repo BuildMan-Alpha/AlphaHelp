@@ -1,0 +1,150 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Saving_Dialog_Contents_to_a_SQL_Database">Saving Dialog Contents to a SQL Database</h1>
+You may not want to save your dialog contents to a DBF database, especially if you are using the dialog in a high-traffic Internet application. Instead, you can email the submitted data or save it to a SQL database. In this example, we'll save it to a SQL database.<br />
+<br />
+As before, we must first create an appropriate database. For our example, we'll use Microsoft SQL Server; you can use any SQL database you have available, including Microsoft Access. Since we already have the table structure in Alpha Five, this is a very easy process.<br />
+<br />
+First, go into your SQL database and create a new table. We created a new database named <em>soldier</em> using Microsoft SQL Server Management Studio. Then go to Alpha and create and then run an export operation from the <strong>soldier</strong> DBF table through a new AlphaDAO connection string (named <strong>soldier</strong>) to the <strong>soldier</strong> SQL table.<br />
+<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=1190','HEIGHT=852','BACKGROUND=img/wiki_up/soldier_table_export.png']);">	<img src="images/soldier_table_export.png" height="426" width="595" alt="Image" /></a><br />
+<br />
+Now the SQL Server has a table <strong>soldier</strong> within a database <strong>soldier</strong>, which we can access through the named connection string <strong>soldier</strong>.<br />
+<br />
+Note that this process will not create indexes or a primary key. You can add an auto-incremented ID field to the table and make it the primary key if you wish. You can also add indexes for any field or combination of fields. This will not require any of the following code to change, since auto-incremented fields are not included in INSERT statements.<br />
+<br />
+Alternatively, just create the table, primary key, and indexes directly in SQL Server Management Studio or your database design tool of choice. You'll still need to create a connection string in Alpha Five.<br />
+<br />
+The code to handle the <strong>afterDialogValidate</strong> event is now:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">function</span> afterDialogValidate <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>e <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">'... comments omitted ...</span>
+<span style="color: #008080; font-style: italic;">'debug(1)</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Insert a new record into a remote SQL database.</span>
+<span style="color: #008080; font-style: italic;">'DIM a connection variable</span>
+<span style="color: #0600FF;">DIM</span> cn <span style="color: #FF8000;">as</span> SQL::Connection
+<span style="color: #0600FF;">dim</span> flagResult <span style="color: #FF8000;">as</span> l 
+flagResult <span style="color: #008000;">=</span> cn.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::soldier&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">if</span> flagResult <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>. <span style="color: #FF8000;">then</span> 
+  e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('Error, Could not connect to database. Error was: &quot;</span> 
+  e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span>e.<span style="color: #0000FF;">javascript</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">CallResult</span>.<span style="color: #0000FF;">text</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;');&quot;</span>
+  <span style="color: #0600FF;">end</span> 
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Specify that we are using Portable SQL syntax</span>
+cn.<span style="color: #0000FF;">PortableSQLEnabled</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Dim a SQL arguments object, create arguments and set their values</span>
+<span style="color: #0600FF;">DIM</span> args <span style="color: #FF8000;">as</span> sql::arguments
+args.<span style="color: #FF8000;">set</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;NAME&quot;</span>,e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">NAME</span><span style="color: #000000;">&#41;</span>
+args.<span style="color: #FF8000;">set</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;RANK&quot;</span>,e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">RANK</span><span style="color: #000000;">&#41;</span>
+args.<span style="color: #FF8000;">set</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;SERIALNR&quot;</span>,e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">SERIALNR</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #0600FF;">dim</span> sqlInsertStatement <span style="color: #FF8000;">as</span> c 
+sqlInsertStatement <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%txt%
+INSERT INTO soldier  <span style="color: #000000;">&#40;</span>NAME, RANK, SERIALNR<span style="color: #000000;">&#41;</span> VALUES <span style="color: #000000;">&#40;</span>:NAME, :RANK, :SERIALNR<span style="color: #000000;">&#41;</span>
+%txt%
+&nbsp;
+<span style="color: #0600FF;">dim</span> flag <span style="color: #FF8000;">as</span> l 
+flag <span style="color: #008000;">=</span> cn.<span style="color: #0000FF;">Execute</span><span style="color: #000000;">&#40;</span>sqlInsertStatement,args<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">if</span> flag <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>. <span style="color: #FF8000;">then</span> 
+  e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('Error, Record was not inserted. Error was: &quot;</span> 
+  e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span>e.<span style="color: #0000FF;">javascript</span> <span style="color: #008000;">+</span> cn.<span style="color: #0000FF;">CallResult</span>.<span style="color: #0000FF;">text</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;');&quot;</span>
+<span style="color: #FF8000;">else</span>
+  <span style="color: #0600FF;">if</span> cn.<span style="color: #0000FF;">AffectedRows</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">then</span> 
+    e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('Submitted: &quot;</span><span style="color: #008000;">+</span>e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">NAME</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;, &quot;</span> <span style="color: #008000;">+</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">RANK</span>
+    e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span>e.<span style="color: #0000FF;">javascript</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;, &quot;</span> <span style="color: #008000;">+</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">SERIALNR</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;');&quot;</span>
+  <span style="color: #FF8000;">else</span>
+    e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('Error, Record was not inserted.');&quot;</span>
+  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span> 
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span> 
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Now, close the connection </span>
+cn.<span style="color: #0600FF;">close</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span></pre></div><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Saving+Dialog+Contents+to+a+SQL+Database+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

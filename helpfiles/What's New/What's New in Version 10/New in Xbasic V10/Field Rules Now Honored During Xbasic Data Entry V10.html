@@ -1,0 +1,189 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h2>Field Rules Now Honored During Xbasic Data Entry</h2>
+<p>When you do data entry using Xbasic, only a limited number of Field Rules (so  called 'engine level' Field Rules) are honored. Rules for calculated fields and  auto-increment fields are honored, but rules such as capitalization, validation,  posting, cross-file validation, etc. are not honored. These Field Rules are only  honored when you do data entry interactively, using a Form or Browse layout.</p>
+<!-- startAnchor --><a name=".enter_record(),&nbsp; .change_record() and .delete_record() Methods"></a><!-- endAnchor -->
+<h3>.enter_record(),&nbsp; .change_record() and .delete_record() Methods</h3>
+<p>Now, three new methods, <tbl>.change_record(),  <tbl>.enter_record() and <tbl>.delete_record() allow you to  enter/edit/delete records using Xbasic, while still honoring Field Rules. These  methods can be used instead of the older <tbl>.enter_begin() and  <tbl>.chagne_begin() methods.</p>
+<p>The example&nbsp; below shows an Interactive Window session (assume that the table  has defined Field Rules that specify that Lastname is required, and that the  Company can't be 'alpha'):</p>
+<p class="xbasic">t = table.open("customer")<br />
+'DIM a dot variable with  properties that match the fieldnames you want to enter<br />
+dim r as  p<br />
+r.firstname = ""<br />
+r.company = "alpha"</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">DIM v as p<br />
+v = t.enter_record(r)<br />
+?v.has_errors<br />
+=  .T.<br />
+?v.error.size()<br />
+= 2<br />
+<br />
+?v.Format("$(field) =  $(error)"+crlf())<br />
+= CUSTOMER1->COMPANY = company can't be  alpha<br />
+CUSTOMER1->LASTNAME = Field is required: LASTNAME<br />
+&nbsp;</p>
+<p>Notice from the above example that the .enter_record() method returns a dot  variable that contains information about any Field Rule violations that  occured.</p>
+<p>Similarly, the example below shows how to use the .change_record()  method:</p>
+<p>&nbsp;</p>
+<p class="xbasic">'DIM a dot variable with properties that match the fieldnames  you want to change<br />
+dim r as p<br />
+r.firstname = ""<br />
+r.company = "alpha"<br />
+v  = t.change_record(r)<br />
+?v.has_errors<br />
+= .T.<br />
+?v.error.size()<br />
+=  2<br />
+<br />
+?v.Format("$(field) = $(error)"+crlf())<br />
+= CUSTOMER1->COMPANY =  company can't be alpha<br />
+CUSTOMER1->LASTNAME = Field is required:  LASTNAME<br />
+&nbsp;</p>
+<p>As the examples show, a dot variable is created with properties for all of  the fields that you want to enter/change. In the above examples, we enter or  change the 'firstname' and 'company' fields in the customer table.</p>
+<p>Once the dot variable has been created, the <tbl>.enter_record() or  <tbl>.change_record() method is called. These methods take as their  argument the dot variable with the field values.</p>
+<p>The methods return a dot variable. The dot variable has an 'has_errors'  property which lets you know if the method succeeded or not. If not, then the  errors are returned in an array called 'errors' which is a sub-property of the  dot variable.</p>
+<p>The dot variable that is returned by the .change_record() or .enter_record()  method is actually an object (the 'validation' object), and it has a .Format()  method, which allows you to format the error message into a friendly text or  html format ready for display to the user. The format() method can use these  placeholders:</p>
+<table style="BORDER-COLLAPSE: collapse" id="table61" border="1" cellspacing="1" cellpadding="3">
+    <tbody>
+        <tr>
+            <td width="274">$(field)</td>
+            <td>Placeholder for the fieldname for which the error occurred</td>
+        </tr>
+        <tr>
+            <td width="274">$(error)</td>
+            <td>Placeholder for the plain-text error message</td>
+        </tr>
+        <tr>
+            <td width="274">$(errorhtml)</td>
+            <td>Placeholder for the HTML formatted error message</td>
+        </tr>
+    </tbody>
+</table>
+<p>&nbsp;</p>
+<p>In the above examples, you can see that we call the .Format() method with  this argument:</p>
+<p class="xbasic">"$(field) = $(error)"+crlf()</p>
+<p>The crlf() is necessary because the .Format() method does not put in line  breaks between each message.</p>
+<p>The string "$(field) = $(error)" contains two placeholders which get replaced  by each field for which an error occurred and by the corresponding error  message.</p>
+<!-- startAnchor --><a name="Validating Data Before Committing It"></a><!-- endAnchor -->
+<h3>Validating Data Before Committing It</h3>
+<p>In the above examples, the validation occurred at the time we actually tried  to enter the record, or save the changes. However, the <tbl> object also  has a new .validate_record() method that allows you to validate the record  against the Field Rules when you are using the older <tbl>.enter_records()  and <tbl>.change_records() methods.</p>
+<p><tbl>.validate_record() returns a default formatted error string if  there are any errors.</p>
+<p>You can pass in an optional format string to the .validate_record() method to  control the formatting of the error message. The syntax for the format string is  the same as the .Format() method of the validation object, described above.</p>
+<p>Example (assuming the same field rules are defined as in the above  example)</p>
+<p>&nbsp;</p>
+<p class="xbasic">DIM t as p</p>
+<p class="xbasic">t = table.open("customer")</p>
+<p class="xbasic">t.enter_begin()</p>
+<p class="xbasic">t.company = "XYZ Compay"</p>
+<p class="xbasic">?t.validate_record()</p>
+<p class="xbasic"><tr><td>customer->LASTNAME</td><td>Field  is required: LASTNAME</td></tr></p>
+<p class="xbasic">&nbsp;</p>
+<p>Notice that if you do not pass in a format string to the .validate_record()  method, it returns an HTML table with the error messages.</p>
+<p>&nbsp;</p>
+<!-- startAnchor --><a name="Posting Rules Now Honored During Xbasic Data Entry"></a><!-- endAnchor -->
+<h3>Posting Rules Now Honored During Xbasic Data Entry</h3>
+<p>The following Interactive Window session (for AlphaSports) shows that Posting  Field rules are now honored when data entry is performed using Xbasic.  Previously, they were only honored when doing edits using the user  interface.</p>
+<p>&nbsp;</p>
+<p class="xbasic">pt = table.open("product")<br />
+? pt.PRODUCT_ID<br />
+= "P001 "<br />
+?  pt.QTY_IN_STO<br />
+= 140<br />
+<br />
+pi =  table.open("invoice_items")<br />
+pi.enter_begin(.t.)<br />
+pi.INVOICE_NUMBER =  "1001"<br />
+pi.PRODUCT_ID = pt.PRODUCT_ID<br />
+pi.QUANTITY =  10<br />
+pi.enter_end(.t.)<br />
+<br />
+? pt.QTY_IN_STO<br />
+=  130<br />
+<br />
+pt.close()<br />
+pi.close()<br />
+<br />
+&nbsp;</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Field+Rules+Now+Honored+During+Xbasic+Data+Entry+V10">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

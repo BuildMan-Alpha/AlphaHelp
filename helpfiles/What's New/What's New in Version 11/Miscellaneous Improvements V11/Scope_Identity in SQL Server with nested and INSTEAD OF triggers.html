@@ -1,0 +1,161 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Scope_Identity_in_SQL_Server_with_nested_and_INSTEAD_OF_triggers">Scope_Identity in SQL Server with nested and INSTEAD OF triggers</h1>
+There is a problem getting the last inserted identity from SQL Server in an ODBC/native driver when triggers are involved and with prepared statements having bound arguments.<br />
+<br />
+<h2 class="showhide_heading" id="The_short_summary:">The short summary:</h2>
+<ul><li>Use <strong>SET NOCOUNT ON</strong> in stored procedures, especially if they are being used as triggers
+</li><li>In INSTEAD OF Triggers for INSERTS:
+<ul><li>Add the statement <strong>SELECT SCOPE_IDENTITY();</strong> to the end of an INSTEAD OF trigger. This will return a result set with the correct identity.  If multiple inserts are done, it is the responsibility of the trigger author to save the correct one and return that value with a SELECT statement.
+</li><li>Add <strong>SET NOCOUNT ON</strong> to each trigger to prevent addition of other result sets that will cause the wrong value to be interpreted as the returned identity.
+</li></ul></li></ul><h2 class="showhide_heading" id="The_long_story_for_DBAs_and_advanced_database_programmers_">The long story (for DBAs and advanced database programmers)</h2>
+At this point, and subject to internal and customer testing, we are able to return the newly inserted identity in SQL::Connection::CallResult::LastInsertedIdentity for:<br />
+<ul><li>INSERT statements with literal values
+</li><li>INSERT statements with bound values
+</li><li>INSERT statements with triggers that do inserts, including nested triggers
+</li><li>INSERT statements with INSTEAD OF triggers subject to the last executed SQL statement in the trigger being <strong>SELECT SCOPE_IDENTITY();</strong>
+</li></ul><br />
+Customers should not care about most of this unless they are using INSTEAD OF triggers.  That said, anyone writing triggers should be encouraged to use <strong>SET NOCOUNT ON</strong> in stored procedures.<br />
+<h3 class="showhide_heading" id="What_Customers_Need_To_Do_to_Deal_With_INSTEAD_OF_Triggers_for_INSERTS_See_below_for_more_detail_:">What Customers Need To Do to Deal With INSTEAD OF Triggers for INSERTS (See below for more detail):</h3>
+<ul><li>Add the statement <strong>SELECT SCOPE_IDENTITY();</strong> to the end of an INSTEAD OF trigger.. This will return a result set with the correct identity.  If multiple inserts are done, it is the responsibility of the trigger author to save the correct one and return that value with a <strong>SELECT</strong> statement.
+</li><li>Add <strong>SET NOCOUNT ON</strong> to each trigger to prevent addition of other result sets that will cause the wrong value to be interpreted as the returned identity.
+</li></ul><h2 class="showhide_heading" id="The_Problem_in_Detail">The Problem in Detail</h2>
+<h3 class="showhide_heading" id="Three_Ways_of_Retrieving_Identities_in_SQL_Server">Three Ways of Retrieving Identities in SQL Server</h3>
+SQL Server provides three ways to retrieve the most recent identity inserted into a table.  Unfortunately there are several scenarios where the value returned is not what is expected and is not available after the call.<br />
+<br />
+<table class="wikitable"><tr><td class="wikicell" ><strong>Identity Value</strong></td><td class="wikicell" ><strong>Contains/Returns</strong></td><td class="wikicell" ><strong>Issues</strong></td></tr><tr><td class="wikicell" >@@IDENTITY</td><td class="wikicell" >The last identity inserted into any table in the current session.</td><td class="wikicell" >You can't specify the table.  Nested triggers change the value.</td></tr><tr><td class="wikicell" >IDENT_CURRENT('tablename')</td><td class="wikicell" >The last identity inserted into the table requested from any session.</td><td class="wikicell" >You can't specify the session.  Other users may change the value by doing another insert between the time you do the insert and the time you request the value.</td></tr><tr><td class="wikicell" >SCOPE_IDENTITY()</td><td class="wikicell" >The last identity inserted into any table in the current scope.</td><td class="wikicell" >Each procedure has its own scope. Prepared statements create an additional scope that goes away when the statement completes, causing scope_identity() to return NULL.</td></tr></table><br />
+<br />
+<strong>Note:</strong> Many of the issues discussed above can be dealt with in stored procedures and in writing special client code.  The problem for tools like Alpha Five is that we do not know at execution time whether triggers have been attached, what type of triggers are attached, and whether they do nested inserts.  We have to treat the situation generically.<br />
+<h3 class="showhide_heading" id="Microsoft_s_Recommended_Workaround">Microsoft's Recommended Workaround</h3>
+With the exception of INSTEAD OF triggers (discussed below), Microsoft recommends the following resolution, although we had to try a number of things out to get it right:<br />
+1.       Prepare statements in the usual way.<br />
+2.       Instead of using the ODBC function call SQLExecute(), invoke SQLExecDirect() passing it the original query with <strong>;SELECT SCOPE_IDENTITY()</strong> concatenated onto the original query.<br />
+3.       After the call, fetch through the result sets, attempting to retrieve the first column of the first row of each result set until there are no more result sets.  The last result set will have the contents of the <strong>SELECT SCOPE_IDENTITY()</strong> from the executed with the insert.<br />
+<br />
+<strong>Note:</strong> <strong>SET NOCOUNT OFF</strong> will result in any nested triggers returning a result set with counts, so it is necessary to skip over these result sets.<br />
+<h3 class="showhide_heading" id="INSTEAD_OF_Triggers">INSTEAD OF Triggers</h3>
+INSTEAD OF triggers pose a special problem because they execute the actual insert in a nested scope rather than that of the prepared statement.  As a result, the only way to get an identity back is for the INSTEAD OF trigger to return one.<br />
+<br />
+The trigger below does an insert into the affected table, which then fires a nested trigger that inserts into another table.  After the insert executes:<br />
+<ul><li>@@IDENTITY contains the identity of the last child inserted.
+</li><li>Scope_Identity() at the outer scope will return NULL.  This is because the insert is done from within a trigger and the scope of the trigger is different than the scope of the originally executed insert statement that fires it.
+</li><li>IDENT_CURRENT('mytable') may be changed by the time we can retrieve it.
+</li></ul><br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #993333; font-weight: bold;">CREATE</span> <span style="color: #993333; font-weight: bold;">TRIGGER</span> <span style="color: #66cc66;">&#91;</span>dbo<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">.</span><span style="color: #66cc66;">&#91;</span>table3_tri<span style="color: #66cc66;">&#93;</span> <span style="color: #993333; font-weight: bold;">ON</span> <span style="color: #66cc66;">&#91;</span>dbo<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">.</span><span style="color: #66cc66;">&#91;</span>table3<span style="color: #66cc66;">&#93;</span>
+<span style="color: #993333; font-weight: bold;">WITH</span> <span style="color: #993333; font-weight: bold;">EXECUTE</span> <span style="color: #993333; font-weight: bold;">AS</span> CALLER
+   INSTEAD <span style="color: #993333; font-weight: bold;">OF</span> <span style="color: #993333; font-weight: bold;">INSERT</span>
+<span style="color: #993333; font-weight: bold;">AS</span>
+<span style="color: #993333; font-weight: bold;">BEGIN</span>
+<span style="color: #993333; font-weight: bold;">DECLARE</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #993333; font-weight: bold;">AS</span> <span style="color: #993333; font-weight: bold;">VARCHAR</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span>;
+<span style="color: #993333; font-weight: bold;">SELECT</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #66cc66;">=</span> i<span style="color: #66cc66;">.</span>field1 <span style="color: #993333; font-weight: bold;">FROM</span> inserted i;
+<span style="color: #993333; font-weight: bold;">INSERT</span> <span style="color: #993333; font-weight: bold;">INTO</span> table1 <span style="color: #66cc66;">&#40;</span>field1<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">VALUES</span> <span style="color: #66cc66;">&#40;</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #66cc66;">&#41;</span>;
+<span style="color: #993333; font-weight: bold;">END</span></pre></div><br />
+<br />
+To return the correct identity to Alpha Five:<br />
+<ul><li>Add <strong>SELECT SCOPE_IDENTITY();</strong> at the end of the stored procedure.  A result set is returned for the outer scope (the one we can read).
+</li><li>Add <strong>SET NOCOUNT ON</strong> to the procedure to stop the return of additional result sets with counts that could look like identities.
+</li></ul><br />
+<strong>Note:</strong>  If you do more than one insert, you will need to save the identity by assigning/selecting it from SCOPE_IDENTITY(), and then returning the saved value at the end of your procedure.<br />
+<br />
+The stored procedure below shows the changes required to work with Alpha Five to automatically return identity values:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #993333; font-weight: bold;">CREATE</span> <span style="color: #993333; font-weight: bold;">TRIGGER</span> <span style="color: #66cc66;">&#91;</span>dbo<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">.</span><span style="color: #66cc66;">&#91;</span>table3_tri<span style="color: #66cc66;">&#93;</span> <span style="color: #993333; font-weight: bold;">ON</span> <span style="color: #66cc66;">&#91;</span>dbo<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">.</span><span style="color: #66cc66;">&#91;</span>table3<span style="color: #66cc66;">&#93;</span>
+<span style="color: #993333; font-weight: bold;">WITH</span> <span style="color: #993333; font-weight: bold;">EXECUTE</span> <span style="color: #993333; font-weight: bold;">AS</span> CALLER
+   INSTEAD <span style="color: #993333; font-weight: bold;">OF</span> <span style="color: #993333; font-weight: bold;">INSERT</span>
+<span style="color: #993333; font-weight: bold;">AS</span>
+<span style="color: #993333; font-weight: bold;">BEGIN</span>
+<span style="color: #808080; font-style: italic;">-- SET NOCOUNT ON added to prevent extra result sets from</span>
+<span style="color: #808080; font-style: italic;">-- interfering with SELECT statements.</span>
+<span style="color: #993333; font-weight: bold;">SET</span> NOCOUNT <span style="color: #993333; font-weight: bold;">ON</span>;
+<span style="color: #993333; font-weight: bold;">DECLARE</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #993333; font-weight: bold;">AS</span> <span style="color: #993333; font-weight: bold;">VARCHAR</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span>;
+<span style="color: #993333; font-weight: bold;">SELECT</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #66cc66;">=</span> i<span style="color: #66cc66;">.</span>field1 <span style="color: #993333; font-weight: bold;">FROM</span> inserted i;
+<span style="color: #993333; font-weight: bold;">INSERT</span> <span style="color: #993333; font-weight: bold;">INTO</span> table1 <span style="color: #66cc66;">&#40;</span>field1<span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">VALUES</span> <span style="color: #66cc66;">&#40;</span> @<span style="color: #993333; font-weight: bold;">FIELD</span> <span style="color: #66cc66;">&#41;</span>;
+<span style="color: #808080; font-style: italic;">-- Added select scope_identity(); to explicitly return the </span>
+<span style="color: #808080; font-style: italic;">-- inner scope identity to the outer scope</span>
+<span style="color: #993333; font-weight: bold;">SELECT</span> scope_identity<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;
+<span style="color: #993333; font-weight: bold;">END</span></pre></div><br />
+<br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Scope_Identity+in+SQL+Server+with+nested+and+INSTEAD+OF+triggers">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

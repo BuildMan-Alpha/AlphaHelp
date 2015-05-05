@@ -1,0 +1,121 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="How_to_write_a_socket_server_in_Xbasic">How to write a socket server in Xbasic</h1>
+Below is a very basic server that you could expand to use multiple sockets and threads as required. It should give you a good starting point on how to use sockets in Xbasic. It does not implement any specific protocol on top of the sockets: that is left to you.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> Running            <span style="color: #FF8000;">as</span> l            <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.    <span style="color: #008080; font-style: italic;">'Set this to .f. from elsewhere to stop the server.</span>
+<span style="color: #0600FF;">dim</span> ListeningPort    <span style="color: #FF8000;">as</span> n            <span style="color: #008000;">=</span> <span style="color: #FF0000;">1234</span>    <span style="color: #008080; font-style: italic;">'The correct port should be defined in the protocol specification.</span>
+<span style="color: #0600FF;">dim</span> ServerSocket    <span style="color: #FF8000;">as</span> INET::Socket
+<span style="color: #0600FF;">if</span> ServerSocket.<span style="color: #0000FF;">Listen</span><span style="color: #000000;">&#40;</span>ListeningPort<span style="color: #000000;">&#41;</span>
+    <span style="color: #0600FF;">while</span> Running
+        <span style="color: #0600FF;">dim</span> WorkerSocket    <span style="color: #FF8000;">as</span> INET::Socket
+        <span style="color: #0600FF;">dim</span> AcceptTimeout    <span style="color: #FF8000;">as</span> n            <span style="color: #008000;">=</span> <span style="color: #FF0000;">10000</span>    <span style="color: #008080; font-style: italic;">'10 seconds</span>
+        <span style="color: #0600FF;">if</span> ServerSocket.<span style="color: #0000FF;">Accept</span><span style="color: #000000;">&#40;</span>WorkerSocket,AcceptTimeout<span style="color: #000000;">&#41;</span>
+            <span style="color: #008080; font-style: italic;">'This section could go into a spawned worker thread for maximum scalability</span>
+            <span style="color: #0600FF;">dim</span> RawRequest    <span style="color: #FF8000;">as</span> c            <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+            <span style="color: #0600FF;">if</span> WorkerSocket.<span style="color: #0000FF;">Read</span><span style="color: #000000;">&#40;</span>RawRequest<span style="color: #000000;">&#41;</span>
+                <span style="color: #008080; font-style: italic;">'RawRequest now contains at least part of a request from a client. Next:</span>
+                <span style="color: #008080; font-style: italic;">' 1) Verify that the request is complete, and read more from the WorkerSocket if necessary.</span>
+                <span style="color: #008080; font-style: italic;">' 2) Parse RawRequest based on the protocol specification to determine what must be done.</span>
+                <span style="color: #008080; font-style: italic;">' 3) Take some appropriate action based on the parsed request.</span>
+                <span style="color: #008080; font-style: italic;">' 4) Send a response using WorkerSocket.Write() or WorkerSocket.WriteBinary().</span>
+                <span style="color: #008080; font-style: italic;">' 5) Close the socket or loop back to reading, depending on the protocol specification.</span>
+            <span style="color: #FF8000;">else</span>
+                <span style="color: #008080; font-style: italic;">'WorkerSocket.CallResult.Text will have a description of why the Read() failed.</span>
+            <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+            <span style="color: #008080; font-style: italic;">'end of section that could go into a worker thread</span>
+        <span style="color: #FF8000;">else</span>
+            <span style="color: #008080; font-style: italic;">'No new client connected within the timeout period.</span>
+            <span style="color: #008080; font-style: italic;">'Most servers should just do nothing and loop back around to wait again.</span>
+        <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
+    <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">while</span>
+<span style="color: #FF8000;">else</span>
+    <span style="color: #0600FF;">msgbox</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Server could not be started: &quot;</span> <span style="color: #008000;">+</span> ServerSocket.<span style="color: #0000FF;">CallResult</span>.<span style="color: #0000FF;">Text</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span></pre></div><br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">Since Xbasic does not have block-level scoping of variables, <strong>Dim WorkerSocket as INET::Socket</strong> inside the <strong>while</strong> loop does <em>not</em> guarantee a new unique socket for each pass. Therefore, spawning threads with unique sockets is non-trivial.<br />
+<br />
+Ultimately, this task is better handled by C#, which is available in Version 11 and later, or a C++ DLL.</div></div><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+write+a+socket+server+in+Xbasic">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

@@ -1,0 +1,282 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			
+<p class=A3Topic>Passing a Record from a Grid to a Dialog</p>
+
+
+
+<p>The problem is the following. You have selected a record in a grid and 
+ now want to display it in a separate page containing dialog component. 
+ The solution to the problem lies in the fact that you can set default 
+ values for a dialog component's variables in the URL of the page that 
+ loads the dialog.</p>
+
+
+
+<p>For example say that you have a dialog called <span class=Code1>OrderInfo</span> 
+ which has these variables: <span class=Code1>customerName</span>, <span 
+ class=Code1>customerAddress</span>, <span class=Code1>customerCity</span>, 
+ etc. <br>
+The .A5W page that contains this dialog component is called <span class=Code1>OrderInfoPage.a5w</span>. 
+ Suppose that you want to call this page and set default values for the 
+ <span class=Code1>customerName</span>, <span class=Code1>customerAddress</span>, 
+ and <span class=Code1>customerCity</span> fields. Here is what your URL 
+ might look like:</p>
+
+
+
+
+<table class="htmlTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code><span class=HTML1>http://localhost/OrderInfoPage.a5w?customerName=Alpha&customerAddress=1 
+ Main St&customerCity=Boston</span></td></tr>
+</table>
+
+<p>Now that you know how to set the default values for the variables on 
+ a Grid using a URL, the next step is to have your grid component link 
+ to a "transition" page that will construct the URL and then 
+ use <a href="../References/Methods/RESPONSE.REDIRECT Method.html" title="RESPONSE.REDIRECT Method" class="wiki">response.redirect(</a>) 
+ to display the computed URL. Let's call this page <span class=Code1>transition.a5w</span>. 
+ <br>
+<br>
+So, in your Grid, you might have a column that has a Link control in it. 
+ Assuming that the grid has a field called <span class=Code1>CustomerID</span> 
+ (the primary key to the table), the Link control might be defined as:</p>
+
+
+
+
+<table class="htmlTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code><span class=HTML1>transition.a5w?customerId={customerID}</span></td></tr>
+</table>
+
+<p>The <span class=Code1>transition.a5w</span> has only one thing on it, 
+ an Xbasic code block with the following code in it:</p>
+
+
+
+<p>First test to see that the page received a <span class=Code1>CustomerID</span> 
+ value. If not, end the script.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>&lt%a5w</p>
+
+
+<p class=Code>if (eval_valid("customerID") = .F.) then <br>
+&nbsp;&nbsp;&nbsp;&nbsp;response.redirect("OrderInfoPage.a5w") 
+ <br>
+&nbsp;&nbsp;&nbsp;&nbsp;end <br>
+end if</td></tr>
+</table>
+
+<p>If the test was passed, open the table, using <span class=Code1>CustomerID</span> 
+ to find the appropriate record.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim t&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>dim url&nbsp;as&nbsp;C</p>
+
+
+&nbsp; 
+<p class=Code>t = table.open("customer") <br>
+t.order("customerID")&nbsp; 'order the table on the customerID 
+ field <br>
+t.fetch_find(customerID)</td></tr>
+</table>
+
+<p>Construct a URL that passes the field values to <span class=Code1>OrderInfoPage.a5w</span> 
+ and display the page.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>url = "OrderInfoPage.a5w?customerName="+alltrim(t.customerName)+"&customerAddress="+alltrim(t.customerAddress)+"&customerCity="+alltrim(t.customerCity) 
+ <br>
+t.close() <br>
+response.redirect(ur<x>l)</p>
+
+
+<p class=Code>%></td></tr>
+</table>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="../References/Methods/RESPONSE.REDIRECT Method.html" title="RESPONSE.REDIRECT Method" class="wiki">RESPONSE.REDIRECT(</a>)</p>
+
+
+
+<p class=A5>Supported By</p>
+
+
+
+<p>Alpha Five Version 6 and Above</p>
+
+
+
+<p class=A5>Limitations</p>
+
+
+
+<p>Web publishing applications only.</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Passing+a+Record+from+a+Grid+to+a+Dialog">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

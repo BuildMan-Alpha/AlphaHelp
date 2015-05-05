@@ -1,0 +1,618 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1>New Xbasic Features</h1>
+<h2>New GUID Data Type</h2>
+						<p>Alpha Five now supports GUIDs 
+						as an intrinsic Xbasic data type (designated as type 
+						'K'), just as Character, Numeric, Logical, Time, etc. 
+						are intrinsic Xbasic data types. Support for GUID data 
+						types is important for Active-Link tables as some SQL 
+						databases use GUIDS for primary keys. </p>
+						<p>You can DIM a variable as a GUID, (e.g. DIM varname 
+						as K), or you can use the curly bracket notation to 
+						specify a value of type 'K' (just as curly bracket 
+						notation is used to specify a Date value).</p>
+						<p>&nbsp;</p>
+						<p>The following Interactive window session shows 
+						examples:</p>
+						<p class="xbasic">'DIM a variable as a GUID<br>
+						dim g as k </p>
+						<p class="xbasic">'Use the built-in Function to create a 
+						GUID value<br>
+						g = api_uuidcreate()<br>
+						?typeof(g)<br>
+						= "K"<br>
+&nbsp;</p>
+						<p class="xbasic">'Use curly bracket notation to create 
+						a GUID value<br>
+						g2 = {f5ab3018-496a-419f-af71-6c19fec1252b}<br>
+						?typeof(g2)<br>
+						= "K"<br>
+&nbsp;</p>
+						<p class="xbasic">g2 = {clearly-not-a-valid-guid}</p>
+						<p class="xbasic">ERROR: Constant operator is not 
+						recognized</p>
+						<h2>Dependency Mapper</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p>The dependency mapper allows you to keep track of a collection of variables 
+and easily determine which, if any, of the watched variables have changed.<p>You 
+create a dependency mapper from a CR-LF delimited list of variables or 
+expressions to watch. At any time, you can call the dependency mapper's 
+.Changes() function to get a list of variables that have changed since the last 
+call to .Changes(). You can control what is returned when a variable has changed 
+by defining a string of text (which can be code to execute).<p>The following 
+Interactive window session shows an example:<p>&nbsp;<p class="xbasic">dim 
+lastname as c <br>lastname = "smith"<br>dim firstname as c <br>firstname = "john"<br>dim dependencyList as c 
+<p class="xbasic">&nbsp;<p class="xbasic">'The format of the dependency list is 
+a crlf delimited list of variables or expressions to watch, 
+<p class="xbasic">'followed by an exclamation character and then an expression 
+that is executed.<p class="xbasic">dependencyList = "lastname!'lastname_changed'" 
++ crlf() + "firstname!'firstname_changed'"<br>dm = dependency.create(dependencyList)<p class="xbasic">'Create a client based 
+on the dependency mapper that has been instantiated<br>dc = dm.client_create()<br>?dc.changes()<br>= lastname_changed<br>firstname_changed<p class="xbasic">&nbsp;<p class="xbasic">'Now call dc.changes() 
+a second time</p>
+<p class="xbasic">'Note that this time nothing is returned because the variables 
+have not been</p>
+<p class="xbasic">'changed since we last called the .changes() method.</p>
+<p class="xbasic">?dc.changes() </p>
+<p class="xbasic">= ""</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">'Now change lastname</p>
+<p class="xbasic">lastname = "jones"</p>
+<p class="xbasic">?dc.changes()</p>
+<p class="xbasic">= lastname_changed</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">'In the above example, the .changes() method is returning 
+either 'lastname_changed', or 'firstname_changed' or both strings. </p>
+<p class="xbasic">'In this case, a string is being returned. However, it could 
+just as easily be defined to be Xbasic code that could then be</p>
+<p class="xbasic">'evaluated (using evaluate_template()).</p>
+<p class="xbasic">'For example, the dependencyList could be defined as:</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">list = <<%txt%<br>lastname!ui_msg_box("Change","Lastname changed. New value is: " +lastname)<br>firstname!ui_msg_box("Change","Firstname changed. New value is: " + firstname)<br>%txt%</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">&nbsp;</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Printer and Screen Capabilities</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p>You can now get information about the capabilities of the screen or printer 
+using the new devicecapabilites object. One of the most useful features of this 
+object is that it allows you to get the dimensions of the&nbsp; printable region 
+of a page. This information is important if you are writing to the printer 
+directly using the ui_printer_draw() command. </p>
+<p>The following Interactive window session shows how this object is used:</p>
+<p>&nbsp;</p>
+<p class="xbasic">dim pi as gdi::devicecapabilities<br>
+?pi<br>
+= P Clone() 'Create a copy of an object instance.<br>
+P NewInstance() 'Create a new object instance of the same type.<br>
+l printer_load(C printer_name) 'Get device capabilities for the printer.<br>
+aspect_x = 36<br>
+aspect_xy = 51<br>
+aspect_y = 36<br>
+bitspixel = 32<br>
+clipping_capabilities = "Rectangle"<br>
+color_planes = 1<br>
+color_resolution = 24<br>
+curve_capabilities = ",Chord,Circles,Ellipses,Interiors,Pie,Round-Rect,Styled,Wide,Wide-Styled"<br>
+driver_version = 16384<br>
+line_capabilities = ",Interiors,Marker,Polyline,Polymarker,Styled,Wide,Wide-Styled"<br>
+number_brushes = 4294967295<br>
+number_colors = 4294967295<br>
+number_fonts = 0<br>
+number_pens = 4294967295<br>
+number_reserved_system_palette = 20<br>
+page_height = 0<br>
+page_offset_x = 0<br>
+page_offset_y = 0<br>
+page_width = 0<br>
+pixels_x_per_inch = 96<br>
+pixels_y_per_inch = 96<br>
+polygon_capabilities = ",Interiors,Polygon,Rectangle,Scanline,Styled,Wide,Wide-Styled,Wind-Polygon"<br>
+raster_capabilities = 
+",BitBLT,Bitmap64,DI-Bitmap,DIBtoDEV,GDI20-Output,StretchBlt,StretchDib"<br>
+screen_height_mm = 310<br>
+screen_height_pixels = 1024<br>
+screen_width_mm = 387<br>
+screen_width_pixels = 1280<br>
+shade_blend_capabilities = ",Const-Alpha,Pixel-Alpha-Blend"<br>
+size_system_palette = 0<br>
+technology = "Raster-Display"<br>
+text_capabilities = ",Stroke-Clip-Precision,character-output-precision,stroke-output-precision,raster-fonts,scrolling,strikeout,underline,vector-fonts"<br>
+<br>
+&nbsp;</p>
+<p class="xbasic">'get a list of printers<br>
+?ui_printers_get()<br>
+= Text Driver on RTF:<br>
+SagePDFPrinter on LPT1:<br>
+RTF Driver on RTF:<br>
+Ricoh LASER AP2100 PCL on LPT1:<br>
+QuickBooks PDF Converter on LPT1:<br>
+PDF Driver on PDF:<br>
+Microsoft XPS Document Writer on Ne00:<br>
+Microsoft Office Document Image Writer on Ne01:<br>
+HTML Driver on HTM:<br>
+Generic / Text Only on LPT1:<br>
+\\THUNDER\Compaq Laser Printer LNM40 (PCL) on Ne02:<br>
+Alpha Five Printer on RTF:<br>
+<br>
+<br>
+printerName = "\\THUNDER\Compaq Laser Printer LNM40 (PCL) on Ne02:"<br>
+&nbsp;</p>
+<p class="xbasic">'Now get the capabilities of a specific printer by calling the 
+.printer_load() method of</p>
+<p class="xbasic">'the printercapabilities object</p>
+<p class="xbasic"><br>
+pi.printer_load(printername)<br>
+<br>
+?pi <br>
+= P Clone() 'Create a copy of an object instance.<br>
+P NewInstance() 'Create a new object instance of the same type.<br>
+l printer_load(C printer_name) 'Get device capabilities for the printer.<br>
+aspect_x = 600<br>
+aspect_xy = 849<br>
+aspect_y = 600<br>
+bitspixel = 1<br>
+clipping_capabilities = "Rectangle"<br>
+color_planes = 1<br>
+color_resolution = 0<br>
+curve_capabilities = ",Chord,Circles,Ellipses,Interiors,Pie,Round-Rect,Styled,Wide,Wide-Styled"<br>
+driver_version = 256<br>
+line_capabilities = ",Interiors,Marker,Polyline,Polymarker,Styled,Wide,Wide-Styled"<br>
+number_brushes = 4294967295<br>
+number_colors = 2<br>
+number_fonts = 47<br>
+number_pens = 10<br>
+number_reserved_system_palette = 20<br>
+page_height = 6600<br>
+page_offset_x = 150<br>
+page_offset_y = 150<br>
+page_width = 5100<br>
+pixels_x_per_inch = 600<br>
+pixels_y_per_inch = 600<br>
+polygon_capabilities = ",Interiors,Polygon,Rectangle,Scanline,Styled,Wide,Wide-Styled,Wind-Polygon"<br>
+raster_capabilities = 
+",BitBLT,Bitmap64,DI-Bitmap,DIBtoDEV,GDI20-Output,StretchBlt,StretchDib"<br>
+screen_height_mm = 268<br>
+screen_height_pixels = 6324<br>
+screen_width_mm = 203<br>
+screen_width_pixels = 4800<br>
+shade_blend_capabilities = ""<br>
+size_system_palette = 2<br>
+technology = "Raster-Printer"<br>
+text_capabilities = ",Stroke-Clip-Precision,character-output-precision,stroke-output-precision,scrolling,strikeout,underline,vector-fonts"<br>
+&nbsp;</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">'find out what the printer's left margin is (in inches)<br>
+printer_leftMargin_inInches = pi.page_offset_x/pi.pixels_x_per_inch<br>
+?printer_leftMargin_inInches<br>
+= 0.25</p>
+<h2>Determine the Version Number of an EXE or DLL</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p class="MsoNormal"><font face="Arial" size="2">
+<span style="FONT-SIZE: 10pt; FONT-FAMILY: Arial">
+UTIL::ExecutableVersion is a new class that an be used 
+to extract the version information from an executable or 
+DLL.&nbsp; </span></font><font face="Arial">Version 
+information is actually a collection (keyed on language 
+and codepage). Typically there will be a single entry, 
+but you will need to use a subscript to get at the 
+values. </font></p>
+<p><font face="Arial">&nbsp;<br>
+<b>Usage</b></font></p>
+<p class="xbasic">Dim XV as 
+Util::ExecutableVersion<br>
+Dim FileName as C = “<MyFile>”<br>
+If .NOT. XV.Load(FileName) then<br>
+&nbsp;&nbsp;&nbsp; ui_msg_box(“Error loading version data for file ” + FileName, 
+XV.CallResult.Text + crlf() + XV.CallResult.NativeText)<br>
+else<br>
+&nbsp;&nbsp;&nbsp; showvar(XV)<br>
+End if</p>
+<p><font face="Arial"><b>Example Interactive Window 
+Session</b></font></p>
+<p class="xbasic"><br>
+dim x as util::executableversion<br>
+?x.load("c:\foo.dll")<br>
+= .F.<br>
+&nbsp;<br>
+?x.callresult.text <br>
+= "DOS error"<br>
+&nbsp;<br>
+?x.callresult <br>
+= Canceled = .F.<br>
+Code = 2000<br>
+Error = .T.<br>
+NativeCode = 1812<br>
+NativeText = The specified image file did not contain a 
+resource section.<br>
+&nbsp;<br>
+Success = .F.<br>
+Text = "DOS error"<br>
+&nbsp;<br>
+?x.load("c:\windows\system32\fqqb32.dll")<br>
+= .T.<br>
+&nbsp;<br>
+?x<br>
+= P Clone() 'Create a copy of an object instance.<br>
+N EntryNumber(Name as C) 'Get the index of a Entry from 
+the name.<br>
+L Load(<a class="wiki"  href="C FileName" rel="">C FileName</a>) 'Retrieve version information for 
+the file requested.<br>
+P NewInstance() 'Create a new object instance of the 
+same type.<br>
++CallResult.<br>
++Entry.<br>
+FileName = "c:\windows\system32\fqqb32.dll"<br>
+&nbsp;<br>
+&nbsp;<br>
+?x.entry<a class="wiki"  href="1" rel="">1</a> <br>
+= P Clone() 'Create a copy of an object instance.<br>
+P NewInstance() 'Create a new object instance of the 
+same type.<br>
+CodePage = 1252<br>
+Comments = ""<br>
+CompanyName = "FLEXquarters.com LLC"<br>
+FileDescription = "FLEXquarters.com LLC QuickBooks ODBC 
+Driver"<br>
+FileVersion = " 5.00.00.077"<br>
+InternalName = "FQQB32"<br>
+Language = 1033<br>
+LegalCopyright = "Copyright © FLEXquarters.com LLC 
+1998-2004"<br>
+LegalTrademarks = "QODBC(TM) is a trademark of 
+FLEXquarters.com LLC"<br>
+Name = "040904e4"<br>
+OriginalFileName = "FQQB32.dll"<br>
+PrivateBuild = ""<br>
+ProductName = "FLEXquarters.com LLC QODBC"<br>
+ProductVersion = " 5.00.00.077"<br>
+SpecialBuild = ""<br>
+&nbsp;<br>
+<font face="Arial">
+<br>
+&nbsp;</font></p>
+<p class="method">&nbsp;</p>
+<h2>Layouts Implement .Eval() Method</h2>
+
+<p>Layouts (e.g. Forms, Reports, etc.) now implement an .Eval() method to 
+evaluate an expression in the context of the layout.</p>
+<p>For example, assume that you had this expression: lastname.text and you 
+wanted to evaluate it in the context of a form. Previously, you would have to do 
+this:</p>
+<p class="xbasic">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f = form.view("Edit_Customer_Info")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?eval("lastname.text",f.name() + ".this")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= "Graham"<br>
+&nbsp;</p>
+<p>Now, you can simply do this:</p>
+<p class="xbasic">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f = 
+form.view("Edit_Customer_Info")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?f.eval("lastname.text"),</p>
+<p class="xbasic">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= "Graham"</p>
+<p>&nbsp;</p>
+
+<h2>CSS Class</h2>
+<p>The CSS class makes it easy to manipulate CSS stylesheets using Xbasic. The 
+following Interactive Window session demonstrates the functionality.</p>
+<p>&nbsp;</p>
+<p>Assume that you have a file on disk with the following trivial CSS:</p>
+<p class="xbasic"><br>
+a&nbsp; {font-family: Alba; }<br>
+abbr { font-family: Arial Narrow; }<br>
+<br>
+&nbsp;</p>
+<p>Now, from the Interactive window:</p>
+<p>&nbsp;</p>
+<p class="xbasic">DIM txt as c </p>
+<p class="xbasic">txt = get_from_file("<a href="file:///c:/mycsstxt.txt">c:\mycsstxt.txt</a>")</p>
+<p class="xbasic">DIM ss as css::stylesheet</p>
+<p class="xbasic">ss.FromString(txt)<br>
+? ss.toString()<br>
+= a {<br>
+font-family: : Alba;<br>
+}<br>
+abbr {<br>
+font-family: : Arial Narrow;<br>
+}<br>
+<br>
+? ss.item<a class="wiki"  href="1" rel="">1</a>.name<br>
+= "a"<br>
+? ss.item<a class="wiki"  href="2" rel="">2</a>.name<br>
+= "abbr"<br>
+? ss.item<a class="wiki"  href="2" rel="">2</a>.css.tostring()<br>
+= font-family: : Arial Narrow;<br>
+? ss.Selectors()<br>
+= a<br>
+abbr</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">ss.item<a class="wiki"  href="1" rel="">1</a>.css.border_color = "Red"<br>
+<br>
+?ss.ToString()<br>
+= a {<br>
+font-family: Alba;<br>
+border-color: Red;<br>
+}<br>
+abbr {<br>
+font-family: Arial Narrow;<br>
+}<br>
+<br>
+&nbsp;</p>
+<h2>Table Cursors</h2>
+							<p><b><tbl>.get_cursor() Method</b> - Allows you to 
+							get a 'cursor' for an open table. A 'cursor' is just 
+							a pointer to an open table that can be navigated 
+							independently of the base table. When you move the 
+							pointer in a cursor, you do not change the record 
+							that the base table pointer is pointing to. </p>
+							<p>Syntax:</p>
+							<p><i>tCursor</i> = <tbl>.get_cursor()</p>
+							<p>&nbsp;</p>
+							<p>Example:</p>
+							<p>&nbsp;</p>
+							<p class="xbasic">dim t as p </p>
+							<p class="xbasic">dim tc1 as p </p>
+							<p class="xbasic">dim tc2 as p </p>
+							<p class="xbasic">t = table.open("customer")</p>
+							<p class="xbasic">tc1 = t.get_cursor()</p>
+							<p class="xbasic">tc2 = t.get_cursor()</p>
+							<p class="xbasic">&nbsp;</p>
+							<p class="xbasic">'The cursors can each have their 
+							own order. Has no impact on the base table</p>
+							<p class="xbasic">tc1.order("Firstname")</p>
+							<p class="xbasic">tc2.order("Lastname")</p>
+							<p class="xbasic">?t.recno()</p>
+							<p class="xbasic">=1</p>
+							<p class="xbasic">?tc1.recno()</p>
+							<p class="xbasic">=23</p>
+							<p class="xbasic">?tc2.recno()</p>
+							<p class="xbasic">=34</p>
+							<p class="xbasic">tc1.fetch_next()</p>
+							<p class="xbasic">?tc1.recno()</p>
+							<p class="xbasic">= 56</p>
+							<p class="xbasic">'Notice how we have moved the 
+							record pointer in the first cursor, but</p>
+							<p class="xbasic">'it has had no effect on the base 
+							table (which still points to record 1)</p>
+							<p class="xbasic">?t.recno()</p>
+							<p class="xbasic">= 1</p>
+							<p class="xbasic">&nbsp;</p>
+							<p>&nbsp;</p>
+							<p>The primary motivation for this method is to 
+							allow you to use Xbasic to get a pointer to the 
+							table that an Embedded Browse is based on, and then 
+							to safely loop over the records in that table and 
+							manipulate the data in that table. If your Xbasic 
+							loop used the table pointer itself, rather than a 
+							cursor, your script may not work reliably. This is 
+							because you have no control over events that cause 
+							the Browse to repaint, and when the Browse repaints, 
+							it might move the record pointer.</p>
+							<p>&nbsp;</p>
+							<p>Example. The 'Invoice' Form in AlphaSports is 
+							based on the Invoice.set. This Form has an embedded 
+							browse that is based on the 'invoice_items' table. 
+							You want to write a script that will loop through 
+							all of the records for the current invoice, 
+							increasing the quantity by one.</p>
+							<p>Here is code that could be inserted in a button 
+							on the Invoice form:</p>
+							<p>&nbsp;</p>
+							<p class="xbasic">dim tbl as p <br>
+							dim t as p </p>
+							<p class="xbasic">'get a pointer to the SAME table 
+							instance that the embedded browse is based on.</p>
+							<p class="xbasic">'Note: Could also have done: tbl = 
+							Browse1.table_get()<br>
+							tbl = table.get("invoice_items")</p>
+							<p class="xbasic">'Get a cursor on the table 
+							instance<br>
+							t = tbl.get_cursor()</p>
+							<p class="xbasic">&nbsp;</p>
+							<p class="xbasic">t.fetch_first()<br>
+							while .not. t.fetch_eof()<br>
+&nbsp;&nbsp;&nbsp; t.change_begin()<br>
+&nbsp;&nbsp;&nbsp; t.quantity = t.quantity + 1 <br>
+&nbsp;&nbsp;&nbsp; t.change_end(.t.)<br>
+&nbsp;&nbsp;&nbsp; t.fetch_next()<br>
+							end while<br>
+&nbsp;</p>
+							<p>You might ask, "Why do I have to go to the 
+							trouble of getting a cursor? Why can't I just write 
+							code that uses the same table pointer that the 
+							Embedded Browse uses?". The reason is that the 
+							script shown below will not work reliably.</p>
+							<p>The reason is this: You have no control over when 
+							the Browse will repaint. When the Browse repaints it 
+							affects the record that the table pointer is 
+							positioned on. So, if your script is using the same 
+							table pointer that the Embedded Browse is using, 
+							then the code in your loop that positions the record 
+							pointer will be impacted every time the Browse 
+							repaints during the course of your loop. The Browse 
+							will be repainted every time the message box is 
+							dismissed.</p>
+							<p>&nbsp;</p>
+							<p class="xbasic">'This code is NOT safe (could 
+							result in Browse repaint errors)</p>
+							<p class="xbasic">dim tbl as p <br>
+							tbl = table.get("invoice_items")</p>
+							<p class="xbasic">&nbsp;</p>
+							<p class="xbasic">tbl.fetch_first()<br>
+							dim count as n = 0 <br>
+							while .not. tbl.fetch_eof()</p>
+							<p class="xbasic">&nbsp;&nbsp;&nbsp; count = count + 
+							1 </p>
+							<p class="xbasic">&nbsp;&nbsp;&nbsp; 
+							ui_msg_box("Notice","Editing item number: " + count)<br>
+&nbsp;&nbsp;&nbsp; tbl.change_begin()<br>
+&nbsp;&nbsp;&nbsp; tbl.quantity = t.quantity + 1 <br>
+&nbsp;&nbsp;&nbsp; tbl.change_end(.t.)<br>
+&nbsp;&nbsp;&nbsp; tbl.fetch_next()<br>
+							end while</p>
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:New+Xbasic+Features+V9">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

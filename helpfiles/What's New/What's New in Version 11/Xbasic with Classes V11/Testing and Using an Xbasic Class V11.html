@@ -1,0 +1,173 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Testing_and_Using_an_Xbasic_Class">Testing and Using an Xbasic Class</h1>
+In general, it's good to test Xbasic code of any sort first in an Interactive window. When you find good sequences for testing, you can copy them into Xbasic scripts, along with notes about the expected output. Your Xbasic scripts can easily include code to set up and tear down test databases.<br />
+<br />
+For future convenience, you can add comparisons between the actual and expected output to your scripts, and throw errors or display messages when he comparisons fail. With somewhat more work, you can use NUnit and .NET test programs that call into Xbasic functions and classes to automate your testing at the regression suite level.<br />
+<h2 class="showhide_heading" id="SQL_Server">SQL Server</h2>
+Using the SQL Server test case described in <a href="Designing an Xbasic Class V11.html" title="Designing an Xbasic Class V11" class="wiki">Designing an Xbasic Class V11</a>, let's test our <a href="Implementing an Xbasic Class V11.html" title="Implementing an Xbasic Class V11" class="wiki">StoredProc</a> class in an interactive window. Here <strong>NorthwindSS</strong> is a named connection string for a Northwind database on SQL Server 2008 R2. Because we're using a well-known database that has already been populated, we don't have to do any additional set-up in our test script; if we needed to guarantee a fresh copy of Northwind, we would load and execute the northwind.sql database creation script before running the rest of the test.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> sp <span style="color: #FF8000;">as</span> StoredProc <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> StoredProc<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::name::NorthwindSS&quot;</span><span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> sp.<span style="color: #0000FF;">Run</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;SalesByCategory @CategoryName = N'Produce', @OrdYear = 1998&quot;</span><span style="color: #000000;">&#41;</span>
+?rs.<span style="color: #0000FF;">ToJSONObjectSyntax</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Longlife Tofu', TOTALPURCHASE : '400'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Manjimup Dried Apples', TOTALPURCHASE : '11090'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'RÃ¶ssle Sauerkraut', TOTALPURCHASE : '6990'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Tofu', TOTALPURCHASE : '371'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Uncle Bob\'s Organic Dried Pears', TOTALPURCHASE : '12306'}</span>
+<span style="color: #008080; font-style: italic;">' oops -- need to convert the UTF-8, first rerun the query</span>
+rs <span style="color: #008000;">=</span> sp.<span style="color: #0000FF;">Run</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;SalesByCategory @CategoryName = N'Produce', @OrdYear = 1998&quot;</span><span style="color: #000000;">&#41;</span>
+?convert_utf8_to_acp<span style="color: #000000;">&#40;</span>rs.<span style="color: #0000FF;">ToJSONObjectSyntax</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Longlife Tofu', TOTALPURCHASE : '400'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Manjimup Dried Apples', TOTALPURCHASE : '11090'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Rössle Sauerkraut', TOTALPURCHASE : '6990'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Tofu', TOTALPURCHASE : '371'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Uncle Bob\'s Organic Dried Pears', TOTALPURCHASE : '12306'}</span></pre></div><br />
+That really couldn't be much easier to use. As soon as you type "sp." you get a pop-up of the methods and properties of the StoredProc class. As soon as you type "rs." you get a pop-up of the methods and properties of the resultset:<br />
+<br />
+	<img src="images/sp_popup.png" alt="Image" /><br />
+<br />
+The only stumbling block was the conversion of non-ANSI characters, which we accomplished with one function call.<br />
+<br />
+The test script we save for this only needs to be three or four lines long:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> sp <span style="color: #FF8000;">as</span> StoredProc <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> StoredProc<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::name::NorthwindSS&quot;</span><span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> sp.<span style="color: #0000FF;">Run</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;SalesByCategory @CategoryName = N'Produce', @OrdYear = 1998&quot;</span><span style="color: #000000;">&#41;</span>
+json <span style="color: #008000;">=</span> convert_utf8_to_acp<span style="color: #000000;">&#40;</span>rs.<span style="color: #0000FF;">ToJSONObjectSyntax</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+showvar<span style="color: #000000;">&#40;</span>json<span style="color: #000000;">&#41;</span></pre></div><br />
+We'll leave the string comparison required for a logical test against the expected output as an exercise for the student. (Hint: You'll probably want to use the <a href="../../../References/Operators/== Exactly Matching Operator.html" title="== Exactly Matching Operator" class="wiki">== Exactly Matching Operator</a>.)<br />
+<br />
+We should also test argument substitution, which is more useful &mdash; and safer &mdash; in real programs. That only takes a few more lines of code. We'll explicitly open the connection and pass it in the constructor this time, to cover more of the code paths in the class.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> SQL::Connection
+cn.<span style="color: #0600FF;">Open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::NorthwindSS&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> sp <span style="color: #FF8000;">as</span> StoredProc <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> StoredProc<span style="color: #000000;">&#40;</span>cn<span style="color: #000000;">&#41;</span>
+<span style="color: #0600FF;">dim</span> arg <span style="color: #FF8000;">as</span> SQL::Arguments
+arg.<span style="color: #0000FF;">Add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;CategoryName&quot;</span>,<span style="color: #808080;">&quot;Produce&quot;</span><span style="color: #000000;">&#41;</span>
+arg.<span style="color: #0000FF;">Add</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;OrdYear&quot;</span>, <span style="color: #FF0000;">1998</span><span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> sp.<span style="color: #0000FF;">Run</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;SalesByCategory @CategoryName = :CategoryName, @OrdYear = :OrdYear&quot;</span>, arg<span style="color: #000000;">&#41;</span>
+?convert_utf8_to_acp<span style="color: #000000;">&#40;</span>rs.<span style="color: #0000FF;">ToJSONObjectSyntax</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Longlife Tofu', TOTALPURCHASE : '400'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Manjimup Dried Apples', TOTALPURCHASE : '11090'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Rössle Sauerkraut', TOTALPURCHASE : '6990'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Tofu', TOTALPURCHASE : '371'}</span>
+<span style="color: #000000;">&#123;</span>PRODUCTNAME : <span style="color: #008080; font-style: italic;">'Uncle Bob\'s Organic Dried Pears', TOTALPURCHASE : '12306'}</span></pre></div><br />
+Now that you've seen the string format required to do the SQL argument substitution, you can probably understand why it might be a good idea to let the class generate it from the arguments. After all, it's a regular pattern, assuming that you make the Xbasic argument names match the SQL shared procedure argument names.<br />
+<h2 class="showhide_heading" id="MySQL">MySQL</h2>
+The following is an interactive session. <strong>MySQL_Test</strong> is an AlphaDAO connection string to the MySQL test database in which we created the <strong>HelloWorld </strong>stored procedure.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #0600FF;">dim</span> cn <span style="color: #FF8000;">as</span> SQL::Connection
+?cn.<span style="color: #0600FF;">Open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;::Name::MySQL_Test&quot;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+&nbsp;
+<span style="color: #0600FF;">dim</span> sp <span style="color: #FF8000;">as</span> StoredProc <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> StoredProc<span style="color: #000000;">&#40;</span>cn<span style="color: #000000;">&#41;</span>
+rs <span style="color: #008000;">=</span> sp.<span style="color: #0000FF;">Run</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;HelloWorld()&quot;</span><span style="color: #000000;">&#41;</span>
+?rs.<span style="color: #0000FF;">CallResult</span>
+<span style="color: #008000;">=</span> API <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+Canceled <span style="color: #008000;">=</span> .<span style="color: #0000FF;">F</span>.
+<span style="color: #0000FF;">Code</span> <span style="color: #008000;">=</span> <span style="color: #FF0000;">0</span>
+<span style="color: #FF8000;">Error</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">F</span>.
+<span style="color: #0000FF;">LastInsertedIdentity</span> <span style="color: #008000;">=</span> <span style="color: #008000;">&amp;</span>lt;No data returned<span style="color: #008000;">&amp;</span>gt;
+NativeCode <span style="color: #008000;">=</span> <span style="color: #FF0000;">0</span>
+NativeText <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+RowsAffected <span style="color: #008000;">=</span> <span style="color: #FF0000;">0</span>
+Success <span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>.
+<span style="color: #0000FF;">Syntax</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span>
+Text <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Success&quot;</span>
+Warnings <span style="color: #008000;">=</span> .<span style="color: #0000FF;">F</span>.
+&nbsp;
+?rs.<span style="color: #0000FF;">ToString</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+<span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Hello, World!&quot;</span></pre></div><br />
+A full test script for this case should probably create the stored procedure if it does not already exist, using the SQL syntax given in <a href="Designing an Xbasic Class V11.html" title="Designing an Xbasic Class V11" class="wiki">Designing an Xbasic Class V11</a>. It should also verify that the returned string is <span style="color:blue; background:">"Hello, World!"</span>.<br />
+<h2 class="showhide_heading" id="See_also">See also</h2>
+<a href="../Xbasic with Classes V11.html" title="Xbasic with Classes V11" class="wiki">Xbasic with Classes V11</a><br />
+<a href="Xbasic Class Syntax V11.html" title="Xbasic Class Syntax V11" class="wiki">Xbasic Class Syntax V11</a><br />
+<a href="Designing an Xbasic Class V11.html" title="Designing an Xbasic Class V11" class="wiki">Designing an Xbasic Class V11</a><br />
+<a href="Implementing an Xbasic Class V11.html" title="Implementing an Xbasic Class V11" class="wiki">Implementing an Xbasic Class V11</a><br />
+<a href="Testing and Using an Xbasic Class V11.html" title="Testing and Using an Xbasic Class V11" class="wiki">Testing and Using an Xbasic Class V11</a><br />
+<a href="Subclasses and Inheritance V11.html" title="Subclasses and Inheritance V11" class="wiki">Subclasses and Inheritance V11</a><br />
+<a href="Classes in Namespaces V11.html" title="Classes in Namespaces V11" class="wiki">Classes in Namespaces V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Testing+and+Using+an+Xbasic+Class+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

@@ -1,0 +1,611 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			
+
+<p class=A3Topic>Automatic Recovery of Indexes</p>
+
+
+
+<p>The following two scripts allow a user to take a snapshot of all of
+ the indexes in all of the tables in their application, and then check
+ the actual indexes against the index definitions stored in the snapshot.</p>
+
+
+
+<p>Script 1 loops through all of the table in a database and stores the
+ index definitions in a text file on disk. The text file is the same&nbsp;as&nbsp;the
+ Database name but it has a ".TableInformation" extension. You
+ would run Script 1 only once.</p>
+
+
+
+<p>Script 2 retrieves the index definitions and checks the indexes in the
+ tables against the saved index definitions..</p>
+
+
+
+<p class=A5>Script 1 - Save Index Definitions</p>
+
+
+
+<p>Start by getting a list of all tables.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim tables&nbsp;as&nbsp;C <br>
+tables = a5.Table_Enum()</td></tr>
+</table>
+
+<p>Create an array to hold the index information for each table.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim td&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>dim count&nbsp;as&nbsp;N </p>
+
+
+<p class=Code>count = line_count(tables) <br>
+dim td.TableInfo[count]&nbsp;as&nbsp;P</td></tr>
+</table>
+
+<p>Initialize the array.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>td.TableInfo.initialize_properties("TableName",tables)</td></tr>
+</table>
+
+<p>Create and display a progress dialog box with the WaitDialog <a href="../Methods/WAITDIALOG.CREATE Method.html" title="WAITDIALOG.CREATE Method" class="wiki">.Create(</a>)
+ method.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim pDlg1&nbsp;as&nbsp;{waitdialog} <br>
+pDlg1.Create(3,"Percent") <br>
+pDlg1.Set_Title("Please Wait") <br>
+pDlg1.Set_Message("Storing index information. Please wait...")</td></tr>
+</table>
+
+<p>Iterate through the tables, retrieving the index information for each.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim i&nbsp;as&nbsp;N <br>
+dim table_i&nbsp;as&nbsp;C <br>
+dim indexInfo_i&nbsp;as&nbsp;C <br>
+dim sourceType_i&nbsp;as&nbsp;C</p>
+
+
+&nbsp;
+<p class=Code>for i = 1 to count <br>
+&nbsp;&nbsp;&nbsp;&nbsp;table_i = td.TableInfo[i].tablename</td></tr>
+</table>
+
+<p>Check the table type. The only type of table to examine is a "Native"
+ table. Use the <a href="../Methods/WAITDIALOG.SET_BOTTOM_MESSAGE Method.html" title="WAITDIALOG.SET_BOTTOM_MESSAGE Method" class="wiki">.Set_Bottom_Message(</a>)
+ method to update the progress dialog.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;sourceType_i = table.get_source_type(table.filename_get(table_i))
+ <br>
+&nbsp;&nbsp;&nbsp;&nbsp;td.TableInfo[i].sourceType = sourceType_i <br>
+&nbsp;&nbsp;&nbsp;&nbsp;pDlg1.Set_Bottom_Message(table_i) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (sourceType_i = "Native") then</td></tr>
+</table>
+
+<p>The <a href="../Functions/GET_INDEX_DEFINITIONS Function.html" title="GET_INDEX_DEFINITIONS Function" class="wiki">get_index_definitions(</a>)
+ function retrieves a text definition of a table's indexes.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;td.TableInfo[i].indexDefinitions
+ = get_index_definitions(table_i) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;else <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;td.TableInfo[i].indexDefinitions
+ = "" <br>
+&nbsp;&nbsp;&nbsp;&nbsp;end if <br>
+next i</td></tr>
+</table>
+
+<p>Close the progress dialog. The <a href="../Methods/A5.GET_NAME Method.html" title="A5.GET_NAME Method" class="wiki">a5.get_name(</a>)
+ method returns the name of the current database. The <a href="../Methods/FILE.FILENAME_PARSE Method.html" title="FILE.FILENAME_PARSE Method" class="wiki">file.filename_parse(</a>)
+ method constructs the path and filename for the file that will store the
+ index definitions.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>pDlg1.close() <br>
+<br>
+dim fn&nbsp;as&nbsp;C <br>
+fn = file.filename_parse(a5.Get_Name(),"dpn") + ".TableInformation"</td></tr>
+</table>
+
+<p>Use <a href="../Functions/SAVE_TO_FILE Function.html" title="SAVE_TO_FILE Function" class="wiki">save_to_file(</a>) to
+ save the variable that contains the index information to the file on disk.
+ Before you can save the variable, you have to convert it to a character
+ value using <a href="../Functions/PROPERTY_TO_STRING Function.html" title="PROPERTY_TO_STRING Function" class="wiki">property_to_string(</a>).</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>save_to_file(property_to_string(td),fn)</td></tr>
+</table>
+
+<p class=A5>Retrieve Index Definitions</p>
+
+
+
+<p>Script 2 is used to check the indexes in the tables against the saved
+ index definitions. The first step is to compute the name of the index
+ definition file and open it. If the file doesn't exist, the script exits
+ by going to the <span class=Code1>skip</span> label.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim fn&nbsp;as&nbsp;C</p>
+
+
+&nbsp;
+<p class=Code>fn = file.filename_parse(a5.Get_Name(),"dpn") +
+ ".TableInformation" <br>
+if file.exists(fn) = .f. then <br>
+ui_msg_box("Error", "Saved index information file not found.")
+ <br>
+goto skip <br>
+end if</td></tr>
+</table>
+
+<p>Retrieve the index definition using the <a href="../Functions/GET_FROM_FILE Function.html" title="GET_FROM_FILE Function" class="wiki">get_from_file(</a>)
+ function, then import the ASCII data into the <span class=Code1>td</span>
+ dot variable using <a href="../Functions/PROPERTY_FROM_STRING Function.html" title="PROPERTY_FROM_STRING Function" class="wiki">property_from_string(</a>).</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim txt&nbsp;as&nbsp;C <br>
+dim td&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>txt = get_from_file(fn) <br>
+property_from_string(td, txt)</td></tr>
+</table>
+
+<p>Count the number of entries in the <span class=Code1>td</span> dot variable
+ by finding the first empty entry with the array <a href="../Methods/ARRAY.FIRST_EMPTY Method.html" title="ARRAY.FIRST_EMPTY Method" class="wiki">.first_empty(</a>)
+ method and subtracting 1.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim i&nbsp;as&nbsp;N <br>
+dim count&nbsp;as&nbsp;N <br>
+count = td.TableInfo.first_empty()- 1</td></tr>
+</table>
+
+<p>Create and display a progress dialog box. Use the WaitDialog <a href="../Methods/WAITDIALOG.SET_TITLE Method.html" title="WAITDIALOG.SET_TITLE Method" class="wiki">.Set_Title(</a>)
+ method to set the title of the progress dialog.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim pDlg1&nbsp;as&nbsp;{waitdialog} <br>
+pDlg1.Create(3,"Percent") <br>
+pDlg1.Set_Title("Please Wait") <br>
+pDlg1.Set_Message("Checking indexes. Please wait...")</td></tr>
+</table>
+
+<p>Compare the saved index definitions with each table's indexes.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim tablesWithErrors&nbsp;as&nbsp;C = "" <br>
+dim index_info_i&nbsp;as&nbsp;C <br>
+dim table_i&nbsp;as&nbsp;C <br>
+dim ptr&nbsp;as&nbsp;P</p>
+
+
+&nbsp;
+<p class=Code>for i = 1 to count <br>
+&nbsp;&nbsp;&nbsp;&nbsp;index_info_i = td.TableInfo[i].indexDefinitions
+ <br>
+&nbsp;&nbsp;&nbsp;&nbsp;table_i = td.TableInfo[i].tablename <br>
+&nbsp;&nbsp;&nbsp;&nbsp;pDlg1.Set_Bottom_Message(table_i)</td></tr>
+</table>
+
+<p>Only restore indexes if the table type is a native table. Use the&nbsp;
+ <a href="../Functions/INDEXES_MATCH_DEFSTRING Function.html" title="INDEXES_MATCH_DEFSTRING Function" class="wiki">&lt;a&gt;indexes_match_defstring(</a>)
+ function to do the comparison. Check the <span class=Code1>.missingIndexTags</span>
+ property to see which tables have missing or damaged indexes. If necessary,
+ use the <a href="../Functions/CREATE_INDEXES Function.html" title="CREATE_INDEXES Function" class="wiki">create_indexes(</a>)
+ function to restore an index.</a></p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;if td.TableInfo[i].sourceType = "Native"
+ then <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr = indexes_match_defstring(table_i
+ , index_info_i) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ptr.missingIndexTags
+ <> "" then <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tablesWithErrors
+ = tablesWithErrors + table_i + crlf() <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create_Indexes(table_i,
+ index_info_i) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end if <br>
+&nbsp;&nbsp;&nbsp;&nbsp;end if <br>
+next i</td></tr>
+</table>
+
+<p>Close the progress dialog using the <a href="../Methods/WAITDIALOG.CLOSE Method.html" title="WAITDIALOG.CLOSE Method" class="wiki">.close(</a>)
+ method. Use <a href="../Functions/UI_MSG_BOX Function.html" title="UI_MSG_BOX Function" class="wiki">ui_msg_box(</a>) to
+ report what was done.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>pDlg1.close() <br>
+<br>
+<br>
+if tablesWithErrors <> "" then <br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Notice","Missing indexes
+ were re-created in the following tables: " + crlf()+ tablesWithErrors)
+ <br>
+else <br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Notice","No missing
+ indexes were found") <br>
+end if</p>
+
+
+&nbsp;
+<p class=Code>skip:</td></tr>
+</table>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="Index Builder.html#Creating_an_Index" title="Index Builder" class="wiki">Creating  an Index</a>, <a href="../Xbasic/Xbasic Reference/About Indexes, Queries, and Ranges.html" title="About Indexes, Queries, and Ranges" class="wiki">About Indexes,  Queries, and Ranges</a></p>
+
+
+
+<p class=A5>Supported By</p>
+
+
+
+<p>Alpha Five Version 6 and Above</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Automatic+Recovery+of+Indexes">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

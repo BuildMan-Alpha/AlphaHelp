@@ -1,0 +1,257 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Method>&ltTBL>.PACK()</p>
+
+
+
+<p class=A5>Syntax</p>
+
+
+
+<p>&ltTBL>.PACK()</p>
+
+
+
+<p class=A5>Description</p>
+
+
+
+<p>You pack a table if you have deleted records that you want to permanently remove. 
+ The &ltTBL>.PACK() method packs a table, referenced by the object pointer, 
+ &ltTBL>. Packing a table reclaims the space taken up by deleted records 
+ and rebuilds indexes. </p>
+
+
+<p>When you delete a record, the record is not physically removed from the table 
+- the record is merely 'marked' as a deleted record. Only when the table is 
+packed, are the records that are 'marked' as deleted physically removed.</p>
+
+
+<p>If you have not yet packed a table, previously deleted records can be 
+undeleted. This can be done through the user interface (right click on the table 
+and select Utilities), or through Xbasic (see example below).</p>
+
+
+<p>After you have packed a table, a record's physical record number might 
+change. For example, if you have four records in a table and you delete record 
+number 3, the table will have 3 records, but the physical record number of the 
+last record will still be 4. However, after you pack the table, the record 
+number of the last record will now be 3. Because packing a table will 
+potentially change a record's physical record number, using record number as the 
+'primary key' for a table is not advisable.</p>
+
+
+<p>When you fetch records in a table using the &lttbl>.fetch_next() and &lttbl>.fetch_prev() 
+methods, records marked for deletion are automatically skipped. However, you can 
+use the &lttbl>.fetch_goto() method to position the pointer on a deleted record 
+(see example below).</p>
+
+
+
+<p>The Pack operation requires exclusive access to a table. If exclusive 
+ read/write access cannot be obtained, the &ltTBL>.PACK() method causes 
+ an error.</p>
+
+
+
+<p>Use the <a href="TBL.RECORDS_DELETED Method.html" title="TBL.RECORDS_DELETED Method" class="wiki">&lt;TBL&gt;.RECORDS_DELETED(</a>) 
+ method to determine if a table has any deleted records and therefore needs 
+ to be packed.</p>
+
+
+
+<p class=A5>Supported By</p>
+
+
+
+<p>Alpha Five Version 5 and Above</p>
+
+
+
+<p class=A5>Example</p>
+
+
+
+<p>Pack the current table, but first confirm the operation.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim tbl&nbsp;as&nbsp;P</p>
+
+
+<p class=Code>tbl = table.current()</p>
+
+
+<p class=Code>'Compute the Message Type code</p>
+
+
+<p class=Code>code = UI_YES_NO + UI_SECOND_BUTTON_DEFAULT + UI_QUESTION_SYMBOL</p>
+
+
+<p class=Code>response = ui_msg_box("Pack Table","Are you 
+ sure? ", code)</p>
+
+
+<p class=Code>if response = UI_YES_SELECTED then&nbsp;'User selected Yes</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;tbl.pack()</p>
+
+
+<p class=Code>end if<p class=Code>&nbsp;<p class=Code>&nbsp;<p class=Code>'Shows 
+how records can be undeleted before table is packed, and how deleted records are 
+skipped<p class=Code>t = table.open("customer")<br>
+?t.recno()<br>
+= 1<br>
+<br>
+t.fetch_next()<br>
+?t.recno()<br>
+= 2<br>
+&nbsp;<p class=Code>&nbsp;<p class=Code>&nbsp;<p class=Code>'now delete record 
+number 2<br>
+t.change_begin()<br>
+t.delete()<br>
+t.change_end(.t.)<p class=Code>&nbsp;<p class=Code>'note that as soon as record 
+2 is deleted the pointer moves to record number 3 (first undeleted record)<br>
+?t.recno()<br>
+= 3<br>
+<br>
+t.fetch_first()<br>
+?t.recno()<br>
+= 1<br>
+&nbsp;<p class=Code>'notice how record number 2 (a deleted record) is 
+automatically skipped over<br>
+t.fetch_next()<br>
+?t.recno()<br>
+= 3<br>
+&nbsp;<p class=Code>'explicitly position pointer on physical record number 2 (a 
+deleted record)<p class=Code>'this is possible because the table has not yet 
+been packed<br>
+t.fetch_goto(2)<br>
+?t.is_deleted()<br>
+= .T.<br>
+&nbsp;<p class=Code>'now undelete the record (i.e. set the 'delete' marker off)<br>
+t.change_begin()<br>
+t.DELETED = ""<br>
+t.change_end(.t.)<br>
+?t.recno()<br>
+= 2<br>
+<br>
+?t.is_deleted()<br>
+= .F.<br>
+<br>
+t.fetch_first()<br>
+?t.recno()<br>
+= 1<br>
+&nbsp;<p class=Code>'now, when we fetch through the records, physical record 
+number 2 is no longer skipped<br>
+t.fetch_next()<br>
+?t.recno()<br>
+= 2<br>
+<br>
+&nbsp;<p class=Code>&nbsp;<p class=Code>&nbsp;</td></tr>
+</table>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="../Functions/Table Functions and Methods.html" title="Table Functions and Methods" class="wiki">Table Functions and   Methods</a></p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:TBL.PACK+Method">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>

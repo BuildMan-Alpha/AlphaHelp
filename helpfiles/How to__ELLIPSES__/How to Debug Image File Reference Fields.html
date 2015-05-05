@@ -1,0 +1,194 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="How_to_Debug_Image_File_Reference_Fields">How to Debug Image File Reference Fields</h1>
+An Image File Reference Field is a field in an native Alpha Five table (.dbf), that contains the filename of an image. The filename it typically encoded using an alias. When you publish a Grid that has an Image File Reference Field it can be tricky to get the images to display properly. You will run into problems if you don't publish your images to the correct location on your server.<br />
+<br />
+To help diagnose problems with Image File Reference fields, you can use the special formatting options in the Grid. See <a href="../What's New/What's New in Version 10/Grid Component How To Topics V10/How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid.html" title="How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid" class="wiki">How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid</a>.<br />
+<br />
+If you are still having problems, then create a new .a5w page in your Web Project with the code shown below.<br />
+<br />
+To create the page, create a new empty page. Then switch to Source View, delete everything shown and paste the code shown below into the source view.<br />
+<br />
+You will need to edit the values for 'tableName', 'imageField' and 'imagePathProperty' in the page so that they match values in the Grid component you are debugging.<br />
+<br />
+Save the page and then publish it to your server and then run it.<br />
+<br />
+The page will give you information about where the images should be published.<br />
+<br />
+The image below shows the output from this page when it is run.<br />
+<br />
+<span style="color:blue; background:"><div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" >&lt;html&gt;&lt;head&gt;
+&lt;meta content="text/html; charset=unicode" http-equiv=Content-Type&gt;&lt;style type=text/css&gt;
+.head { font-family:Tahoma; font-size:14pt; color: blue; }
+.msg { font-family:Tahoma; font-size:10pt; color: blue; }
+.error { font-family:Tahoma; font-size:10pt; color: red; }
+.note { font-family:Tahoma; font-size:8pt; color:#969696; }
+
+&lt;/style&gt;
+&lt;%a5
+'--------------------------------------IMPORTANT ---------------------------------------------------------------
+'You must replace the values for tableName, imageName and imagePathProperty with actual values for your Component.
+'The 'imagePathProperty' value is what you have filled in for the 'Image Path' property in the
+'Image Field in the Grid Component. It is often left blank.
+dim tableName as c 
+dim imageField as c 
+dim imagePathProperty as c 
+tableName = "[PathAlias.ADB_Path]\flowers.dbf"
+imageField = "Picture"
+imagePathProperty = ""
+'----------------------------------------------------------------------------------------------------------
+?"&lt;span class=\"head\"&gt;Debugging an Image File Reference Field&lt;br&gt;&lt;br&gt;&lt;/span&gt;"
+
+?"&lt;span class=\"msg\"&gt;Here are the values that you supplied:&lt;br&gt;" + "Tablename: " +tableName + "&lt;br&gt;" + "Image field name: " +  imageField + "&lt;br&gt;" + "Image path property: "+ imagePathProperty + "&lt;br&gt;&lt;br&gt;"
+
+
+dim physicalTableName as c 
+physicalTableName = filename_decode(tablename)
+
+
+
+?"&lt;span class=\"msg\"&gt;Table Name: " + tableName + "&lt;br&gt;&lt;/span&gt;"
+?"&lt;span class=\"note\"&gt;This is the name of the table that your Grid is based on. It is typically encoded with an alias e.g. [PathAlias.ADB_Path]&lt;br&gt;&lt;br&gt;&lt;/span&gt;"
+
+
+?"&lt;span class=\"msg\"&gt;Table Physical Name: " + physicalTableName + "&lt;br&gt;&lt;/span&gt;"
+?"&lt;span class=\"note\"&gt;This is the actual filename of the table that your Grid is based on. The alias (if any) has been decoded based on the value of the alias as set in a5_application.a5i file.&lt;br&gt;&lt;br&gt;&lt;/span&gt;"
+dim flagExists as l 
+flagExists = file.exists(physicalTableName)
+
+?"&lt;span class=\"msg\"&gt;TablePhysical Name exists: " + file.exists(physicalTableName) + "&lt;br&gt;&lt;/span&gt;"
+?"&lt;span class=\"note\"&gt;This tests to see if the actual physical filename of the table that the Grid is based on exists on the server. (It should!)&lt;br&gt;&lt;/span&gt;"
+
+if flagExists = .f. then 
+	?"&lt;span class=\"error\"&gt;&lt;br&gt;&lt;br&gt;FATAL ERROR: The TablePhysical Name file does not exist. You have not published the table to the correct folder, or the [PathAlias.ADB_Path] is not defined properly in your a5_application.a5i file.&lt;br&gt;&lt;/span&gt;"
+	end 
+end if 
+?"&lt;br&gt;&lt;br&gt;"
+
+dim imageName as c
+dim tbl as p
+tbl = table.open(physicalTableName)
+on error goto imageNotFound
+imageName = tbl.data(imageField)
+
+?"&lt;span class=\"msg\"&gt;Image name (raw): " + imageName + "&lt;br&gt;&lt;/span&gt;"
+?"&lt;span class=\"note\"&gt;This is the name of the image that is stored in the table. This name is often encoded using an alias, or it might be a relative filename.&lt;br&gt;&lt;/span&gt;"
+
+
+
+
+dim imageNameResolved as c 
+imageNameResolved = filename_decode(imageName)
+?"&lt;br&gt;&lt;br&gt;&lt;span class=\"msg\"&gt;Image name (resolved): " + imageNameResolved + "&lt;br&gt;&lt;/span&gt;"
+?"&lt;span class=\"note\"&gt;This is the name of the image after it has been resolved. &lt;b&gt;This tells you where the server is looking for your images. THIS IS WHERE YOUR IMAGES SHOULD HAVE BEEN PUBLISHED.&lt;/b&gt;.&lt;br&gt;&lt;/span&gt;"
+tbl.close()
+
+dim tmpl as p
+tmpl.request = request
+tmpl.session = session 
+tmpl.serversetting = serversetting
+
+dim decodedfilename as c 
+decodedFilename = a5w_Decode_IFR(tmpl, imagename, imagePathProperty)
+?"&lt;br&gt;&lt;br&gt;&lt;span class=\"msg\"&gt;Component image filename: " + decodedfilename + "&lt;/span&gt;&lt;br&gt;"
+?"&lt;span class=\"note\"&gt;This tells you what image filename the component is trying to display. If this is different than the 'resolved' image name, then the image will be copied from the 'resolved' location to this location.&lt;/b&gt;.&lt;br&gt;&lt;/span&gt;"
+
+?"&lt;br&gt;&lt;br&gt;&lt;br&gt;"
+?"&lt;span class=\"note\"&gt;This shows the image. If no image is displayed, then the The images are not loaded in the proper location on the server.&lt;/b&gt;.&lt;br&gt;&lt;/span&gt;"
+
+?"&lt;img src=\""+decodedfilename+"\" /&gt;"
+
+
+end 
+imageNotFound: 
+tbl.close()
+?"Error: The image field name was not found in the table: " + imageField + "&lt;br&gt;"
+
+%&gt;</pre></div></span><br />
+Here is what the page will look like when you run it. (Of course, in your case it will be slightly different because you will have specified your own values for the page parameters).<br />
+	<img src="images/DebuggingAnImageFileRefField.png" alt="Image" /><br />
+<h2 class="showhide_heading" id="See_also">See also</h2>
+<a href="../What's New/What's New in Version 10/Grid Component How To Topics V10/How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid.html" title="How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid" class="wiki">How to Debug Image File Reference Images Not Displaying Correctly in a V10 Grid</a><br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+Debug+Image+File+Reference+Fields">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 --></body></html>
