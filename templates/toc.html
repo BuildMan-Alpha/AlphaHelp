@@ -1,0 +1,122 @@
+<html>
+<body onload="tocLoaded()" >
+<style>
+.selected {
+   color:HighlightText;
+   background:Highlight;
+}
+ul {
+   list-style-type: none;
+}
+li div {
+   margin-left: 24px;
+}
+li[branch] > div {
+   position: relative;
+}
+li[branch].opened > div:before {
+   content: "";
+   display: block;
+   position: absolute;
+   top: 50%;
+   left: -20px;
+   margin-top: -3px;
+   border: 5px black solid;
+   border-left-color: transparent;
+   border-right-color: transparent;
+   border-bottom: none;
+}
+li[branch].closed > div:before {
+   content: "";
+   display: block;
+   position: absolute;
+   top: 50%;
+   left: -20px;
+   margin-top: -5px;
+   border: 5px black solid;
+   border-top-color: transparent;
+   border-bottom-color: transparent;
+   border-right: none;
+}
+</style>
+<div id="TOC">
+__content__
+</div>
+<script>
+var tocEle = document.getElementById("TOC");
+var lastSelection = null;
+
+//Finds y value of given object
+var findPos = function(obj) {
+    var curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+    return curtop;
+    }
+}
+
+tocEle.addEventListener("click", function(e) {
+	if(e.target ) {
+		if( e.target.id == "TOC" ) {
+			return false;
+		} else if( e.target.nodeName == "DIV" ) {
+			if( e.target.id ) {
+				window.parent.checkNavigation(e.target.id,'toc');
+				//window.top.document.location.replace("/help"+e.target.id+"?view=main");
+			}
+			if( lastSelection != null )
+				lastSelection.className = "";
+			lastSelection =  e.target;
+			e.target.className = "selected";
+		} else if( e.target.nodeName == "LI" && e.target.getAttribute("branch") == "true" ) {
+		    var eleB = e.target.lastElementChild;
+		    if( eleB.style.display == "none" ) {
+		    	eleB.style.display = "";
+		    	e.target.className = "opened";
+		    } else {
+		    	eleB.style.display = "none";
+		    	e.target.className = "closed";
+		    }
+		}
+	}
+});
+
+function setSelectedPage(navToId) {	
+	var navTo = document.getElementById(navToId);
+	if( !navTo ) {
+		navToId = decodeURI(navToId);
+		navTo = document.getElementById(navToId);
+	}
+	if( navTo && lastSelection != navTo ) {
+		if( lastSelection != null )
+			lastSelection.className = "";
+		navTo.className = "selected";
+		var dad = navTo.parentNode;
+		while( dad  ) {
+			if( dad.style && dad.style.display == "none" ) {
+				dad.style.display = "";
+				dad = dad.parentNode;
+				dad.className = "opened";
+			}
+			dad = dad.parentNode;
+		}
+		lastSelection =  navTo;
+		navTo.scrollIntoView();
+		//var pos = findPos(navTo);
+		//pos -= document.body.clientHeight / 2;
+		//if( pos > 0 )
+		//	pos = 0;
+		//window.scrollTo(0,pos);
+	}
+}
+
+function tocLoaded() {	
+	if(window.location.hash) {
+		setSelectedPage( window.location.hash.substr(1) );
+	}
+}
+</script>
+</body>
+</html>
