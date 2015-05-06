@@ -1,10 +1,11 @@
 var express = require('express');
 var app = express();
-var options = { port : 3001 , helpLocation : '/dev/AlphaHelp/helpfiles/' , templatesLocation : '/dev/AlphaHelp/templates/' , generatedLocation : '/dev/helpsystem/public/' };
+var options = require("./settings");
 var fs = require('fs');
 var mainPageTemplate = 'No main.html template found';
 var searchPageTemplate = 'No search panel found.';
-
+var Help = require('helpserver');
+var help = Help(options);
 // Pull in resources
 fs.readFile(options.templatesLocation+'main.html','utf8' , function(err,data) {
     if( !err ) {
@@ -35,7 +36,7 @@ app.use("/search_panel",function(req,res) {
 });
 
 app.use("/toc",function(req,res) {
-    fs.readFile(options.generatedLocation+'/toc.html','utf8' , function(err,data) {
+    fs.readFile(options.generated+'/tree.html','utf8' , function(err,data) {
         if( err ) {
             res.send('error '+err);   
         } else {
@@ -58,7 +59,7 @@ app.use("/help/",function(req, res) {
             res.type('html');
             res.send(mainPage(req.path));
         } else {
-            fs.readFile(options.helpLocation+unescape(req.path.substring(1)),"utf8" , function(err,data) {
+            fs.readFile(options.source+unescape(req.path.substring(1)),"utf8" , function(err,data) {
                 if( err ) {
                     console.log('error '+err);
                     res.send('error '+err);   
@@ -69,7 +70,7 @@ app.use("/help/",function(req, res) {
             });
         }
     } else if( extension == "css" ) {
-        fs.readFile(options.helpLocation+unescape(req.path.substring(1)),"utf8" , function(err,data) {
+        fs.readFile(options.source+unescape(req.path.substring(1)),"utf8" , function(err,data) {
             if( err ) {
                 console.log('error '+err);
                 res.send('error '+err);   
@@ -79,7 +80,7 @@ app.use("/help/",function(req, res) {
             }
         });
     } else {        
-        fs.readFile(options.helpLocation+unescape(req.path.substring(1)),function(err,data) {
+        fs.readFile(options.source+unescape(req.path.substring(1)),function(err,data) {
             if( err ) {
                 console.log('error '+err);
                 res.type(extension);
@@ -91,5 +92,16 @@ app.use("/help/",function(req, res) {
         );
     } 
 });
+
+app.use("/search?" ,function(req, res) {
+    help.search(req.query.pattern,function(err,data) {
+        if( err ) {
+            res.send(JSON.stringify([ { 'error' : err } ]));
+        } else {
+            res.send(JSON.stringify(data));
+        }  
+    })     
+});
+
 app.listen(options.port);
 console.log('Listening on port '+options.port);
