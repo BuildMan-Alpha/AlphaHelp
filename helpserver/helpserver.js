@@ -35,8 +35,9 @@ app.use("/search_panel",function(req,res) {
      res.send(searchPageTemplate);
 });
 
+   
 app.use("/toc",function(req,res) {
-    fs.readFile(options.generated+'/tree.html','utf8' , function(err,data) {
+    help.gettree(req.path,function(err,data) {
         if( err ) {
             res.send('error '+err);   
         } else {
@@ -47,16 +48,23 @@ app.use("/toc",function(req,res) {
 
 app.use("/help/",function(req, res) {
     console.log('request'+req.path+'\n');
-    help.get(req.path,function(err,data,type) {
-       if( err ) {
-           res.send(err);
-       } else {
-            if( type ) {
-                res.type(type);
-            }
-            res.send(data);           
-       }
-    });
+    if( req.path.indexOf("/theme.css") > 0 ) {
+        fs.readFile("./themes/default/theme.css",function(err,data) {
+           res.type("css");
+           res.send(data); 
+        });
+    } else {
+        help.get(req.path,function(err,data,type) {
+           if( err ) {
+               res.send(err);
+           } else {
+                if( type ) {
+                    res.type(type);
+                }
+                res.send(data);           
+           }
+        });
+    }
 });
 
 app.use("/search?" ,function(req, res) {
