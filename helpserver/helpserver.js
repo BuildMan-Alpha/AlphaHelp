@@ -44,53 +44,19 @@ app.use("/toc",function(req,res) {
         }
     });
 });
+
 app.use("/help/",function(req, res) {
     console.log('request'+req.path+'\n');
-    var extension = null;
-    var extensionPos = req.path.lastIndexOf('.');
-    if( extensionPos > 0)
-        extension = req.path.substring(extensionPos+1).toLowerCase();
-    if( !extension ) {
-        // Table of contents...        
-        res.send('TBD - toc with no topic page'+req.path);
-        console.log('no extension provided\n');
-    } else if( extension == "html" || extension == "htm" ) {
-        if( req.query.view && req.query.view == 'main' ) {
-            res.type('html');
-            res.send(mainPage(req.path));
-        } else {
-            fs.readFile(options.source+unescape(req.path.substring(1)),"utf8" , function(err,data) {
-                if( err ) {
-                    console.log('error '+err);
-                    res.send('error '+err);   
-                } else {
-                    res.type('html');
-                    res.send(data);
-                }
-            });
-        }
-    } else if( extension == "css" ) {
-        fs.readFile(options.source+unescape(req.path.substring(1)),"utf8" , function(err,data) {
-            if( err ) {
-                console.log('error '+err);
-                res.send('error '+err);   
-            } else {
-                res.type('css');
-                res.send(data);
+    help.get(req.path,function(err,data,type) {
+       if( err ) {
+           res.send(err);
+       } else {
+            if( type ) {
+                res.type(type);
             }
-        });
-    } else {        
-        fs.readFile(options.source+unescape(req.path.substring(1)),function(err,data) {
-            if( err ) {
-                console.log('error '+err);
-                res.type(extension);
-                res.send('error '+err);
-            } else {
-                res.send(data);
-            }
-        }
-        );
-    } 
+            res.send(data);           
+       }
+    });
 });
 
 app.use("/search?" ,function(req, res) {
