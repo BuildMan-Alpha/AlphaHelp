@@ -20,17 +20,12 @@ fs.readFile(options.templatesLocation+'search_panel.html','utf8' , function(err,
     }
 });
 
-var mainPage = function(page) {
-    if( mainPageTemplate ) {
-        var content = mainPageTemplate;
-        while( content.indexOf("__page__") > 0 )
-            content = content.replace("__page__",page);
-        return content;
-    }
-    return page;
-}
+app.use("/blank",function(req,res) {
+     res.send('&nbsp;');
+});
+
 app.use("/main",function(req,res) {
-     res.send(mainPage(""));
+     res.send(mainPageTemplate);
 });
 
 app.use("/search_panel",function(req,res) {
