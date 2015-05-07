@@ -6,6 +6,7 @@ var mainPageTemplate = 'No main.html template found';
 var searchPageTemplate = 'No search panel found.';
 var Help = require('helpserver');
 var help = Help(options);
+
 // Pull in resources
 fs.readFile(options.templatesLocation+'main.html','utf8' , function(err,data) {
     if( !err ) {
@@ -31,13 +32,14 @@ var mainPage = function(page) {
 app.use("/main",function(req,res) {
      res.send(mainPage(""));
 });
+
 app.use("/search_panel",function(req,res) {
      res.send(searchPageTemplate);
 });
 
-   
 app.use("/toc",function(req,res) {
     help.gettree(req.path,function(err,data) {
+        res.type('html');
         if( err ) {
             res.send('error '+err);   
         } else {
@@ -46,8 +48,22 @@ app.use("/toc",function(req,res) {
     });
 });
 
+app.use("/assets/",function(req, res) {
+    console.log('request '+req.path+'\n');
+    help.get(req.path,function(err,data,type) {
+       if( err ) {
+           res.send(err);
+       } else {
+            if( type ) {
+                res.type(type);
+            }
+            res.send(data);           
+       }
+    });
+});
+
 app.use("/help/",function(req, res) {
-    console.log('request'+req.path+'\n');
+    console.log('request '+req.path+'\n');
     if( req.path.indexOf("/theme.css") > 0 ) {
         fs.readFile("./themes/default/theme.css",function(err,data) {
            res.type("css");
