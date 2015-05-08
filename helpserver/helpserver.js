@@ -88,5 +88,18 @@ app.use("/search?" ,function(req, res) {
     })     
 });
 
+app.post("/refresh" ,function(req, res) {
+    if( !global.refresh_locked ) {
+        global.refresh_locked = true;
+        help.refresh( function(err,result ) {
+            global.refresh_locked = false;
+            res.end("complete");
+        });
+    } else {
+        res.end("busy");
+    }
+});
+    
+
 app.listen(options.port);
 console.log('Listening on port '+options.port);
