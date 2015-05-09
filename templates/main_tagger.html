@@ -1,0 +1,105 @@
+<html>
+	<head>
+		<script src="/assets/helpserver-main.js"></script>
+		<script >
+				var oldPage = '';
+				var oldTag = '';
+				function updateTagValue(tags) {
+					if( tags != '' ) {
+						tags = "tag-"+tags;
+					}
+					if( oldTag != tags ) {
+						if( oldTag != '' ) {
+							document.getElementById(oldTag).className = '';							
+						}
+						oldTag = tags;
+						if( oldTag != '' ) {
+							document.getElementById(oldTag).className = 'tagSelected';							
+						}						
+					}
+				}
+			    function updateTags() {
+					var newPage = window.location.hash.substring(1);
+					while( newPage.substring(0,1) == '/' )
+					    newPage = newPage.substring(1);
+					if( oldPage != newPage  ) {
+						oldPage = newPage;
+						if( oldPage != '' )
+						var xmlhttp = new XMLHttpRequest();
+						xmlhttp.onreadystatechange=function() {
+						  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+						    {
+							 var rec = JSON.parse(xmlhttp.responseText);
+							 if( rec && rec.metadata && rec.metadata.tags )
+							     updateTagValue(rec.metadata.tags);
+						     else		 
+							     updateTagValue('');
+						    }
+						  };						
+						xmlhttp.open("GET","/tag/"+oldPage,false);
+						xmlhttp.send();								
+					}
+				}
+				function OnHashChanged() {
+					helpServer.onHashChange();
+					updateTags();
+				}
+				function SetTags(value) {
+					var xmlhttp = new XMLHttpRequest();
+					xmlhttp.onreadystatechange=function() {
+					  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+					    {
+						oldPage = '';
+						updateTags();
+						}
+					};					
+					xmlhttp.open("POST","/tag/"+oldPage+"?tag="+value,true);
+					xmlhttp.send('');
+				}
+				function OnServerLoad() {
+					// Lets hook the tags
+					var ele = document.getElementById('tags');
+					ele.addEventListener("click", function (e) {
+						if (e.target) {
+							if (e.target.id == "tag-common") {
+								SetTags('common');
+							} else if (e.target.id == "tag-web") {
+								SetTags('web');
+							} else if (e.target.id == "tag-desktop") {
+								SetTags('desktop');
+							} else if (e.target.id == "tag-dbf") {
+								SetTags('dbf');
+							} else if (e.target.id == "tag-legacy") {
+								SetTags('legacy');
+							}
+						}
+					});					
+					helpServer.onLoad();
+					updateTags();
+				}
+				function HelpFrameLoad() {
+					helpServer.helpFrameLoad();
+					updateTags();
+				}
+		</script>
+		<style>
+			.tagSelected {
+				background-color: red;
+				color: white
+			}
+		</style>
+	</head>
+	<body onload="OnServerLoad()" style="margin:0px;padding:0px;" onhashchange="OnHashChanged()">
+		<div style="height:100%;width:34%;float:left;border:none;">
+			<iframe src="/search_panel" id="search" style="height:34%;width:100%;float:top;border:none;"></iframe>
+			<iframe src="/toc" id="toc" style="height:66%;width:100%;float:top;border:none;"></iframe>
+		</div>
+		<div style="height:100%;width:66%;float:left;border:none;">
+		<iframe src="/blank" id="help" name="help" style="height:80%;width:100%;float:left;border:none;" onload="HelpFrameLoad();"></iframe>
+		<div id="tags">
+			<button id="tag-common" >Common</button> <button  id="tag-web">Web</button>  <button  id="tag-desktop">Desktop</button> <button  id="tag-dbf">DBF</button> <button  id="tag-legacy">Legacy</button>
+		</div>
+		</div>
+	</body>
+
+</html>
