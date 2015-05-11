@@ -4,6 +4,8 @@
 		<script >
 				var oldPage = '';
 				var oldTag = '';
+				var idThatWasSet = '';
+				var valueThatWasSet = '';
 				function updateTagValue(tags) {
 					if( tags != '' ) {
 						tags = "tag-"+tags;
@@ -26,17 +28,17 @@
 						oldPage = newPage;
 						if( oldPage != '' )
 						var xmlhttp = new XMLHttpRequest();
-						xmlhttp.onreadystatechange=function() {
-						  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+						xmlhttp.onload = function() {
+						  if (this.status==200)
 						    {
-							 var rec = JSON.parse(xmlhttp.responseText);
+							 var rec = JSON.parse(this.responseText);
 							 if( rec && rec.tags )
 							     updateTagValue(rec.tags);
 						     else		 
 							     updateTagValue('');
 						    }
 						  };						
-						xmlhttp.open("GET","/tag/"+oldPage,false);
+						xmlhttp.open("GET","/tag/"+oldPage,true);
 						xmlhttp.send();								
 					}
 				}
@@ -46,8 +48,8 @@
 				}
 				function SetTags(value) {
 					var xmlhttp = new XMLHttpRequest();
-					xmlhttp.onreadystatechange=function() {
-					  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+					xmlhttp.onload=function() {
+					  if( this.status==200 )
 					    {
 						oldPage = '';
 						updateTags();
@@ -81,6 +83,16 @@
 					helpServer.helpFrameLoad();
 					updateTags();
 				}
+				helpServer.onItemToggle = function(id) {
+					var ele = document.getElementById('action');
+					if( ele.value == 'common' || ele.value == 'web' || ele.value == 'desktop' ) {
+						   if( idThatWasSet != id || valueThatWasSet != ele.value ) {
+							   idThatWasSet = id;
+							   valueThatWasSet = ele.value;
+							   SetTags( ele.value );
+						   }
+					}
+				}
 		</script>
 		<style>
 			.tagSelected {
@@ -99,6 +111,12 @@
 		<div id="tags">
 			<button id="tag-common" >Common</button> <button  id="tag-web">Web</button>  <button  id="tag-desktop">Desktop</button> <button  id="tag-dbf">DBF</button> <button  id="tag-legacy">Legacy</button>
 		</div>
+<select id="action" >
+  <option value="none">None</option>
+  <option value="common">Set Common</option>
+  <option value="web">Set Web</option>
+  <option value="desktop">Set Desktop</option>
+</select>		
 		</div>
 	</body>
 
