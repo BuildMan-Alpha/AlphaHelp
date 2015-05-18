@@ -102,7 +102,9 @@ app.post("/refresh" ,function(req, res) {
 
 app.use("/tag/",function(req, res) {
     if( req.method == 'POST' ) {
+        console.log('Set Tag '+req.query.tag)
         help.setmetadata(req.path,JSON.stringify({ tags : req.query.tag }),function(data) {
+            console.log('result '+data)
             res.send(JSON.stringify({ result : data }));
         });
     } else  {
