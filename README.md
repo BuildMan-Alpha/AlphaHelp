@@ -1,7 +1,22 @@
 # AlphaHelp
 Alpha Software Documentation
 
-##Installing helpserver on Linux
+# AlphaHelp
+Installing the help server on ubuntu 14.04.
+
+## Prerequisites
+
+If 'sudo add-apt-repository' fails - you will first need to install this. 
+
+```sh
+sudo apt-get install python-software-properties
+sudo apt-get install apt-file
+apt-file update
+apt-file search add-apt-repository
+sudo apt-get install software-properties-common
+```
+
+## Installing helpserver on Linux
 
 First, installing Elasticsearch is required - install java8 before installing elastic search.
 
@@ -27,7 +42,33 @@ cursor keys (to navigate) work as expected to move to the file location.
 x - delete character cursor is over
 :wq - this sequence of characters writes the file and exist vi.
 
-##Starting helpserver on Linux
+
+## Installing GIT
+
+To install git, which is required for getting and refreshing the help repo:
+
+```sh
+sudo apt-get update
+sudo apt-get install git
+```
+
+## Installing node
+
+To install node, execute the following.
+
+```sh
+sudo apt-get update
+sudo apt-get install nodejs
+sudo apt-get install npm
+```
+
+## Clone AlphaHelp into the home folder...
+
+```sh
+git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
+```
+
+## Starting helpserver on Linux
 
 This needs needs to be every time we restart the machine, but also when we are installing helpserver.
 
