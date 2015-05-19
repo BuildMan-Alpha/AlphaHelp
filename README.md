@@ -54,12 +54,13 @@ sudo apt-get install git
 
 ## Installing node
 
-To install node, execute the following.
+To install node, execute the following.  nodejs-legacy must also be installed because nodegit has dependencies on 'node', not 'nodejs'.
 
 ```sh
 sudo apt-get update
 sudo apt-get install nodejs
 sudo apt-get install npm
+sudo apt-get install nodejs-legacy
 ```
 
 ## Clone AlphaHelp into the home folder...
