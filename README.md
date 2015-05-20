@@ -67,6 +67,11 @@ sudo apt-get install nodejs-legacy
 
 ```sh
 git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
+mkdir /home/AlphaHelp/generated
+cd /home/AlphaHelp/helpserver
+npm install
+nodejs initializeserver.js
+nodejs updateserver.js
 ```
 
 ## Starting helpserver on Linux
