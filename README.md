@@ -65,6 +65,8 @@ sudo apt-get install nodejs-legacy
 
 ## Clone AlphaHelp into the home folder...
 
+Clone alphahelp, make a folder for generated files, initialize and update the elastic search index and table of contents.
+
 ```sh
 git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
 mkdir /home/AlphaHelp/generated
@@ -73,6 +75,20 @@ npm install
 nodejs initializeserver.js
 nodejs updateserver.js
 ```
+## Create the helpserver Service
+
+Copy the configuration file to the /etc/init folder
+
+```sh
+cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
+```
+
+Then start the server...
+
+```sh
+start helpserver
+```
+
 
 ## Starting helpserver on Linux
 
