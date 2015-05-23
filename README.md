@@ -88,6 +88,15 @@ Then start the server...
 ```sh
 start helpserver
 ```
+To Refresh the server modules (new release of helpserver npm).
+
+```sh
+stop helpserver
+cd /home/AlphaHelp/helpserver/node_modules/help_server
+npm update
+start helpserver
+```
+
 
 
 ## Starting helpserver on Linux
