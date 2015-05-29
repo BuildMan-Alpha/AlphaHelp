@@ -98,6 +98,13 @@ start helpserver
 ```
 
 
+Caveat - nodegit 4.0.0 broken in reposity.js - whenever I refresh the npm now I need to execute this line
+
+```sh
+cp /home/repository.js node_modules/helpserver/node_modules/nodegit/lib/repository.js
+```
+
+This will need to be done untill the fix is rolled into the NPM.
 
 ## Starting helpserver on Linux
 
