@@ -1,7 +1,20 @@
 # AlphaHelp
 Alpha Software Documentation
 
-# AlphaHelp
+# Guidelines
+
+Metadata stored in pages
+
+values for tags : (can be one or more)
+  + common - common to web and desktop.
+  + web - web server only functionality
+  + desktop - desktop only functionality
+  + legacy - page is marked as legacy (ommitted)
+  + review - page is marked for review.
+  + dbf - common DBF tag, tag these to make it easier to filter out DBF functions.
+
+
+# Installation on Ubuntu
 Installing the help server on ubuntu 14.04.
 
 ## Prerequisites
