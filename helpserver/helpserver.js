@@ -5,8 +5,6 @@ var Help = require('helpserver');
 var help = Help(options);
 
 app.use("/",function (req, res) {
-    if( !req.path ||  req.path == '/')
-        req.path = "/web/main";
     help.expressuse(req, res);
 });
 
