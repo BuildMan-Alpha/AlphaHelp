@@ -123,22 +123,21 @@ var createWorkList = function () {
                   var relativeImage = ib.from.substring(0, ib.from.lastIndexOf('/')) + "/images/";
                   relativeImage = relativeImage.toLowerCase();
                   for (i = 0; i < settings.dependencies.images.length; ++i) {
-                    var filename = settings.dependencies.images[i];
-                    if( filename ) {
-                      if ( filename.substring(0, relativeImage.length).toLowerCase() == relativeImage) {
-                        var imageKey = filename.toLowerCase() + '>' + pathTo.toLowerCase();
+                    var imgfilename = settings.dependencies.images[i];
+                    if( imgfilename ) {
+                      if ( imgfilename.substring(0, relativeImage.length).toLowerCase() == relativeImage) {
+                        var imageKey = imgfilename.toLowerCase() + '>' + pathTo.toLowerCase();
                         if (!extimage[imageKey]) {
-                          var imageObj = { from: filename, to: pathTo + "images/" + filename.substring(relativeImage.length) };
+                          var imageObj = { from: imgfilename, to: pathTo + "images/" + imgfilename.substring(relativeImage.length) };
                           imageIndexBuild.push(imageObj);
                           extimage[imageKey] = true;
                         }
                       } else {
-                        console.log('no match '+filename+" for "+relativeImage);
+                        console.log('no match '+imgfilename+" for "+relativeImage);
                       }
                     }
                   }
                 }
-                /*
                 if (settings.dependencies.href) {
                   var reorg = { name: ib.to, href: [] };
                   for (i = 0; i < settings.dependencies.href.length; ++i) {
@@ -154,7 +153,6 @@ var createWorkList = function () {
                     });
                   }
                 }
-                */
               }
               if (!handled) {
                 callbackLoop();
@@ -167,15 +165,15 @@ var createWorkList = function () {
       }, function () {
           if (imageIndexBuild.length > 0 )
             indexBuild = indexBuild.concat(imageIndexBuild);
-          console.log(JSON.stringify(indexBuild, null, "  "));
+          fs.writeFile("/dev/AlphaHelp/generated/reorg.json",JSON.stringify(indexBuild, null, "  "),function() {
+              console.log("Reorginization files generated...");
+          });
         });
     }
   });
 };
-createWorkList();
 
 // Build the toc
-/*
 help.status(function (stats) {
 	if (options.search && !stats.indexServiceRunning) {
 		console.log('Cannot initialize indexes without '+options.search.provider+' instance running.');
@@ -187,9 +185,9 @@ help.status(function (stats) {
 				console.log("Error: " + err);
 			else {
         // Now lets create the work list (move to/from + change the links) ...
-				console.log('Help updated');
+				console.log('Help updated, creating the reorg.json file');
+        createWorkList();
 			}
 		});		
 	}
 });
-*/
