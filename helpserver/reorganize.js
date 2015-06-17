@@ -84,7 +84,7 @@ var createWorkList = function () {
       var buildIndex = function (items, path) {
         var i;
         for (i = 0; i < items.length; ++i) {
-          var title = items[i].title || "";
+          var title = items[i].title.trim() || "";
           title = replaceEscapes(title);
           var pathName = path + title;
           if (items[i].children && items[i].children.length > 0) {
