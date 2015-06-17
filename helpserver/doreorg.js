@@ -1,5 +1,7 @@
 // Do the reorg (using the reorg files provided)
 var fs = require('fs');
+var themeCSS = fs.readFileSync("/dev/AlphaHelp/helpfiles/theme.css","utf8");
+var themeClonedTo = {};
 var replaceAll = function (str, find, replace) {
 	while (str.indexOf(find) >= 0)
 		str = str.replace(find, replace);
@@ -15,6 +17,13 @@ var copyFile = function (fn, data, callback) {
 			if (!fs.existsSync(fullPath)) {
 				fs.mkdirSync(fullPath);
 			}
+		}
+	}
+	var extn = fn.substring(fn.lastIndexOf('.')).toLowerCase();
+	if( extn == '.html' ) {
+		if( !themeClonedTo[fullPath.toLowerCase()] ) {
+			themeClonedTo[fullPath.toLowerCase()] = true;
+			fs.writeFileSync(fullPath+"/theme.css",themeCSS);
 		}
 	}
 	fs.writeFileSync(fullPath+"/"+subFolders[subFolders.length-1],data);	
