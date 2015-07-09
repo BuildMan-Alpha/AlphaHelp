@@ -85,7 +85,6 @@ fs.readFile("/dev/AlphaHelp/generated/reorg.json", "utf8", function (err, data) 
 											cleanHref = cleanHref.substring(cleanHrefPath+1);
 										}
 										for( j = 0; j < obj.href.length ; ++j ) {
-											cleanHref = cleanHref.substring(cleanHrefPath+1);
 											if( obj.href[j].from.toLowerCase().indexOf( cleanHref ) >= 0 ) {
 												var basePath = file.to.substring(0,file.to.lastIndexOf('/')+1).toLowerCase();
 												var newHREF = obj.href[j].to;
@@ -106,7 +105,7 @@ fs.readFile("/dev/AlphaHelp/generated/reorg.json", "utf8", function (err, data) 
 												if( href[i] != newHREF ) {
 													html = replaceAll( html , '"'+href[i]+'"' , '<[(IMGPLACE)]>' );
 													html = replaceAll( html , "<[(IMGPLACE)]>" , '"'+newHREF+'"' );
-													console.log('replaced '+ href[i] +" with " + newHREF );
+													console.log('replaced '+ href[i] +" with " + newHREF + " clean (" + cleanHref + ")" );
 												}												
 												break;
 											}
