@@ -38,7 +38,17 @@ var options = {
       { "from": "/References/Methods/Collection Methods", "to": "/References/Server/API/Collection Methods" },
       { "from": "/References/Methods/Dialog Component Methods", "to": "/References/Client/API/UX Component" },
       { "from": "/References/Methods", "to": "/References/Server/API/Functions" },
-      { "from": "References", "to": "Reference" }]
+      { "from": "References", "to": "Reference" },
+      { "from": "/Reference/Desktop/Email", "to": "/Reference/Desktop/Design/Email" },
+      { "from": "/Reference/Desktop/Office", "to": "/Reference/Desktop/Design/Office" },
+      { "from": "/Reference/Desktop/OLE", "to": "/Reference/Desktop/Design/OLE" },
+      { "from": "/Reference/Server/Api", "to": "/Reference/Server/Design/Api" },
+      { "from": "/Reference/Client/API", "to": "/Reference/Client/Design/Api" },
+      { "from": "/Reference/Desktop/API", "to": "/Reference/Desktop/Design/Api" },
+      { "from": "/Guide/Server/Api", "to": "/Guide/Server/Design/Api" },
+      { "from": "/Guide/Desktop/Api", "to": "/Guide/Desktop/Design/Api" }
+      ]
+      
   }
 };
 var Help = require('helpserver');
