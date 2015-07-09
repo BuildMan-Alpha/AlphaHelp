@@ -46,7 +46,15 @@ var options = {
       { "from": "/Reference/Client/API", "to": "/Reference/Client/Design/Api" },
       { "from": "/Reference/Desktop/API", "to": "/Reference/Desktop/Design/Api" },
       { "from": "/Guide/Server/Api", "to": "/Guide/Server/Design/Api" },
-      { "from": "/Guide/Desktop/Api", "to": "/Guide/Desktop/Design/Api" }
+      { "from": "/Guide/Desktop/Api", "to": "/Guide/Desktop/Design/Api" },      
+      { "from": "/Guide/Server", "to" : "/Server/Guide"},
+      { "from": "/Guide/Desktop", "to" : "/Desktop/Guide"},
+      { "from": "/Guide/Client", "to" : "/Client/Guide"},
+      { "from": "/Reference/Server", "to" : "/Server/Reference"},
+      { "from": "/Reference/Desktop", "to" : "/Desktop/Reference"},
+      { "from": "/Reference/Client", "to" : "/Client/Reference"},
+      { "from": "/Tutorial/Server", "to" : "/Server/Tutorial"},
+      { "from": "/Tutorial/Desktop", "to" : "/Desktop/Tutorial"}
       ]
       
   }
