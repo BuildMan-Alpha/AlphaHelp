@@ -1,0 +1,145 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Saving_Dialog_Contents_to_a_DBF">Saving Dialog Contents to a DBF</h1>
+In this example we will modify the <a href="/Client/Guide/Design/View/Component/Simple Dialog Example.html" title="Simple Dialog Example V11" class="wiki">previous example</a> to save its contents to a DBF database record. First we will need to create an appropriate DBF table. Create a new DBF table in your project and add the fields:<br />
+<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=593','HEIGHT=577','BACKGROUND=img/wiki_up/soldier_table_design.png']);">	<img src="images/soldier_table_design.png" height="288" width="296" alt="Image" /></a><br />
+<br />
+Save the table as "soldier".<br />
+<br />
+In your SimpleDialog project, add the code in blue to the <strong>afterDialogValidate</strong> server-side event:<br />
+<br />
+<span style="color:gray; background:">...<br />
+'e.javascript - if you want to send some javascript back to the browser, set this property.<br />
+'debug(1)</span><br />
+<br />
+<span style="color:blue; background:">dim tbl as P<br />
+tbl = table.open("soldier")<br />
+tbl.enter_begin(.T.)<br />
+&nbsp;&nbsp;tbl.NAME = e.dataSubmitted.NAME<br />
+&nbsp;&nbsp;tbl.RANK = e.dataSubmitted.RANK<br />
+&nbsp;&nbsp;tbl.SERIALNR = e.dataSubmitted.SERIALNR<br />
+tbl.enter_end(.T.)<br />
+tbl.close()</span><br />
+<br />
+<span style="color:gray; background:">e.javascript="alert('Submitted: "+e.dataSubmitted.NAME + ", " + e.dataSubmitted.RANK<br />
+e.javascript=e.javascript + ", " + e.dataSubmitted.SERIALNR + "');"<br />
+end function</span><br />
+<br />
+Save the dialog, go to working preview, and enter a record. We entered Hans Schweik, Private, 999999. Press Submit and you'll see the alert box. If you now check the soldier table, you'll see a new record for Private Schweik.<br />
+<br />
+	<img src="images/private_schweik.png" alt="Image" /><br />
+<br />
+If you'd like to make this a form for entering many new records, you can automate the clearing of the form after submission by adding <span style="color:blue; background:">{dialog.object}.resetForm();</span> to the <strong>e.javascript</strong> value.<br />
+<br />
+To make the form more robust, you can add maximum length properties (currently -1) to the three textbox controls to match the sizes of the database fields. To make the code more robust, add error handling for the table code that returns e.javascript with an error message, for example something like the following.<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">function</span> afterDialogValidate <span style="color: #FF8000;">as</span> v <span style="color: #000000;">&#40;</span>e <span style="color: #FF8000;">as</span> p<span style="color: #000000;">&#41;</span>
+<span style="color: #008080; font-style: italic;">' ... comments omitted ...</span>
+<span style="color: #FF8000;">on</span> <span style="color: #FF8000;">error</span> goto fail
+<span style="color: #0600FF;">dim</span> tbl <span style="color: #FF8000;">as</span> P
+tbl <span style="color: #008000;">=</span> table.<span style="color: #0600FF;">open</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;soldier&quot;</span><span style="color: #000000;">&#41;</span>
+tbl.<span style="color: #0000FF;">enter_begin</span><span style="color: #000000;">&#40;</span>.<span style="color: #0000FF;">T</span>.<span style="color: #000000;">&#41;</span>
+    tbl.<span style="color: #0000FF;">NAME</span> <span style="color: #008000;">=</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">NAME</span>
+    tbl.<span style="color: #0000FF;">RANK</span> <span style="color: #008000;">=</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">RANK</span>
+    tbl.<span style="color: #0000FF;">SERIALNR</span> <span style="color: #008000;">=</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">SERIALNR</span>
+tbl.<span style="color: #0000FF;">enter_end</span><span style="color: #000000;">&#40;</span>.<span style="color: #0000FF;">T</span>.<span style="color: #000000;">&#41;</span>
+tbl.<span style="color: #0600FF;">close</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+&nbsp;
+e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('Submitted: &quot;</span><span style="color: #008000;">+</span>e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">NAME</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;, &quot;</span> <span style="color: #008000;">+</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">RANK</span>
+e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span>e.<span style="color: #0000FF;">javascript</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;, &quot;</span> <span style="color: #008000;">+</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">SERIALNR</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;');&quot;</span>
+<span style="color: #FF8000;">return</span>
+fail:
+	errnr <span style="color: #008000;">=</span> error_code_get<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
+	msg <span style="color: #008000;">=</span> error_text_get<span style="color: #000000;">&#40;</span>errnr<span style="color: #000000;">&#41;</span>
+	msg <span style="color: #008000;">=</span> stritran<span style="color: #000000;">&#40;</span>msg,<span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
+	msg <span style="color: #008000;">=</span> stritran<span style="color: #000000;">&#40;</span>msg,<span style="color: #808080;">&quot;\\&quot;</span>,<span style="color: #808080;">&quot;\\\\&quot;</span><span style="color: #000000;">&#41;</span>
+	e.<span style="color: #0000FF;">javascript</span><span style="color: #008000;">=</span><span style="color: #808080;">&quot;alert('&quot;</span><span style="color: #008000;">+</span>msg<span style="color: #008000;">+</span><span style="color: #808080;">&quot;');&quot;</span>
+<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">function</span></pre></div><br />
+<br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Saving+Dialog+Contents+to+a+DBF+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web","status":"pending","keywords":"server,javascript,dbf"}--->
+</body></html>

@@ -1,0 +1,228 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Filtering an ADO Grid with a Session Variable</p>
+
+<p>Many web application developers want to filter the records that they display, so that a user sees only the records that belong to him or her. This topic explains the technique to use.</p>
+
+<p>The following grid component displays all the records of the <span class=Code1>invoice_items</span> table. The check boxes in the Search Part, the radio buttons in the Quick Search, and the drop down list box in the Payment column display all the payment methods found in the <span class=Code1>invoice_header</span> table. </p>
+
+<p class=Pix><img src="images/WPT_Unfiltered_ADO_Records.gif" x-maintain-ratio=TRUE style="border: none; float: none; width: 483px; height: 343px; border-style: none; border-style: none;" width=483 height=343 border=0></p>
+
+<p>The SQL expression that retrieved these records from the <span class=Code1>AlphaSports.mdb</span> file was the following.</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top; width: 100%; border-spacing: 0px; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None;" valign="top"> <td style="width: 100%; padding-right: 10px; padding-left: 10px;" width="100%"><p class=Code>SELECT Invoice_Items.ID, Invoice_Items.INVOICE_NUMBER, Invoice_Items.PRODUCT_ID, Invoice_Items.PRICE, Invoice_Items.QUANTITY, Invoice_Items.EXTENSION, Invoice_Items.Userid FROM Invoice_Items Invoice_Items ORDER BY Invoice_Items.INVOICE_NUMBER, Invoice_Items.PRODUCT_ID</td></tr> </table><p>The <span class=Code1>user_names</span> and <span class=Code1>invoice_items</span> tables have an eight character field named <span class=Code1>userid</span>. </p>
+
+<p class=Pix><img src="images/WPT_User_Names_UserID.gif" x-maintain-ratio=TRUE style="border: none; width: 464px; height: 151px; float: none; border-style: none; border-style: none;" width=464 height=151 border=0></p>
+
+<p class=Pix><img src="images/WPT_Invoice_Items_UserID.gif" x-maintain-ratio=TRUE style="border: none; width: 458px; height: 176px; float: none; border-style: none; border-style: none;" width=458 height=176 border=0></p>
+
+<p>When you log into this application, the <span class=Code1>logindialog</span> component on the <span class=Code1>login.a5w</span> page runs the following code in its <span class=Code1>validate</span> event.</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top; width: 100%; border-spacing: 0px; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None;" valign="top"> <td style="width: 100%; padding-right: 10px; padding-left: 10px;" width="100%"><p class=Code>if user_name = "" .or. password = ""</p>
+
+<p class=Code></p>
+
+<p class=Code>then</p>
+
+<p class=Code></p>
+
+<p class=Code>currentform.has_error = .t.</p>
+
+<p class=Code></p>
+
+<p class=Code>currentform.error_message = "User name or password cannot be blank."</p>
+
+<p class=Code>else</p>
+
+<p class=Code></p>
+
+<p class=Code>dim correct_password&nbsp;as&nbsp;c</p>
+
+<p class=Code></p>
+
+<p class=Code>DIM level&nbsp;as&nbsp;N</p>
+
+<p class=Code></p>
+
+<p class=Code>correct_password = lookup("[PathAlias.ADB_Path]\user_names", "user_name=" + quote(user_name), "password")</p>
+
+<p class=Code></p>
+
+<p class=Code>if correct_password = password then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>level = lookup("[PathAlias.ADB_Path]\user_names", "user_name=" + quote(user_name), "level")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>session.<strong>protected</strong>SecurityLevel = level</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>session.<strong>protected</strong>UserID = lookup("[PathAlias.ADB_Path]\user_names", "user_name=" + quote(user_name), "UserID")</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>session.WASDemo.UserName = user_name</p>
+
+<p class=Code></p>
+
+<p class=Code>else</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>currentform.has_error = .t.</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>currentform.error_message = "Invalid user name or password."</p>
+
+<p class=Code></p>
+
+<p class=Code>end if</p>
+
+<p class=Code></p>
+
+<p class=Code>end if</td></tr> </table><p>The interesting part of this code is this line. This line creates the protected session variable <span class=Code1>session.<strong>protected</strong>UserID</span> and assigns it the value it reads from the <span class=Code1>user_names</span> table.</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top; width: 100%; border-spacing: 0px; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None;" valign="top"> <td style="width: 100%; padding-right: 10px; padding-left: 10px;" width="100%"><p class=Code>session.<strong>protected</strong>UserID = lookup("[PathAlias.ADB_Path]\user_names", "user_name=" + quote(user_name), "UserID")</td></tr> </table><p>The A5W page that contains the filtered grid component shown above initially has the following code.</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top; width: 100%; border-spacing: 0px; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None;" valign="top"> <td style="width: 100%; padding-right: 10px; padding-left: 10px;" width="100%"><p class=Code>with tmpl_filtered_ADO</p>
+
+<p class=Code></p>
+
+<p class=Code>componentName = "filtered_ADO"</p>
+
+<p class=Code>end with</td></tr> </table><p>After editing, it looks like this.</p>
+
+ <table class="htmlTable" style="x-cell-content-align: top; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None; width: 100%; border-spacing: 0px; border-spacing: 0px;" cellspacing="0" width="100%"> <col style="width: 100%;"> <tr style="x-cell-content-align: top; width: 100%; border-spacing: 0px; border-left-style: None; border-right-style: None; border-top-style: None; border-bottom-style: None;" valign="top"> <td style="width: 100%; padding-right: 10px; padding-left: 10px;" width="100%"><p class=Code>with tmpl_filtered_ADO</p>
+
+<p class=Code></p>
+
+<p class=Code>componentName = "filtered_ADO"</p>
+
+<p class=Code></p>
+
+<p class=Code>if eval_valid("session.<strong>protected</strong>userid") then</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>ADO.SQL = "SELECT Invoice_Items.ID, Invoice_Items.INVOICE_NUMBER, Invoice_Items.PRODUCT_ID, Invoice_Items.PRICE, Invoice_Items.QUANTITY, Invoice_Items.EXTENSION, Invoice_Items.Userid FROM Invoice_Items Invoice_Items <span class=HTML1>WHERE Invoice_Items.Userid = '" + session.<strong>protected</strong>userid + "'</span> ORDER BY Invoice_Items.INVOICE_NUMBER, Invoice_Items.PRODUCT_ID"</p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>SearchField_Info[1].CheckBox.ADO.Parameters[1].value = <span class=HTML1>session.<strong>protected</strong>userid</span></p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>field_info[8].DropDownBox.ADO.Parameters[1].value = <span class=HTML1>session.<strong>protected</strong>userid</span></p>
+
+<p class=Code>&nbsp;&nbsp;&nbsp;</p>
+
+<p class=Code>QuickSearch.Radiobutton.ADO.Parameters[1].value = <span class=HTML1>session.<strong>protected</strong>userid</span></p>
+
+<p class=Code></p>
+
+<p class=Code>end if</p>
+
+<p class=Code>end with</p>
+
+<p class=Code>&nbsp;</td></tr> </table><p>As you can see above, each SQL statement also has an <span class=Code1>ADO.Parameters[1].value</span> property. If you populate a choices list with a SQL SELECT statement and set a filter expression, you will see that <span class=Code1>ADO.Parameters[1].value</span> property contains the "value" parameter. These override expressions change the properties to be equal to <span class=Code1>session.<strong>protected</strong>userid</span>. </p>
+
+<p class=Pix><img src="images/WPT_SQL_Filter_Value_argument.gif" x-maintain-ratio=TRUE style="border: none; width: 603px; height: 390px; float: none; border-style: none; border-style: none;" width=603 height=390 border=0></p>
+
+<p>The following picture of the same grid displays only the records for the user whose <span class=Code1>userid</span> from the <span class=Code1>user_names</span> table matches the eight character <span class=Code1>userid</span> value (in this case "00000006") in these <span class=Code1>invoice_items</span> table records. In addition, the check boxes in the Search Part, the radio buttons in the Quick Search, and the drop down list box in the Payment column display only the payment methods allowed for the current user. This information is retrieved from the <span class=Code1>payment_methods</span> table. </p>
+
+<p class=Pix><img src="images/WPT_Filtered_ADO_Records.gif" x-maintain-ratio=TRUE style="border: none; float: none; width: 459px; height: 318px; border-style: none; border-style: none;" width=459 height=318 border=0></p>
+
+<p class=A5>See Also</p>
+
+<p><a href="/Index/Contents - Web Publishing Tutorial.html" title="Contents - Web Publishing Tutorial" class="wiki">Contents</a></p>
+
+
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Filtering+an+ADO+Grid+with+a+Session+Variable">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"status":"pending","keywords":"server,guide,grid","tags":"web"}--->
+</body></html>

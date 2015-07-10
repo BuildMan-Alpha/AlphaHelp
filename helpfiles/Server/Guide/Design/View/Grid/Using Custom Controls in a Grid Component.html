@@ -1,0 +1,244 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h2>How to use Custom Controls in a Grid Component</h2>
+<p>This topic discusses an advanced use of a Custom Control in a Grid  component.</p>
+<p>The image below shows a grid based on the Invoice_header table from  Alphasports. The last column on the Grid shows the line-items (from the  Invoice_items table) for the current invoice.</p>
+<p>This data in this column is a custom control.</p>
+<p>	<img src="images/CustomControlExample.jpg" height="455" width="762" alt="Image" /></p>
+<p>Here is how this was achieved:</p>
+<p>1. Create a dummy calculated field. Does not matter what the calculated field  is called.</p>
+<p>The image below shows how you can do this for .dbf tables.</p>
+<p>	<img src="images/CustomControlsDBFCalc.jpg" height="175" width="509" alt="Image" /></p>
+<p>In the case of SQL tables, you would create a custom SQL Select statement.  For example:</p>
+<p class="xbasic">SELECT invoice_number, customer_id, date, sales_rep,  delivery_by, '' as LinkedItems from Invoice_header</p>
+<p>2. Add the calculated field to the Grid and set its control type to the  'Custom'</p>
+<p>3. In the 'Custom Control Definition' add this Xbasic:</p>
+<p class="xbasic">function Linkeditems_render as c (data as p, args as p, PageVars  as p)<br />
+with PageVars<br />
+<br />
+on error goto  Linkeditems_xbasicError<br />
+linkeditems_render =  linkedRecords(Data.Invoice_number,"GlassBlue")<br />
+end<br />
+<br />
+Linkeditems_xbasicError:<br />
+Linkeditems_render  = "Error in custom control xbasic: " + error_text_get()<br />
+end with <br />
+end  function<br />
+&nbsp;</p>
+<p>4. In the 'Xbasic function declarations' section, define the linkedRecords()  function.</p>
+<p>Here is a version of this function for the case where you are working with  DBF files. An example for SQL tables follows below.</p>
+<p class="xbasic"><br />
+function linkedRecords as c (invNo as c, style as c  )<br />
+<br />
+dim tbl as p<br />
+tbl =  table.open("<a class="wiki"  href="PathAlias.ADB_Path" rel="">PathAlias.ADB_Path</a>\invoice_items")<br />
+dim itbl as p<br />
+itbl =  tbl.query_create("","invoice_number = " + s_quote(invNo)) <br />
+<br />
+if  itbl.records_get() = 0 then <br />
+linkedRecords = "No records found"<br />
+exit  function <br />
+end if <br />
+<br />
+<br />
+dim htmlTemplate as c <br />
+htmlTemplate =  <<%html%<br />
+<tr><br />
+<td  class="{grid.style}DataTD">{a5_html_label(js_escape(tbl.data("product_id")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(tbl.data("price")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(tbl.data("quantity")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(tbl.data("extension")))}</td><br />
+</tr><br />
+%html%<br />
+<br />
+htmlTemplate  = stritran(htmlTemplate,"{grid.style}",style)<br />
+<br />
+dim html as c = ""<br />
+while  .not. tbl.fetch_eof()<br />
+*concat(html, evaluate_string(htmlTemplate) +  crlf())<br />
+tbl.fetch_next()<br />
+end while <br />
+<br />
+<br />
+dim titles as c <br />
+titles  = <<%html%<br />
+<br />
+<tr><br />
+<th  class="{grid.style}SorterLink">Product Id</th><br />
+<th  class="{grid.style}SorterLink">Price</th><br />
+<th  class="{grid.style}SorterLink">Quantity</th><br />
+<th  class="{grid.style}SorterLink">Extension</th><br />
+<th></th><br />
+</tr><br />
+%html%<br />
+<br />
+html  = "<table>" + crlf() + titles + crlf() + html + crlf() +  "</table>"<br />
+<br />
+html = <<%html%<br />
+<fieldset  style="-moz-border-radius-topleft: 8px; -moz-border-radius-topright: 8px;  -moz-border-radius-bottomright: 8px; -moz-border-radius-bottomleft: 8px;  display: inline;" class="" ><br />
+<legend style="color: Blue;"  class="">Invoice Items</legend> <br />
+%html% + html +  "</fieldset>"<br />
+<br />
+<br />
+tbl.close()<br />
+<br />
+linkedRecords = html  <br />
+<br />
+<br />
+end function</p>
+<p>Here is an example for SQL tables:</p>
+<p class="xbasic">function linkedRecords as c (invNo as n, style as c )<br />
+<br />
+dim  cn as sql::connection<br />
+dim flag as l <br />
+flag =  cn.open("::name::alphasports")<br />
+if flag = .f. then <br />
+&nbsp;&nbsp;&nbsp; linkedRecords =  "Error opening connection"<br />
+exit function <br />
+end if <br />
+<br />
+dim sql as c  <br />
+sql = "select * from invoice_items where Invoice_number =  :whatInvNo"<br />
+<br />
+dim args as  sql::arguments<br />
+args.add("whatInvNo",convert_type(invno,"N"))<br />
+flag =  cn.Execute(sql,args)<br />
+if flag = .f. then <br />
+&nbsp;&nbsp;&nbsp; linkedRecords = "Error  executing query"<br />
+&nbsp;&nbsp;&nbsp; exit function <br />
+end if <br />
+<br />
+dim rs as  sql::resultset<br />
+rs = cn.ResultSet<br />
+<br />
+if rs.nextrow() = .f. then <br />
+&nbsp;&nbsp;&nbsp;  linkedRecords = "No records found."<br />
+&nbsp;&nbsp;&nbsp; exit function <br />
+end if <br />
+<br />
+dim  htmlTemplate as c <br />
+htmlTemplate = <<%html%<br />
+<tr><br />
+<td  class="{grid.style}DataTD">{a5_html_label(js_escape(rs.data("product_id")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(rs.data("price")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(rs.data("quantity")))}</td><br />
+<td  class="{grid.style}DataTD"  style="text-align:right;">{a5_html_label(js_escape(rs.data("extension")))}</td><br />
+</tr><br />
+%html%<br />
+<br />
+htmlTemplate  = stritran(htmlTemplate,"{grid.style}",style)<br />
+<br />
+dim html as c = ""<br />
+dim  flagRecordsFound as l = .t.<br />
+while flagRecordsFound<br />
+&nbsp;&nbsp;&nbsp; *concat(html,  evaluate_string(htmlTemplate) + crlf())<br />
+&nbsp;&nbsp;&nbsp; flagRecordsFound =  rs.nextrow()<br />
+end while <br />
+<br />
+dim titles as c <br />
+titles =  <<%html%<br />
+<tr><br />
+<th class="{grid.style}SorterLink">Product  Id</th><br />
+<th  class="{grid.style}SorterLink">Price</th><br />
+<th  class="{grid.style}SorterLink">Quantity</th><br />
+<th  class="{grid.style}SorterLink">Extension</th><br />
+<th></th><br />
+</tr><br />
+%html%<br />
+<br />
+html  = "<table>" + crlf() + titles + crlf() + html + crlf() +  "</table>"<br />
+html = <<%html%<br />
+<fieldset  style="-moz-border-radius-topleft: 8px; -moz-border-radius-topright: 8px;  -moz-border-radius-bottomright: 8px; -moz-border-radius-bottomleft: 8px;  display: inline;" class="" ><br />
+<legend style="color: Blue;"  class="">Invoice Items</legend> <br />
+%html% + html +  "</fieldset>"<br />
+<br />
+cn.FreeResult()<br />
+cn.close()<br />
+<br />
+linkedRecords =  html <br />
+<br />
+end function&nbsp;</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+use+Custom+Controls+in+a+V10+Grid+Component">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web","status":"pending","keywords":"server,grid,component"}--->
+</body></html>

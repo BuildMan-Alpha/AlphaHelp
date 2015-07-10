@@ -1,0 +1,155 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Grid_Dialog_and_Custom_Components_-_Storing_state_information">Grid, Dialog and Custom Components - Storing state information</h1>
+<div id='toc'><div id='toctitle'><h3>Table of contents</h3></div><ul class="toc"><li><a href="#Grid_Dialog_and_Custom_Components_-_Storing_state_information" class='link'>Grid, Dialog and Custom Components - Storing state information</a>
+<ul><li><a href="#Step_1." class='link'>Step 1.</a>
+</li><li><a href="#Step_2." class='link'>Step 2.</a>
+</li><li><a href="#A_shortcut_for_Dialog_Server-side_events" class='link'>A shortcut for Dialog Server-side events</a>
+</li><li><a href="#See_Also" class='link'>See Also</a>
+</li></ul></li></ul><!--toc--></div><br />
+The Grid , Dialog and Custom Components have two new methods, <strong>.setStateInfo()</strong> and <strong>.getStateInfo()</strong>, which allow you to store arbitrary information in the Grid object. Any information stored in the state object will be automatically submitted to the server on every Ajax callback. The Dialog and Custom component also have the same two methods.<br />
+<br />
+The <strong>.setStateInfo()</strong> method is very useful when you need to set a value and then be able to read that value on all subsequent Ajax callbacks.<br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">In V10, in an Xbasic function that handled an Ajax callback, you could typically set a value in the <strong>rtc</strong> object that was passed into the event handler. This value would then be available on subsequent callbacks. <strong>This technique will no longer work in V11</strong>, and the technique described below should be used.</div></div><br />
+To explain the use of the <strong>.setStateInfo()</strong> method using a practical example, consider the case of a Grid with an updateable Detail View. When the user enters a new record, and sets the value of (say) the lastname field, you would like to use the value that the user entered for 'lastname' as the default value for the subsequent new record that the user might enter.<br />
+<br />
+Here is how this could be done.<br />
+<h2 class="showhide_heading" id="Step_1.">Step 1.</h2>
+In the <strong>AfterInsertRecord</strong> event in the Grid builder, define this code:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> js <span style="color: #FF8000;">as</span> c 
+<span style="color: #0600FF;">dim</span> ar <span style="color: #FF8000;">as</span> p
+ar.<span style="color: #0000FF;">defaultValue_LastName</span> <span style="color: #008000;">=</span> e.<span style="color: #0000FF;">dataSubmitted</span>.<span style="color: #0000FF;">lastname</span>
+<span style="color: #0600FF;">dim</span> json <span style="color: #FF8000;">as</span> c 
+json <span style="color: #008000;">=</span> vartojson<span style="color: #000000;">&#40;</span>ar,.<span style="color: #0000FF;">f</span>.,.<span style="color: #0000FF;">t</span>.<span style="color: #000000;">&#41;</span>
+&nbsp;
+<span style="color: #008080; font-style: italic;">'Construct the javascript command that sets the </span>
+<span style="color: #008080; font-style: italic;">'defaultValue_Lastname' variable in the 'state' info object</span>
+js <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;{grid.object}.setStateInfo(&quot;</span> <span style="color: #008000;">+</span> json <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;);&quot;</span>
+e.<span style="color: #0000FF;">rtc</span>.<span style="color: #0000FF;">A_AjaxResponses</span><span style="color: #000000;">&#91;</span><span style="color: #000000;">&#93;</span>.<span style="color: #0000FF;">text</span> <span style="color: #008000;">=</span> js
+&nbsp;
+<span style="color: #008080; font-style: italic;">'This defines the order in which the Javascript responses are emitted. </span>
+<span style="color: #008080; font-style: italic;">'In this case the order is not important, so we just set a value of 1</span>
+e.<span style="color: #0000FF;">rtc</span>.<span style="color: #0000FF;">A_AjaxResponses</span><span style="color: #000000;">&#91;</span>..<span style="color: #000000;">&#93;</span>.<span style="color: #0000FF;">id</span> <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span></pre></div><br />
+<h2 class="showhide_heading" id="Step_2.">Step 2.</h2>
+In the <strong>onInitialValueCalculate </strong>event, define this code:<br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">Every time the user clicks the New Record  hyperlink to enter a new record in the Detail View, this event is fired</div></div>.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox1" >dim defaultValue as c = ""
+
+'Any data that was stored in the stateInfo object is submitted in the __si2 object.
+if eval_valid("Request.Variables.__si2.defaultValue_LastName") then 
+    defaultValue = Request.Variables.__si2.defaultValue_LastName
+end if 
+
+if defaultValue &lt;&gt; ""
+    e.newvalues.lastname = defaultValue
+end if</pre></div><br />
+<br />
+The <strong>.getStateInfo()</strong> method can be used in your Javascript code to read the values in the State info object. The data is returned as a text string of name value pairs, delimited with '&amp;' characters. For example:<br />
+<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox2" >myvar1=Value of myvar1&myvar2=Value of myvar2&myvar3=Value of myvar3</pre></div><br />
+<br />
+Your Javascript code can read the <strong>stateInfo </strong>object directly, For example:<br />
+<br />
+<div class="plugincode" parse="javascript"><pre class="codelisting" data-syntax="javascript" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #003366; font-weight: bold;">var</span> si <span style="color: #339933;">=</span> <span style="color: #000066; font-weight: bold;">this</span>.<span style="color: #660066;">stateInfo</span><span style="color: #339933;">;</span>
+<span style="color: #000066;">alert</span><span style="color: #009900;">&#40;</span>si.<span style="color: #660066;">myvar1</span><span style="color: #009900;">&#41;</span></pre></div><br />
+<br />
+Your Javascript code and also set the value of variables in the stateInfo object directly. For example:<br />
+<br />
+<div class="plugincode" parse="javascript"><pre class="codelisting" data-syntax="javascript" dir="ltr" style="overflow:auto;" id="codebox4" ><span style="color: #003366; font-weight: bold;">var</span> si <span style="color: #339933;">=</span> <span style="color: #000066; font-weight: bold;">this</span>.<span style="color: #660066;">stateInfo</span><span style="color: #339933;">;</span>
+si.<span style="color: #660066;">myvar1</span> <span style="color: #339933;">=</span> <span style="color: #3366CC;">'new value for myvar1'</span><span style="color: #339933;">;</span></pre></div><br />
+<h2 class="showhide_heading" id="A_shortcut_for_Dialog_Server-side_events">A shortcut for Dialog Server-side events</h2>
+In a Dialog you can also store state in a <em>server-side</em> event handler simply by setting values in <strong>e._state</strong>.<br />
+<br />
+For example, writing<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox5" >e._state.<span style="color: #0000FF;">myvar</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;alpha&quot;</span></pre></div><br />
+is much easier than writing the Xbasic code to generate the Javascript to send back as part of the response generated by the server side event.<br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="Setting the Default Value for a New Record to the Values of the Previously Entered Record.html" title="How to Set Default Value for a New Record to The Values of the Previously Entered V10 Grid Record" class="wiki">How to Set Default Value for a New Record to The Values of the Previously Entered V10 Grid Record</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Grid%2C+Dialog+and+Custom+Components+Storing+state+information+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web","status":"pending","keywords":"server,design,grid"}--->
+</body></html>

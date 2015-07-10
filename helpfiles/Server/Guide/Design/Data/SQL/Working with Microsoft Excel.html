@@ -1,0 +1,834 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Working with Microsoft Excel</p>
+
+
+
+<p class=A5>Things to be aware of when using Excel</p>
+
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>The JET (MS) driver 
+ wraps table names that contain spaces with single quotes.&nbsp; These 
+ single quotes MUST be preserved throughout because some functions (such as  
+ <a href="../../../../Reference/Design/Api/SQL/Connection Functions/SQL Connection GetTableInfo Function.html" title="SQL Connection GetTableInfo Function" class="wiki">SQL::Connection::GetTableInfo(</a>)) 
+ require that they be present.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Worksheets are always 
+ referenced <span class=Bolded>with</span> a $ at the end.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Named ranges are 
+ always referenced <span class=Bolded>without</span> the $ at the end.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>The name in <a href="../../../../Reference/Design/Api/SQL/Connection Functions/SQL Connection CreateTable Function.html" title="SQL Connection CreateTable Function" class="wiki">SQL::Connection::CreateTable(</a>) 
+ refers to a <span class=Bolded>named range</span>, not a worksheet (hence 
+ the absence of a $). If no worksheet exists with the same name&nbsp;as&nbsp;the 
+ new range, the method creates a new worksheet to contain the new range. 
+ If the name exists for a worksheet, the method changes the name slightly. 
+ You can create a named range (and hosting worksheet) using <span class=Code1>CreateTable()</span>. 
+ You <span class=Bolded>cannot</span> create "just" a worksheet.</p>
+
+</li>
+</ol>
+
+<p>This script adds a new name ( <span class=Code1>NewRange</span> ) defined&nbsp;as&nbsp; 
+ <span class=Code1>=NewRange!$A$1</span>, a worksheet (named <span class=Code1>NewRange</span> 
+ ) to hold it, and places "Column1" into <span class=Code1>NewRange</span>. 
+ Note that you must set the SQL::TableInfo <span class=Code1>.name</span> 
+ and the SQL::DataTypeInfo <span class=Code1>.name</span>, <span class=Code1>.alphatype</span>, 
+ and <span class=Code1>.intermediatetype</span> properties before using 
+ <a href="../../../../Reference/Design/Api/SQL/TableInfo Functions/SQL TableInfo AddColumn Function.html" title="SQL TableInfo AddColumn Function" class="wiki">SQL::TableInfo.AddColumn(</a>).</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim cn&nbsp;as&nbsp;SQL::Connection</p>
+
+
+<p class=Code>dim connstring&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim ti&nbsp;as&nbsp;SQL::TableInfo</p>
+
+
+<p class=Code>dim dti&nbsp;as&nbsp;SQL::DataTypeInfo</p>
+
+
+<p class=Code>&nbsp;</p>
+
+
+<p class=Code>connstring = "{A5API='Excel',A5Syntax='Excel',FileName='C:\Customer.xls'}"</p>
+
+
+<p class=Code>If .not. cn.open(connstring) then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>&nbsp;</p>
+
+
+<p class=Code>ti.name = "NewRange"</p>
+
+
+<p class=Code>dti.name = "Column1"</p>
+
+
+<p class=Code>dti.alphatype = "C"</p>
+
+
+<p class=Code>dti.intermediatetype = "Character"</p>
+
+
+<p class=Code>ti.AddColumn(dti)</p>
+
+
+<p class=Code>&nbsp;</p>
+
+
+<p class=Code>If .not. cn.CreateTable(ti) then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ cn.CallResult)</p>
+
+
+<p class=Code>end if</p>
+
+
+<p class=Code>&nbsp;</p>
+
+
+<p class=Code>cn.close()</td></tr>
+</table>
+
+<p class=A5>General Issues with Excel</p>
+
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Portable SQL syntax.</p>
+
+</li>
+	
+	<ul>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>String Literals are 
+ any strings enclosed in single (') or double (") quotes.</p>
+
+</li>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>Identifiers are any 
+ strings not enclosed, or strings enclosed in square brackets [].</p>
+
+</li>
+	</ul>
+</ol>
+
+<p class=Note><span class=Note><img src="images/icon_warning.gif"
+									x-maintain-ratio=TRUE
+									style="border: none;
+											float: none;
+											width: 37px;
+											height: 33px;
+											border-style: none;
+											border-style: none;"
+									width=37
+									height=33
+									border=0>Note</span> : It is important 
+ to be clear which context you are in. <span class=Screen>Excel</span> 
+ sometimes uses single quotes to wrap table names.</p>
+
+
+
+<ol start=2
+	style="list-style: decimal;"
+	type=1>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Usage of <a href="../../../../Reference/Design/Api/SQL/TableInfo Functions/SQL TableInfo UpdateStatistics Function.html" title="SQL TableInfo UpdateStatistics Function" class="wiki">SQL::TableInfo::UpdateStatistics(</a>) 
+ and <span class=Code1>SizeToFit</span> :</p>
+
+</li>
+	
+	<ul style="list-style: decimal;"
+		type=1>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>UpdateStatistics executes 
+ SQL to retrieve state information like the <span class=Code1>LastKnownRowCount</span> 
+ (for the table) and <span class=Code1>MaximumActualLength</span> for each 
+ column.</p>
+
+</li>
+	</ul>
+	
+	<ul style="list-style: decimal;"
+		type=1>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1><span class=Code1>SizeToFit</span> 
+ is a property of <a href="../../../../Reference/Design/Api/SQL/SQL TableInfo Object.html" title="SQL TableInfo Object" class="wiki">SQL::TableInfo</a> 
+ and on <a href="../../../../Reference/Design/Api/SQL/DataTypeInfo Functions/SQL DataTypeInfo Object.html" title="SQL DataTypeInfo Object" class="wiki">SQL::DataTypeInfo</a> 
+ that determines how the <span class=Code1>DBFRowSyntax</span> (and related 
+ properties) report the column length.</p>
+
+</li>
+	</ul>
+	
+	<ul style="list-style: decimal;"
+		type=1>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>Setting the <span class=Code1>SizeToFit</span> 
+ property does not have any effect on the retrieval 
+ of statistical information.</span></p>
+
+</li>
+	</ul>
+	
+	<ul style="list-style: decimal;"
+		type=1>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>You must <span class=Bolded>always</span> 
+ call <span class=Code1>SQL::TableInfo::UpdateStatistics()</span> explicitly 
+ after calling <span class=Code1>SQL::Connection::GetTableInfo()</span>.</p>
+
+</li>
+	</ul>
+</ol>
+
+<p class=A5>Examples</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim Connection&nbsp;as&nbsp;SQL::connection</p>
+
+
+<p class=Code>dim TableInfo&nbsp;as&nbsp;SQL::TableInfo</p>
+
+
+<p class=Code>Connection.open("{A5API=Excel,FileName='X:\alpha names.xls'}")</td></tr>
+</table>
+
+<p>If you will be counting on current values, it is best to call <span 
+ class=Code1>SQL::TableInfo::UpdateStatistics()</span> immediately after 
+ <span class=Code1>SQL::Connection::GetTableInfo()</span>.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>Connection.GetTableInfo(TableInfo,"sheet2$")</p>
+
+
+<p class=Code>TableInfo.UpdateStatistics(Connection)</td></tr>
+</table>
+
+<p>Setting the <span class=Code1>SizeToFit</span> property to true causes 
+ <span class=Code1>DBFRowSyntax</span> to be based on the maximum actual 
+ column lengths in the table, provided you have called <span class=Code1>SQL::TableInfo::UpdateStatistics()</span>. 
+ Set the table level <span class=Code1>SizeToFit</span> property to true 
+ if you want all columns to be sized to fit. Set the column level <span 
+ class=Code1>SizeToFit</span> if you only want some columns to be sized 
+ to fit.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>TableInfo.SizeToFit = .t.</td></tr>
+</table>
+
+<p>An Interactive Window session.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim c&nbsp;as&nbsp;SQL::connection</p>
+
+
+<p class=Code>? c.open("{A5API='Excel',A5Syntax='Excel',FileName='X:\alpha 
+ names.xls'}")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? c.listtables(.t., .t., .t., .t.)</p>
+
+
+<p class=Code>= Sheet2$</p>
+
+
+<p class=Code>Sheet3$</p>
+
+
+<p class=Code>'alpha names$'</p>
+
+
+<p class=Code>mydb</p>
+
+
+<p class=Code>dim ti&nbsp;as&nbsp;SQL::tableinfo</p>
+
+
+<p class=Code>? c.gettableinfo(ti, "mydb")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? c.execute("select count(*) from <a class="wiki"  href="alpha names$" rel="">alpha names$</a>")</p>
+
+
+<p class=Code>= .T.</td></tr>
+</table>
+
+<p><span class=Code1>SQL::Connection::GetTableInfo()</span> MUST include 
+ the single quote when using <span class=Screen>Excel</span>.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>? c.gettableinfo(ti, "'alpha names$'")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>c.PortableSQLEnabled = .t.</p>
+
+
+<p class=Code>? c.Execute("select * from mydb")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? c.CallResult.text</p>
+
+
+<p class=Code>= "Success"</p>
+
+
+<p class=Code>c.PortableSQLEnabled = .f.</p>
+
+
+<p class=Code>? c.Execute("select * from mydb")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>c.PortableSQLEnabled = .t.</td></tr>
+</table>
+
+<p>Excel doesn't like this. In Portable SQL <span class=Code1>'mydb'</span> 
+ is a literal, not an identifier.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>? c.Execute("select * from 'mydb'")</p>
+
+
+<p class=Code>= .F.</td></tr>
+</table>
+
+<p>Excel doesn't like this. &nbsp;There is no table named 'mydb'.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>? c.Execute("select * from <a class="wiki"  href="'mydb'" rel="">'mydb'</a>") ?</p>
+
+
+<p class=Code>= .F.</td></tr>
+</table>
+
+<p>This works.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>? c.Execute("select * from <a class="wiki"  href="mydb" rel="">mydb</a>")</p>
+
+
+<p class=Code>= .T.</td></tr>
+</table>
+
+<p>Calling <span class=Code1>SQL::Connection::GetTableInfo()</span> with 
+ <span class=Code1>SizeToFit = .t.</span> does not do much.&nbsp;You need 
+ to call <span class=Code1>SQL::TableInfo::UpdateStatistics()</span> to 
+ get current data.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>delete ti4</p>
+
+
+<p class=Code>dim ti4&nbsp;as&nbsp;SQL::tableinfo</p>
+
+
+<p class=Code>ti4.SizeToFit = .t.</p>
+
+
+<p class=Code>? c.GetTableInfo(ti4,"sheet2$")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? ti4.DBFRowSyntax</p>
+
+
+<p class=Code>= COMPANY,C,255,0</p>
+
+
+<p class=Code>LOCATION,C,255,0</p>
+
+
+<p class=Code>ti4.SizeToFit = .f.</p>
+
+
+<p class=Code>? ti4.UpdateStatistics(c)</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? ti4.DBFRowSyntax</p>
+
+
+<p class=Code>= COMPANY,C,255,0</p>
+
+
+<p class=Code>LOCATION,C,255,0</p>
+
+
+<p class=Code>ti4.SizeToFit = .t.</p>
+
+
+<p class=Code>? ti4.DBFRowSyntax</p>
+
+
+<p class=Code>= COMPANY,C,5,0</p>
+
+
+<p class=Code>LOCATION,C,10,0</p>
+
+
+<p class=Code>ti4.Clear()</p>
+
+
+<p class=Code>? ti4.DBFRowSyntax</p>
+
+
+<p class=Code>c.GetTableInfo(ti4,"sheet2$")</p>
+
+
+<p class=Code>? ti.DBFRowSyntax</p>
+
+
+<p class=Code>= NAME,C,255,0</p>
+
+
+<p class=Code>CITY,C,255,0</td></tr>
+</table>
+
+<p>It isn't strictly necessary, but Portable SQL syntax now wraps all identifiers 
+ that contain non-alphanumerics.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim q&nbsp;as&nbsp;SQL::query</p>
+
+
+<p class=Code>dim tr&nbsp;as&nbsp;SQL::query::selecttablereference</p>
+
+
+<p class=Code>? c.ListTables(.t.,.t.,.t.,.t.)</p>
+
+
+<p class=Code>= Sheet2$</p>
+
+
+<p class=Code>Sheet3$</p>
+
+
+<p class=Code>'alpha names$'</p>
+
+
+<p class=Code>mydb</p>
+
+
+<p class=Code>tr.name = "'alpha names$'"</p>
+
+
+<p class=Code>q.Table.Add(tr)</p>
+
+
+<p class=Code>? q.SQLStatement</p>
+
+
+<p class=Code>= "SELECT&nbsp; FROM <a class="wiki"  href="'alpha names$'" rel="">'alpha names$'</a>"</p>
+
+
+<p class=Code>q.table.Remove(1)</p>
+
+
+<p class=Code>tr.name = "sheet2$"</p>
+
+
+<p class=Code>q.table.add(tr)</p>
+
+
+<p class=Code>? q.SQLStatement</p>
+
+
+<p class=Code>= "SELECT&nbsp; FROM <a class="wiki"  href="sheet2$" rel="">sheet2$</a>"</p>
+
+
+<p class=Code>dim ti5&nbsp;as&nbsp;SQL::tableinfo</p>
+
+
+<p class=Code>ti5.SizeToFit = .t.</p>
+
+
+<p class=Code>? c.GetTableInfo(ti5,"'alpha names$'")</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>? ti5.DBFRowSyntax</p>
+
+
+<p class=Code>= NAME,C,255,0</p>
+
+
+<p class=Code>CITY,C,255,0</p>
+
+
+<p class=Code>? ti5.UpdateStatistics(c)</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>ti5.SizeToFit = .t.</p>
+
+
+<p class=Code>? ti5.DBFRowSyntax</p>
+
+
+<p class=Code>= NAME,C,6,0</p>
+
+
+<p class=Code>CITY,C,6,0</p>
+
+
+<p class=Code>dim ti6&nbsp;as&nbsp;SQL::tableinfo</p>
+
+
+<p class=Code>? c.GetTableInfo(ti6,"'alpha names$'")</p>
+
+
+<p class=Code>? ti6.DBFRowSyntax</p>
+
+
+<p class=Code>= NAME,C,255,0</p>
+
+
+<p class=Code>CITY,C,255,0</p>
+
+
+<p class=Code>? ti6.UpdateStatistics(c)</p>
+
+
+<p class=Code>= .T.</p>
+
+
+<p class=Code>ti6.SizeToFit = .t.</p>
+
+
+<p class=Code>? ti5.DBFRowSyntax</p>
+
+
+<p class=Code>= NAME,C,6,0</p>
+
+
+<p class=Code>CITY,C,6,0. <a class="wiki"  href="Picture" rel="">Picture</a><a class="wiki"  href="Picture" rel="">Picture</a></td></tr>
+</table>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="/Index/Working with SQL Databases Title.html" title="Working with SQL Databases Title" class="wiki">Working with SQL Databases</a>, 
+ <a href="../../../../Reference/Design/Api/SQL/Connection Functions/SQL Connection GetTableInfo Function.html" title="SQL Connection GetTableInfo Function" class="wiki">SQL::Connection::GetTableInfo(</a>), 
+ <a href="../../../../Reference/Design/Api/SQL/TableInfo Functions/SQL TableInfo UpdateStatistics Function.html" title="SQL TableInfo UpdateStatistics Function" class="wiki">SQL::TableInfo::UpdateStatistics(</a>)</p>
+
+
+
+<p class=A5> </p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Working+with+Microsoft+Excel">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"common","status":"pending","keywords":"server,design,guide,sql"}--->
+</body></html>

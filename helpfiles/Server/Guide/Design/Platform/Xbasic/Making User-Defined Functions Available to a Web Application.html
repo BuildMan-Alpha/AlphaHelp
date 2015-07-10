@@ -1,0 +1,117 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="How_to_make_User-Defined_Functions_Available_to_a_Web_Application">How to make User-Defined Functions Available to a Web Application</h1>
+The Alpha Five HTML Editor, and any code window in Alpha Five, will automatically detect and recognize UDFs (User-Defined Functions) defined in the current database function library. The Application Server, however, does not open a project database, so it does not see any database function library and has no access to the UDFs that are available to the development environment. This difference in behavior is by design and is essential to secure operation of the Application Server. The Application Server can only use UDFs that have been compiled into an AEX that is then loaded by the server. There are two ways to have the Application Server load AEX files.<br />
+<h2 class="showhide_heading" id="addins_installed_folder">addins_installed folder</h2>
+The first way to load an AEX is to put the file in the addins_installed folder under the executable folder for the server. All add-ins located here are loaded when the executable is started, so adding, removing, or updating any AEX files located here <em>requires </em>that you completely exit the Application Server and then restart it.<br />
+<br />
+Once the AEX has been loaded, all UDFs in it will be available to all A5W pages that are run on that server, <em>regardless of their application root</em>. If you have multiple distinct applications on your server, they will <em>all </em>be able to use UDFs from the AEX file(s) loaded this way. This may or may not meet your needs.<br />
+<h2 class="showhide_heading" id="Web_Project_Properties">Web Project Properties</h2>
+The second and generally preferred way to load an AEX is to specify the file in the Web Project Properties. Files may be specified here using either a path that is relative to the current web project, or using an absolute path that is a valid file path on the server to which you will be publishing.<br />
+<br />
+An AEX listed in the Web Project Properties is only loaded for <em>that specific application</em> and is not available server-wide. This means that UDFs in the AEX will only be visible if the page/component referencing them are within the same folder or in a subfolder of the location of the a5_application.a5i file.<br />
+<h2 class="showhide_heading" id="Troubleshooting_AEX_Files_Listed_in_Web_Project_Properties">Troubleshooting AEX Files Listed in Web Project Properties</h2>
+AEX files that are listed in Web Project Properties get included in the a5_application.a5i file for that project when it is published. The Application Server monitors a5_application.a5i and loads or unloads AEX files based on any changes that are made there.<br />
+<br />
+However, the individual AEX files are not monitored for changes, so an update to an already-loaded AEX requires you to manually reload it. There are three ways that you may do this:<br />
+<ol><li>Use the Server's systray menu Clear AEX Cache item.
+</li><li>Execute a page on the server that calls Server.ClearAEXCache().
+</li><li>Stop and restart the server.
+</li></ol><br />
+As a first step in troubleshooting the loading of AEX files, locate the <strong>a5_application.a5i</strong> file within the application root on the server, and open it in a text editor. Locate the AEX file(s) to be loaded, which will be specified as below:<br />
+<br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">DIM</span> aexFiles.<span style="color: #0000FF;">fileNames</span> <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;MyAEX.aex&quot;</span></pre></div><br />
+<div class="clearfix rbox warning"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/exclamation.png" alt="warning" width="16" height="16" title="warning" class="icon" /><span>Warning</span></div><div class="rbox-data">Do <em>not</em> update the a5i file on the server! When you republish your application from your development environment, the a5i file will be regenerated. Use the text editor strictly as a viewer.</div></div><br />
+Note that any relative file paths, such as in the example above, are relative to the <em>location of a5_application.a5i</em>. In this specific case, MyAEX.aex must be in the same folder as a5_application.a5i in order to be found and loaded by the server.<br />
+<br />
+If an AEX is not listed as expected, or it is listed but with an incorrect path, you will need to revisit the Web Project Properties for your application and make the required changes. After republishing the application, open the updated a5_application.a5i file to verify that the file(s) and path(s) are now listed as expected.<br />
+<br />
+After confirming that the AEX file is listed in a5_application.a5i, check to see that the AEX is actually present on your server in the location specified. If it is not present, check that your Web Project contains the AEX file (and within any specified subfolder if appropriate), and then clear your publishing history and republish. If the AEX file is located where it should be, check the file's timestamp to see that it is <em>not </em>an old copy of the file that may not include the UDF you are trying to use. If the AEX is out-of-date, publish an updated AEX file and then use <strong>Server.ClearAEXCache()</strong> (or restart the server) to reload it.<br />
+<br />
+After ensuring that a5_application.a5i references the correct AEX file, and that the correct version of that AEX file is located where it should be, and that any updated AEX has been reloaded, make a request for a page that references a UDF defined in the AEX file. As AEX files are loaded at the application level, you will need to be sure that the page you are requesting is within the same application root. Specifically, the application root is the folder that contains a5_application.a5i. Any subfolders of this location will share the same application root unless they contain their own a5_application.a5i file.<br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:How+to+make+User-Defined+Functions+Available+to+a+Web+Application+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web","status":"pending","keywords":"server,guide,xbasic,aex","notes":"fixed"}--->
+</body></html>

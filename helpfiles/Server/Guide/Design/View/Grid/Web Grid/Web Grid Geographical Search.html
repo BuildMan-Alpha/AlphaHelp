@@ -1,0 +1,132 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Web_Grid_Geographical_Search">Web Grid Geographical Search</h1>
+You can use a map control in the Search Part of a Grid to enter points for a polygon search or to specify the center point and radius for a radius search.<br />
+<br />
+To use a geographic search, your SQL database must support geography types, and your grid must be based on a query that includes a geography field. You need to include the geography field in your search part, and set its control to a map.<br />
+<br />
+	<img src="images/map_control_type_in_search.png" alt="Image" /><br />
+<br />
+Then set your map properties for the search.<br />
+<br />
+	<img src="images/map_search_part_properties.png" alt="Image" /><br />
+<br />
+Set the properties and test the control. You can display the results in the grid, in a map that is an alternate view to the grid, and/or in the search grid itself.<br />
+<br />
+	<img src="images/search_for_25_miles_around_Boston.png" alt="Image" /><br />
+<br />
+Your users will not have to worry about putting the points on a search polygon in the right order or closing the polygon, as the search component takes care of both requirements automatically.<br />
+<div class="clearfix rbox warning"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/exclamation.png" alt="warning" width="16" height="16" title="warning" class="icon" /><span>Warning</span></div><div class="rbox-data" style="width:50%">Don't try to use more than one map search per grid.</div></div><br />
+<h2 class="showhide_heading" id="Virtual_Grid_field_distanceFromCenterPoint_">Virtual Grid field '*distanceFromCenterPoint'</h2>
+In the case of a 'Radius' search, it would be useful to be able to order the records found by the search by distance from the center point. In order to support this functionality, a new 'virtual column' has been introduced. When you create the SQL statement for the Grid, you can include a new virtual column called '*distanceFromCenterPoint'. For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" ><span style="color: #993333; font-weight: bold;">SELECT</span> Name<span style="color: #66cc66;">,</span> Address<span style="color: #66cc66;">,</span> City<span style="color: #66cc66;">,</span> State<span style="color: #66cc66;">,</span> Zip<span style="color: #66cc66;">,</span> <span style="color: #ff0000;">'*distanceFromCenterPoint'</span> <span style="color: #993333; font-weight: bold;">AS</span> DistanceFromCenterPoint <span style="color: #993333; font-weight: bold;">FROM</span> StoreLocations</pre></div><br />
+When the Grid is executed and a Radius search is in effect, the virtual field is replaced by the correct Portable SQL. For example:<br />
+<br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox1" ><span style="color: #993333; font-weight: bold;">SELECT</span> Name<span style="color: #66cc66;">,</span> Address<span style="color: #66cc66;">,</span> City<span style="color: #66cc66;">,</span> State<span style="color: #66cc66;">,</span> Zip<span style="color: #66cc66;">,</span> GeogDistanceBetween<span style="color: #66cc66;">&#40;</span>location<span style="color: #66cc66;">,</span> GeogCreateFromText<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POINT ( -71 42)'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">AS</span> DistanceFromCenterPoint <span style="color: #993333; font-weight: bold;">FROM</span> StoreLocations</pre></div><br />
+In the above example the longitude and latitude values (-71 and 42) would, of course, be replaced with the longitude and latitude of the map center point when the user submitted the search.<br />
+<br />
+When no Radius search is active, the Grid will just render a blank value for the virtual field.<br />
+<div class="clearfix rbox note"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/information.png" alt="note" width="16" height="16" title="note" class="icon" /><span>Note</span></div><div class="rbox-data">You can order the markers by distance from the center point simply by checking the appropriate option on the map search part properties. You only need to explicitly add the virtual field <strong>'*distanceFromCenterPoint'</strong> to the SQL query and reference it from the Grid builder if you want to display it on the Grid.<br />
+<br />
+The unit of distance for Geography in the database is typically meters. You can convert that to miles or kilometers, and limit the number of decimal points displayed, by creating a display format expression for the Grid column that displays the distance. For example, the following formatting expression converts the value from meters to kilometers, with 2 decimal places.<br />
+<br />
+<span style="color:blue; background:">alltrim( str ( convert_type ( &lt;value&gt;, "N" )/1000, 20, 2 ) )</span></div></div><br />
+<h2 class="showhide_heading" id="getMapDataFromSearchPart_">getMapDataFromSearchPart()</h2>
+If your Search Part has a Map control type, you can use this Grid method to extract data from the map:<br />
+<br />
+<div class="plugincode" parse="javascript"><pre class="codelisting" data-syntax="javascript" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #009900;">&#123;</span>grid.<span style="color: #660066;">object</span><span style="color: #009900;">&#125;</span>.<span style="color: #660066;">getMapDataFromSearchPart</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span></pre></div><br />
+<br />
+This can be useful if you are doing an Ajax callback and you want to submit data from the Map control. The data that is returned by this Javascript method is in the form of a query string, i.e. name/value pairs separated with '&amp;' characters.<br />
+<h2 class="showhide_heading" id="Videos:">Videos:</h2>
+See <a href="../Google Map Alternate View.html" title="Google Map Alternate View V11" class="wiki">Google Map Alternate View V11</a>, video GM10 onwards<br />
+<h2 class="showhide_heading" id="See_Also">See Also</h2>
+<a href="../New Web Components V11/Google Map Component V11.html#Using the Google Map as a Grid search control" title="Google Map Component V11" class="wiki">Using the Google Map as a Grid search control</a><br />
+<a href="Web Grid Miscellaneous Enhancements V11/Geography Fields in the Grid - Searching V11.html" title="Geography Fields in the Grid - Searching V11" class="wiki">Searching Geography Fields in the Grid</a><br />
+<a href="Web Grid Alternate Views.html" title="Web Grid Alternate Views V11" class="wiki">Web Grid Alternate Views V11</a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Web+Grid+Geographical+Search+V11">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web","status":"pending","keywords":"server,guide,grid,sql"}--->
+</body></html>

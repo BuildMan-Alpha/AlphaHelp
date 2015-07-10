@@ -1,0 +1,394 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<p class=A3Topic>Creating a Table and Exporting Selected Records to the 
+ Back-End</p>
+
+
+
+<p>The following script selects records from the Alpha Sports <span class=Code1>customer.dbf</span> 
+ table and writes them to a new table named "CustomerX" in the 
+ <span class=Screen>Access</span> <span class=Code1>AlphaSport.mdb</span> 
+ database.</p>
+
+
+
+<p>Start by defining variables. In this case you need <span class=Code1>SQL::Connection</span>, 
+ <span class=Code1>SQL::ResultSet</span>, and <span class=Code1>SQL::TableInfo</span> 
+ objects.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>dim conn&nbsp;as&nbsp;SQL::Connection</p>
+
+
+<p class=Code>dim rs&nbsp;as&nbsp;SQL::ResultSet</p>
+
+
+<p class=Code>dim ti&nbsp;as&nbsp;SQL::TableInfo</p>
+
+
+<p class=Code>dim source_table&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim destination_table&nbsp;as&nbsp;C</p>
+
+
+<p class=Code>dim tbl&nbsp;as&nbsp;P</td></tr>
+</table>
+
+<p>Define the source and destination tables.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>source_table = "C:\Program Files\A5V8\Samples\AlphaSports\customer.dbf"</p>
+
+
+<p class=Code>destination_table = "CustomerX"</td></tr>
+</table>
+
+<p>Read the properties of the source table. <a href="/Server/Reference/Design/Api/Functions/SQL Helper Functions/SQL_TableInfoOfDBF Function.html" title="SQL_TableInfoOfDBF Function" class="wiki">SQL_TableInfoOfDBF(</a>) 
+ sets the values of the <span class=Code1>ti</span> <span class=Code1>SQL::TableInfo</span> 
+ object to reflect the properties of <span class=Code1>source_table</span>.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>if .not. SQL_TableInfoOfDBF(source_table, ti) then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ "Could not read properties of " + source_table)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+
+<p class=Code>end if</td></tr>
+</table>
+
+<p>Connect to the back-end database. If there is an error, display a message 
+ and end the script.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>if .not. conn.open("{A5API=Access,FileName='C:\Program 
+ Files\A5V8\MDBFiles\Alphasports.mdb',UserName='Admin'}") then</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ "Could not establish connection" + crlf()+ conn.CallResult.text)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+
+<p class=Code>end if</td></tr>
+</table>
+
+<p>Create the new destination table in the back-end database with the <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection CreateTable Function.html" title="SQL Connection CreateTable Function" class="wiki">CreateTable(</a>) 
+ method. If there is an error, display a message, close the connection, 
+ and end the script.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>ti.Name = destination_table then</p>
+
+
+<p class=Code>if .not. conn.CreateTable(ti)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ "Could not create back-end table" + crlf()+ conn.CallResult.text)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;conn.close()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+
+<p class=Code>end if</td></tr>
+</table>
+
+<p>Select the records to copy. Read the data from the source table into 
+ the <span class=Code1>rs</span> SQL::ResultSet object with the <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection ResultSetFromDBF Function.html" title="SQL Connection ResultSetFromDBF Function" class="wiki">ResultSetFromDBF(</a>) 
+ method.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>tbl = table.open(source_table)</p>
+
+
+<p class=Code>query.filter = "bill_state_region = \"MA\""</p>
+
+
+<p class=Code>tbl.query_create()</p>
+
+
+<p class=Code>rs = conn.ResultSetFromDBF(tbl)</td></tr>
+</table>
+
+<p>Add the selected records to the <span class=Code1>destination_table</span> 
+ with the <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection InsertData Function.html" title="SQL Connection InsertData Function" class="wiki">InsertData(</a>) 
+ method.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>if .not. conn.InsertData("", destination_table, 
+ rs)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;ui_msg_box("Error", 
+ "Could not insert data into back-end table" + crlf()+ conn.CallResult.text)</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;conn.close()</p>
+
+
+<p class=Code>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+
+
+<p class=Code>end if</td></tr>
+</table>
+
+<p>Close the table and the connection.</p>
+
+
+
+
+<table class="codeTable" style="x-cell-content-align: top;
+				border-left-style: None;
+				border-right-style: None;
+				border-top-style: None;
+				border-bottom-style: None;
+				width: 100%;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0" width="100%">
+<col style="width: 100%;">
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td style="x-cell-content-align: top;
+			width: 100%;
+			padding-right: 10px;
+			padding-left: 10px;" valign="top" width="100%">
+<p class=Code>tbl.close()</p>
+
+
+<p class=Code>conn.close()</td></tr>
+</table>
+
+
+
+
+<p class=A5>Limitations</p>
+
+
+
+<p>Desktop applications only.</p>
+
+
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="/Index/Working with SQL Databases Title.html" title="Working with SQL Databases Title" class="wiki">Working with SQL Databases</a>, 
+ <a href="/Server/Reference/Design/Api/Functions/SQL Helper Functions/SQL_TableInfoOfDBF Function.html" title="SQL_TableInfoOfDBF Function" class="wiki">SQL_TableInfoOfDBF(</a>), 
+ <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection CreateTable Function.html" title="SQL Connection CreateTable Function" class="wiki">SQL::Connection::CreateTable(</a>), 
+ <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection InsertData Function.html" title="SQL Connection InsertData Function" class="wiki">SQL::Connection::InsertData(</a>), 
+ <a href="/Server/Reference/Design/Api/SQL/Connection Functions/SQL Connection ResultSetFromDBF Function.html" title="SQL Connection ResultSetFromDBF Function" class="wiki">SQL::Connection::ResultSetFromDBF(</a>)</p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Creating+a+Table+and+Exporting+Selected+Records+to+the+++Back-End">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"status":"pending","keywords":"desktop,sql,dbf","tags":"desktop"}--->
+</body></html>

@@ -1,0 +1,1106 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			
+
+<p class=A3Topic>Append Operations</p>
+
+
+
+<p>An append operation takes the records from the transaction table and 
+ adds them to the data in the master table. The append operation:</p>
+
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>locks the master 
+ file</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>appends all the records 
+ from the transaction file</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>updates any indexes</p>
+
+</li>
+</ol>
+
+<p>This speeds up merges of large files. If any one else has the master 
+ table open, or if you open another form using the master table, the append 
+ will update the indexes after each record append.</p>
+
+
+
+<p class=A4><a name=Overview_of_the_Append_Process>Overview of the Append 
+ Process</a></p>
+
+
+
+<p>For example, you have two tables which store the names and addresses 
+ of customers.</p>
+
+
+
+<p class=PixCaption>Master Table</p>
+
+
+
+
+<div align=center>
+<table style="x-cell-content-align: Top;
+				border-left-style: none;
+				border-right-style: none;
+				border-top-style: none;
+				border-bottom-style: none;
+				float: aligncenter;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0">
+<col>
+<col>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Name</td>
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Phone</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Abe Adams</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-2811</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Betty Becker</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-2991</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Chuck Chapman</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-9831</td></tr>
+</table>
+</div>
+<p class=PixCaption>Transaction Table</p>
+
+
+
+
+<div align=center>
+<table style="x-cell-content-align: Top;
+				border-left-style: none;
+				border-right-style: none;
+				border-top-style: none;
+				border-bottom-style: none;
+				float: aligncenter;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0">
+<col>
+<col>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Name</td>
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Phone</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Donna Dent</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-9821</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Ernie Eagerman</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-4432</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Fred Fensworth</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-1111</td></tr>
+</table>
+</div>
+<p>Using an Append Operation you can take the records from one table and 
+ add them to the other.</p>
+
+
+
+<p class=PixCaption>Master Table</p>
+
+
+
+
+<div align=center>
+<table style="x-cell-content-align: Top;
+				border-left-style: none;
+				border-right-style: none;
+				border-top-style: none;
+				border-bottom-style: none;
+				float: aligncenter;
+				border-spacing: 0px;
+				border-spacing: 0px;" cellspacing="0">
+<col>
+<col>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Name</td>
+<td class="tableHeader" style="x-cell-content-align: top;" valign="top">
+<p class=TableHead>Phone</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Abe Adams</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-2811</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Betty Becker</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-2991</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Chuck Chapman</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-9831</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Donna Dent</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-9821</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Ernie Eagerman</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-4432</td></tr>
+
+<tr style="x-cell-content-align: top;" valign="top">
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>Fred Fensworth</td>
+<td class="TableCell" style="x-cell-content-align: top;" valign="top">
+<p class=TableLeft>555-1111</td></tr>
+</table>
+</div>
+<p class=A4><a name=Performing_an_Append_Operation>Performing an Append 
+ Operation</a></p>
+
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Display the <span 
+ class=Screen>Operations</span> tab of the <span class=Screen>Control Panel</span>.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>New</span>.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Select "Append 
+ Operation" from the <span class=Control>Select operation</span> list.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Select the master 
+ table (the destination of the records) from the <span class=Control>Select 
+ Table/Set</span> list.</p>
+
+</li>
+</ol>
+
+<p class=Note><span class=Note><img src="images/icon_information.gif"
+									x-maintain-ratio=TRUE
+									style="border: none;
+											width: 36px;
+											height: 32px;
+											float: none;
+											border-style: none;
+											border-style: none;"
+									width=36
+									height=32
+									border=0>Note</span> : The path to 
+ the master table cannot contain any "~" characters.</p>
+
+
+
+<ol start=5>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Create</span> 
+ to display the <span class=Screen>Append Builder</span> or <span class=Button>Create 
+ Using Genie</span> to display the <span class=Screen>Append Genie</span> 
+ (see ((|#Using_the_Append_Genie|Using_the_Append_Genie)) ).</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>In the <span class=Control>Append</span> 
+ list select either:</p>
+
+</li>
+	
+	<ul style="list-style: disc;"
+		type=disc>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>"All" - to 
+ append all transaction table records.</p>
+
+</li>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>"Unique only" 
+ - to append only unique records.</p>
+
+</li>
+		
+		<li class=kadov-p-CBullet1><p class=Bullet1>"Unique, replacing 
+ existing" - to append only unique records and replace any matching 
+ records in the master table.</p>
+
+</li>
+	</ul>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Select the name of 
+ the transaction table (the source of the records) from the <span class=Control>Transaction</span> 
+ list.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>In the <span class=Control>Filter</span> 
+ field enter an <a href="/Server/Guide/Design/Platform/Xbasic/Writing Expressions.html" title="Writing Expressions" class="wiki">expression</a> 
+ that selects records from the Transaction table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Under the <span class=Control>Field</span> 
+ column select the fields you want to append to the master table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Optionally, under 
+ the <span class=Control>Expression</span> column define an expression 
+ that modifies the <span class=Control>Field</span> value.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Optionally, under 
+ the <span class=Control>Condition</span> column define an expression that 
+ selects records to append to the master table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click the <span class=Button>Run</span> 
+ button.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Alpha Anywhere appends 
+ the selected records from the transaction table to the master table. <a HREF="http://support.alphasoftware.com/imagesV8/Append_Builder.gif"><a class="wiki"  href="Picture" rel="">Picture</a></a></p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Builder.gif"
+					style="border: none;
+							width: 537px;
+							height: 267px;
+							border-style: none;
+							border-style: none;"
+					width=537
+					height=267
+					border=0></p>
+
+
+
+<p class=PixCaption>Append Builder</p>
+
+
+
+<p>If the structure or field names of the master (destination) and transaction 
+ (source) tables are not the same, you may need to make adjustments to 
+ the append settings so that Alpha Anywhere knows which fields in the master 
+ table match fields in the transaction table; these settings are referred 
+ to&nbsp;as&nbsp;the field mapping.</p>
+
+
+
+<p>The append settings let you do other things&nbsp;as&nbsp;well. For example, 
+ you can prevent duplicate records from being added, or you can overwrite 
+ records in the master table with up-to-date records from the transaction 
+ table. You can also choose to append only some of the records from the 
+ transaction table.</p>
+
+
+
+<ul style="list-style: disc;"
+	type=disc>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Append tables with different 
+ field names: By mapping fields from the transaction table to the master 
+ table, you can append records even if the tables' field names and structures 
+ are different.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Append only the fields 
+ you select: While appending records, you can choose to use only some of 
+ the fields while ignoring others.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Append only certain fields, 
+ conditionally: While appending records, you can choose to use only certain 
+ transaction-fields based on a conditional expression.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Modify transaction-data 
+ before appending: By creating a transaction expression in place of a transaction-field, 
+ you can modify the data before it is appended in the master table.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Append only some of the 
+ transaction-records: You can choose to include only records which match 
+ the selection criteria you specify.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Append only the non-duplicate 
+ transaction-records: You can choose to only append records which do not 
+ already exist in the master table. You specify the criteria for determining 
+ duplicate records.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Overwrite matching records 
+ in the master table to avoid duplicates: You can choose to avoid duplicate 
+ records by overwriting them with records from the transaction table. You 
+ specify the criteria for determining duplicate records.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Record the results: You 
+ can update individual transaction-records to indicate whether they were 
+ appended or used to replace master-records.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1>Save your append settings 
+ for later use: You can use the same append-definition again by saving 
+ it.</p>
+
+</li>
+</ul>
+
+<p class=A4><a name=Mapping_Fields>Mapping Fields</a></p>
+
+
+
+<p>As Alpha Anywhere appends each record, it takes data from the fields of 
+ the transaction table and copies the data into the fields of the master 
+ table. Since the fields from the transaction table and the master-table 
+ do not necessarily have the same field names, the <span class=Screen>Append 
+ Builder</span> has a field mapping table in which you can pair-up fields 
+ from each table.</p>
+
+
+
+<p>For example, you are copying information from the <span class=Code1>NAME</span> 
+ field of a transaction table called <span class=Code1>NEW_YORK</span> 
+ to the <span class=Code1>FULL_NAME</span> field of the master table. The 
+ field mapping row would appear&nbsp;as&nbsp;follows: </p>
+
+
+
+<p class=Pix><img src="images/APPEND_1.gif"
+					x-maintain-ratio=TRUE
+					style="border-style: none;
+							width: 319px;
+							height: 29px;
+							float: none;
+							border-style: none;"
+					width=319
+					height=29
+					border=0></p>
+
+
+
+<p class=A5>Using an Expression Instead of a Single Field</p>
+
+
+
+<p>As data is copied to the master table, you can manipulate the data by 
+ means of an expression. For example, you are appending data from a table 
+ which has separate <span class=Code1>PHONE</span> and <span class=Code1>AREACODE</span> 
+ fields to a master table which has one <span class=Code1>PHONE</span> 
+ field which contains both the phone number and the area code. By using 
+ an expression, you can combine the Phone and Area code field from the 
+ transaction table and copy the combined value to the Phone field in the 
+ master table. </p>
+
+
+
+<p class=Pix><img src="images/APPEND_2.gif"
+					x-maintain-ratio=TRUE
+					style="border-style: none;
+							width: 387px;
+							height: 29px;
+							float: none;
+							border-style: none;"
+					width=387
+					height=29
+					border=0></p>
+
+
+
+<p class=A5>Conditionally Choosing Fields to Use in an Append</p>
+
+
+
+<p>In some cases, you may want to copy information from the transaction-field 
+ only under certain conditions. For example, you were appending mostly 
+ United States customers to a database. The transaction table contains 
+ the field <span class=Code1>COUNTRY</span>, which you want to copy only 
+ if the country is not the "USA." To do this, you define a condition 
+ under which the mapping should occur by typing a logical (TRUE/FALSE) 
+ condition expression into the Condition column. </p>
+
+
+
+<p class=Pix><img src="images/APPEND_3.gif"
+					x-maintain-ratio=TRUE
+					style="border-style: none;
+							width: 379px;
+							height: 29px;
+							float: none;
+							border-style: none;"
+					width=379
+					height=29
+					border=0></p>
+
+
+
+<p>The <span class=Code1>COUNTRY</span> field is only copied to the master 
+ table if <span class=Code1>COUNTRY</span> is not equal to "USA."</p>
+
+
+
+<p class=A4><a name=Selecting_the_Records_to_Append>Selecting the Records 
+ to Append</a></p>
+
+
+
+<p>When you define an Append Operation, you can use a filter expression 
+ to select the records from the transaction table to be copied to the master 
+ table. For example, you want to append a table of U.S. customers to a 
+ table of New York customers. You can use a filter expression to append 
+ only those U.S. records in which the Region field is equal to New York. 
+ </p>
+
+
+
+<p class=Pix><img src="images/APPEND_4.gif"
+					x-maintain-ratio=TRUE
+					style="border-style: none;
+							width: 217px;
+							height: 24px;
+							float: none;
+							border-style: none;"
+					width=217
+					height=24
+					border=0></p>
+
+
+
+<p>For a record to be selected, its REGION field must contain the value 
+ "New York."</p>
+
+
+
+<p class=A4><a name=Avoiding_Duplicates>Avoiding Duplicates</a></p>
+
+
+
+<p>If you want to avoid creating duplicate records when appending, you 
+ can choose one of two types of appends, Unique only and Unique, replace 
+ existing.</p>
+
+
+
+<ul style="list-style: disc;"
+	type=disc>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1><span class=Bolded>Unique 
+ only</span> : Copies transaction table records which do not match records 
+ already contained in the master table.</p>
+
+</li>
+	
+	<li class=kadov-p-CBullet1><p class=Bullet1><span class=Bolded>Unique, 
+ replace existing</span> : Copies all records from the transaction table 
+ to the master table. In cases where a matching record exists in the master 
+ table, it is overwritten by the transaction-record.</p>
+
+</li>
+</ul>
+
+<p>To specify what constitutes a matching record, you enter a <span class=Control>master-linking-key</span> 
+ expression and a <span class=Control>transaction-linking-key</span> expression. 
+ These expressions consist of one or more fields which uniquely identify 
+ each record. For example, you have a table which contains the field <span 
+ class=Code1>Customer_ID</span> which contains a unique customer number. 
+ If both tables have the <span class=Code1>Customer_ID</span> field, you 
+ can use Customer_ID&nbsp;as&nbsp;the linking field for both tables.</p>
+
+
+
+<p>Suppose instead that a record could be uniquely identified by the <span 
+ class=Code1>First_name</span> and <span class=Code1>Phone</span> field. 
+ You can use the expression <span class=Code1>FIRST_NAME+PHONE</span>&nbsp;as&nbsp;the 
+ linking key.</p>
+
+
+
+<p class=A4><a name=Updating_the_Transaction_Table>Updating the Transaction 
+ Table</a></p>
+
+
+
+<p>After performing an Append Operation, it may be helpful to review the 
+ operation to see which records were appended and which were replaced (in 
+ the case of a Unique, replace existing append). One way to do this is 
+ by setting up the Append operation to automatically update the transaction 
+ table. Based on the manner in which the transaction-record was used, you 
+ can update one or more fields in the transaction table by mapping expressions 
+ in the field-mapping-table to fields in the transaction table.</p>
+
+
+
+<p>To update the transaction table, you first click the Transaction radio-button; 
+ the field-mapping-table changes to let you map expressions to transaction-fields 
+ instead of master-fields.</p>
+
+
+
+<p class=A5>Example of Transaction-mapping</p>
+
+
+
+<p>For example, you set up an Append Operation to copy only unique records 
+ to the master table. After performing the append, you want to see which 
+ records were used and which were not. To do this, you can create a character 
+ field in the transaction table called <span class=Code1>Status</span>. 
+ You then specify that if the record was appended, the word "appended" 
+ should be placed in the <span class=Code1>Status</span> field.</p>
+
+
+
+<p>The word "Appended" is copied into the <span class=Code1>Status</span> 
+ field of each appended transaction table record.</p>
+
+
+
+<p>When specifying transaction-field-mapping, you can also specify a condition 
+ upon which the expression is copied to the transaction-field. For a value 
+ to be copied to the transaction-field it must satisfy both the condition 
+ you specify and the Case you specify (in the first column).</p>
+
+
+
+<p class=A4><a name=Using_the_Append_Genie>Using the Append Genie</a></p>
+
+
+
+<ol>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_1.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=2>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Enter or select the 
+ name of the Transaction table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_2.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=4>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Indicate whether 
+ the fields in the Master and Transaction tables have the same or different 
+ names.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_3.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=6>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>No, fields in each table have different names</span>, make 
+ a selection from the <span class=Control>Match fields by</span> list. 
+ Otherwise, continue with step 10.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Optionally, click 
+ <span class=Button>Suggest Field Mappings</span> to have Alpha Anywhere suggest 
+ how the fields map between the Transaction and Master tables.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If necessary, manually 
+ enter the names of the corresponding fields in the Transaction and Master 
+ tables.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_4.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=10>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Indicate whether 
+ you want Alpha Anywhere to check for duplicate records.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you want to check 
+ for duplicates, indicate how to handle duplicate records.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Optionally, click 
+ <span class=Button>Advanced Options for Duplicate Record Checking</span> 
+ to display the <span class=Screen>Advanced Options</span> dialog. Otherwise, 
+ continue with step 15. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_5.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=13>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Enter a filter expression 
+ that defines which Master table records to check for duplicates.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>OK</span> 
+ to continue. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/Duplicates_Advanced_Options.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 381px;
+							height: 277px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=381
+					height=277
+					border=0></p>
+
+
+
+<ol start=15>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>Yes (checks for duplicates before appending records)</span> 
+ in the previous screen, the following screen will appear. Otherwise, continue 
+ with step.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Indicate up to three 
+ fields under <span class=Control>Master table</span> that you wish to 
+ use to determine which records are duplicates.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue.&nbsp; </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_6.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=19>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Indicate whether 
+ you want to append <span class=Control>All records</span> or <span class=Control>Selected 
+ records</span> from the Transaction table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you click <span 
+ class=Control>Selected records</span>, make a selection from the <span 
+ class=Control>Selected records</span> list and fill in the resulting required 
+ fields.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue.&nbsp; </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_7.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=22>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Indicate whether 
+ you want to update a field in the Transaction table.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue.&nbsp; </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_8.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=24>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>No</span> in the previous screen, skip to step 27.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>Yes</span> in the previous screen, select the Transaction 
+ table field(s) that you want to update when a record is appended, not 
+ appended, or replaces a duplicate. Next to each selection in <span class=Control>Fields 
+ to Update</span>, enter an <span class=Control>Update Expression</span> 
+ that defines the value to write to the field.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Next&nbsp;></span> 
+ to continue.&nbsp; </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_9.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=27>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Choose whether you 
+ want to run the operation now, save and then run the operation, or show 
+ how the append operation has been defined. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/UG_Append_Genie_10.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 441px;
+							height: 440px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=441
+					height=440
+					border=0></p>
+
+
+
+<ol start=28>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Click <span class=Button>Finish</span> 
+ to conclude.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>Run the append operation now, (but first save the definition 
+ for future use)</span>, the <span class=Screen>Save appending settings&nbsp;as&nbsp;...</span> 
+ dialog box will appear.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>Enter the name of 
+ the operation into the <span class=Control>Name</span> field and click 
+ <span class=Button>OK</span>. </p>
+
+</li>
+</ol>
+
+<p class=Pix><img src="images/Save_Operation_Settings.gif"
+					x-maintain-ratio=TRUE
+					style="border: none;
+							width: 329px;
+							height: 274px;
+							float: none;
+							border-style: none;
+							border-style: none;"
+					width=329
+					height=274
+					border=0></p>
+
+
+
+<ol start=31>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected <span 
+ class=Control>Don't run the append operation now, just show me how the 
+ genie has filled in the append Builder</span>, the details of the append 
+ operation will appear.</p>
+
+</li>
+	
+	<li class=kadov-p-CListNumber><p class=ListNumber>If you selected Run 
+ the append operation now, you will see a message box that indicates how 
+ many records will be appended. Click <span class=Button>OK</span> to run 
+ the operation or click <span class=Button>Cancel</span> to abort the operation.</p>
+
+</li>
+</ol>
+
+<p class=A5>See Also</p>
+
+
+
+<p><a href="../../../../Guide/Design/Data/Operation/Overview of Batch Operations.html" title="Overview of Batch Operations" class="wiki">Overview of Batch Operations</a>, 
+ <a href="/Server/Reference/Design/Api/Objects/Table/Table Operation Methods.html" title="Table Operation Methods" class="wiki">Table Operation Methods</a></p>
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Append+Operations">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"desktop, dbf","status":"pending","keywords":"desktop,tut,operation"}--->
+</body></html>

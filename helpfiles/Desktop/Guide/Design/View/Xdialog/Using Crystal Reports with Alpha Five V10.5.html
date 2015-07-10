@@ -1,0 +1,201 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+
+
+
+<article id="top" class="wikitext clearfix nopagetitle">
+			
+		
+		
+		
+		
+			 
+
+	
+			<h1 class="showhide_heading" id="Using_Crystal_Reports_with_Alpha_Five">Using Crystal Reports with Alpha Five</h1>
+Some users have expressed an interest in incorporating Crystal Reports into an Alpha Five application.<br />
+<br />
+<strong>NOTE:</strong> In order to run these examples you must have the Crystal Reports activex objects installed and registered. These activex objects are automatically installed if you install the Crystal Reports trial version.<br />
+<br />
+When you save a report in the Crystal Reports designer, the file you save has a .rpt extension. The saved report file can include a snapshot of the data. If so, then it is not necessary to connect to the original data source to print the report (because the data is already present in the .rpt file).<br />
+<br />
+Alternatively, you can reconnect to your data source at print time and refresh the data used in the report. Two examples are shown below. In the first we simply print preview the report using the saved data that is stored in the report.<br />
+<br />
+This example prints a sample Crystal Report file that ships with Crystal Reports.<br />
+Since the .rpt file contains saved data we do not need to connect to the data source.<br />
+<span style="color:blue; background:"><div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox" >dim app as OLE::crystaldesignruntime.application
+ 
+fn = "C:\Program Files (x86)\Business Objects\Crystal Reports 11\Samples\en\Reports\General Business\employee sales.rpt"
+ 
+Report = app.openReport(fn)
+dim Crystal as p
+dim Crystal.object as p
+dim Crystal.class as c = "crystalreports.activexreportviewer"
+Crystal.events=&lt;&lt;%code%
+%code%
+ 
+dlgEvents=&lt;&lt;%code%
+IF a_dlg_button="init" THEN
+    crystal.object.reportsource = Report
+    crystal.object.viewreport()
+    crystal.object.displaytoolbar = 1
+    crystal.object.zoom(1)
+END IF
+IF a_dlg_button="Close" THEN
+    ui_modeless_dlg_close(dlgTitle)
+END IF
+%code%
+ 
+dlgTitle="Crystal Reports Viewer"
+ 
+dlgText=&lt;&lt;%dlg%
+{can_exit=Close}
+{startup=init}
+{stretch=width,height}
+{activex=100,55 Crystal};
+{stickto=left,bottom}
+&lt;Close&gt;
+%dlg%
+ 
+ui_modeless_dlg_box(dlgTitle,dlgText,dlgEvents)</pre></div></span><br />
+When you run this script you will see this Xdialog window which contains the Crystal Reports report viewer control:<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=762','HEIGHT=790','BACKGROUND=http://downloads.alphasoftware.com/a5v10download/crystalreports1.jpg']);">	<img src="http://downloads.alphasoftware.com/a5v10download/crystalreports1.jpg" height="84" width="81" alt="Image" /></a><br />
+This next example runs a report that was built against the sample Alphasports.mdb file that ships with Alpha Five (see the MDBFiles folder in the A5V10 program folder). This script connects to the alphasports.mdb file and refreshes the data before the report is printed.<br />
+<br />
+<strong>NOTE:</strong> You can download this sample report from this location:<br />
+<a class="wiki external" target="_blank" href="http://downloads.alphasoftware.com/A5V10Download/report1.zip" rel="external nofollow">http://downloads.alphasoftware.com/A5V10Download/report1.zip</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /><br />
+<span style="color:blue; background:"><div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox1" >dim app as OLE::crystaldesignruntime.application
+fn = "c:\crystalReports\report1.rpt"
+Report = app.openReport(fn)
+
+Report.discardsaveddata()
+DIM cn as P 
+dim rs as P
+cn = ole.create("adodb.connection")
+rs = ole.create("adodb.recordset")
+rs.locktype = 3
+rs.cursortype = 1
+rs.cursorlocation = 1
+ 
+'Open the connection
+cn.open("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\a5V10\MDBFiles\Alphasports.mdb;Persist Security Info=False")
+ 
+'Open the Record Set
+rs.open("select * from customer",cn)
+ 
+'Get a pointer to the Fields collection
+Report.database.setDatasource(rs )
+report.readRecords()
+
+rs.close()
+cn.close()
+
+
+dim Crystal as p
+dim Crystal.object as p
+dim Crystal.class as c = "crystalreports.activexreportviewer"
+ 
+Crystal.events=&lt;&lt;%code%
+%code%
+ 
+dlgEvents=&lt;&lt;%code%
+IF a_dlg_button="init" THEN
+    crystal.object.reportsource = Report
+    crystal.object.viewreport()
+    crystal.object.displaytoolbar = 1
+    crystal.object.zoom(1)
+END IF
+ 
+IF a_dlg_button="Close" THEN
+    ui_modeless_dlg_close(dlgTitle)
+END IF
+%code%
+
+dlgTitle="Crystal Reports Viewer"
+
+dlgText=&lt;&lt;%dlg%
+{can_exit=Close}
+{startup=init}
+{stretch=width,height}
+{activex=100,55 Crystal};
+{stickto=left,bottom}
+&lt;Close&gt;
+%dlg%
+ 
+ui_modeless_dlg_box(dlgTitle,dlgText,dlgEvents)</pre></div></span><br />
+When you run this script, you will see the following Xdialog window with the embedded Crystal Reports Viewer:<br />
+<a href="javascript:void(0)" class="internal" onmouseover="return convertOverlib(this,'&nbsp;',['WIDTH=795','HEIGHT=802','BACKGROUND=http://downloads.alphasoftware.com/a5v10download/crystalreport2.jpg']);">	<img src="http://downloads.alphasoftware.com/a5v10download/crystalreport2.jpg" height="84" width="83" alt="Image" /></a><br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Using+Crystal+Reports+with+Alpha+Five+V10.5">-->
+
+
+	<div class="wikitopline clearfix" style="clear: both;">
+	<div class="content">
+				<div class="wikiinfo" style="float: left">
+
+
+
+<span id="description"></span>
+
+		</div>
+
+	 
+ 
+	</div> 
+</div> 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"desktop, review","status":"pending","notes":"Alpha Five","keywords":"desktop,guide,xdialog,asports"}--->
+</body></html>
