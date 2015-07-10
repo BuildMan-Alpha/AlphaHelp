@@ -11,53 +11,6 @@ var options = {
   "search": { "provider": "elasticsearch" },
   "filter_name": "reorg",
   "filter": { "exists": { "field": "metadata" } },
-  "editTOC": {
-    "move": [
-      { "from": "/References/Web", "to": "/Guides/Server/" },
-      { "from": "/References/Namespace", "to": "/References/Server/API" },
-      { "from": "/References/Functions", "to": "/References/Server/API/Functions" },
-      { "from": "/References/Objects", "to": "/References/Server/API/Objects" },
-      { "from": "/References/SQL", "to": "/References/Server/SQL" },
-      { "from": "/References/Web Application/Functions", "to": "/References/Server/API/Functions/Web Application" },
-      { "from": "/References/Web Application", "to": "/References/Server/API/Functions/Web Application" },
-      { "from": "/References/Xbasic", "to": "/References/Server/XBasic" },
-      { "from": "/References/Operators", "to": "/References/Server/XBasic/Operators" },
-      { "from": "/References/Grid", "to": "/Guides/Server/Grid" },
-      { "from": "/References/Errors", "to": "/References/Server/Errors" },
-      { "from": "/References/Methods/a5", "to": "/References/Client/API/Grid" },
-      { "from": "/References/Methods/Helper", "to": "/References/Server/API/Helper" },
-      { "from": "/References/Methods/INET", "to": "/References/Server/API/INET" },
-      { "from": "/References/Methods/Internet Methods", "to": "/References/Server/API/Internet Methods" },
-      { "from": "/References/Methods/QRCODE", "to": "/References/Server/API/QRCODE" },
-      { "from": "/References/Methods/Reporting", "to": "/References/Server/API/Reporting" },
-      { "from": "/References/Methods/Sockets", "to": "/References/Server/API/Sockets" },
-      { "from": "/References/Methods/StringDictionary", "to": "/References/Server/API//StringDictionary" },
-      { "from": "/References/Methods/Thread", "to": "/References/Server/API/Objects/Thread" },
-      { "from": "/References/Methods/Addin", "to": "/References/Server/API/Objects/Addin" },
-      { "from": "/References/Methods/Array", "to": "/References/Server/API/Array" },
-      { "from": "/References/Methods/Collection Methods", "to": "/References/Server/API/Collection Methods" },
-      { "from": "/References/Methods/Dialog Component Methods", "to": "/References/Client/API/UX Component" },
-      { "from": "/References/Methods", "to": "/References/Server/API/Functions" },
-      { "from": "References", "to": "Reference" },
-      { "from": "/Reference/Desktop/Email", "to": "/Reference/Desktop/Design/Email" },
-      { "from": "/Reference/Desktop/Office", "to": "/Reference/Desktop/Design/Office" },
-      { "from": "/Reference/Desktop/OLE", "to": "/Reference/Desktop/Design/OLE" },
-      { "from": "/Reference/Server/Api", "to": "/Reference/Server/Design/Api" },
-      { "from": "/Reference/Client/API", "to": "/Reference/Client/Design/Api" },
-      { "from": "/Reference/Desktop/API", "to": "/Reference/Desktop/Design/Api" },
-      { "from": "/Guide/Server/Api", "to": "/Guide/Server/Design/Api" },
-      { "from": "/Guide/Desktop/Api", "to": "/Guide/Desktop/Design/Api" },      
-      { "from": "/Guide/Server", "to" : "/Server/Guide"},
-      { "from": "/Guide/Desktop", "to" : "/Desktop/Guide"},
-      { "from": "/Guide/Client", "to" : "/Client/Guide"},
-      { "from": "/Reference/Server", "to" : "/Server/Reference"},
-      { "from": "/Reference/Desktop", "to" : "/Desktop/Reference"},
-      { "from": "/Reference/Client", "to" : "/Client/Reference"},
-      { "from": "/Tutorial/Server", "to" : "/Server/Tutorial"},
-      { "from": "/Tutorial/Desktop", "to" : "/Desktop/Tutorial"}
-      ]
-      
-  }
 };
 var Help = require('helpserver');
 var help = Help(options);
