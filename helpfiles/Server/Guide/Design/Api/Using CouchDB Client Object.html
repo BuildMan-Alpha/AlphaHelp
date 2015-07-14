@@ -1,0 +1,278 @@
+
+<html>
+    <head>
+        <link rel="stylesheet"  href="documentation.css"  type="text/css" />
+    </head>
+<body >
+    <h1>Couch DB API</h1>
+    <h2>Creating Database</h2>
+    <p>
+Couch databases creation is a two step process with the couch object.  First you must create the
+automation object using extension::CouchDB::Create(), then call the CreateDatabase() method.
+    </p>
+    <p>
+In the following example, we create an object to reference a couch database called 'people' which
+does not yet exist, as we can see when we try to get the contents using the GetAllRecords() call.
+    </p>
+    <p>
+After calling CreateDatabase(), GetAllRecords() reports that we now have an empty database.
+    </p>
+
+
+    <pre class="xbasicSmall">
+dim cdb as extension::CouchDB = extension::CouchDB::Create("http://127.0.0.1:5984","people")
+? cdb.GetAllRecords()
+= {"error":"not_found","reason":"no_db_file"}
+cdb.CreateDatabase()
+? cdb.GetAllRecords()
+= {"total_rows":0,"offset":0,"rows":[
+
+]}
+</pre>
+    </p>
+    <h2>Adding Records to a Couch Database</h2>
+    <p>
+To add a record to our database, we need to call the AddRecord() with a Json string representing our record.
+    </p>
+    <p>
+In the following example we add a record to the people database.  You may notice that the record
+includes an added 'id'.
+    </p>
+ <pre class="xbasicSmall">
+dim cdb as extension::CouchDB = extension::CouchDB::Create("http://127.0.0.1:5984","people")
+
+dim person as p
+dim person.firstname as c = "john"
+dim person.lastname as c = "public"
+dim person.age as n = 28
+cdb.AddRecord(json_generate(person))
+
+= {
+    "total_rows": 1,
+    "offset": 0,
+    "rows": [
+        {
+            "id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "key": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "value": {
+                "rev": "1-977e69a1ca49f5063fc84267b1569529"
+            },
+            "doc": {
+                "_id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+                "_rev": "1-977e69a1ca49f5063fc84267b1569529",
+                "firstname": "john",
+                "lastname": "public",
+                "age": 28,
+                "id": "johnpublic"
+            }
+        }
+    ]
+}
+    </pre>
+    <h2>Updating Existing Records in a Couch Database</h2>
+    <p>
+When updating a record, there are two elements you need to identify the record.  The id gets passed
+To the UpdateRecord() method, but this is not enough because couch will only update the record if the
+revision is also provided.
+    </p>
+    <p>
+To demonstrate this issue, I first try and update the record using just the 'id', which will produce an
+error.  Next I look at the contents again, and notice that couch adds a field called '_rev' to the record,
+and when I copy this value into an _rev field in the record I am updating, the record now updates properly.
+    </p>
+
+<pre class="xbasicSmall">
+dim cdb as extension::CouchDB = extension::CouchDB::Create("http://127.0.0.1:5984","people")
+
+dim person as p
+dim person.firstname as c = "John"
+dim person.lastname as c = "Public"
+dim person.age as n = 29
+
+? cdb.UpdateRecord("6c9ae1b840534f24bfd6f4b6cccb891d",json_generate(person))
+= {"error":"conflict","reason":"Document update conflict."}
+? json_reformat(cdb.GetAllRecords())
+= {
+    "total_rows": 1,
+    "offset": 0,
+    "rows": [
+        {
+            "id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "key": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "value": {
+                "rev": "1-977e69a1ca49f5063fc84267b1569529"
+            },
+            "doc": {
+                "_id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+                "_rev": "1-977e69a1ca49f5063fc84267b1569529",
+                "firstname": "john",
+                "lastname": "public",
+                "age": 28,
+                "id": "johnpublic"
+            }
+        }
+    ]
+}
+
+dim person._rev as c = "1-977e69a1ca49f5063fc84267b1569529"
+
+? cdb.UpdateRecord("6c9ae1b840534f24bfd6f4b6cccb891d",json_generate(person))
+= {"ok":true,"id":"6c9ae1b840534f24bfd6f4b6cccb891d","rev":"2-699c5d916d959211637c5d70bff9c4e6"}
+? json_reformat(cdb.GetAllRecords())
+= {
+    "total_rows": 1,
+    "offset": 0,
+    "rows": [
+        {
+            "id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "key": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "value": {
+                "rev": "2-699c5d916d959211637c5d70bff9c4e6"
+            },
+            "doc": {
+                "_id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+                "_rev": "2-699c5d916d959211637c5d70bff9c4e6",
+                "firstname": "John",
+                "lastname": "Public",
+                "age": 29
+            }
+        }
+    ]
+}
+
+</pre>
+    <h2>Deleting a Record in a Couch Database</h2>
+    <p>
+Deleting a record requires both the id and a revision number just like UpdateRecord.   Since delete does not take a Json record to include the revisions, the revision gets
+passed as a second argument.
+    </p>
+<pre class="xbasicSmall">
+dim person._rev as c = "1-977e69a1ca49f5063fc84267b1569529"
+
+? json_reformat(cdb.GetAllRecords())
+= {
+    "total_rows": 1,
+    "offset": 0,
+    "rows": [
+        {
+            "id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "key": "6c9ae1b840534f24bfd6f4b6cccb891d",
+            "value": {
+                "rev": "2-699c5d916d959211637c5d70bff9c4e6"
+            },
+            "doc": {
+                "_id": "6c9ae1b840534f24bfd6f4b6cccb891d",
+                "_rev": "2-699c5d916d959211637c5d70bff9c4e6",
+                "firstname": "John",
+                "lastname": "Public",
+                "age": 29
+            }
+        }
+    ]
+}
+
+cdb.DeleteRecord("6c9ae1b840534f24bfd6f4b6cccb891d","2-699c5d916d959211637c5d70bff9c4e6")
+? json_reformat(cdb.GetAllRecords())
+= {
+    "total_rows": 0,
+    "offset": 0,
+    "rows": []
+}
+</pre>
+    <h2>Performing Queries against CouchDb</h2>
+    <p>
+So far the examples have only shown the GetAllRecords() method, which gets the entire databases to a single Json string, which is not very useful as the databases gets larger.
+Fortunately there is a very flexible method to control what columns and rows get returned so that you can restrict your search.
+    </p>
+    <p>
+A view is defined using javascript map and optional reduce methods that are run on the couchdb server.
+    </p>
+    <p>
+In the following example, there is a database of 'flowers' which is fully populated, as we can see, it has Id, Picture, Imagedate and Keywords
+    </p>
+<pre class="xbasicSmall">
+dim cdb as extension::CouchDB = extension::CouchDB::Create("http://127.0.0.1:5984","flowers")
+
+
+? json_reformat( cdb.GetAllRecords() )
+= {
+    "total_rows": 60,
+    "offset": 0,
+    "rows": [
+        {
+            "id": "02781af088474adcbb5509fea0e45d20",
+            "key": "02781af088474adcbb5509fea0e45d20",
+            "value": {
+                "rev": "2-86b9bd1c9cc4c871a15264a578dc4434"
+            },
+            "doc": {
+                "_id": "02781af088474adcbb5509fea0e45d20",
+                "_rev": "2-86b9bd1c9cc4c871a15264a578dc4434",
+                "Id": "00000021",
+                "Picture": "=filename_decode(\"Hires\\lily orange.jpg\")",
+                "Imagedate": "07/07/2002",
+                "Keywords": "lily orange"
+            }
+        },
+ ....
+
+</pre>
+
+<p>
+  At first we are interested in limiting the columns to just the Id and the Keywords columns, so we define a map subfield with the javascript <i>function(doc) { emit(doc.Id,doc.Keywords); }</i>
+  which gets executed for each record in the databases.
+</p>
+
+<pre class="xbasicSmall">
+dim view as p
+dim view.map as c = "function(doc) { emit(doc.Id,doc.Keywords); }"
+? cdb.GetTemporaryView(json_generate(view))
+= {"total_rows":60,"offset":0,"rows":[
+{"id":"7bc319a61b19439ea4466026fa1ab003","key":"00000000","value":"allium white"},
+{"id":"945f9e032fb14c01ae18200c5318b045","key":"00000001","value":"alyssum purple"},
+{"id":"1ef7f1edf7f641f38f03c5b959cd9c80","key":"00000002","value":"anenome white"},
+{"id":"a3a168b881bd4b50bc2efedfdc6ff114","key":"00000003","value":"anenome white"},
+{"id":"3452c8a9e20b487f9bf22e5a341a373f","key":"00000004","value":"white boltonia daisy"},
+{"id":"c8c9bf02e4c947de9d4e71fc20630567","key":"00000005","value":"campanula purple"},
+{"id":"0f494b1637504652961a659a232cb8c5","key":"00000006","value":"clematis white vine"},
+{"id":"d7fa42b4d9d0446e9a7c41a5d757e7fd","key":"00000007","value":"clivia orange indoor"},
+....
+</pre>
+    <p>
+Next, we only want to return these columns for the records that contain 'lily orange'.
+    </p>
+<pre class="xbasicSmall">
+dim view.map as c = "function(doc) { if(doc.Keywords == 'lily orange') emit(doc.Id,doc.Keywords); }"
+? cdb.GetTemporaryView(json_generate(view))
+= {"total_rows":1,"offset":0,"rows":[
+{"id":"02781af088474adcbb5509fea0e45d20","key":"00000021","value":"lily orange"}
+]}
+</pre>
+    <p>
+Finally, we use the javascript indexOf string function to return all the records whose keyword
+contains the word 'lily'.
+    </p>
+<pre class="xbasicSmall">
+dim view.map as c = "function(doc) { if(doc.Keywords.indexOf('lily') >= 0) emit(doc.Id,doc.Keywords); }"
+? cdb.GetTemporaryView(json_generate(view))
+= {"total_rows":6,"offset":0,"rows":[
+{"id":"a5223e50f84a4804846bec2faaf7ee28","key":"00000020","value":"lily yellow"},
+{"id":"02781af088474adcbb5509fea0e45d20","key":"00000021","value":"lily orange"},
+{"id":"1652cbd63bf54b85b2719599221805fc","key":"00000039","value":"lily pink"},
+{"id":"ec86ae483b20430c9773fb47d8dc973d","key":"00000040","value":"lily pink white"},
+{"id":"2ff26fa9e660414d9d84801abf716c4d","key":"00000041","value":"daylily stella doro yellow"},
+{"id":"d627f97b78fa49b6bf3ed03ccce9c14f","key":"00000042","value":"lily yellow"}
+]}
+</pre>
+
+<pre class="xbasicSmall">
+dim record._id as c = "_design/myQuery"
+dim record.language as c = "javascript"
+dim record.views as p
+dim record.views.all.map as c = "function(doc) { emit(null, doc) }"
+dim record.views.id_and_keyword.map as c = "function(doc) {  emit(doc.Id, doc.Keywords) }"
+cdb.AddRecord(json_generate(record))
+</pre>
+<!---HELPMETADATA: {"status":"accept","tags":"common","keywords":"server,api,guide"} --->
+</body>
+</html>
