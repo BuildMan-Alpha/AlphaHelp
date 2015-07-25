@@ -123,6 +123,7 @@ This will need to be done untill the fix is rolled into the NPM.
 
 This needs needs to be every time we restart the machine, but also when we are installing helpserver.
 
+
 ```sh
 sudo service elasticsearch restart
 ```
