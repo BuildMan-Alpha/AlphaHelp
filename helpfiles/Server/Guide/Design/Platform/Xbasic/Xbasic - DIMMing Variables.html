@@ -48,8 +48,8 @@ It is <em>possible</em> that this change will break an existing application in s
 <br />
 The following example will illustrate the point.<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> global myGvarContainer.<span style="color: #0000FF;">myvar1</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;alpha&quot;</span>
-<span style="color: #0600FF;">dim</span> myGvarContainer.<span style="color: #0000FF;">myvar2</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;beta&quot;</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" >dim global myGvarContainer.myvar1 as c = &#34;alpha&#34;
+dim myGvarContainer.myvar2 as c = &#34;beta&#34;</pre></div><br />
 <br />
 In the above example, the user was explicit about the scope in the first statement, but not the second statement. As a result, with the previous version of Alpha Five, the following variables were created:<br />
 <br />
@@ -64,7 +64,7 @@ Now, as a result of the change, the following variables are created by the above
 <em>myGvarContainer.myvar2</em> - a character variable in the Global name space<br />
 <br />
 In the above example, had the second <strong>DIM </strong>statement been written as:<br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> global myGvarContainer.<span style="color: #0000FF;">myvar2</span> <span style="color: #FF8000;">as</span> c <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;beta&quot;</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" >dim global myGvarContainer.myvar2 as c = &#34;beta&#34;</pre></div><br />
 <br />
 then the old behavior of Alpha Five and the new behavior would have been identical.<br />
 <br />
@@ -80,14 +80,14 @@ Now there will be two 'myGvarContainer' dot variables - one in the Global name s
 <br />
 Why was this change made? The reason this change was made is that users were breaking their Web applications by writing code like this<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" >dim session.var1 as c  = default &#34;beta&#34;</pre></div><br />
 <br />
 The reason for doing this was to ensure that a session variable existed before its value was tested. For example:<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" ><span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span>
-<span style="color: #0600FF;">if</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;value1&quot;</span> <span style="color: #FF8000;">then</span>
-    <span style="color: #008080; font-style: italic;">'do something</span>
-<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox3" >dim session.var1 as c  = default &#34;beta&#34;
+if session.var1 = &#34;&#34; then
+    &#39;do something
+end if</pre></div><br />
 <br />
 This would not work as the user was probably expecting because the DIM statement was actually creating a LOCAL variable called 'session' and then DIMming 'var1' as a child of the LOCAL 'session' variable.<br />
 <br />
@@ -97,11 +97,11 @@ Now, as a result of the change made in this build, the above statement will DIM 
 <br />
 Note however, that the following code pattern would still be <em>wrong </em>and would lead to errors:<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox4" ><span style="color: #0600FF;">dim</span> session <span style="color: #FF8000;">as</span> P
-<span style="color: #0600FF;">dim</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #FF8000;">as</span> c  <span style="color: #008000;">=</span> <span style="color: #0600FF;">default</span> <span style="color: #808080;">&quot;&quot;</span>
-<span style="color: #0600FF;">if</span> session.<span style="color: #0000FF;">var1</span> <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;value1&quot;</span> <span style="color: #FF8000;">then</span>
-    <span style="color: #008080; font-style: italic;">'do something</span>
-<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox4" >dim session as P
+dim session.var1 as c  = default &#34;beta&#34;
+if session.var1 = &#34;&#34; then
+    &#39;do something
+end if</pre></div><br />
 <br />
 This would create a LOCAL variable called 'session' that would mask the global 'session' object and 'var1' would have been created as child of the local 'session' variable.<br />
 <br />

@@ -46,25 +46,28 @@ You can use a map control in the Search Part of a Grid to enter points for a pol
 <br />
 To use a geographic search, your SQL database must support geography types, and your grid must be based on a query that includes a geography field. You need to include the geography field in your search part, and set its control to a map.<br />
 <br />
-	<img src="images/map_control_type_in_search.png" alt="Image" /><br />
+
+	<img src="images/map_control_type_in_search.png" alt="Image" /><br />
 <br />
 Then set your map properties for the search.<br />
 <br />
-	<img src="images/map_search_part_properties.png" alt="Image" /><br />
+
+	<img src="images/map_search_part_properties.png" alt="Image" /><br />
 <br />
 Set the properties and test the control. You can display the results in the grid, in a map that is an alternate view to the grid, and/or in the search grid itself.<br />
 <br />
-	<img src="images/search_for_25_miles_around_Boston.png" alt="Image" /><br />
+
+	<img src="images/search_for_25_miles_around_Boston.png" alt="Image" /><br />
 <br />
 Your users will not have to worry about putting the points on a search polygon in the right order or closing the polygon, as the search component takes care of both requirements automatically.<br />
 <div class="clearfix rbox warning"><img src="images/close.png" alt="Close" width="16" height="16" class="rbox-close" onclick="$(this).parent().fadeOut();" title="Close" /><div class="rbox-title"><img src="images/exclamation.png" alt="warning" width="16" height="16" title="warning" class="icon" /><span>Warning</span></div><div class="rbox-data" style="width:50%">Don't try to use more than one map search per grid.</div></div><br />
 <h2 class="showhide_heading" id="Virtual_Grid_field_distanceFromCenterPoint_">Virtual Grid field '*distanceFromCenterPoint'</h2>
 In the case of a 'Radius' search, it would be useful to be able to order the records found by the search by distance from the center point. In order to support this functionality, a new 'virtual column' has been introduced. When you create the SQL statement for the Grid, you can include a new virtual column called '*distanceFromCenterPoint'. For example:<br />
 <br />
-<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" ><span style="color: #993333; font-weight: bold;">SELECT</span> Name<span style="color: #66cc66;">,</span> Address<span style="color: #66cc66;">,</span> City<span style="color: #66cc66;">,</span> State<span style="color: #66cc66;">,</span> Zip<span style="color: #66cc66;">,</span> <span style="color: #ff0000;">'*distanceFromCenterPoint'</span> <span style="color: #993333; font-weight: bold;">AS</span> DistanceFromCenterPoint <span style="color: #993333; font-weight: bold;">FROM</span> StoreLocations</pre></div><br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox" >SELECT Name, Address, City, State, Zip, &#39;*distanceFromCenterPoint&#39; AS DistanceFromCenterPoint FROM StoreLocations</pre></div><br />
 When the Grid is executed and a Radius search is in effect, the virtual field is replaced by the correct Portable SQL. For example:<br />
 <br />
-<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox1" ><span style="color: #993333; font-weight: bold;">SELECT</span> Name<span style="color: #66cc66;">,</span> Address<span style="color: #66cc66;">,</span> City<span style="color: #66cc66;">,</span> State<span style="color: #66cc66;">,</span> Zip<span style="color: #66cc66;">,</span> GeogDistanceBetween<span style="color: #66cc66;">&#40;</span>location<span style="color: #66cc66;">,</span> GeogCreateFromText<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POINT ( -71 42)'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">AS</span> DistanceFromCenterPoint <span style="color: #993333; font-weight: bold;">FROM</span> StoreLocations</pre></div><br />
+<div class="plugincode" parse="sql"><pre class="codelisting" data-syntax="sql" dir="ltr" style="white-space:pre-wrap; white-space:-moz-pre-wrap !important; white-space:-pre-wrap; white-space:-o-pre-wrap; word-wrap:break-word;" id="codebox1" >SELECT Name, Address, City, State, Zip, GeogDistanceBetween(location, GeogCreateFromText(&#39;POINT ( -71 42)&#39;( ( AS DistanceFromCenterPoint FROM StoreLocations</pre></div><br />
 In the above example the longitude and latitude values (-71 and 42) would, of course, be replaced with the longitude and latitude of the map center point when the user submitted the search.<br />
 <br />
 When no Radius search is active, the Grid will just render a blank value for the virtual field.<br />
@@ -76,7 +79,7 @@ The unit of distance for Geography in the database is typically meters. You can 
 <h2 class="showhide_heading" id="getMapDataFromSearchPart_">getMapDataFromSearchPart()</h2>
 If your Search Part has a Map control type, you can use this Grid method to extract data from the map:<br />
 <br />
-<div class="plugincode" parse="javascript"><pre class="codelisting" data-syntax="javascript" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #009900;">&#123;</span>grid.<span style="color: #660066;">object</span><span style="color: #009900;">&#125;</span>.<span style="color: #660066;">getMapDataFromSearchPart</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span></pre></div><br />
+<div class="plugincode" parse="javascript"><pre class="codelisting" data-syntax="javascript" dir="ltr" style="overflow:auto;" id="codebox2" >{grid.object}.getMapDataFromSearchPart()</pre></div><br />
 <br />
 This can be useful if you are doing an Ajax callback and you want to submit data from the Map control. The data that is returned by this Javascript method is in the form of a query string, i.e. name/value pairs separated with '&amp;' characters.<br />
 <h2 class="showhide_heading" id="Videos:">Videos:</h2>

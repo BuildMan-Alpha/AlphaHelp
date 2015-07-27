@@ -46,20 +46,21 @@ This example is an Xbasic script that sends an email using the .NET System::Net:
 <br />
 You can easily turn this into a customized Send_Email function for your Web site or application with (at a minimum) the recipient, subject, and body as passed parameters, and all other settings declared within the function. Note that a message can have multiple To, CC, and Bcc recipients; those properties are collections of MailAddress objects. You can see the properties and methods of the Mail.MailMessage class from the Xbasic editor:<br />
 <br />
-	<img src="images/MailMessage_Properties_and_Methods.png" alt="Image" /><br />
+
+	<img src="images/MailMessage_Properties_and_Methods.png" alt="Image" /><br />
 <br />
 If you want display names with your email addresses (e.g. "Mortimer Snerd &lt;mort@edgarbergen.com)"), use one of the long MailAddress constructors described <a class="wiki external" target="_blank" href="http://msdn.microsoft.com/en-us/library/system.net.mail.mailaddress.mailaddress.aspx" rel="external nofollow">here</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" />, e.g.<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" >msg.<span style="color: #0000FF;">From</span> <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;mort@edgarbergen.com&quot;</span>,<span style="color: #808080;">&quot;Mortimer Snerd&quot;</span><span style="color: #000000;">&#41;</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" >msg.From = new System::Net::Mail::MailAddress(&#34;mort@edgarbergen.com&#34;,&#34;Mortimer Snerd&#34;)</pre></div><br />
 <br />
 You can also use a long constructor for the MailMessage object to initialize it using two MailAddress objects corresponding to the From and To addresses, e.g.<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" ><span style="color: #0600FF;">dim</span> FromAddr <span style="color: #FF8000;">as</span> System::Net::Mail::MailAddress <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
-  <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;charlie@edgarbergen.com&quot;</span>,<span style="color: #808080;">&quot;Charlie McCarthy&quot;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> ToAddr <span style="color: #FF8000;">as</span> System::Net::Mail::MailAddress <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
-  <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;mort@edgarbergen.com&quot;</span>,<span style="color: #808080;">&quot;Mortimer Snerd&quot;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> Msg <span style="color: #FF8000;">as</span> System::Net::Mail::MailMessage <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
-  <span style="color: #FF8000;">new</span> System::Net::Mail::MailMessage<span style="color: #000000;">&#40;</span>FromAddr ,ToAddr<span style="color: #000000;">&#41;</span></pre></div><br />
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox1" >dim FromAddr as System::Net::Mail::MailAddress = \
+  new System::Net::Mail::MailAddress(&#34;charlie@edgarbergen.com&#34;,&#34;Charlie McCarthy&#34;)
+dim ToAddr as System::Net::Mail::MailAddress = \
+  new System::Net::Mail::MailAddress(&#34;mort@edgarbergen.com&#34;,&#34;Mortimer Snerd&#34;)
+dim Msg as System::Net::Mail::MailMessage = \
+  new System::Net::Mail::MailMessage(FromAddr ,ToAddr)</pre></div><br />
 <br />
 In our sample code below we use the simple MailAddress constructor, which does not allow for a display name.<br />
 <br />
@@ -67,48 +68,48 @@ If you want file attachments, uncomment the msg.Attachments.Add line. If you wan
 <br />
 This general method for sending email is a good alternative to the various email functions built into Xbasic.<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" ><span style="color: #008080; font-style: italic;">'most commonly used parameters</span>
-<span style="color: #0600FF;">dim</span> recipient <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your recipient here, must be one valid email)&quot;</span>
-<span style="color: #0600FF;">dim</span> subj <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your subject line here)&quot;</span>
-<span style="color: #0600FF;">dim</span> body <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your email body here)&quot;</span>
-<span style="color: #0600FF;">dim</span> isHtml <span style="color: #FF8000;">as</span> L <span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>. <span style="color: #008080; font-style: italic;">'.T. if body is HTML, otherwise .F.</span>
-<span style="color: #0600FF;">dim</span> FileAttachment <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your attachment file path here)&quot;</span>
-<span style="color: #0600FF;">dim</span> CC <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your CC here, must be one valid email)&quot;</span>
-<span style="color: #0600FF;">dim</span> Bcc <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your BCC here, must be one valid email)&quot;</span>
-<span style="color: #008080; font-style: italic;">'If you want multiple recipients, CCs, or BCCs, you need to write FOR or FOR EACH loops</span>
-<span style="color: #008080; font-style: italic;">' to add them</span>
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox2" >&#39;most commonly used parameters
+dim recipient as C = &#34;mort@edgarbergen.com&#34;
+dim subj as C = &#34;Mortimer Snerd&#34;
+dim body as C = &#34;(your recipient here, must be one valid email)&#34;
+dim isHtml as L = .T. &#39;.T. if body is HTML, otherwise .F.
+dim FileAttachment as C = &#34;(your subject line here)&#34;
+dim CC as C = &#34;(your email body here)&#34;
+dim Bcc as C = &#34;(your attachment file path here)&#34;
+&#39;If you want multiple recipients, CCs, or BCCs, you need to write FOR or FOR EACH loops
+&#39; to add them
 &nbsp;
-<span style="color: #008080; font-style: italic;">'parameters that are often static for a web site</span>
-<span style="color: #0600FF;">dim</span> sender <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your sender here, must be one valid email)&quot;</span>
-<span style="color: #0600FF;">dim</span> EmailServer <span style="color: #FF8000;">as</span> C  <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;smtp.gmail.com&quot;</span> <span style="color: #008080; font-style: italic;">'put your server here</span>
-<span style="color: #0600FF;">dim</span> EmailPort <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">587</span> <span style="color: #008080; font-style: italic;">'usually 25 (plain) or 465 (SSL/TLS). 587 for GMail TLS.</span>
-<span style="color: #0600FF;">dim</span> isSSL <span style="color: #FF8000;">as</span> L <span style="color: #008000;">=</span> .<span style="color: #0000FF;">T</span>. <span style="color: #008080; font-style: italic;">'.T. if SSL/TLS, .F. if not</span>
-<span style="color: #0600FF;">dim</span> EmailUser <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your user ID here, often the same as the sender)&quot;</span>
-<span style="color: #0600FF;">dim</span> EmailPassword <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;(your email password here)&quot;</span>
+&#39;parameters that are often static for a web site
+dim sender as C = &#34;(your CC here, must be one valid email)&#34;
+dim EmailServer as C  = &#34;(your BCC here, must be one valid email)&#34; &#39;put your server here
+dim EmailPort as N = 587 &#39;usually 25 (plain) or 465 (SSL/TLS). 587 for GMail TLS.
+dim isSSL as L = .T. &#39;.T. if SSL/TLS, .F. if not
+dim EmailUser as C = &#34;(your sender here, must be one valid email)&#34;
+dim EmailPassword as C = &#34;smtp.gmail.com&#34;
 &nbsp;
-<span style="color: #0600FF;">dim</span> msg <span style="color: #FF8000;">as</span> System::Net::Mail::MailMessage <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::Mail::MailMessage<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-msg.<span style="color: #FF8000;">To</span>.<span style="color: #0000FF;">Add</span><span style="color: #000000;">&#40;</span>recipient<span style="color: #000000;">&#41;</span>
-msg.<span style="color: #0000FF;">From</span> <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span>sender<span style="color: #000000;">&#41;</span>
-msg.<span style="color: #0000FF;">Subject</span> <span style="color: #008000;">=</span> subj 
-msg.<span style="color: #0000FF;">Body</span> <span style="color: #008000;">=</span> body
-msg.<span style="color: #0000FF;">BodyEncoding</span> <span style="color: #008000;">=</span> System::Text::Encoding::UTF8
-msg.<span style="color: #0000FF;">IsBodyHtml</span> <span style="color: #008000;">=</span> isHtml 
-msg.<span style="color: #0000FF;">Priority</span> <span style="color: #008000;">=</span> System::Net::Mail::MailPriority::<span style="color: #0600FF;">Normal</span>
-<span style="color: #0600FF;">dim</span> addrCC <span style="color: #FF8000;">as</span> System::Net::Mail::MailAddress <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span>CC<span style="color: #000000;">&#41;</span>
-msg.<span style="color: #0000FF;">CC</span>.<span style="color: #0000FF;">Add</span><span style="color: #000000;">&#40;</span>addrCC<span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> addrBcc <span style="color: #FF8000;">as</span> System::Net::Mail::MailAddress <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::Mail::MailAddress<span style="color: #000000;">&#40;</span>Bcc<span style="color: #000000;">&#41;</span>
-msg.<span style="color: #0000FF;">Bcc</span>.<span style="color: #0000FF;">Add</span><span style="color: #000000;">&#40;</span>addrBcc<span style="color: #000000;">&#41;</span>
+dim msg as System::Net::Mail::MailMessage = new System::Net::Mail::MailMessage()
+msg.To.Add(recipient)
+msg.From = new System::Net::Mail::MailAddress(sender)
+msg.Subject = subj 
+msg.Body = body
+msg.BodyEncoding = System::Text::Encoding::UTF8
+msg.IsBodyHtml = isHtml 
+msg.Priority = System::Net::Mail::MailPriority::Normal
+dim addrCC as System::Net::Mail::MailAddress = new System::Net::Mail::MailAddress(CC)
+msg.CC.Add(addrCC)
+dim addrBcc as System::Net::Mail::MailAddress = new System::Net::Mail::MailAddress(Bcc)
+msg.Bcc.Add(addrBcc)
 &nbsp;
-<span style="color: #008080; font-style: italic;">'Uncomment the next line if you want to have a file attachment</span>
-<span style="color: #008080; font-style: italic;">'msg.Attachments.Add(new System::Net::Mail::Attachment(FileAttachment))</span>
+&#39;Uncomment the next line if you want to have a file attachment
+&#39;msg.Attachments.Add(new System::Net::Mail::Attachment(FileAttachment))
 &nbsp;
-<span style="color: #0600FF;">dim</span> MailClient <span style="color: #FF8000;">as</span> System::Net::Mail::SmtpClient <span style="color: #008000;">=</span> <span style="color: #008000;">\</span>
-    <span style="color: #FF8000;">new</span> System::Net::Mail::SmtpClient<span style="color: #000000;">&#40;</span>EmailServer,EmailPort<span style="color: #000000;">&#41;</span>
-MailClient.<span style="color: #0000FF;">EnableSsl</span> <span style="color: #008000;">=</span> isSSL 
-MailClient.<span style="color: #0000FF;">UseDefaultCredentials</span> <span style="color: #008000;">=</span> .<span style="color: #0000FF;">F</span>.
-<span style="color: #0000FF;">MailClient</span>.<span style="color: #0000FF;">Credentials</span> <span style="color: #008000;">=</span> <span style="color: #FF8000;">new</span> System::Net::NetworkCredential<span style="color: #000000;">&#40;</span>EmailUser, EmailPassword<span style="color: #000000;">&#41;</span>
-MailClient.<span style="color: #0000FF;">Send</span><span style="color: #000000;">&#40;</span>msg<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">'this does the actual sending of email</span>
-msg.<span style="color: #0000FF;">Dispose</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">'clean up</span></pre></div><br />
+dim MailClient as System::Net::Mail::SmtpClient = \
+    new System::Net::Mail::SmtpClient(EmailServer,EmailPort)
+MailClient.EnableSsl = isSSL 
+MailClient.UseDefaultCredentials = .F.
+MailClient.Credentials = new System::Net::NetworkCredential(EmailUser, EmailPassword)
+MailClient.Send(msg) &#39;this does the actual sending of email
+msg.Dispose() &#39;clean up</pre></div><br />
 <h2 class="showhide_heading" id="See_Also">See Also</h2>
 <a class="wiki external" target="_blank" href="http://msdn.microsoft.com/en-us/library/system.net.mail.aspx" rel="external nofollow">System.Net.Mail Namespace documentation on MSDN</a><img src="images/external_link.gif" alt="(external link)" width="15" height="14" title="(external link)" class="icon" /><br />
 <a href=".NET Framework Support.html" title=".NET Framework Support in Alpha Five V11" class="wiki">.NET Framework Support in Alpha Five V11</a><br />
