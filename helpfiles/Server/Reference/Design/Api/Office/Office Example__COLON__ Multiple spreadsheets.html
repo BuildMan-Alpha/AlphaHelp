@@ -49,329 +49,329 @@ This example creates a multiple spreadsheets ina single document:<br />
 <br />
 After the spreadsheets are created, the workbook is opened in Microsoft Excel.<br />
 <br />
-<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" ><span style="color: #0600FF;">dim</span> Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument
-<span style="color: #0600FF;">dim</span> DocumentFile <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C:\temp\A5OfficeSample2.xlsx&quot;</span>
+<div class="plugincode" parse="vbnet"><pre class="codelisting" data-syntax="vbnet" dir="ltr" style="overflow:auto;" id="codebox" >dim Doc as Office::ExcelDocument
+dim DocumentFile as C = &#34;C:\temp\A5OfficeSample2.xlsx&#34;
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Compute the date of the most recent Sunday</span>
-<span style="color: #0600FF;">dim</span> StartDate <span style="color: #FF8000;">as</span> D <span style="color: #008000;">=</span> <span style="color: #FF0000;">date</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">-</span> <span style="color: #000000;">&#40;</span>dow<span style="color: #000000;">&#40;</span><span style="color: #FF0000;">date</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span>
+&#39; Compute the date of the most recent Sunday
+dim StartDate as D = date() - (dow(date()) - 1)
 &nbsp;
-CreateDailySalesAndExpenses<span style="color: #000000;">&#40;</span>Doc, StartDate<span style="color: #000000;">&#41;</span>
-CreateProductSalesSummary<span style="color: #000000;">&#40;</span>Doc, StartDate<span style="color: #000000;">&#41;</span>
+CreateDailySalesAndExpenses(Doc, StartDate)
+CreateProductSalesSummary(Doc, StartDate)
 &nbsp;
-Path <span style="color: #008000;">=</span> <a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">file</span></a>.<span style="color: #0000FF;">filename_parse</span><span style="color: #000000;">&#40;</span>DocumentFile, <span style="color: #808080;">&quot;P&quot;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">on</span> <span style="color: #FF8000;">error</span> <span style="color: #FF8000;">resume</span> <span style="color: #FF8000;">next</span>
-<a target="_blank" href="http://www.google.com/search?q=FILE+site:msdn.microsoft.com"><span style="color: #008000;">File</span></a>.<span style="color: #0000FF;">Dir_Create</span><span style="color: #000000;">&#40;</span>Path<span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">on</span> <span style="color: #FF8000;">error</span> goto <span style="color: #FF0000;">0</span>
-<span style="color: #0600FF;">if</span> Doc.<span style="color: #0000FF;">Save</span><span style="color: #000000;">&#40;</span>DocumentFile<span style="color: #000000;">&#41;</span>
-  <span style="color: #008080; font-style: italic;">' Release all references to the document because we are about to open it in Excel</span>
+Path = file.filename_parse(DocumentFile, &#34;P&#34;)
+on error resume next
+File.Dir_Create(Path)
+on error goto 0
+if Doc.Save(DocumentFile)
+  &#39; Release all references to the document because we are about to open it in Excel
   delete Doc
-  sys_open<span style="color: #000000;">&#40;</span>DocumentFile<span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">else</span>  
-  ui_msg_box<span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Error Saving Document&quot;</span>, <span style="color: #808080;">&quot;Unable to save document to &quot;</span> <span style="color: #008000;">\</span>
-                   <span style="color: #008000;">+</span> DocumentFile <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #FF0000;">2</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> Doc.<span style="color: #0000FF;">ErrorMessage</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>  
+  sys_open(DocumentFile)
+else  
+  ui_msg_box(&#34;Error Saving Document&#34;, &#34;Unable to save document to &#34; \
+                   + DocumentFile + &#34;:&#34; + crlf(2) + Doc.ErrorMessage)
+end if  
 &nbsp;
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> CreateDailySalesAndExpenses <span style="color: #FF8000;">as</span> V<span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, StartDate <span style="color: #FF8000;">as</span> D<span style="color: #000000;">&#41;</span>
+FUNCTION CreateDailySalesAndExpenses as V(Doc as Office::ExcelDocument, StartDate as D)
 &nbsp;
-<span style="color: #0600FF;">dim</span> Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet <span style="color: #008080; font-style: italic;">'Pointer to the spreadsheet</span>
+dim Sheet as Office::Spreadsheet &#39;Pointer to the spreadsheet
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Layout of the spreadsheet</span>
-<span style="color: #0600FF;">dim</span> TitleRow    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span>
-<span style="color: #0600FF;">dim</span> HeadingRow    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">4</span>
-<span style="color: #0600FF;">dim</span> DetailRow    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">6</span>
+&#39; Layout of the spreadsheet
+dim TitleRow    as N = 1
+dim HeadingRow    as N = 4
+dim DetailRow    as N = 6
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a new spreadsheet</span>
-Sheet <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddSheet</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Weekly Sales and Expenses&quot;</span><span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Create a new spreadsheet</span>
+&#39; Create a new spreadsheet
+Sheet = Doc.AddSheet(&#34;Weekly Sales and Expenses&#34;) &#39; Create a new spreadsheet
 &nbsp;
-WritePageHeadings<span style="color: #000000;">&#40;</span>Doc, Sheet, TitleRow, <span style="color: #FF0000;">5</span>, <span style="color: #808080;">&quot;Weekly Sales &amp; Expenses Summary&quot;</span> <span style="color: #008000;">\</span>
-                  <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Week Beginning &quot;</span> <span style="color: #008000;">+</span> StartDate<span style="color: #000000;">&#41;</span>
-WriteColumnHeadings<span style="color: #000000;">&#40;</span>Doc, Sheet, HeadingRow, <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%txt%
-<span style="color: #0600FF;">Day</span>|C|<span style="color: #FF0000;">10</span>
-<span style="color: #FF0000;">Date</span>|D
+WritePageHeadings(Doc, Sheet, TitleRow, 5, &#34;Weekly Sales &amp; Expenses Summary&#34; \
+                  + crlf() + &#34;Week Beginning &#34; + StartDate)
+WriteColumnHeadings(Doc, Sheet, HeadingRow, &amp;lt;&amp;lt;%txt%
+Day|C|10
+Date|D
 Daily Sales|$
 Daily Expenses|$
 Gross Daily Profit|$
-%txt%<span style="color: #000000;">&#41;</span>
-Daily_WriteData<span style="color: #000000;">&#40;</span>StartDate, Doc, Sheet, DetailRow<span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>        
+%txt%)
+Daily_WriteData(StartDate, Doc, Sheet, DetailRow)
+END FUNCTION        
 &nbsp;
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> Daily_WriteData <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>StartDate <span style="color: #FF8000;">as</span> D, Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, <span style="color: #008000;">\</span>
-                               Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, StartRow <span style="color: #FF8000;">as</span> N<span style="color: #000000;">&#41;</span>
-<span style="color: #008080; font-style: italic;">' Write the detail data and a total line</span>
-<span style="color: #0600FF;">dim</span> NumericFormat   <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span> <span style="color: #008080; font-style: italic;">' Pointer to the format for numeric columns</span>
-<span style="color: #0600FF;">dim</span> DateFormat      <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span> <span style="color: #008080; font-style: italic;">' Pointer to the format for the date column</span>
-<span style="color: #0600FF;">dim</span> CharacterFormat <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span> <span style="color: #008080; font-style: italic;">' Pointer to the format for labels</span>
-<span style="color: #0600FF;">dim</span> Font      <span style="color: #FF8000;">as</span> Office::Font   <span style="color: #008080; font-style: italic;">' Pointer to the font for column data</span>
-<span style="color: #0600FF;">dim</span> LabelFont      <span style="color: #FF8000;">as</span> Office::Font   <span style="color: #008080; font-style: italic;">' Pointer to the font for labels </span>
-<span style="color: #0600FF;">dim</span> Sales      <span style="color: #FF8000;">as</span> N
-<span style="color: #0600FF;">dim</span> Expenses      <span style="color: #FF8000;">as</span> N
-<span style="color: #0600FF;">dim</span> ProfitFormula   <span style="color: #FF8000;">as</span> C
+FUNCTION Daily_WriteData as L (StartDate as D, Doc as Office::ExcelDocument, \
+                               Sheet as Office::Spreadsheet, StartRow as N)
+&#39; Create a new spreadsheet
+dim NumericFormat   as Office::Format &#39; Write the detail data and a total line
+dim DateFormat      as Office::Format &#39; Pointer to the format for numeric columns
+dim CharacterFormat as Office::Format &#39; Pointer to the format for the date column
+dim Font      as Office::Font   &#39; Pointer to the format for labels
+dim LabelFont      as Office::Font   &#39; Pointer to the font for column data
+dim Sales      as N
+dim Expenses      as N
+dim ProfitFormula   as C
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a font for the detail data</span>
-Font    <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-Font.<span style="color: #0000FF;">Color</span>  <span style="color: #008000;">=</span> Office::Color::<span style="color: #0600FF;">Black</span>
-Font.<span style="color: #0000FF;">Name</span>  <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-Font.<span style="color: #0000FF;">Size</span>  <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
-Font.<span style="color: #0000FF;">Bold</span>  <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>.
+&#39; Pointer to the font for labels 
+Font    = Doc.AddFont()
+Font.Color  = Office::Color::Black
+Font.Name  = &#34;Tahoma&#34;
+Font.Size  = 10
+Font.Bold  = .f.
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for numeric columns</span>
-NumericFormat        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-NumericFormat.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> Font <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
-NumericFormat.<span style="color: #0000FF;">HorizontalAlignment</span> <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
-NumericFormat.<span style="color: #0000FF;">NumericFormat</span>    <span style="color: #008000;">=</span> Office::NumericFormat::CurrencyDec2NegBracketedInRed
+&#39; Create a font for the detail data
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font &#39; Create a format for numeric columns
+NumericFormat.HorizontalAlignment = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for the date column</span>
-DateFormat        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-DateFormat.<span style="color: #0000FF;">Font</span>        <span style="color: #008000;">=</span> Font <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
-DateFormat.<span style="color: #0000FF;">HorizontalAlignment</span>    <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
-DateFormat.<span style="color: #0000FF;">NumericFormat</span>    <span style="color: #008000;">=</span> Office::NumericFormat::<span style="color: #FF0000;">Date</span>
+&#39;Set the font into the column heading format
+DateFormat        = Doc.AddFormat()
+DateFormat.Font        = Font &#39; Create a format for numeric columns
+DateFormat.HorizontalAlignment    = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat    = Office::NumericFormat::Date
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for the character column</span>
-LabelFont        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-LabelFont.<span style="color: #0000FF;">Color</span>        <span style="color: #008000;">=</span> Office::Color::DarkBlue
-LabelFont.<span style="color: #0000FF;">Name</span>        <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-LabelFont.<span style="color: #0000FF;">Size</span>        <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
-LabelFont.<span style="color: #0000FF;">Bold</span>        <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0000FF;">LabelFormat</span>        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-LabelFormat.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> LabelFont <span style="color: #008080; font-style: italic;">'Set the font into the column heading format</span>
-LabelFormat.<span style="color: #0000FF;">HorizontalAlignment</span>    <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Left</span>
+&#39; Create a format for the date column
+LabelFont        = Doc.AddFont()
+LabelFont.Color        = Office::Color::DarkBlue
+LabelFont.Name        = &#34;Tahoma&#34;
+LabelFont.Size        = 10
+LabelFont.Bold        = .t.
+LabelFormat        = Doc.AddFormat()
+LabelFormat.Font      = LabelFont &#39; Create a format for numeric columns
+LabelFormat.HorizontalAlignment    = Office::HorizontalAlignment::Left
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Loop through the days of the week to create the detail</span>
-<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> <span style="color: #FF0000;">7</span>
-  CurrentDate <span style="color: #008000;">=</span> StartDate <span style="color: #008000;">+</span> <span style="color: #000000;">&#40;</span>i <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Get the date of the current day of the week</span>
-  Row       <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> i <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>    <span style="color: #008080; font-style: italic;">' Compute the spreadsheet row</span>
-  GetSalesAndExpenses<span style="color: #000000;">&#40;</span>CurrentDate, Sales, Expenses<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Call a test function that generates random data</span>
-  ProfitFormula <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C&quot;</span> <span style="color: #008000;">+</span> Row <span style="color: #008000;">+</span> <span style="color: #808080;">&quot; - D&quot;</span> <span style="color: #008000;">+</span> Row    <span style="color: #008080; font-style: italic;">' Create a formula for profit = sales - expenses</span>
+&#39;Set the font into the column heading format
+for i = 1 to 7
+  CurrentDate = StartDate + (i - 1) &#39; Create a format for the character column
+  Row       = StartRow + i - 1    &#39;Set the font into the column heading format
+  GetSalesAndExpenses(CurrentDate, Sales, Expenses) &#39; Loop through the days of the week to create the detail
+  ProfitFormula = &#34;Tahoma&#34; + Row + &#34;C&#34; + Row    &#39; Get the date of the current day of the week
 &nbsp;
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">1</span>, CDow<span style="color: #000000;">&#40;</span>CurrentDate<span style="color: #000000;">&#41;</span>, LabelFormat<span style="color: #000000;">&#41;</span><span style="color: #008080; font-style: italic;">' Day of the week</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">2</span>, CurrentDate, DateFormat<span style="color: #000000;">&#41;</span>     <span style="color: #008080; font-style: italic;">' Date</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">3</span>, Sales, NumericFormat<span style="color: #000000;">&#41;</span>     <span style="color: #008080; font-style: italic;">' Sales</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">4</span>, Expenses, NumericFormat<span style="color: #000000;">&#41;</span>     <span style="color: #008080; font-style: italic;">' Expenses</span>
-  Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">5</span>, ProfitFormula, NumericFormat<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Profit</span>
-<span style="color: #FF8000;">next</span>
+  Sheet.Write(Row, 1, CDow(CurrentDate), LabelFormat)&#39; Compute the spreadsheet row
+  Sheet.Write(Row, 2, CurrentDate, DateFormat)     &#39; Call a test function that generates random data
+  Sheet.Write(Row, 3, Sales, NumericFormat)     &#39; Create a formula for profit = sales - expenses
+  Sheet.Write(Row, 4, Expenses, NumericFormat)     &#39; Day of the week
+  Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat) &#39; Date
+next
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Write the total line</span>
-Row <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">9</span>
-ProfitFormula <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;C&quot;</span> <span style="color: #008000;">+</span> Row <span style="color: #008000;">+</span> <span style="color: #808080;">&quot; - D&quot;</span> <span style="color: #008000;">+</span> Row          
-Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">1</span>, <span style="color: #808080;">&quot;Total&quot;</span>, LabelFormat<span style="color: #000000;">&#41;</span>
-Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">3</span>, <span style="color: #808080;">&quot;SUM(C&quot;</span> <span style="color: #008000;">+</span> StartRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:C&quot;</span> <span style="color: #008000;">+</span> <span style="color: #000000;">&#40;</span>StartRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">6</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;)&quot;</span>, NumericFormat<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">'Sum of Sales</span>
-Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">4</span>, <span style="color: #808080;">&quot;SUM(D&quot;</span> <span style="color: #008000;">+</span> StartRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:D&quot;</span> <span style="color: #008000;">+</span> <span style="color: #000000;">&#40;</span>StartRow <span style="color: #008000;">+</span> <span style="color: #FF0000;">6</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;)&quot;</span>, NumericFormat<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">'Sum of Expenses</span>
-Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">5</span>, ProfitFormula, NumericFormat<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Profit</span>
+&#39; Sales
+Row = StartRow + 9
+ProfitFormula = &#34;Tahoma&#34; + Row + &#34;C&#34; + Row          
+Sheet.Write(Row, 1, &#34; - D&#34;, LabelFormat)
+Sheet.WriteFormula(Row, 3, &#34;C&#34; + StartRow + &#34; - D&#34; + (StartRow + 6) + &#34;Total&#34;, NumericFormat) &#39; Expenses
+Sheet.WriteFormula(Row, 4, &#34;SUM(C&#34; + StartRow + &#34;:C&#34; + (StartRow + 6) + &#34;Total&#34;, NumericFormat) &#39; Profit
+Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat) &#39; Date
 &nbsp;
-Sample1_WriteData <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+Sample1_WriteData = .t.
+END FUNCTION
 &nbsp;
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> CreateProductSalesSummary <span style="color: #FF8000;">as</span> V<span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, StartDate <span style="color: #FF8000;">as</span> D<span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet <span style="color: #008080; font-style: italic;">' Pointer to the spreadsheet</span>
+FUNCTION CreateProductSalesSummary as V(Doc as Office::ExcelDocument, StartDate as D)
+dim Sheet as Office::Spreadsheet &#39; Write the total line
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Layout of the spreadsheet</span>
-<span style="color: #0600FF;">dim</span> TitleRow   <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span>
-<span style="color: #0600FF;">dim</span> HeadingRow <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">4</span>
-<span style="color: #0600FF;">dim</span> DetailRow  <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #FF0000;">6</span>
+&#39; Layout of the spreadsheet
+dim TitleRow   as N = 1
+dim HeadingRow as N = 4
+dim DetailRow  as N = 6
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a new spreadsheet</span>
-Sheet <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddSheet</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;Weekly Product Sales&quot;</span><span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Create a new spreadsheet</span>
+&#39; Create a new spreadsheet
+Sheet = Doc.AddSheet(&#34;)&#34;) &#39; Create a new spreadsheet
 &nbsp;
-WritePageHeadings<span style="color: #000000;">&#40;</span>Doc, Sheet, TitleRow, <span style="color: #FF0000;">3</span>, <span style="color: #808080;">&quot;Product Sales&quot;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;Week Beginning &quot;</span> <span style="color: #008000;">+</span> StartDate<span style="color: #000000;">&#41;</span>
-WriteColumnHeadings<span style="color: #000000;">&#40;</span>Doc, Sheet, HeadingRow, <span style="color: #008000;">&amp;</span>lt;<span style="color: #008000;">&amp;</span>lt;%txt%
-Product|C|<span style="color: #FF0000;">12</span>
+WritePageHeadings(Doc, Sheet, TitleRow, 3, &#34;SUM(D&#34; + crlf() + &#34;Week Beginning &#34; + StartDate)
+WriteColumnHeadings(Doc, Sheet, HeadingRow, &amp;lt;&amp;lt;%txt%
+Product|C|12
 Weekly Sales|$
 Average Daily Sales|$
-%txt%<span style="color: #000000;">&#41;</span>
-Product_WriteData<span style="color: #000000;">&#40;</span>StartDate, Doc, Sheet, DetailRow<span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>        
+%txt%)
+Product_WriteData(StartDate, Doc, Sheet, DetailRow)
+END FUNCTION        
 &nbsp;
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> Product_WriteData <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>StartDate <span style="color: #FF8000;">as</span> D, Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument,<span style="color: #008000;">\</span>
-                                 Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, StartRow <span style="color: #FF8000;">as</span> N<span style="color: #000000;">&#41;</span>
-<span style="color: #008080; font-style: italic;">' Write the detail data and a total line</span>
-<span style="color: #0600FF;">dim</span> NumericFormat <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>      <span style="color: #008080; font-style: italic;">' Pointer to the format for numeric columns</span>
-<span style="color: #0600FF;">dim</span> DateFormat    <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>      <span style="color: #008080; font-style: italic;">' Pointer to the format for the date column</span>
-<span style="color: #0600FF;">dim</span> LabelFormat    <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>      <span style="color: #008080; font-style: italic;">' Pointer to the format for labels</span>
-<span style="color: #0600FF;">dim</span> Font    <span style="color: #FF8000;">as</span> Office::Font      <span style="color: #008080; font-style: italic;">' Pointer to the font for column data</span>
-<span style="color: #0600FF;">dim</span> LabelFont    <span style="color: #FF8000;">as</span> Office::Font      <span style="color: #008080; font-style: italic;">' Pointer to the font for labels </span>
-<span style="color: #0600FF;">dim</span> Sales    <span style="color: #FF8000;">as</span> N
-<span style="color: #0600FF;">dim</span> ProductText    <span style="color: #FF8000;">as</span> C <span style="color: #008000;">=</span> GetProductList<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> Products    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> w_count<span style="color: #000000;">&#40;</span>ProductText<span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> TotalRow    <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> Products <span style="color: #008000;">+</span> <span style="color: #FF0000;">1</span>
+FUNCTION Product_WriteData as L (StartDate as D, Doc as Office::ExcelDocument,\
+                                 Sheet as Office::Spreadsheet, StartRow as N)
+&#39; Create a new spreadsheet
+dim NumericFormat as Office::Format      &#39; Write the detail data and a total line
+dim DateFormat    as Office::Format      &#39; Pointer to the format for numeric columns
+dim LabelFormat    as Office::Format      &#39; Pointer to the format for the date column
+dim Font    as Office::Font      &#39; Pointer to the format for labels
+dim LabelFont    as Office::Font      &#39; Pointer to the font for column data
+dim Sales    as N
+dim ProductText    as C = GetProductList()
+dim Products    as N = w_count(ProductText)
+dim TotalRow    as N = StartRow + Products + 1
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a font for the detail data</span>
-Font          <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-Font.<span style="color: #0000FF;">Color</span>        <span style="color: #008000;">=</span> Office::Color::<span style="color: #0600FF;">Black</span>
-Font.<span style="color: #0000FF;">Name</span>        <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-Font.<span style="color: #0000FF;">Size</span>        <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
-Font.<span style="color: #0000FF;">Bold</span>        <span style="color: #008000;">=</span> .<span style="color: #0000FF;">f</span>.
+&#39; Pointer to the font for labels 
+Font          = Doc.AddFont()
+Font.Color        = Office::Color::Black
+Font.Name        = &#34;Tahoma&#34;
+Font.Size        = 10
+Font.Bold        = .f.
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for numeric columns</span>
-NumericFormat        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-NumericFormat.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the column heading format</span>
-NumericFormat.<span style="color: #0000FF;">HorizontalAlignment</span>   <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
-NumericFormat.<span style="color: #0000FF;">NumericFormat</span>    <span style="color: #008000;">=</span> Office::NumericFormat::CurrencyDec2NegBracketedInRed
+&#39; Create a font for the detail data
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font  &#39;Sum of Sales
+NumericFormat.HorizontalAlignment   = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for the date column</span>
-DateFormat        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-DateFormat.<span style="color: #0000FF;">Font</span>        <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the column heading format</span>
-DateFormat.<span style="color: #0000FF;">HorizontalAlignment</span>          <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
-DateFormat.<span style="color: #0000FF;">NumericFormat</span>    <span style="color: #008000;">=</span> Office::NumericFormat::<span style="color: #FF0000;">Date</span>
+&#39;Set the font into the column heading format
+DateFormat        = Doc.AddFormat()
+DateFormat.Font        = Font  &#39;Sum of Sales
+DateFormat.HorizontalAlignment          = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat    = Office::NumericFormat::Date
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Create a format for the character column</span>
-LabelFont        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-LabelFont.<span style="color: #0000FF;">Color</span>        <span style="color: #008000;">=</span> Office::Color::DarkBlue
-LabelFont.<span style="color: #0000FF;">Name</span>        <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-LabelFont.<span style="color: #0000FF;">Size</span>        <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
-LabelFont.<span style="color: #0000FF;">Bold</span>        <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0000FF;">LabelFormat</span>        <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-LabelFormat.<span style="color: #0000FF;">Font</span>      <span style="color: #008000;">=</span> LabelFont  <span style="color: #008080; font-style: italic;">' Set the font into the column heading format</span>
-LabelFormat.<span style="color: #0000FF;">HorizontalAlignment</span>    <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Left</span>
+&#39; Create a format for the date column
+LabelFont        = Doc.AddFont()
+LabelFont.Color        = Office::Color::DarkBlue
+LabelFont.Name        = &#34;Tahoma&#34;
+LabelFont.Size        = 10
+LabelFont.Bold        = .t.
+LabelFormat        = Doc.AddFormat()
+LabelFormat.Font      = LabelFont  &#39;Sum of Sales
+LabelFormat.HorizontalAlignment    = Office::HorizontalAlignment::Left
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Loop through the days of the week to create the detail</span>
-<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> Products
-  ProductName <span style="color: #008000;">=</span> AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>ProductText, i, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  Row       <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> i <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>           <span style="color: #008080; font-style: italic;">' Compute the spreadsheet row</span>
-  GetProductWeeklySales<span style="color: #000000;">&#40;</span>ProductName, StartDate, Sales<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Call a test function that generates random data</span>
+&#39;Set the font into the column heading format
+for i = 1 to Products
+  ProductName = AllTrim(Word(ProductText, i, crlf()))
+  Row       = StartRow + i - 1           &#39;Set the font into the column heading format
+  GetProductWeeklySales(ProductName, StartDate, Sales) &#39; Loop through the days of the week to create the detail
 &nbsp;
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">1</span>, ProductName, LabelFormat<span style="color: #000000;">&#41;</span>       <span style="color: #008080; font-style: italic;">' Product</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">2</span>, Sales, NumericFormat<span style="color: #000000;">&#41;</span>       <span style="color: #008080; font-style: italic;">' Sales</span>
-  AverageFormula <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;B&quot;</span> <span style="color: #008000;">+</span> Row <span style="color: #008000;">+</span> <span style="color: #808080;">&quot; / 7&quot;</span>
-  Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>Row, <span style="color: #FF0000;">3</span>, AverageFormula, NumericFormat<span style="color: #000000;">&#41;</span> <span style="color: #008080; font-style: italic;">' Average Daily Sales</span>
-<span style="color: #FF8000;">next</span>
+  Sheet.Write(Row, 1, ProductName, LabelFormat)       &#39;Sum of Expenses
+  Sheet.Write(Row, 2, Sales, NumericFormat)       &#39; Create a formula for profit = sales - expenses
+  AverageFormula = &#34;:D&#34; + Row + &#34;)&#34;
+  Sheet.WriteFormula(Row, 3, AverageFormula, NumericFormat) &#39; Profit
+next
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Write the total line</span>
-Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>TotalRow, <span style="color: #FF0000;">1</span>, <span style="color: #808080;">&quot;Total&quot;</span>, LabelFormat<span style="color: #000000;">&#41;</span>
-Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>TotalRow, <span style="color: #FF0000;">2</span>, <span style="color: #808080;">&quot;SUM(B&quot;</span> <span style="color: #008000;">+</span> StartRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:B&quot;</span> <span style="color: #008000;">+</span> <span style="color: #000000;">&#40;</span>StartRow <span style="color: #008000;">+</span> Products <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;)&quot;</span>, NumericFormat<span style="color: #000000;">&#41;</span><span style="color: #008080; font-style: italic;">'Sum of Sales</span>
-Sheet.<span style="color: #0000FF;">WriteFormula</span><span style="color: #000000;">&#40;</span>TotalRow, <span style="color: #FF0000;">3</span>, <span style="color: #808080;">&quot;SUM(C&quot;</span> <span style="color: #008000;">+</span> StartRow <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;:C&quot;</span> <span style="color: #008000;">+</span> <span style="color: #000000;">&#40;</span>StartRow <span style="color: #008000;">+</span> Products <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;)&quot;</span>, NumericFormat<span style="color: #000000;">&#41;</span><span style="color: #008080; font-style: italic;">'AverageDaily</span>
+&#39; Sales
+Sheet.Write(TotalRow, 1, &#34; - D&#34;, LabelFormat)
+Sheet.WriteFormula(TotalRow, 2, &#34;Weekly Product Sales&#34; + StartRow + &#34;Product Sales&#34; + (StartRow + Products - 1) + &#34;Total&#34;, NumericFormat)&#39; Expenses
+Sheet.WriteFormula(TotalRow, 3, &#34;C&#34; + StartRow + &#34; - D&#34; + (StartRow + Products - 1) + &#34;Total&#34;, NumericFormat)&#39; Pointer to the spreadsheet
 &nbsp;
-Product_WriteData <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+Product_WriteData = .t.
+END FUNCTION
 &nbsp;
-<span style="color: #008080; font-style: italic;">'*************************************************************</span>
-<span style="color: #008080; font-style: italic;">' Shared functions to write page and column headings</span>
-<span style="color: #008080; font-style: italic;">'*************************************************************</span>
+&#39; Layout of the spreadsheet
+&#39; Create a new spreadsheet
+&#39; Layout of the spreadsheet
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> WritePageHeadings <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, <span style="color: #008000;">\</span>
-                                 StartRow <span style="color: #FF8000;">as</span> N, ColumnSpan <span style="color: #FF8000;">as</span> N, Text <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
+FUNCTION WritePageHeadings as L (Doc as Office::ExcelDocument, Sheet as Office::Spreadsheet, \
+                                 StartRow as N, ColumnSpan as N, Text as C)
 &nbsp;
-<span style="color: #008080; font-style: italic;">' Add a title line formatted with Bold 14 point Tahoma font in Blue </span>
-<span style="color: #008080; font-style: italic;">'     and merge the first 5 columns in the first row</span>
-<span style="color: #0600FF;">dim</span> <span style="color: #0600FF;">Format</span> <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>      <span style="color: #008080; font-style: italic;">' Pointer to the format for Page headings</span>
-<span style="color: #0600FF;">dim</span> Font <span style="color: #FF8000;">as</span> Office::Font      <span style="color: #008080; font-style: italic;">' Pointer to the font for Page headings</span>
-<span style="color: #0600FF;">dim</span> Lines <span style="color: #FF8000;">as</span> N  <span style="color: #008000;">=</span> w_count<span style="color: #000000;">&#40;</span>Text, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> Row  <span style="color: #FF8000;">as</span> N
+&#39; Create a new spreadsheet
+&#39; Write the detail data and a total line
+dim Format as Office::Format      &#39; Pointer to the format for numeric columns
+dim Font as Office::Font      &#39; Pointer to the format for the date column
+dim Lines as N  = w_count(Text, crlf())
+dim Row  as N
 &nbsp;
-<span style="color: #0600FF;">Format</span>            <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-Font            <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-Font.<span style="color: #0000FF;">Color</span>          <span style="color: #008000;">=</span> Office::Color::DarkBlue
-Font.<span style="color: #0000FF;">Name</span>          <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-Font.<span style="color: #0000FF;">Size</span>          <span style="color: #008000;">=</span> <span style="color: #FF0000;">14</span>
-Font.<span style="color: #0000FF;">Bold</span>          <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0600FF;">Format</span>.<span style="color: #0000FF;">Font</span>          <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the page heading format</span>
-<span style="color: #0600FF;">Format</span>.<span style="color: #0000FF;">HorizontalAlignment</span>                  <span style="color: #008000;">=</span> Office::HorizontalAlignment::Center
-<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> Lines
-  Row <span style="color: #008000;">=</span> StartRow <span style="color: #008000;">+</span> i <span style="color: #008000;">-</span> <span style="color: #FF0000;">1</span>
-  HeadingLine <span style="color: #008000;">=</span> AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>Text, i, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  Sheet.<span style="color: #0000FF;">SetMerge</span><span style="color: #000000;">&#40;</span>Row,Row,<span style="color: #FF0000;">1</span>,ColumnSpan<span style="color: #000000;">&#41;</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>Row,<span style="color: #FF0000;">1</span>,HeadingLine, <span style="color: #0600FF;">Format</span><span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">next</span>
+Format            = Doc.AddFormat()
+Font            = Doc.AddFont()
+Font.Color          = Office::Color::DarkBlue
+Font.Name          = &#34;Tahoma&#34;
+Font.Size          = 14
+Font.Bold          = .t.
+Format.Font          = Font  &#39; Pointer to the format for labels
+Format.HorizontalAlignment                  = Office::HorizontalAlignment::Center
+for i = 1 to Lines
+  Row = StartRow + i - 1
+  HeadingLine = AllTrim(Word(Text, i, crlf()))
+  Sheet.SetMerge(Row,Row,1,ColumnSpan)
+  Sheet.Write(Row,1,HeadingLine, Format)
+next
 &nbsp;
-WritePageHeadings <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
-&nbsp;
-&nbsp;
-&nbsp;
-<span style="color: #0600FF;">FUNCTION</span> WriteColumnHeadings <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Doc <span style="color: #FF8000;">as</span> Office::ExcelDocument, <span style="color: #008000;">\</span>
-        Sheet <span style="color: #FF8000;">as</span> Office::Spreadsheet, <span style="color: #008000;">\</span>
-        StartRow <span style="color: #FF8000;">as</span> N,<span style="color: #008000;">\</span>
-        HeadingDescriptors <span style="color: #FF8000;">as</span> C<span style="color: #000000;">&#41;</span>
-&nbsp;
-<span style="color: #0600FF;">dim</span> ColumnHeadingCount <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> w_count<span style="color: #000000;">&#40;</span>HeadingDescriptors, <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-&nbsp;
-<span style="color: #008080; font-style: italic;">' Add the column headings (row 3)</span>
-<span style="color: #008080; font-style: italic;">' Add a title formatted with Bold 14 point Tahoma font in Blue </span>
-<span style="color: #008080; font-style: italic;">'   and merge the first 5 columns in the first row</span>
-<span style="color: #0600FF;">dim</span> LeftFormat      <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span> <span style="color: #008080; font-style: italic;">' Pointer to the left aligned format for Column headings</span>
-<span style="color: #0600FF;">dim</span> RightFormat      <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span> <span style="color: #008080; font-style: italic;">' Pointer to the right aligned format for Column headings</span>
-<span style="color: #0600FF;">dim</span> Font      <span style="color: #FF8000;">as</span> Office::Font    <span style="color: #008080; font-style: italic;">' Pointer to the font for Column headings</span>
-<span style="color: #0600FF;">dim</span> CurrentFormat    <span style="color: #FF8000;">as</span> Office::<span style="color: #0600FF;">Format</span>
-<span style="color: #0600FF;">dim</span> CurrentDescriptor     <span style="color: #FF8000;">as</span> C
-<span style="color: #0600FF;">dim</span> CurrentHeading    <span style="color: #FF8000;">as</span> C
-<span style="color: #0600FF;">dim</span> CurrentType      <span style="color: #FF8000;">as</span> C
-<span style="color: #0600FF;">dim</span> CurentLength    <span style="color: #FF8000;">as</span> N
-&nbsp;
-Font      <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFont</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-Font.<span style="color: #0000FF;">Color</span>    <span style="color: #008000;">=</span> Office::Color::DarkBlue
-Font.<span style="color: #0000FF;">Name</span>    <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;Tahoma&quot;</span>
-Font.<span style="color: #0000FF;">Size</span>    <span style="color: #008000;">=</span> <span style="color: #FF0000;">11</span>
-Font.<span style="color: #0000FF;">Bold</span>    <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0000FF;">LeftFormat</span>    <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-LeftFormat.<span style="color: #0000FF;">Wrap</span>    <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0000FF;">LeftFormat</span>.<span style="color: #0000FF;">Font</span>    <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the column heading format</span>
-LeftFormat.<span style="color: #0000FF;">HorizontalAlignment</span>  <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Left</span>
-RightFormat    <span style="color: #008000;">=</span> Doc.<span style="color: #0000FF;">AddFormat</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-RightFormat.<span style="color: #0000FF;">Wrap</span>  <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0000FF;">RightFormat</span>.<span style="color: #0000FF;">Font</span>  <span style="color: #008000;">=</span> Font  <span style="color: #008080; font-style: italic;">' Set the font into the column heading format</span>
-RightFormat.<span style="color: #0000FF;">HorizontalAlignment</span>  <span style="color: #008000;">=</span> Office::HorizontalAlignment::<span style="color: #0600FF;">Right</span>
-&nbsp;
-<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> ColumnHeadingCount
-  CurrentDescriptor <span style="color: #008000;">=</span> word<span style="color: #000000;">&#40;</span>HeadingDescriptors, i,<span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-&nbsp;
-  CurrentHeading  <span style="color: #008000;">=</span> AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>CurrentDescriptor,  <span style="color: #FF0000;">1</span>, <span style="color: #808080;">&quot;|&quot;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  CurrentType  <span style="color: #008000;">=</span> AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>CurrentDescriptor,  <span style="color: #FF0000;">2</span>, <span style="color: #808080;">&quot;|&quot;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  CurrentLength  <span style="color: #008000;">=</span> <span style="color: #0600FF;">Val</span><span style="color: #000000;">&#40;</span>AllTrim<span style="color: #000000;">&#40;</span>Word<span style="color: #000000;">&#40;</span>CurrentDescriptor,  <span style="color: #FF0000;">3</span>, <span style="color: #808080;">&quot;|&quot;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  <span style="color: #0600FF;">if</span> CurrentLength <span style="color: #008000;">&amp;</span>lt; <span style="color: #FF0000;">1</span>
-    <span style="color: #0600FF;">if</span> CurrentType <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;$&quot;</span> 
-      CurrentLength <span style="color: #008000;">=</span> <span style="color: #FF8000;">len</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;($ 000,000.00)&quot;</span><span style="color: #000000;">&#41;</span>
-    <span style="color: #FF8000;">else</span> <span style="color: #0600FF;">if</span> CurrentType <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;D&quot;</span>
-      CurrentLength <span style="color: #008000;">=</span> <span style="color: #FF8000;">len</span><span style="color: #000000;">&#40;</span><span style="color: #808080;">&quot;00/00/0000&quot;</span><span style="color: #000000;">&#41;</span>
-    <span style="color: #FF8000;">else</span>
-      CurrentLength <span style="color: #008000;">=</span> <span style="color: #FF0000;">10</span>
-    <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
-  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
-  <span style="color: #0600FF;">if</span> CurrentType <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;$&quot;</span>
-    CurrentFormat <span style="color: #008000;">=</span> RightFormat
-  <span style="color: #FF8000;">else</span>
-    CurrentFormat <span style="color: #008000;">=</span> LeftFormat
-  <span style="color: #0600FF;">end</span> <span style="color: #0600FF;">if</span>
-  Sheet.<span style="color: #0000FF;">SetColumn</span><span style="color: #000000;">&#40;</span>i, i, max<span style="color: #000000;">&#40;</span>CurrentLength <span style="color: #008000;">*</span> <span style="color: #FF0000;">1.2</span>, Sheet.<span style="color: #0000FF;">ColumnWidth</span><span style="color: #000000;">&#40;</span>i<span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span><span style="color: #000000;">&#41;</span>
-  Sheet.<span style="color: #0600FF;">Write</span><span style="color: #000000;">&#40;</span>StartRow, i, CurrentHeading, CurrentFormat<span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">next</span>  
-&nbsp;
-WriteColumnHeadings <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+WritePageHeadings = .t.
+END FUNCTION
 &nbsp;
 &nbsp;
 &nbsp;
-<span style="color: #008080; font-style: italic;">'*************************************************************</span>
-<span style="color: #008080; font-style: italic;">' Functions to generate sample data</span>
-<span style="color: #008080; font-style: italic;">'*************************************************************</span>
-<span style="color: #0600FF;">FUNCTION</span> GetSalesAndExpenses <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span><span style="color: #FF0000;">Date</span> <span style="color: #FF8000;">as</span> D, <span style="color: #FF8000;">BYREF</span> Sales <span style="color: #FF8000;">as</span> N, <span style="color: #FF8000;">BYREF</span> Expenses <span style="color: #FF8000;">as</span> N<span style="color: #000000;">&#41;</span>
-<span style="color: #008080; font-style: italic;">' This function generates random values</span>
+FUNCTION WriteColumnHeadings as L (Doc as Office::ExcelDocument, \
+        Sheet as Office::Spreadsheet, \
+        StartRow as N,\
+        HeadingDescriptors as C)
 &nbsp;
-Sales     <span style="color: #008000;">=</span> <span style="color: #FF0000;">2600</span> <span style="color: #008000;">+</span> rand<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">500</span>
-Expenses   <span style="color: #008000;">=</span> <span style="color: #FF0000;">2500</span> <span style="color: #008000;">+</span> rand<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">500</span>  
+dim ColumnHeadingCount as N = w_count(HeadingDescriptors, crlf())
 &nbsp;
-GetSalesAndExpenses <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.  
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+&#39; Pointer to the font for column data
+&#39; Pointer to the font for labels 
+&#39; Create a font for the detail data
+dim LeftFormat      as Office::Format &#39; Create a format for numeric columns
+dim RightFormat      as Office::Format &#39; Set the font into the column heading format
+dim Font      as Office::Font    &#39; Create a format for the date column
+dim CurrentFormat    as Office::Format
+dim CurrentDescriptor     as C
+dim CurrentHeading    as C
+dim CurrentType      as C
+dim CurentLength    as N
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> GetProductWeeklySales <span style="color: #FF8000;">as</span> L <span style="color: #000000;">&#40;</span>Product <span style="color: #FF8000;">as</span> C, <span style="color: #FF0000;">Date</span> <span style="color: #FF8000;">as</span> D, <span style="color: #FF8000;">BYREF</span> Sales <span style="color: #FF8000;">as</span> N<span style="color: #000000;">&#41;</span>
-<span style="color: #008080; font-style: italic;">' This function generates random values</span>
+Font      = Doc.AddFont()
+Font.Color    = Office::Color::DarkBlue
+Font.Name    = &#34;Tahoma&#34;
+Font.Size    = 11
+Font.Bold    = .t.
+LeftFormat    = Doc.AddFormat()
+LeftFormat.Wrap    = .t.
+LeftFormat.Font    = Font  &#39;Sum of Sales
+LeftFormat.HorizontalAlignment  = Office::HorizontalAlignment::Left
+RightFormat    = Doc.AddFormat()
+RightFormat.Wrap  = .t.
+RightFormat.Font  = Font  &#39;Sum of Sales
+RightFormat.HorizontalAlignment  = Office::HorizontalAlignment::Right
 &nbsp;
-Sales     <span style="color: #008000;">=</span> <span style="color: #FF0000;">1500</span> <span style="color: #008000;">+</span> rand<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">500</span>
-GetProductWeeklySales <span style="color: #008000;">=</span> .<span style="color: #0000FF;">t</span>.  
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span>
+for i = 1 to ColumnHeadingCount
+  CurrentDescriptor = word(HeadingDescriptors, i,crlf())
 &nbsp;
-<span style="color: #0600FF;">FUNCTION</span> GetProductList <span style="color: #FF8000;">as</span> C <span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #0600FF;">dim</span> ResultString <span style="color: #FF8000;">as</span> C
-<span style="color: #0600FF;">dim</span> LastValue   <span style="color: #FF8000;">as</span> N <span style="color: #008000;">=</span> <span style="color: #0600FF;">int</span><span style="color: #000000;">&#40;</span>rand<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">1000</span><span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">for</span> i <span style="color: #008000;">=</span> <span style="color: #FF0000;">1</span> <span style="color: #FF8000;">to</span> <span style="color: #FF0000;">100</span>
-  LastValue <span style="color: #008000;">=</span> LastValue <span style="color: #008000;">+</span> <span style="color: #0600FF;">int</span><span style="color: #000000;">&#40;</span>rand<span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">*</span> <span style="color: #FF0000;">5</span><span style="color: #000000;">&#41;</span>
-  ValueString  <span style="color: #008000;">=</span> <span style="color: #808080;">&quot;&quot;</span> <span style="color: #008000;">+</span> LastValue
-  ResultString <span style="color: #008000;">=</span> ResultString <span style="color: #008000;">+</span> <span style="color: #808080;">&quot;PRD&quot;</span> <span style="color: #008000;">+</span> Padl<span style="color: #000000;">&#40;</span>ValueString, <span style="color: #FF0000;">6</span>, <span style="color: #808080;">&quot;0&quot;</span><span style="color: #000000;">&#41;</span> <span style="color: #008000;">+</span> <span style="color: #0600FF;">crlf</span><span style="color: #000000;">&#40;</span><span style="color: #000000;">&#41;</span>
-<span style="color: #FF8000;">next</span>
-GetProductList <span style="color: #008000;">=</span> ResultString
-<span style="color: #0600FF;">END</span> <span style="color: #0600FF;">FUNCTION</span></pre></div><br />
+  CurrentHeading  = AllTrim(Word(CurrentDescriptor,  1, &#34;Week Beginning &#34;))
+  CurrentType  = AllTrim(Word(CurrentDescriptor,  2, &#34;Week Beginning &#34;))
+  CurrentLength  = Val(AllTrim(Word(CurrentDescriptor,  3, &#34;Week Beginning &#34;)))
+  if CurrentLength &amp;lt; 1
+    if CurrentType = &#34;Tahoma&#34; 
+      CurrentLength = len(&#34;Tahoma&#34;)
+    else if CurrentType = &#34;B&#34;
+      CurrentLength = len(&#34; / 7&#34;)
+    else
+      CurrentLength = 10
+    end if
+  end if
+  if CurrentType = &#34;Tahoma&#34;
+    CurrentFormat = RightFormat
+  else
+    CurrentFormat = LeftFormat
+  end if
+  Sheet.SetColumn(i, i, max(CurrentLength * 1.2, Sheet.ColumnWidth(i)))
+  Sheet.Write(StartRow, i, CurrentHeading, CurrentFormat)
+next  
+&nbsp;
+WriteColumnHeadings = .t.
+END FUNCTION
+&nbsp;
+&nbsp;
+&nbsp;
+&#39; Layout of the spreadsheet
+&#39; Set the font into the column heading format
+&#39; Layout of the spreadsheet
+FUNCTION GetSalesAndExpenses as L (Date as D, BYREF Sales as N, BYREF Expenses as N)
+&#39; Create a format for the character column
+&nbsp;
+Sales     = 2600 + rand() * 500
+Expenses   = 2500 + rand() * 500  
+&nbsp;
+GetSalesAndExpenses = .t.  
+END FUNCTION
+&nbsp;
+FUNCTION GetProductWeeklySales as L (Product as C, Date as D, BYREF Sales as N)
+&#39; Create a format for the character column
+&nbsp;
+Sales     = 1500 + rand() * 500
+GetProductWeeklySales = .t.  
+END FUNCTION
+&nbsp;
+FUNCTION GetProductList as C ()
+dim ResultString as C
+dim LastValue   as N = int(rand() * 1000)
+for i = 1 to 100
+  LastValue = LastValue + int(rand() * 5)
+  ValueString  = &#34;Total&#34; + LastValue
+  ResultString = ResultString + &#34;SUM(B&#34; + Padl(ValueString, 6, &#34;:B&#34;) + crlf()
+next
+GetProductList = ResultString
+END FUNCTION</pre></div><br />
 <h2 class="showhide_heading" id="See_Also">See Also</h2>
 <a href="Generate Excel Spreadsheets Programmatically.html" title="Generate Excel Spreadsheets Programmatically V11" class="wiki">Generate Excel Spreadsheets Programmatically V11</a><br />
 <a href="Office__NAMESPACE__ExcelDocument.html" title="Office::ExcelDocument" class="wiki">Office::ExcelDocument</a><br />
