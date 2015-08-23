@@ -5,13 +5,15 @@ var Help = require('helpserver');
 var help = Help(options);
 
 app.use("/",function (req, res) {
-    if( req.path.substring(0,10) == "/describe/" ) {
+    if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/"  ) {
        var replaceAll = function (str, find, replace) {
             while (str.indexOf(find) >= 0)
             str = str.replace(find, replace);
             return str;
        };        
        var relPath = req.path.substring(9);
+       if( req.path.substring(0,14) == "/web/describe/" )
+           relPath = req.path.substring(13);
        help.getmetadata(relPath, function (data) {
           var htmlResult = "<table>";
           htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles"+ replaceAll( decodeURI(relPath) , "/" , "\\" ) + "\" style=\"width:7in;\" /><td></tr>";
@@ -32,7 +34,7 @@ app.use("/",function (req, res) {
           help.onSendExpress(res);
           res.send(htmlResult);
         });
-    } else if( req.path == "/apihelp" ) {
+    } else if( req.path == "/apihelp" || req.path == "/web/apihelp" ) {
         help.search( req.query.topic , function(err, data) {
             if( err ) {
                 help.onSendExpress(res);
