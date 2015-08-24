@@ -5,7 +5,7 @@ var Help = require('helpserver');
 var help = Help(options);
 
 app.use("/",function (req, res) {
-    if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/"  ) {
+    if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/" ) {
        var replaceAll = function (str, find, replace) {
             while (str.indexOf(find) >= 0)
             str = str.replace(find, replace);
@@ -29,16 +29,15 @@ app.use("/",function (req, res) {
           if( data.notes ) {
               htmlResult += "<tr> <th>Notes</th><td><input value=\""+ data.notes + "\" style=\"width:7in;\" /><td></tr>";
           }
-          console.log(JSON.stringify(data));
           htmlResult += "</table>";
           help.onSendExpress(res);
           res.send(htmlResult);
         });
-    } else if( req.path == "/apihelp" || req.path == "/web/apihelp" ) {
+    } else if( req.path == "/apihelp" || req.path == "/web/apihelp" || req.path == "/web/main/apihelp") {
         help.search( req.query.topic , function(err, data) {
             if( err ) {
                 help.onSendExpress(res);
-                res.send("Error doing search "+ err );
+                res.send(JSON.stringify({ error : err }));
             } else {
                 // search through the data
                 var lookFor = "/reference/design/api/";
@@ -51,16 +50,15 @@ app.use("/",function (req, res) {
                     }
                 }
                 if(  foundItem ) {                    
-                    if( foundItem.hash ) {
-                        res.redirect("/main#"+foundItem.path+"#"+foundItem.hash);
-                    } else {
-                        console.log('lookup '+foundItem.path)
-                        res.redirect("/main#"+foundItem.path);
-                    }
+                    help.onSendExpress(res);
+                    res.send(JSON.stringify(foundItem));
                 } else {
                     // TBD - show the 'not-found' page with results...
                     help.onSendExpress(res);
-                    res.send("No matches found for "+req.query.topic);
+                    if( data.length > 0 )
+                        res.send(JSON.stringify({ error : "No API matches found for "+req.query.topic , closest : data }));
+                    else
+                        res.send(JSON.stringify({ error : "No matches found for "+req.query.topic }));
                 }
             }
         },0,20);

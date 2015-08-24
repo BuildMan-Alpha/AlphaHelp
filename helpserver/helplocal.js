@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/",function (req, res) {
     if( req.path == "/test" ) {
        res.end(JSON.stringify(req.body, null, 2))
-    } else if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/"  ) {
+    } else if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/" || req.path.substring(0,14) == "/web/main/describe/"  ) {
        var replaceAll = function (str, find, replace) {
             while (str.indexOf(find) >= 0)
             str = str.replace(find, replace);
