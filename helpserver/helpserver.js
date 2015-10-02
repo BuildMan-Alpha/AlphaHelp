@@ -3,14 +3,14 @@ var app = express();
 var options = require("./settings");
 var Help = require('helpserver');
 var help = Help(options);
+var replaceAll = function (str, find, replace) {
+    while (str.indexOf(find) >= 0)
+    str = str.replace(find, replace);
+    return str;
+};        
 
 app.use("/",function (req, res) {
     if( req.path.substring(0,10) == "/describe/" || req.path.substring(0,14) == "/web/describe/" ) {
-       var replaceAll = function (str, find, replace) {
-            while (str.indexOf(find) >= 0)
-            str = str.replace(find, replace);
-            return str;
-       };        
        var relPath = req.path.substring(9);
        if( req.path.substring(0,14) == "/web/describe/" )
            relPath = req.path.substring(13);
@@ -32,6 +32,20 @@ app.use("/",function (req, res) {
           htmlResult += "</table>";
           help.onSendExpress(res);
           res.send(htmlResult);
+        });
+    } else if( req.path.substring(0,11) == "/structure/" ) {
+        var relPath = req.path.substring(10);
+        var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
+        var fs = require("fs");
+        fs.readFile(manifestFile, function (err, data) {
+            var subtoc = {};
+            if( !err && data && data !== "" ) {
+                mdata = JSON.parse(data);
+                if( mdata.toc )
+                   subtoc = mdata.toc;
+            }
+            help.onSendExpress(res);
+            res.send(JSON.stringify(subtoc));
         });
     } else if( req.path == "/apihelp" || req.path == "/web/apihelp" || req.path == "/web/main/apihelp") {
         help.search( req.query.topic , function(err, data) {
