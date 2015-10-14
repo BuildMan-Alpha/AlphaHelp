@@ -4,6 +4,18 @@ Open functions_v11 project, and run the __generateAddinsAutoHelp to expand all t
 and embedded comments are added, the script can be re-run to update the help pages in the event new properties are
 added.
 
+# Define a new Help Context
+
+A file called '\dev\AlphaHelp\contexthelp.json' contains the mapping of a helpcontext 'name' to a fully qualified 
+help page.
+
+Example: The 'webprojectpropertiesbuilder' help context, whose topic page (which is generated from a template) is
+saved as /Server/Reference/Design/WebProjectSettings.html (which is the \dev\AlphaHelp\helpfiles\Server\Reference\Design\WebProjectSettings.html).
+
+```
+	{ "name" : "webprojectpropertiesbuilder" , "topic" : "/Server/Reference/Design/WebProjectSettings.html" }
+```
+
 # Defining Templates
 
 The page templates are stored in the \dev\AlphaHelp\PageTemplate  folder.  The page template name
