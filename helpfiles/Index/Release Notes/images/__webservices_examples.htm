@@ -1,0 +1,544 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Template for Doc</title>
+<style>
+<!--
+h1           { font-family: Tahoma; font-size: 11pt; color: #ff0000 }
+p            { font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top:0px; margin-bottom:5px }
+h2           { font-family: Tahoma; font-size: 10pt ; color: #ff0000}
+.xbasic      { font-family: Courier New; font-size: 10pt; color: #0000FF; margin-left: 1.1in;
+               margin-top: 0; margin-bottom: 0 }
+.xbasicSmall      { font-family: Courier New; font-size: 9pt; color: #0000FF; margin-left: .75in;
+               margin-top: 0; margin-bottom: 0 }
+                 
+.note		{ padding: 10px; background-color: #f0f0f0;	border-radius: 3px;}       
+
+.topic {font-weight: bold;}
+
+-->
+</style>
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>&nbsp;</h1>
+<h1>&nbsp;</h1>
+<h2>Tips <br>
+&nbsp;</h2>
+<p><b>Calling SOAP Web Services From Xbasic</b> - This topic shows 'real world' 
+examples of Xbasic code that call SOAP web services. </p><br/>
+<p>Examples are provided here for WorldPay (a credit card processing company), 
+Kareo (a medical billing software company) and Norman G Jensen, Inc (a provider 
+of freight brokerage services).</p><br/>
+<p>The source code is extensively commented and is intended as a learning vehicle to help you write code to call these and other similar SOAP web services.</p>
+<p>&nbsp;</p>
+<p><b>WorldPay</b></p>
+<p><br>
+WorldPay provides credit card processing as a web service. For more 
+information go to <a href="http://www.worldpay.com/us">
+http://www.worldpay.com/us</a>.<br>
+<br>
+The function below encapsulates the process of charging a credit card using the 
+world pay service.<br>
+<br>
+This example was provided by Max Hammond, who has extensive experience using 
+Alpha Anywhere with SOAP web services.</p><br/>
+<p class="xbasic">FUNCTION WorldPay_ProcessCC AS CallResult (acctid AS C, ccname 
+AS C, ccnum AS N, amount AS N, expmon AS N, expyear AS N ) <br>
+<br>
+dim Result as CallResult <br>
+<br>
+on error goto errorWp_ProcessCC <br>
+<br>
+dim webLink as c = &quot;https://trans.worldpay.us/Web/services/TransactionService?wsdl&quot;
+<br>
+dim assemblyFile as C = &quot;C:\Program Files (x86)\a5V12\WorldPayService.DLL&quot; <br>
+dim webEndpoint as c = &quot;https://trans.worldpay.us/Web/services/TransactionService&quot;
+<br>
+<br>
+dim sv as DOTNET::Services <br>
+dim ay as DOTNET::AssemblyReference <br>
+ay.FileName = assemblyFile <br>
+<br>
+<br>
+' This extra call does the heavy lifting and registers the assembly DLL. <br>
+' If the assembly does not exist, create one. <br>
+if .not. File.Exists(ay.FileName) <br>
+&nbsp;&nbsp;&nbsp; if .not. sv.GenerateWCFWebServiceClientFromURL(webLink, 
+ay.FileName) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Result = sv.CallResult <br>
+&nbsp;&nbsp;&nbsp; end if <br>
+end if <br>
+<br>
+' Load the assembly into the Alpha Anywhere type system. <br>
+if Result.Success <br>
+&nbsp;&nbsp;&nbsp; if .not. sv.RegisterAssembly(&quot;WorldPay&quot;, ay) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Result = sv.CallResult <br>
+&nbsp;&nbsp;&nbsp; end if <br>
+end if <br>
+<br>
+if Result.Error<br>
+&nbsp;&nbsp;&nbsp; goto doneWp_ProcessCC<br>
+end if<br>
+<br>
+' Set up HTTP Binding <br>
+' The binding object determines how we will communicate with the web service.<br>
+' This includes the underlying network transport, credentials <br>
+dim b as System::ServiceModel::BasicHttpBinding <br>
+b.MessageEncoding = System::ServiceModel::WSMessageEncoding::Text<br>
+<br>
+' The settings below will depend on the service.<br>
+' We want sufficient capacity to retrieve very large nested structures.<br>
+' If you get an error that you have exceeded a size, make the adjustment here.<br>
+b.MaxReceivedMessageSize = 10485760 <br>
+b.maxBufferSize = 10485760 <br>
+b.MaxBufferPoolSize = 10485760 <br>
+b.ReaderQuotas.maxDepth = 32 <br>
+b.ReaderQuotas.MaxStringContentLength = 10485760 <br>
+b.ReaderQuotas.MaxArrayLength = 16384 <br>
+b.ReaderQuotas.MaxBytesPerRead = 4096 <br>
+b.ReaderQuotas.maxNameTableCharCount = 16384<br>
+<br>
+' Set up the security.<br>
+' In this case, we are using transport level security a UserName credential over 
+SSL and will provide a user name credential. <br>
+b.Security.Mode = System::ServiceModel::SecurityMode::Transport <br>
+b.Security.transport.ClientCredentialType = 
+System::ServiceModel::HttpClientCredentialType::None <br>
+b.Security.Transport.ProxyCredentialType = 
+System::ServiceModel::HttpProxyCredentialType::None <br>
+b.Security.Transport.Realm = &quot;&quot; <br>
+b.Security.Message.ClientCredentialType = 
+System::ServiceModel::BasicHttpMessageCredentialType::UserName <br>
+b.Security.Message.AlgorithmSuite = 
+System::ServiceModel::Security::SecurityAlgorithmSuite::Default <br>
+<br>
+' Create an endpoint. This is the address information needed to find the service on the web. <br>
+dim endpoint as system::ServiceModel::EndPointAddress = new System::ServiceModel::EndPointAddress(webEndpoint) <br>
+<br>
+' Create Client for WorldPay Service using endpoint and bindings <br>
+dim Client as WorldPay::TransactionSOAPBindingImplClient = new 
+WorldPay::TransactionSoapBindingImplClient(b, endpoint) <br>
+<br>
+' Create Web Request using WorldPay Client <br>
+dim WebRequest as WorldPay::processCCSaleRequest <br>
+WebRequest.ccinfo = new WorldPay::CreditCardInfo() <br>
+WebRequest.ccinfo.acctid = acctid <br>
+WebRequest.ccinfo.ccname = ccname <br>
+WebRequest.ccinfo.ccnum = ccnum <br>
+WebRequest.ccinfo.amount = amount <br>
+WebRequest.ccinfo.expmon = expmon <br>
+WebRequest.ccinfo.expyear = expyear <br>
+<br>
+' Make Web Service Call to WorldPay <br>
+dim WPResponse as p <br>
+WPResponse = Client.ProcessCCSale(WebRequest) <br>
+<br>
+<br>
+' End process in error or success <br>
+goto doneWp_ProcessCC <br>
+<br>
+errorWp_ProcessCC: <br>
+on error goto 0 <br>
+Result.Code = error_code_get() <br>
+<br>
+doneWp_ProcessCC: <br>
+WorldPay_ProcessCC = Result <br>
+<br>
+END FUNCTION </p>
+<p class="xbasic">&nbsp;</p>
+<p><b>Kareo</b><br>
+Kareo Medical Billing Software provides a comprehensive web service to manage practices. For more information go to <a href="http://www.kareo.com">
+http://www.kareo.com</a>.<br>
+<br>
+The sample code below was provided by Max Hammond, who has implemented a product using Alpha Anywhere and Kareo.<br>
+<br>
+The following functions are included:</p>
+<p>&nbsp;</p>
+<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	GetAppointments - Can be called directly to get a list of appointments. It also manages creating and loading the client proxy.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	CreateService - Creates the service object. </li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	RegisterServiceDLL - Checks to see if the local proxy assembly exists. If not, it downloads the definition.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	SetSvcGraphObjectQuota - Sets additional quotas to allow for large updates 
+	or retrievals.</li>
+</ul>
+<p>&nbsp;</p>
+<p class="xbasic">
+<br>
+FUNCTION GetAppointments as CallResult (WSDLWebLink as C, ServiceWebLink as C, 
+AssemblyFile as C, CustomerKey as C, User as C, Password as C, ConnectionString 
+as C, PracticeName as C) <br>
+<br>
+on error goto errorGetAppointments ' To catch the dim of service objects <br>
+dim Result as CallResult <br>
+<br>
+' This extra call does the heavy lifting and registers the assembly DLL <br>
+CreateService(WSDLWebLink, ServicePointWebLink, AssemblyFile) <br>
+<br>
+dim RequestHeader as Kareo::www::Kareo::com::api::Schemas::RequestHeader <br>
+<br>
+RequestHeader.CustomerKey = CustomerKey <br>
+RequestHeader.User = User <br>
+RequestHeader.Password = Password <br>
+<br>
+dim AppointmentsRequest as 
+kareo::www::kareo::com::api::schemas::GetAppointmentsReq <br>
+dim GetAppointmentsRequest as Kareo::GetAppointmentsRequest <br>
+<br>
+AppointmentsRequest.RequestHeader = RequestHeader <br>
+GetAppointmentsRequest.request = AppointmentsRequest <br>
+<br>
+dim Service as Kareo::KareoServicesClient = CreateService(WebLink, 
+EndPointWebLink, AssemblyFile) <br>
+<br>
+' Create the filter for the GetAppointments call <br>
+dim filter as Kareo::www::kareo::com::api::schemas::AppointmentFilter <br>
+filter.FromLastModifiedDate = date()-30 <br>
+filter.ToLastModifiedDate = date() + 10 <br>
+filter.PracticeName = PracticeName <br>
+AppointmentsRequest.Filter = filter <br>
+<br>
+' Set the fields you want populated in the return by marking them as true <br>
+dim fields as Kareo::www::kareo::com::api::schemas::AppointmentFieldsToReturn
+<br>
+fields.AllDay = .t. <br>
+fields.AppointmentReason1 = .t. <br>
+fields.AppointmentReason10 = .t. <br>
+fields.AppointmentReason2 = .t. <br>
+fields.AppointmentReason3 = .t. <br>
+fields.AppointmentReason4 = .t. <br>
+fields.AppointmentReason5 = .t. <br>
+fields.AppointmentReason6 = .t. <br>
+fields.AppointmentReason7 = .t. <br>
+fields.AppointmentReason8 = .t. <br>
+fields.AppointmentReason9 = .t. <br>
+fields.AuthorizationEndDate = .t. <br>
+fields.AuthorizationID = .t. <br>
+fields.AuthorizationInsurancePlan = .t. <br>
+fields.AuthorizationNumber = .t. <br>
+fields.AuthorizationStartDate = .t. <br>
+fields.ConfirmationStatus = .t. <br>
+fields.CreatedDate = .t. <br>
+fields.EndDate = .t. <br>
+fields.ID = .t. <br>
+fields.LastModifiedDate = .t. <br>
+fields.Notes = .t. <br>
+fields.PatientCaseID = .t. <br>
+fields.PatientCaseName = .t. <br>
+fields.PatientCasePayerScenario = .t. <br>
+fields.PatientFullName = .t. <br>
+fields.PatientID = .t. <br>
+fields.PracticeID = .t. <br>
+fields.PracticeName = .t. <br>
+fields.Recurring = .t. <br>
+fields.ResourceName1 = .t. <br>
+fields.ResourceName10 = .t. <br>
+fields.ResourceName2 = .t. <br>
+fields.ResourceName3 = .t. <br>
+fields.ResourceName4 = .t. <br>
+fields.ResourceName5 = .t. <br>
+fields.ResourceName6 = .t. <br>
+fields.ResourceName7 = .t. <br>
+fields.ResourceName8 = .t. <br>
+fields.ResourceName9 = .t. <br>
+fields.ServiceLocationName = .t. <br>
+fields.StartDate = .t. <br>
+fields.Type = .t. <br>
+<br>
+' Create the GetAppointmentsRequest object with the request information <br>
+dim Response as p<br>
+<br>
+' Make the service call <br>
+Response = Service.GetAppointments(GetAppointmentsRequest)<br>
+<br>
+' Get the appointment information out of the response. <br>
+AppointmentsResponse = Response.GetAppointmentsResult <br>
+<br>
+if AppointmentsResponse.ErrorResponse.IsError <br>
+&nbsp;&nbsp;&nbsp;
+Result.Code = -1 <br>
+&nbsp;&nbsp;&nbsp;
+Result.Text = AppointmentsResponse.ErrorResponse.ErrorMessage <br>
+elseif .not. AppointmentsResponse.SecurityResponse.SecurityResultSuccess <br>
+&nbsp;&nbsp;&nbsp;
+Result.Code = -2 <br>
+&nbsp;&nbsp;&nbsp;
+Result.Text = AppointmentsResponse.SecurityResponse.SecurityResult.ToString()
+<br>
+else <br>
+&nbsp;&nbsp;&nbsp;
+Result = LoadAppointments(AppointmentsResponse.Appointments, ConnectionString)
+<br>
+end if <br>
+<br>
+Result.Code = error_code_get() <br>
+goto doneGetAppointments <br>
+<br>
+errorGetAppointments: <br>
+on error goto 0 <br>
+<br>
+doneGetAppointments: <br>
+on error goto 0 <br>
+<br>
+GetAppointments = Result <br>
+<br>
+END FUNCTION <br>
+&nbsp;</p>
+<p>
+<br>
+<br>
+The functions below make it easier to populate service requests.<br>
+<br>
+&nbsp;</p>
+<p class="xbasic">&nbsp;</p>
+<p class="xbasic">FUNCTION CreateService as Kareo::KareoServicesClient(DefinitionWebLink as C, 
+EndPointWebLink as C, AssemblyFile as C) <br>
+' Make sure the client proxy DLL is created and loaded and create a client proxy 
+(an object we can make service calls on). <br>
+<br>
+dim Result as CallResult = RegisterServiceDLL(DefinitionWebLink, AssemblyFile)
+<br>
+<br>
+if .not. Result.Success <br>
+&nbsp;&nbsp;&nbsp;
+error_generate(Result.Code) <br>
+end if <br>
+<br>
+' Set up HTTP Binding<br>
+' The binding object determines how we will communicate with the web service.<br>
+' This includes the underlying network transport, credentials <br>
+dim b as system::ServiceModel::BasicHttpBinding <br>
+<br>
+b.MessageEncoding = System::ServiceModel::WSMessageEncoding::Text <br>
+<br>
+' The settings below will depend on the service.<br>
+' We want sufficient capacity to retrieve very large nested structures.<br>
+' If you get an error that you have exceeded a size, make the adjustment here.<br>
+b.MaxReceivedMessageSize = 20485760 <br>
+b.maxBufferSize = 20485760 <br>
+b.MaxBufferPoolSize = 10485760 <br>
+b.ReaderQuotas.maxDepth = 32 <br>
+b.ReaderQuotas.MaxStringContentLength = 10485760 <br>
+b.ReaderQuotas.MaxArrayLength = 16384 <br>
+b.ReaderQuotas.MaxBytesPerRead = 4096 <br>
+b.ReaderQuotas.maxNameTableCharCount = 16384<br>
+<br>
+' Set up the security.<br>
+' In this case, we are using transport level security a UserName credential over 
+SSL and will provide a user name credential. <br>
+b.Security.Mode = System::ServiceModel::SecurityMode::Transport <br>
+b.Security.transport.ClientCredentialType = 
+System::ServiceModel::HttpClientCredentialType::None <br>
+b.Security.Transport.proxyCredentialType = 
+System::ServiceModel::HttpProxyCredentialType::None <br>
+b.Security.Transport.Realm = &quot;&quot;<br>
+b.Security.Message.ClientCredentialType = 
+System::ServiceModel::BasicHttpMessageCredentialType::UserName <br>
+b.Security.Message.AlgorithmSuite = 
+System::ServiceModel::Security::SecurityAlgorithmSuite::Default <br>
+<br>
+' Create an end point object to represent the address of the server. <br>
+dim e as system::ServiceModel::EndPointAddress = new 
+System::ServiceModel::EndPointAddress(EndPointWebLink)<br>
+<br>
+' Create the service object using the binding and the endpoint <br>
+dim MyService as Kareo::KareoServicesClient = new Kareo::KareoServicesClient(b, 
+e) <br>
+<br>
+' There are some quotas that are harder to set.<br>
+' This utility function will take care of this in one place. <br>
+SetSvcGraphObjectQuota(MyService)<br>
+<br>
+CreateService = MyService <br>
+END FUNCTION <br>
+<br>
+<br>
+FUNCTION RegisterServiceDLL as CallResult (WebLink as C, AssemblyFile as C) <br>
+' This function retrieves the Web Service Definition Language (WSDL) XML file 
+and generates a local .NET proxy.<br>
+' The proxy assembly is registered in Alpha Anywhere as a namespace (set of 
+types) and can be used <br>
+' as any other .NET type to make web service calls.<br>
+<br>
+on error goto errorRegisterServiceDLL <br>
+dim Result as CallResult <br>
+dim sv as dotnet::Services <br>
+dim Assembly as dotnet::AssemblyReference <br>
+<br>
+'Create Web Service Client and Register <br>
+Assembly.FileName = AssemblyFile <br>
+<br>
+if .not. File.Exists(AssemblyFile) <br>
+&nbsp;&nbsp;&nbsp;
+if .not. sv.GenerateWCFWebServiceClientFromURL(WebLink, AssemblyFile) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Result = sv.CallResult <br>
+&nbsp;&nbsp;&nbsp;
+end if <br>
+end if <br>
+<br>
+if Result.Success <br>
+&nbsp;&nbsp;&nbsp;
+if .not. sv.RegisterAssembly(&quot;Kareo&quot;, Assembly) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Result = sv.CallResult <br>
+&nbsp;&nbsp;&nbsp;
+end if <br>
+end if <br>
+<br>
+goto doneRegisterServiceDLL <br>
+<br>
+errorRegisterServiceDLL: <br>
+on error goto 0 <br>
+Result.Code = error_code_get() <br>
+<br>
+doneRegisterServiceDLL: <br>
+on error goto 0 <br>
+<br>
+RegisterServiceDLL = Result <br>
+<br>
+END FUNCTION <br>
+<br>
+<br>
+<br>
+FUNCTION SetSvcGraphObjectQuota as CallResult (Service as P) <br>
+' This utility function sets the maximum number of objects in the serializer.<br>
+' The serializer packages and unpackages the request as it is send over the Web.
+<br>
+' You should only need to do this for services that return large amounts of 
+data.<br>
+<br>
+dim Result as CallResult <br>
+<br>
+on error goto errorQuota <br>
+Operations = Service.Endpoint.Contract.Operations <br>
+<br>
+for i = 1 to Operations.Count <br>
+&nbsp;&nbsp;&nbsp;
+Operation = Operations[i] <br>
+&nbsp;&nbsp;&nbsp;
+Behaviors = Operation.Behaviors <br>
+&nbsp;&nbsp;&nbsp;
+Enumerator = Behaviors.GetEnumerator() <br>
+&nbsp;&nbsp;&nbsp;
+while Enumerator.MoveNext() <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Current = Enumerator.Current <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+if Current.gettype().FullName = &quot;System.ServiceModel.Description.DataContractSerializerOperationBehavior&quot;
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Current.MaxItemsInObjectGraph = 2147483647 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+end if <br>
+&nbsp;&nbsp;&nbsp;
+end while <br>
+next <br>
+<br>
+goto doneQuota <br>
+<br>
+errorQuota: <br>
+Result.Code = error_code_get() <br>
+<br>
+doneQuota: <br>
+<br>
+SetSvcGraphObjectQuota = Result <br>
+<br>
+END FUNCTION <br>
+&nbsp;</p>
+<p class="xbasic">&nbsp;</p>
+<p><b>Norman G. Jensen</b></p>
+<p>Norman G. Jensen, Inc (JGJ) provides US and Canadian customers brokerage, freight forwarding, warehousing, <br>
+distribution and consulting services to North American importers and exporters. 
+For more information about the<br>
+company see <a href="http://www.ngjensen.com">http://www.ngjensen.com</a>.<br>
+<br>
+This script example downloads the service definition, generates and loads a 
+client proxy assembly and then calls a service<br>
+function that accepts raw XML requests.</p>
+<p class="xbasic">
+<br>
+dim WebLink as C = &quot;https://forms.ngjensen.com/library/aes_jt_service.php?wsdl&quot;<br>
+dim DLLName as C = &quot;c:\temp\aesV12.dll&quot; <br>
+dim EndPointWebLink as C = &quot;https://forms.ngjensen.com/library/aes_jt_service.php&quot;<br>
+<br>
+dim Result as CallResult<br>
+<br>
+' Test Values - See Jensen documentation for actual values.<br>
+Authorization = 12345<br>
+IPAddress = &quot;127.0.0.1&quot;<br>
+XML = &quot;&lt;?xml version='1.0'?&gt;&lt;NGJDocument&gt;&lt;DocInfo ... &gt;&quot;<br>
+<br>
+Result = CreateDLL(WebLink, DLLName)<br>
+if Result.Sucess<br>
+&nbsp;&nbsp;&nbsp;
+Result = RegisterNamespace(DLLName, &quot;submit_xml&quot;)<br>
+end if<br>
+<br>
+if Result.Success<br>
+&nbsp;&nbsp;&nbsp;
+Result = SubmitXML(EndPointWebLink, Authorization, IPAddress, XML)<br>
+end if<br>
+<br>
+<br>
+<br>
+FUNCTION CreateDLL as P (WebLink as C, AssyFile as C)<br>
+<br>
+CreateDLL = new CallResult()<br>
+<br>
+if File.Exists(AssyFile)<br>
+&nbsp;&nbsp;&nbsp;
+end function<br>
+end if <br>
+<br>
+dim Service as DotNet::Services<br>
+if .not. Service.GenerateWebServiceClientFromURL(WebLink, AssyFile)<br>
+&nbsp;&nbsp;&nbsp;
+CreateDLL = Service.CallResult<br>
+end if<br>
+<br>
+end function <br>
+<br>
+<br>
+<br>
+FUNCTION RegisterNameSpace as P (AssyFile as C, NameSpace as C)<br>
+' Load the assembly and register the types in Alpha Anywhere<br>
+<br>
+RegisterNameSpace = new CallResult()<br>
+<br>
+dim Service as DotNet::Services<br>
+dim AssyRef as DotNet::AssemblyReference<br>
+AssyRef.FileName = AssyFile<br>
+Dim Result as CallResult<br>
+<br>
+if .not. Service.RegisterAssembly(NameSpace, AssyRef)<br>
+&nbsp;&nbsp;&nbsp;
+RegisterNameSpace = Service.CallResult<br>
+end if<br>
+<br>
+end function<br>
+<br>
+<br>
+function SubmitXML as C (EndPointWebLink as C, Authorization as C, IPAddress as 
+C, XML as C)<br>
+dim AES as submit_xml::AES_Methods<br>
+dim cc as c<br>
+cc = AES.js_submit_xml(Authorization, IPAddress, XML)<br>
+SubmitXML = cc<br>
+end function<br>
+<br>
+<br>
+<br>
+<br>
+&nbsp;</p>
+		
+</body>
+
+</html>

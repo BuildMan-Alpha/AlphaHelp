@@ -1,0 +1,421 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Persisting Data To Local Storage</title>
+<style>
+<!--
+h2           { font-family: Tahoma; font-size: 10pt ; color: #ff0000}
+p            { font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top:0px; margin-bottom:5px }
+.note		{ padding: 10px; background-color: #f0f0f0;	border-radius: 3px;}            
+
+.xbasic      { font-family: Courier New; font-size: 10pt; color: #0000FF; margin-left: 1.1in;
+               margin-top: 0; margin-bottom: 0 }
+-->
+</style>
+</head>
+
+<body>
+
+
+
+
+<div style="color: rgb(34, 34, 34); font-family: arial, sans-serif; font-size: 13px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
+	<h2>Persisting Data To Local Storage</h2>
+	<p>The UX component can persist three different types of data to Local 
+	Storage</p>
+	<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">List data</li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">UX component variables</li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">UX component state (not currently implemented)</li>
+	</ul>
+	<p>&nbsp;</p>
+	<p><b>Persisting Variables</b></p>
+	<p>Variables are persisted whenever a 'trigger' event occurs. For some 
+	controls (e.g. Radiobutton,. Checkbox, Slider, etc.), the 'trigger' is when 
+	the value in the control is changed. For textbox and textarea controls, the 
+	'trigger' is when the control is blurred (i.e. loses focus) and the value in 
+	the field has changed. </p>
+	<p>You can also manually trigger the event by calling the UX component's
+	<font color="#0000FF" face="Courier New">{dialog.object}.persistVariablesToLocalStorage()</font> 
+	method.</p>
+	<p>When variables are persisted to Local Storage various client-side events 
+	are fired. </p>
+	<p>The <font color="#0000FF" face="Courier New">
+	onBeforePersistControlValuesToLocalStorage</font> event fires first. This 
+	event fires before the variables are persisted. Its purpose is to allow you 
+	to specify any additional data that you want to persist along with the 
+	variable values. Your code can set the
+	<font color="#0000FF" face="Courier New">e.userData</font> property. The 
+	value you set in this property will be available when the
+	<font color="#0000FF" face="Courier New">onRestoreVariablesFromLocalStorage</font> 
+	fires.</p>
+	<p>The <font color="#0000FF" face="Courier New">localStorageEncryption</font> 
+	event fires next. The event allows you to add your own encrypting to the 
+	JSON data that is about to be stored to Local Storage. The event handler 
+	gets the JSON data in the e.data property and the event handler can set 
+	e.data to the encrypted string.</p>
+	<p>When the component is loaded if the 'Restore variables from Local 
+	Storage' setting is true (see 'Local Storage Settings' below), then the 
+	previously persisted variable values (if any) will be restored. </p>
+	<p>The <font color="#0000FF" face="Courier New">
+	onRestoreVariablesFromLocalStorage</font> event will fire after the data has 
+	been restored. This event handler can access the
+	<font color="#0000FF" face="Courier New">e.userData</font> property which 
+	was optionally defined when the <font color="#0000FF" face="Courier New">
+	onBeforePersistControlValuesToLocalStorage</font> event was fired.</p>
+	<p>If the 'Restore variables from Local Storage' property is set of false, 
+	you can still manually restore persisted variables by calling the UX 
+	component's <font color="#0000FF" face="Courier New">{dialog.object}._restoreVariablesFromLocalStorage()</font> 
+	method.</p>
+	<p>&nbsp;</p>
+	<p><b>Persisting List Data</b></p>
+	<p>Each List that you add to a UX component has its own settings for 
+	controlling if the List data should be persisted. If the data in a List is 
+	static (i.e. is never changed while the application is running), then there 
+	is no need to persist the data.</p>
+	<p>To turn on data persistence for List, edit the List properties and check 
+	the </p>
+	<p>&nbsp;</p>
+	<p>&nbsp;</p>
+	<p><b>Local Storage Settings</b></p>
+	<p>&nbsp;</p>
+	<p>You can control what gets persisted to Local Storage by setting 
+	properties in the UX component as shown below.</p>
+	<p>&nbsp;</p>
+	<p><img border="0" src="localStoragesettings.gif"></p>
+	<p>&nbsp;</p>
+	<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px"><i>Namespace </i>- In order to manage the keys in Local Storage, you 
+		specify a 'namespace'. All keys for this component will use the 
+		namespace as a prefix. If you specify &lt;Default&gt; or leave the namespace 
+		blank, a system generated namespace will be used. In addition to the 
+		namespace specified here, all keys will also include 'ALPHA_' in the 
+		namespace. This allows for easy identification of keys in Local Storage 
+		that are tied to <b>any</b> UX application. For example, if you set the 
+		'namespace' property to 'orderApp', the key that stores the data for a 
+		List called 'Orders' will be 'ALPHA_orderAPP.LIST.ORDERS'.</li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px"><i>Persist variable values</i> - Check this property to persist to 
+		Local Storage the value of all variables on the UX. (A 'variable' is 
+		associated with each data entry control on the UX. For example, a 
+		textbox, radiobutton, checkbox, slider, etc. all have an associated 
+		'variable' that contains the current 'value' for the control.)</li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px"><i>Persist component state</i> - (Not currently implemented) Stores 
+		in Local Storage information such as what Panel in a Panel Navigator 
+		currently has focus, what Panels in a Panel Layout are currently 
+		visible, etc.</li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px"><i>Working Preview testing mode</i> - When you are in Working 
+		Preview you can specify that the local file system on your computer 
+		should be used for storing data that would otherwise be put in the 
+		browser's Local Storage. The benefit of this is to allow you to easily 
+		see what's being stored in Local Storage because you can simply examine 
+		the contents of the files in the specified folder on your computer.</li>
+	</ul>
+	<p class="note"><b>Note</b>: Using the 'Filesystem' option for Local Storage 
+	is significantly slower than using the browser Local Storage.</p>
+	<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+		<i>Restore variables from Local Storage</i> - If this property is 
+		checked, then when the component is re-loaded, any variable whose state 
+		was persisted to Local Storage will be restored. </li>
+		<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px"><i>Restore data from Local Storage</i> - If this property is checked 
+		the data in the List controls are restored when the component is 
+		reloaded. (Only the Lists that you indicated should be persisted to 
+		Local Storage are restored. Each List has its own setting to indicate if 
+		it is persistable. See below for more information.)</li>
+	</ul>
+	<p>&nbsp;</p>
+	<p>For List controls, you control whether the data in the List is persisted 
+	to Local Storage by setting a property in the List builder for the List:</p>
+	<p><img border="0" src="listLocalStorageSetting.jpg"></p>
+	<p>&nbsp;</p>
+	<h2>Managing Local Storage</h2>
+	<p>Local Storage is a shared resource and it is limited. The exact 
+	limitation is a function of your device. In order to free up storage space 
+	for an application on a device, it might be necessary to delete storage 
+	being used by some other application that you are no longer using.</p>
+	<p>You can add a pre-defined control to your UX to manage Local Storage. 
+	This control is primarily intended for use by developers while they are 
+	designing the application. It is not ideal for the users of your 
+	application.</p>
+	<p>To insert the 'Local Storage Manager' into your component, select the 
+	control from the 'Defined Controls' section in the UX toolbox.</p>
+	<p>&nbsp;</p>
+	<p><img border="0" src="localstoragemgr1.jpg"></p>
+	<p>&nbsp;</p>
+	</div>
+<p>
+<br class="Apple-interchange-newline">
+This will insert a List control into the component that will allow you to see 
+all of the keys in Local Storage, the keys for this component (i.e. app), all 
+keys (excluding keys for this app), etc. You can see how much space each key is 
+consuming and you can peek at the data in the key. You can also delete keys.</p>
+<p>
+&nbsp;</p>
+<p>
+The image below is showing the keys in Local Storage for an component where the 
+'Namespace' property has been set to 'app1'</p>
+<p>
+&nbsp;</p>
+<p>
+<img border="0" src="localstoragemgr2.gif"></p>
+<p>&nbsp;</p>
+<p>If you tap on the Show button you can see up to the first 1,000 bytes of data 
+in the key:</p>
+<p><img border="0" src="localstoragemgr3.jpg"></p>
+<p>&nbsp;</p>
+<h2>Methods for Managing With Local Storage</h2>
+<p>The UX component has several methods that make it easy for developers to add 
+functionality to their components to manage the data in Local Storage.</p>
+<p class="note"><b>NOTE</b>: These methods cannot be used in Working Preview if 
+you have configured your component to use the file system for Local Storage.</p>
+<p>The <font color="#0000FF" face="Courier New">{dialog.object}._ls_getData()</font> 
+function returns an object with information about the keys stored in Local 
+Storage.&nbsp; The method takes a flag to indicate which keys in Local Storage 
+to return information on.</p>
+<p>The object that is returned has these properties</p>
+<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>data</i> - an array with information about each key found. The array has 
+	an object for each key found. The object has a <i>key</i> and <i>size</i> 
+	property indicating the key name of the item and the size in bytes of the 
+	item.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>size</i> - the total size in bytes of all keys found</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>keyCount</i> - the number of keys that were found.</li>
+</ul>
+<p>Example:</p>
+<p>&nbsp;</p>
+<p class="xbasic">//pass in the 'a' flag to get info on All keys</p>
+<p class="xbasic">var obj = {dialog.object}._ls_getData('a')</p>
+<p class="xbasic">console.log('Number of keys: ' + obj.keyCount);</p>
+<p class="xbasic">console.log('Number of bytes: ' + obj.size);</p>
+<p class="xbasic">var data = JSON.stringify(obj.data);</p>
+<p class="xbasic">console.log('Data: ' + data);</p>
+<p class="xbasic">&nbsp;</p>
+<p>The following flags can be used:</p>
+<p>&nbsp;</p>
+		<table border="1" cellspacing="1" cellpadding="3" id="table69" style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; margin-left: 0.5in; border-collapse: collapse; " width="1092">
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								<b>Flag</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								Meaning</b></td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								a</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All keys in Local Storage </td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								aa</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All keys created by UX components. Keys that are 
+								added to Local Storage all have 'ALPHA_' as a 
+								prefix. Only keys that have this prefix are 
+								returned.</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								t</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All keys for <b>this</b> UX component. These 
+								keys all start with 'ALPHA_' followed by the 
+								namespace for the component (e.g. ALPHA_NS1).
+								<br>
+								<b>NOTE:</b> The namespace for the component is 
+								specified in the UX component properties - Local 
+								Storage section.</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								o</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All keys for <b>other</b> components 
+								(i.e.excluding keys for this UX component). 
+								(Same as using the 'a' flag, then removing keys 
+								returned for the 't' flag).</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								oa</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All UX component keys, but excluding keys for 
+								this component. (Same as using the 'aa' flag, 
+								then removing keys returned for the 't' flag).</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								v:t</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								Key used to persist variables for <b>this</b> UX 
+								component.<br>
+								<b>NOTE</b>: The UX component allows you to 
+								specify that variables in a component should be 
+								persisted to Local Storage (See Local Storage 
+								section in UX properties).</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								v:a</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All UX component keys that store persisted 
+								variables (for any UX component, not just this 
+								component). </td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								v:o</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All UX components keys that store persisted 
+								variables, excluding <b>this</b> UX component 
+								(Same as using 'va' and then removing 'vt').</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								lists:t</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All of the List components in this component 
+								that are persisted to Local Storage.<br>
+								<b>NOTE</b>: Not every List in a UX component is 
+								persisted to Local Storage. Each List in a UX 
+								has its own setting (defined in the List 
+								Builder) to control whether it is persisted.</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								lists:a</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All of the List components (from any UX 
+								component) that are persisted to Local Storage.</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								lists:o</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								All of the List components, excluding the Lists 
+								in <b>this</b> component. (Same as using 'lists:a' 
+								and then removing 'lists:t')</td>
+							</tr>
+
+							
+							
+							<tr>
+								<td width="80" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+								<td width="994" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+								&nbsp;</td>
+							</tr>
+
+							
+							
+							</table>
+		<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Once you have retried the array of information using the<font color="#0000FF" face="Courier New"> 
+{dialog.object}._ls_getData()</font> method, you might want to delete the keys 
+listed in the array. You can pass in the object returned by the
+<font color="#0000FF" face="Courier New">{dialog.object}._ls_getData()</font> 
+method to the <font color="#0000FF" face="Courier New">{dialog.object}._ls_deleteKeys()
+</font>method.</p>
+<p>For example:</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+<p class="xbasic">//delete all keys in local storage for other UX components</p>
+<p class="xbasic">var obj = {dialog.object}._ls_getData('o');</p>
+<p class="xbasic">{dialog.object}._ls_deleteKeys(obj);</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><b>Namepsace Information Key</b></p>
+<p>Each UX component that persists data to Local Storage automatically stores a 
+key in Local Storage with information about the UX component every time the UX 
+component persists data to Local Storage.</p>
+<p>The special key is name:</p>
+<p class="xbasic">ALPHA_&lt;your component namespace&gt;._INFO</p>
+<p>The data in the key contains these properties:</p>
+<ul style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>lastUsed</i> - the last date that information for this namespace was 
+	written to Local Storage. This will allow you to write routines that delete 
+	keys for infrequently used applications.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>friendlyName</i> - the component 'friendly name' - specified in the UX 
+	builder - Local Storage section.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>description</i> - the component 'description' - specified in the UX 
+	builder - Local Storage section.</li>
+	<li style="font-family: Tahoma; width: 7in; font-size: 9pt; margin-left: .5in; margin-top: 0px; margin-bottom: 5px">
+	<i>version</i> - the component 'version' - specified in the UX builder - 
+	Local Storage section.</li>
+</ul>
+<p>&nbsp;</p>
+<p>For example, here is some data that might be stored in the ._INFO key for a 
+particular UX component:</p>
+<p>&nbsp;</p>
+<p class="xbasic">{<br>
+&nbsp;&nbsp;&nbsp; &quot;lastUsed&quot;: &quot;2014-07-26T14:27:41.122Z&quot;,<br>
+&nbsp;&nbsp;&nbsp; &quot;friendlyName&quot;: &quot;Expense Reporting&quot;,<br>
+&nbsp;&nbsp;&nbsp; &quot;description&quot;: &quot;An application to capture expenses.&quot;,<br>
+&nbsp;&nbsp;&nbsp; &quot;version&quot;: 1<br>
+}</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>
