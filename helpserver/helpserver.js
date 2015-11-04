@@ -54,13 +54,13 @@ app.use("/",function (req, res) {
                 res.send(JSON.stringify({ error : err }));
             } else {
                 // search through the data
-                var lookFor = "/reference/design/api/";
+                var lookFor = "/design/api/";
                 var foundItem = null;
                 var i;
                 for( i = 0 ; i < data.length ; ++i ) {
                     if( data[i].path.toLowerCase().indexOf(lookFor) >= 0 ) {
                         foundItem =  data[i];
-                        break;
+                        break;                       
                     }
                 }
                 if(  foundItem ) {                    
