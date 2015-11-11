@@ -1,0 +1,292 @@
+<page>
+	<group>JSON Functions</group>
+	<topic>
+json_flatten()
+	</topic>
+	<syntax>
+c output = json_flatten(C jsonIn, c template)
+	</syntax>
+
+	<description>
+json_flatten() Function - Takes a JSON string that defines an array of hierarchical objects and 'flattens' the array. This function is useful for Reporting where the report data source is set to a Custom data source that returns JSON data. If the JSON data that is returned is hierarchical, then you will need to 'flatten' it in order to get it into an appropriate format for the report writer.
+	</description>
+<sections>
+	<section>
+<description>The format of the template is shown in the following example. Consider the following JSON String:</description>
+	<example>
+[
+        {
+            "id": "alfki",
+            "name": "customer 1",
+            "__a5crc": -253329,
+            "orders": [
+                {
+                    "orderId": 1,
+                    "orderData": "12/1/2013",
+                    "ordcust": "1|||alfki",
+                    "orderDetails": [
+                        {
+                            "lineitemId": 1,
+                            "prodId": 1,
+                            "qty": 3,
+                            "ordprod": "1|||1"
+                        },
+                        {
+                            "lineitemId": 4,
+                            "prodId": 3,
+                            "qty": 2,
+                            "ordprod": "1|||3"
+                        }
+                    ]
+                },
+                {
+                    "orderId": 3,
+                    "orderData": "12/3/2013",
+                    "ordcust": "3|||alfki",
+                    "orderDetails": [
+                        {
+                            "lineitemId": 6,
+                            "prodId": 4,
+                            "qty": 9,
+                            "ordprod": "3|||4"
+                        },
+                        {
+                            "lineitemId": 7,
+                            "prodId": 3,
+                            "qty": 1,
+                            "ordprod": "3|||3"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "bolid",
+            "name": "customer 2",
+            "__a5crc": -194126,
+            "orders": [
+                {
+                    "orderId": 2,
+                    "orderData": "12/2/2013",
+                    "ordcust": "2|||bolid",
+                    "orderDetails": [
+                        {
+                            "lineitemId": 2,
+                            "prodId": 6,
+                            "qty": 6,
+                            "ordprod": "2|||6"
+                        },
+                        {
+                            "lineitemId": 3,
+                            "prodId": 9,
+                            "qty": 7,
+                            "ordprod": "2|||9"
+                        }
+                    ]
+                }
+            ]
+        }
+]
+	</example>
+	</section>
+	
+	<section>
+		<description>The JSON object defined by the above string shows an array of customers with embedded orders. For each order, there are embedded line-items.
+The structure of the JSON object is
+
+    Customers,
+        Orders,
+            Order Details.
+
+The json_flatten() function takes two arguments - the JSON string you want to flatten, and a template that defines which properties in the input JSON you want to map to the output JSON.
+Assume that the following template is specified:
+
+</description>
+		<example>
+			{
+   "id" : "id" ,
+   "name" : "name" ,
+   "orders" : [ 
+                 { 
+                    "orderId" : "orderId" , 
+                    "orderData" : "orderData" , 
+                    "orderDetails" : [
+                                         { 
+                                            "lineitemId" : "lineitemId" , 
+                                            "prodId" : "prodId" , 
+                                            "qty" : "qty" 
+                                         }
+                                    ] 
+                } 
+              ]
+}	
+		</example>
+	</section>
+	
+	<section>
+		<description>If you 'flatten' this JSON using the above template, you will get the following output:</description>
+		<example>
+			[
+    {
+        "id": "alfki",
+        "name": "customer 1",
+        "orderId": 1,
+        "orderData": "12/1/2013",
+        "lineitemId": 1,
+        "prodId": 1,
+        "qty": 3
+    },
+    {
+        "id": "alfki",
+        "name": "customer 1",
+        "orderId": 1,
+        "orderData": "12/1/2013",
+        "lineitemId": 4,
+        "prodId": 3,
+        "qty": 2
+    },
+    {
+        "id": "alfki",
+        "name": "customer 1",
+        "orderId": 3,
+        "orderData": "12/3/2013",
+        "lineitemId": 6,
+        "prodId": 4,
+        "qty": 9
+    },
+    {
+        "id": "alfki",
+        "name": "customer 1",
+        "orderId": 3,
+        "orderData": "12/3/2013",
+        "lineitemId": 7,
+        "prodId": 3,
+        "qty": 1
+    },
+    {
+        "id": "bolid",
+        "name": "customer 2",
+        "orderId": 2,
+        "orderData": "12/2/2013",
+        "lineitemId": 2,
+        "prodId": 6,
+        "qty": 6
+    },
+    {
+        "id": "bolid",
+        "name": "customer 2",
+        "orderId": 2,
+        "orderData": "12/2/2013",
+        "lineitemId": 3,
+        "prodId": 9,
+        "qty": 7
+    }
+]
+			
+		</example>
+	</section>
+	
+	<section>
+		<description>Notice that the template has omitted the '__a5crc' in the input property. The template indicated which properties were to be extracted from the input JSON. It also indicates that the property name should be called in the output JSON.
+For example, the template indicates:
+
+ "id" : "id"
+
+Had that been:
+
+ "id" : "CustomerId"
+
+The output JSON would have named the 'id' property 'CustomerId'.
+Here is a simpler example:
+</description>
+		<example>
+			dim json as c 
+json = <<%str%
+[
+    {"id" : 1, "name": "John", "kids" : [ {"name": "callie"},{"name" : "griffin"} ]},
+    {"id" : 2, "name": "Tom", "kids" : [ { "name" : "betty" } ]}
+]
+%str%
+
+dim template as c
+template = <<%str%
+{"id" : "id", "name" : "firstname", "kids" : [ {"name": "name"} ] }
+%str%
+
+dim json2 as c 
+json2 = json_flatten(json,template)
+json2 = json_reformat(json2)
+			
+		</example>
+	</section>
+	
+	<section>
+		<description>
+			Here is what json2 looks like:
+</description>
+		<example>
+			[
+    {
+        "id": 1,
+        "firstname": "John",
+        "name": "callie"
+    },
+    {
+        "id": 1,
+        "firstname": "John",
+        "name": "griffin"
+    },
+    {
+        "id": 2,
+        "firstname": "Tom",
+        "name": "betty"
+    }
+]
+			
+		</example>
+	</section>
+	
+	<section>
+		<description>The json_flatten() function can also be used to simply map property names in the input JSON to new property names in the output JSON. For example, consider the following script:</description>
+		<example>
+			dim json as c 
+json = <<%str%
+[
+    {"id" : 1, "name": "John"},
+    {"id" : 2, "name": "Tom"}
+]
+%str%
+
+dim template as c
+template = <<%str%
+{"id" : "id", "name" : "firstname"}
+%str%
+
+
+dim json2 as c 
+json2 = json_flatten(json,template)
+json2 = json_reformat(json2)
+showvar(json2)
+			
+		</example>
+	</section>
+	
+	<section>
+		<description>The resulting JSON will look like this:</description>
+		<example>
+			
+			[
+    {"id" : 1, "firstname": "John"},
+    {"id" : 2, "firstname": "Tom"}
+]
+		</example>
+	</section>
+	
+</sections>
+
+	<see>
+		<ref>json_filter()</ref>
+		<ref>json_from_bson()</ref>
+		<ref>JSON Data</ref>
+	</see>
+</page>
