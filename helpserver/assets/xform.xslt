@@ -66,6 +66,16 @@
 				</xsl:for-each>
 				</ul>
 			</xsl:if>
+			<xsl:if test="video">
+				<xsl:for-each select="video">
+					<li><a xsl:use-attribute-sets="href-link"><xsl:value-of select="name" /></a></li>
+				</xsl:for-each>
+			</xsl:if>
+			<xsl:if test="videos">
+				<xsl:for-each select="videos/video">
+					<li><a xsl:use-attribute-sets="href-link"><xsl:value-of select="name" /></a></li>
+				</xsl:for-each>
+			</xsl:if>
 			<xsl:if test="see">
 			<p class="A5">See Also</p>
 			<ul>
@@ -76,4 +86,9 @@
 			</xsl:if>
 		</xsl:for-each>
 	</xsl:template>
+	<xsl:attribute-set name="href-link">
+		<xsl:attribute name="href">
+			<xsl:value-of select="link"/>
+		</xsl:attribute>
+	</xsl:attribute-set>	
 </xsl:stylesheet>
