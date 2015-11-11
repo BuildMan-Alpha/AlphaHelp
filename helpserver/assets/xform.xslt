@@ -26,27 +26,27 @@
 			</ul>
 			<xsl:choose>
 				<xsl:when test="content">
-					<p ><p class="A5">Description</p> <xsl:value-of select="content" disable-output-escaping="yes"/> </p>
+					<p class="A5">Description</p> <p><xsl:value-of select="content" disable-output-escaping="yes"/> </p>
 				</xsl:when>						
 				<xsl:when test="description">
-					<p ><p class="A5">Description</p> <xsl:value-of select="description"/> </p>
+					<p class="A5">Description</p> <p><xsl:value-of select="description"/> </p>
 				</xsl:when>
 			</xsl:choose>
 			<xsl:if test="example">
-			     <b class="A5">Example</b> <pre><xsl:value-of select="example" /></pre>
+			     <b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
 			</xsl:if>
 			<xsl:if test="sections">
 				<xsl:for-each select="sections/section">
 					<xsl:choose>
 						<xsl:when test="content">
-							<p ><p class="A5">Description</p> <xsl:value-of select="content" disable-output-escaping="yes"/> </p>
+							<p ><xsl:value-of select="content" disable-output-escaping="yes"/></p>
 						</xsl:when>						
 						<xsl:when test="description">
-							<p ><p class="A5">Description</p> <xsl:value-of select="description"/> </p>
+							<p ><xsl:value-of select="description"/></p>
 						</xsl:when>
 					</xsl:choose>
 					<xsl:if test="example">
-						<b class="A5">Example</b> <pre><xsl:value-of select="example" /></pre>
+						<pre class="codeTable"><xsl:value-of select="example" /></pre>
 					</xsl:if>
 				</xsl:for-each>
 			</xsl:if>			
