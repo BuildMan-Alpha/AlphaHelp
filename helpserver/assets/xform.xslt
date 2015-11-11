@@ -4,8 +4,10 @@
 			<p >
 				<p class="A3Function"><xsl:value-of select="topic" /></p>
 			</p>
-			<p class="A5">Syntax</p>  
-			<xsl:value-of select="syntax" />
+			<xsl:if test="syntax">
+				<p class="A5">Syntax</p>  
+				<xsl:value-of select="syntax" />
+			</xsl:if>
 			<ul>
 			<xsl:for-each select="arguments/argument">
 				<li> <xsl:value-of select="name"/>
@@ -31,8 +33,23 @@
 				</xsl:when>
 			</xsl:choose>
 			<xsl:if test="example">
-			<b class="A5">Example</b> <pre><xsl:value-of select="example" /></pre>
+			     <b class="A5">Example</b> <pre><xsl:value-of select="example" /></pre>
 			</xsl:if>
+			<xsl:if test="sections">
+				<xsl:for-each select="sections/section">
+					<xsl:choose>
+						<xsl:when test="content">
+							<p ><p class="A5">Description</p> <xsl:value-of select="content" disable-output-escaping="yes"/> </p>
+						</xsl:when>						
+						<xsl:when test="description">
+							<p ><p class="A5">Description</p> <xsl:value-of select="description"/> </p>
+						</xsl:when>
+					</xsl:choose>
+					<xsl:if test="example">
+						<b class="A5">Example</b> <pre><xsl:value-of select="example" /></pre>
+					</xsl:if>
+				</xsl:for-each>
+			</xsl:if>			
 			<xsl:if test="methods">
 				<p class="A5">Methods</p>
 				<ul>
@@ -49,7 +66,6 @@
 				</xsl:for-each>
 				</ul>
 			</xsl:if>
-			
 			<xsl:if test="see">
 			<p class="A5">See Also</p>
 			<ul>
