@@ -42,7 +42,7 @@
 						<ul>
 							<xsl:value-of select="description" />
 							<p>
-								<a onclick="helpServer.navigateClosestTopic(this.innerText)" ><xsl:value-of select="ref" /></a>
+								<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)" ><xsl:value-of select="ref" /></a>
 							</p>
 						</ul>							
 					</li>
@@ -54,7 +54,7 @@
 			<p class="A5">See Also</p>
 			<ul>
 			<xsl:for-each select="see/ref">
-				<li><a onclick="helpServer.navigateClosestTopic(this.innerText)" ><xsl:value-of select="." /></a></li>
+				<li><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)" ><xsl:value-of select="." /></a></li>
 			</xsl:for-each>
 			</ul>
 			</xsl:if>
