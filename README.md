@@ -127,3 +127,13 @@ This needs needs to be every time we restart the machine, but also when we are i
 ```sh
 sudo service elasticsearch restart
 ```
+
+##Handling case sensitive path issues with Git-Unite
+
+There is a utility in 3rdParty to handle fixups should files appear to be missing on the documentation
+server.  Linux has a case sensitive file system, while windows does not, so in order to fix inconsistencies 
+in GIT caused by this problem, it is neccessary to occasionally run git-unite against the folder.
+
+```cmd
+C:\dev\3rdParty\Git\git-unite\src\Git.Unite\bin\Debug>Git.Unite.exe C:\dev\AlphaHelp
+```
