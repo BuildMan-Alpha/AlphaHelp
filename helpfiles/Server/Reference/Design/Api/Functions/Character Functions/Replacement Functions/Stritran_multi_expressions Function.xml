@@ -1,0 +1,79 @@
+<page>
+   <topic>Stritran_multi_expressions Function</topic>
+   <syntax>C textOut = STRITRAN_MULTI_EXPRESSIONS(C character,C pairs)</syntax>
+   <arguments>
+     <argument>
+         <name>character</name>
+         <description>String in  which you want to perform a search and replace operation.</description>
+     </argument>
+     <argument>
+         <name>pairs</name>
+         <description><![CDATA[A CR-LF  delimited list of search and replace values. Each row in the list has this  format:  searchString=replacementExpression
+ If a  replacementExpression contains any search strings, you can force the  replacement to occur recursively by using a double = sign. e.g.
+ searchString==replacementExpression
+ Each = sign causes an additional recursion. For example:
+ searchString===replacementExpression
+ will recurse over the data 3  times.]]></description>
+     </argument>
+   </arguments>
+   <description>Replaces occurrences of tokens before '=' with results of expression after '=' in cr-lf delimited list of pairs compare is case insensitive.</description>
+   
+   <example><![CDATA[
+dim string as c
+string = "Hello {name}. Today is {date}."
+dim sr as c
+sr = 
+{name}="Peter"
+{date}=date()
+%txt%
+?stritran_multi_expressions(string,sr)
+= Hello Peter. Today is 8/26/2009
+ 
+'Now try recursive replacement
+dim string as c
+string = "Hello {name}. Today is {date}."
+dim sr as c
+sr = 
+{lastname}=="Smith"
+{name}="Peter {lastname}"
+{date}=date()
+%txt%
+?stritran_multi_expressions(string,sr)
+= Hello Peter Smith. Today is 8/26/2009
+]]></example>
+   <sections>
+       <section>
+            <description>Note that  this function looks for the token anywhere in the string - when you have tokens where ONE token is a substring of another token you need to put the longer token first. This can easily be accomplished using the a5_stritran_multi_expression_Prepare Function.
+For example:</description>
+            <example><![CDATA[
+
+string = "this is parameter1 and this is parameter10 "
+
+var1 = "alpha"
+var2 = "beta"
+
+sr = 
+#parameter1=var1
+#parameter10=var2
+#%txt%
+
+?stritran_multi_expressions(string,sr)
+= "this is alpha and this is alpha0 "  ''
+
+sr2 = a5_stritran_multi_expression_Prepare(sr)
+
+?sr2 
+= parameter10=var2
+parameter1=var1
+
+'sr2 is now sorted by the length of the search string (the part before the = sign on each line of the string)
+
+?stritran_multi_expressions(string,sr2)
+= "this is alpha and this is beta "   '
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>a5_stritran_multi_expression_Prepare Function</ref>
+   </see>
+</page>
