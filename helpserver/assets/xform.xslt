@@ -74,6 +74,20 @@
 							</p>
 						</xsl:when>
 					</xsl:choose>
+					<xsl:if test="list">
+						<table>
+							<xsl:for-each select="list/item">
+								<xsl:choose>
+									<xsl:when test="name-title">
+										<tr><th style="white-space: nowrap; text-align: left;padding-right:8pt;"><xsl:value-of select="name-title" /></th><th style="white-space: nowrap; text-align: left;"><xsl:choose><xsl:when test="description-title"><xsl:value-of select="description-title" /></xsl:when><xsl:otherwise>Description</xsl:otherwise></xsl:choose></th></tr>
+									</xsl:when>
+									<xsl:otherwise>
+										<tr><td><xsl:value-of select="name" /></td><td><xsl:value-of select="description" /></td></tr>
+									</xsl:otherwise>
+								</xsl:choose>
+							</xsl:for-each>
+						</table>
+					</xsl:if>
 					<xsl:if test="example">
 						<pre class="codeTable"><xsl:value-of select="example" /></pre>
 					</xsl:if>
