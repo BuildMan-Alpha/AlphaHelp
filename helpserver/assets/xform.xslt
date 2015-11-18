@@ -55,7 +55,7 @@
 			<xsl:if test="sections">
 				<xsl:for-each select="sections/section">
 					<xsl:if test="title">
-						<pre class="codeTable"><xsl:value-of select="title" /></pre>
+						<p class="A5"><xsl:value-of select="title" /></p>
 					</xsl:if>
 					<xsl:choose>
 						<xsl:when test="content">
