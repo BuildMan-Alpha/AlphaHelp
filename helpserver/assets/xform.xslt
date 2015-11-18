@@ -10,11 +10,11 @@
 				<p class="A5">Syntax</p>
 				<xsl:value-of select="syntax" />
 			</xsl:if>
-			<ul>
-				<xsl:for-each select="arguments/argument">
-					<li>
-						<xsl:value-of select="name" />
-						<ul>
+			<xsl:if test="arguments">
+				<dl>
+					<xsl:for-each select="arguments/argument">
+						<dt><xsl:value-of select="name" /></dt>
+						<dd>
 							<xsl:choose>
 								<xsl:when test="content">
 									<xsl:value-of select="content" disable-output-escaping="yes" />
@@ -23,10 +23,10 @@
 									<xsl:value-of select="description" />
 								</xsl:when>
 							</xsl:choose>
-						</ul>
-					</li>
-				</xsl:for-each>
-			</ul>
+						</dd>
+					</xsl:for-each>
+				</dl>
+			</xsl:if>
 			<xsl:if test="description">
 				<p class="A5">Description</p>
 				<p>
@@ -55,7 +55,9 @@
 			<xsl:if test="sections">
 				<xsl:for-each select="sections/section">
 					<xsl:if test="title">
-						<p class="A5"><xsl:value-of select="title" /></p>
+						<p class="A5">
+							<xsl:value-of select="title" />
+						</p>
 					</xsl:if>
 					<xsl:choose>
 						<xsl:when test="content">
@@ -79,10 +81,28 @@
 							<xsl:for-each select="list/item">
 								<xsl:choose>
 									<xsl:when test="name-title">
-										<tr><th style="white-space: nowrap; text-align: left;padding-right:8pt;"><xsl:value-of select="name-title" /></th><th style="white-space: nowrap; text-align: left;"><xsl:choose><xsl:when test="description-title"><xsl:value-of select="description-title" /></xsl:when><xsl:otherwise>Description</xsl:otherwise></xsl:choose></th></tr>
+										<tr>
+											<th style="white-space: nowrap; text-align: left;padding-right:8pt;">
+												<xsl:value-of select="name-title" />
+											</th>
+											<th style="white-space: nowrap; text-align: left;">
+												<xsl:choose>
+													<xsl:when test="description-title">
+														<xsl:value-of select="description-title" /></xsl:when>
+													<xsl:otherwise>Description</xsl:otherwise>
+												</xsl:choose>
+											</th>
+										</tr>
 									</xsl:when>
 									<xsl:otherwise>
-										<tr><td><xsl:value-of select="name" /></td><td><xsl:value-of select="description" /></td></tr>
+										<tr>
+											<td>
+												<xsl:value-of select="name" />
+											</td>
+											<td>
+												<xsl:value-of select="description" />
+											</td>
+										</tr>
 									</xsl:otherwise>
 								</xsl:choose>
 							</xsl:for-each>
