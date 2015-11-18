@@ -54,6 +54,9 @@
 			</xsl:if>
 			<xsl:if test="sections">
 				<xsl:for-each select="sections/section">
+					<xsl:if test="title">
+						<pre class="codeTable"><xsl:value-of select="title" /></pre>
+					</xsl:if>
 					<xsl:choose>
 						<xsl:when test="content">
 							<p>
@@ -73,6 +76,23 @@
 					</xsl:choose>
 					<xsl:if test="example">
 						<pre class="codeTable"><xsl:value-of select="example" /></pre>
+					</xsl:if>
+					<xsl:if test="figure">
+						<xsl:for-each select="figure">
+							<img xsl:use-attribute-sets="src-link" />
+							<xsl:if test="title">
+								<p>
+									<xsl:value-of select="title" />
+								</p>
+							</xsl:if>
+						</xsl:for-each>
+					</xsl:if>
+					<xsl:if test="video">
+						<li>
+							<a xsl:use-attribute-sets="href-link">
+								<xsl:value-of select="name" />
+							</a>
+						</li>
 					</xsl:if>
 				</xsl:for-each>
 			</xsl:if>
@@ -145,6 +165,11 @@
 	<xsl:attribute-set name="ref-href-link">
 		<xsl:attribute name="href">
 			<xsl:value-of select="./@href" />
+		</xsl:attribute>
+	</xsl:attribute-set>
+	<xsl:attribute-set name="src-link">
+		<xsl:attribute name="src">
+			<xsl:value-of select="link" />
 		</xsl:attribute>
 	</xsl:attribute-set>
 </xsl:stylesheet>
