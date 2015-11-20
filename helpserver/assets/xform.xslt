@@ -10,6 +10,10 @@
 				<p class="A5">Syntax</p>
 				<xsl:value-of select="syntax" />
 			</xsl:if>
+			<xsl:if test="prototype">
+				<p class="A5">Syntax</p>
+				<xsl:value-of select="prototype" />
+			</xsl:if>
 			<xsl:if test="prototypes">
 				<p class="A5">Syntax</p>
 				<xsl:for-each select="prototypes/prototype">
@@ -17,21 +21,9 @@
 				</xsl:for-each>
 			</xsl:if>
 			<xsl:if test="arguments">
-				<dl>
-					<xsl:for-each select="arguments/argument">
-						<dt><xsl:value-of select="name" /></dt>
-						<dd>
-							<xsl:choose>
-								<xsl:when test="content">
-									<xsl:value-of select="content" disable-output-escaping="yes" />
-								</xsl:when>
-								<xsl:when test="description">
-									<xsl:value-of select="description" />
-								</xsl:when>
-							</xsl:choose>
-						</dd>
-					</xsl:for-each>
-				</dl>
+				<xsl:if test="arguments">
+					<xsl:call-template name="arguments"/>    
+				</xsl:if>			
 			</xsl:if>
 			<xsl:if test="description">
 				<p class="A5">Description</p>
@@ -136,23 +128,32 @@
 					</xsl:if>
 				</xsl:for-each>
 			</xsl:if>
+			<xsl:if test="properties">
+				<p class="A5">Properties</p>
+				<dl class="methodsDL" >
+					<xsl:for-each select="properties/property">
+						<dt><xsl:value-of select="name" /></dt>
+						<dd><xsl:value-of select="description" />
+							<xsl:if test="example"><b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre></xsl:if>							 
+							<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a>							
+						</dd>
+					</xsl:for-each>
+				</dl>
+			</xsl:if>
 			<xsl:if test="methods">
 				<p class="A5">Methods</p>
-				<ul>
+				<dl class="methodsDL" >
 					<xsl:for-each select="methods/method">
-						<li>
-							<xsl:value-of select="name" />
-							<ul>
-								<xsl:value-of select="description" />
-								<p>
-									<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)">
-										<xsl:value-of select="ref" />
-									</a>
-								</p>
-							</ul>
-						</li>
+						<dt><xsl:value-of select="name" /></dt>
+						<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>						
+						 	<xsl:value-of select="description" />
+							<xsl:if test="example">
+								<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
+							</xsl:if>							 
+							<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a>							
+						</dd>
 					</xsl:for-each>
-				</ul>
+				</dl>
 			</xsl:if>
 			<xsl:if test="video">
 				<xsl:for-each select="video">
@@ -196,6 +197,28 @@
 				</ul>
 			</xsl:if>
 		</xsl:for-each>
+	</xsl:template>
+	<xsl:template match="arguments" name="arguments" >
+		<dl class="argumentsDL">
+			<xsl:for-each select="arguments/argument">
+				<dt><xsl:value-of select="name" /></dt>
+				<dd>
+					<xsl:choose>
+						<xsl:when test="content">
+							<xsl:value-of select="content" disable-output-escaping="yes" />
+						</xsl:when>
+						<xsl:when test="description">
+							<xsl:value-of select="description" />
+						</xsl:when>
+					</xsl:choose>
+					<xsl:if test="ref">
+						<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)">
+							<xsl:value-of select="ref" />
+						</a>
+					</xsl:if>
+				</dd>
+			</xsl:for-each>
+		</dl>
 	</xsl:template>
 	<xsl:attribute-set name="href-link">
 		<xsl:attribute name="href">
