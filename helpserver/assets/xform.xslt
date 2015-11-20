@@ -10,6 +10,12 @@
 				<p class="A5">Syntax</p>
 				<xsl:value-of select="syntax" />
 			</xsl:if>
+			<xsl:if test="prototypes">
+				<p class="A5">Syntax</p>
+				<xsl:for-each select="prototypes/prototype">
+				<p><xsl:value-of select="." /></p>
+				</xsl:for-each>
+			</xsl:if>
 			<xsl:if test="arguments">
 				<dl>
 					<xsl:for-each select="arguments/argument">
