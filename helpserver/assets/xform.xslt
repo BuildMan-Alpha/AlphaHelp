@@ -93,7 +93,7 @@
 				</xsl:if>
 				<xsl:if test="figure">
 					<xsl:for-each select="figure">
-						<img xsl:use-attribute-sets="src-link" />
+						<img xsl:use-attribute-sets="src-link" class="sectionFigure" />
 						<xsl:if test="title">
 							<p>
 								<xsl:value-of select="title" />
