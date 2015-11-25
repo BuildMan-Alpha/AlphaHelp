@@ -1,0 +1,195 @@
+<page>
+   <topic>EMAIL_SEND2 Function</topic>
+   <syntax>Result_Flag as L = email_send2(P pMessage [,C profile [,L lSilent [,L store_in_mailbox [,L autowrap ]]]])</syntax>
+   <arguments>
+     <argument>
+         <name>Result_Flag as L =</name>
+         <description>Indicates success or failure after sending an email.</description>
+     </argument>
+     <argument>
+         <name>pMessage</name>
+         <description>A pointer variable containing the message.</description>
+         <list>
+	         <item>
+		         <name-title>Header Component</name-title>
+		         <description-title>Description</description-title>
+	         </item>
+	         
+	         <item>
+		         <name>.From</name>
+		         <description>The sender's email address.</description>
+	         </item>
+	         <item>
+		         <name>.From_Alias</name>
+		         <description>Optional. The sender's name.</description>
+	         </item>
+	         <item>
+		         <name>.To</name>
+		         <description>A semi-colon (;), comma (,), or CR-LF delimited list of recipients. Microsoft Outlook allows you to format the address as "recipient_name". This hides the "" portion of the field from the recipient.</description>
+	         </item>
+	         <item>
+		         <name>.CC</name>
+		         <description>Optional. The CC list. Multiple entries are separated by commas.</description>
+	         </item>
+	         <item>
+		         <name>.BCC</name>
+		         <description>Optional. The BCC list. Multiple entries are separated by commas.</description>
+	         </item>
+	         <item>
+		         <name>.Subject</name>
+		         <description>The subject line of the email. Optional, depending on mail server requirements.</description>
+	         </item>
+	         <item>
+		         <name>.Message</name>
+		         <description>The body of a text message. Optional, depending on mail server requirements.</description>
+	         </item>
+	         <item>
+		         <name>.Html_Message</name>
+		         <description>Optional. The body of a HTML message.</description>
+	         </item>
+	         
+	         <item>
+		         <name>.Attachments</name>
+		         <description>Optional. A semi-colon (;), comma, or CR-LF delimited list of filenames. Any file type can be attached.</description>
+	         </item>
+	         <item>
+		         <name>.Xmailer</name>
+		         <description>Optional. Default = NULL. The sending email program.</description>
+	         </item>
+	         <item>
+		         <name>.Lrelated</name>
+		         <description>Optional. Default = .F.
+.T. = Attachments are embedded image in the HTML message.
+.F. = Attachments are separate files.
+</description>
+	         </item>
+	         <item>
+		         <name>.Date</name>
+		         <description>Optional. Default = "". The date of the email.</description>
+	         </item>
+	         <item>
+		         <name>.Failure</name>
+		         <description>Optional. Default = "". A list of failed addresses.</description>
+	         </item>
+	         <item>
+		         <name>.Headers</name>
+		         <description>Optional. Default = "". If the user wants to supply additional Email headers per RFC822, they can set them in the Headers property.</description>
+	         </item>
+	          <item>
+		         <name>.Success</name>
+		         <description>Optional. Default = "". A list of successful addresses.</description>
+	         </item>
+	          <item>
+		         <name>.ReturnReceipt</name>
+		         <description>Optional. Default = .F. If .t. then an e-mail will be sent to the sender acknowledging that the recipient has read the e-mail. Note that not all e-mail clients support this feature and the recipient might decline to send the receipt.</description>
+	         </item>
+         </list>
+     </argument>
+     <argument>
+         <name>profile</name>
+         <description>Optional. Uses the last active profile. The name of an email profile as found on the View > Settings > Email > Profiles tab. Character</description>
+     </argument>
+     <argument>
+         <name>lSilent</name>
+         <description>Logical. Optional. Default = .F. Allows you to trap errors using the Xbasic ON ERROR GOTO command.
+.T. = Error trapping on.
+.F. = Error trapping off.
+</description>
+     </argument>
+     <argument>
+         <name>store_in_mailbox</name>
+         <description>Logical. Optional. Whether to store the message in your mailbox.
+.T. = Alpha Anywhere stores a copy of the message in the Alpha Anywhere outbox.
+.F. = Copy not saved.
+</description>
+     </argument>
+     <argument>
+         <name>autowrap</name>
+         <description>Logical. Optional. Default = .T. Whether to force text emails to wrap at 72 characters per line. 
+.T. = Automatically wrap all lines of text at 72 characters or less.
+.F. = Leave text email body unchanged.
+</description>
+     </argument>
+   </arguments>
+   <description> Send an email message</description>
+   <discussion>
+Note : EMAIL_SEND2() requires that you have configured an Alpha  Five email profile. If you are working in an environment where this is not possible, use EMAIL_SMTP_OPEN(), EMAIL_SMTP_SEND(), and EMAIL_SMTP_CLOSE().
+EMAIL_SEND2() sends an email message using Alpha Anywhere's built-in email features. The function does not require that you have a third party email client (such as Eudora or Outlook ) installed on the computer.
+ Note : EMAIL_SEND() is not sensitive to the type of image files attached and embedded in HTML formatted messages.
+
+   </discussion>
+ 
+   <sections>
+       <section>
+       <title>Example</title>
+            <description>Sends an email message using A5's internal email facility. A copy of the message is stored in the user's Alpha Anywhere outbox.
+</description>
+            <example><![CDATA[
+dim message as P
+body = %a% 
+Just wanted to let you know that we really enjoy using Alpha Five.
+%a%
+message.message = body
+message.to = "sales@alphasoftware.com"
+message.subject = "Thanks"
+email_send2(message, "", .F., .T.)
+]]></example>
+       </section>
+       
+       
+       <section>
+   
+            <description>The Silent option is useful for Xbasic programmers who are using the EMAIL_SEND2() function in a loop where they want to prevent the standard Alpha Anywhere error messages from popping up when an error (such as a bad email address) in encountered. Instead, they want to write their own error handler for this condition. For example:
+</description>
+            <example><![CDATA[
+Dim tbl as P
+Dim ITbl as P
+Tbl = table.open("customers")
+Query.filter = "balance > 1000000"
+Query.order = "recno() "
+ITbl = tbl.query_create()
+Tbl.fetch_first()
+While .not. tbl.fetch_eof()
+    ON ERROR GOTO BAD_EMAIL   
+]]></example>
+       </section>
+       
+        <section>
+   
+            <description>Fill in all of the arguments for EMAIL_SEND2() and set the Silent parameter to .T. .</description>
+            <example><![CDATA[
+Email_sends(??????, .t.)
+ON ERROR GOTO 0 'turn error handler off
+Tbl.fetch_next()
+End While
+Tbl.close()
+' end the main script here so that it does not continue into the error handler
+End
+BAD_EMAIL:
+' put you own error handling code here
+RESUME NEXT
+' causes Alpha Anywhere to resume on the line after email_sends()
+end
+]]></example>
+       </section>
+       
+        <section>
+   
+            <description>This example shows how to include an image in an email.
+            </description>
+            <example><![CDATA[
+dim pm as P
+pm.attachments = " C:\login.jpg "
+pm.lrelated = .T.
+pm.from = "aaron@alphasoftware.com"
+pm.from_alias = "Aaron Brown"
+pm.to = "aaron@alphasoftware.com"
+pm.subject = "Inline Attachments"
+pm.html_message = %html%
+'This is a message with an inline image.
+]]></example>
+       </section>
+       
+       
+   </sections>
+</page>

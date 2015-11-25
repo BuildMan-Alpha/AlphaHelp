@@ -1,0 +1,134 @@
+<page>
+   <topic>EMAIL_SEND Function</topic>
+   <syntax>Result as N = email_send(C send_to ,C subject ,C message [,C attachments [,C cc [,C bcc [,L store_in_outbox [,C text_type [,C html_message [,C profile[,L zip_attach [,L lSilent [,L returnReceipt ]]]]]]]]]])</syntax>
+   <arguments>
+     <argument>
+         <name>send_to</name>
+         <description>Character. One or more comma delimited addresses.</description>
+     </argument>
+     <argument>
+         <name>subject</name>
+         <description>Character. The subject of the message.</description>
+     </argument>
+     <argument>
+         <name>message</name>
+         <description>The contents of the message. Character</description>
+     </argument>
+     <argument>
+         <name>attachments</name>
+         <description>Optional. A ";", comma, or CR-LF delimited list of filenames to attach to the message. If multiple attachments are specified, Alpha Five will automatically zip the attachments into a single file. Any file type can be attached. Character</description>
+     </argument>
+     <argument>
+         <name>cc</name>
+         <description>Optional. One or more comma delimited addresses. Character</description>
+     </argument>
+     <argument>
+         <name>bcc</name>
+         <description>Optional. One or more comma delimited addresses. Character</description>
+     </argument>
+     <argument>
+         <name>store_in_outbox</name>
+         <description>Logical. Optional.
+ .T. = Alpha Five stores a copy of the message in the Alpha Five outbox (typically A_EMAIL.DBF in the program folder).
+ .F. = Copy not saved.
+ Note : When sending email from the Server only version of the Application Server, set this value to .F. .
+</description>
+     </argument>
+     <argument>
+         <name>text_type</name>
+         <description>Optional. Default = "" (plain text). "" (Null) = plain text email, "HTML" = HTML email. Character</description>
+     </argument>
+     <argument>
+         <name>html_message</name>
+         <description>Optional. The contents of the message in HTML format. Character</description>
+     </argument>
+     <argument>
+         <name>profile</name>
+         <description>The name of your email profile as found on the View > Settings > Email > Profiles tab.
+ Note : When sending email from an ISP's server, you must specify your profile. Character</description>
+     </argument>
+     <argument>
+         <name>zip_attach</name>
+         <description>Logical. Optional. Default = .T.
+ .T. = Attachments are zipped into a single file.
+ .F. = Attachments are individual files. </description>
+     </argument>
+     <argument>
+         <name>lSilent</name>
+         <description>Logical. Optional. Default = .F. Allows you to trap errors using the Xbasic ON ERROR GOTO command.
+
+ .T. = Error trapping on.
+
+ .F. = Error trapping off. </description>
+     </argument>
+     <argument>
+         <name>returnReceipt</name>
+         <description>Logical</description>
+     </argument>
+   </arguments>
+   <description>Sends an e-mail using the built-in, Alpha Five e-mail feature. Set text_type to "html" for HTML email.  If lSilent = .T., email_send will throw an error rather than show a message box.</description>
+   <discussion>
+Note : EMAIL_SEND()  requires that you have configured an Alpha Anywhere email profile. If you are working in an environment where this is not possible, use EMAIL_SMTP_OPEN(), EMAIL_SMTP_SEND(), and EMAIL_SMTP_CLOSE().
+Note : EMAIL_SEND()  is a high level wrapper for EMAIL_SEND2(), which exposes more options for the developer and may be easier to use.
+EMAIL_SEND() sends an email message using Alpha Five's built-in email features. Does not require that you have a third party email client (such as  Eudora, or Outlook ) installed on the computer.
+ Result is 0 if the email was not sent, and 1 if the email was sent.
+If Text_Type is "HTML" and Message and HTML_Message are both specified, Message is treated as  the plain text version and HTML_Message is treated as the HTML version. In this case, both the plain text version and the HTML version are sent together in the same email. Email clients that support HTML text will see the HTML version and those that do not will see the plain text version.
+If HTML_Message is not specified and Text_Type is "HTML," message is treated as the HTML text.
+ Note : EMAIL_SEND()  is not sensitive to the type of image files attached and embedded in HTML formatted messages.
+
+   </discussion>
+  
+   <sections>
+       <section>
+       <title>Example</title>
+            <description>Sends an email message using Alpha Five's internal email facility. A copy of the message is stored in the user's Alpha Five outbox.
+</description>
+            <example><![CDATA[
+body = %a%
+Just wanted to let you know that we really enjoy using Alpha Five.
+%a%
+email_send("sales@alphasoftware.com","Thanks",body,"","","",.T.)
+]]></example>
+       </section>
+       
+       <section>
+            <description>The Silent option is useful for Xbasic programmers who are using the email_send() function in a loop where they want to prevent the standard Alpha Five error messages from popping up when an error (such as a bad email address) in encountered. Instead, they want to write their own error handler for this condition. For example:
+</description>
+            <example><![CDATA[
+Dim tbl as P
+Dim ITbl as P
+Tbl = table.open("customers")
+Query.filter = "balance > 1000000"
+Query.order = "recno() "
+ITbl = tbl.query_create()
+Tbl.fetch_first()
+While .not. tbl.fetch_eof()
+    ON ERROR GOTO BAD_EMAIL   
+]]></example>
+       </section>
+       
+       <section>
+            <description>Fill in all of the arguments for EMAIL_SEND() and set the Silent parameter to .T..</description>
+            <example><![CDATA[
+Email_send("...", .t.)
+    ON ERROR GOTO 0 'turn error handler off
+    Tbl.fetch_next()
+End While
+Tbl.close()
+'end the main script here so that it does not continue into the error handler
+End
+BAD_EMAIL:
+'put you own error handling code here
+RESUME NEXT
+'causes Alpha Five to resume on the line after email_send()
+end
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>EMAIL_SEND2()</ref>
+      <ref>Email Functions and Methods</ref>
+      <ref><![CDATA[<EMAIL> Pointer Properties]]></ref>
+      <ref>EMAIL_RECEIVE()</ref>
+   </see>
+</page>
