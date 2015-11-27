@@ -209,6 +209,9 @@
 							</td>
 							<td>
 								<xsl:value-of select="description" />
+								<xsl:if test="list">
+								    <xsl:call-template name="list"/>
+								</xsl:if>
 							</td>
 						</tr>
 					</xsl:otherwise>
