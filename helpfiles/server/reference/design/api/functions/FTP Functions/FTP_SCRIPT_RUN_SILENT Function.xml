@@ -1,0 +1,135 @@
+<page>
+   <topic>FTP_SCRIPT_RUN_SILENT Function</topic>
+   <syntax>Result as C = ftp_script_run_silent(C ftp_script [,L modal [,* FTPstatus ]])</syntax>
+   <arguments>
+      <argument>
+         <name>Result</name>
+         <description>The return value is only meaningful if Modal is  set to .F. See the Modal description.</description>
+     </argument>
+     <argument>
+         <name>ftp_script</name>
+         <description>A CR-LF delimited list of FTP commands to execute (See  FTP Command Syntax below)</description>
+     </argument>
+     <argument>
+         <name>modal</name>
+         <description>Logical. .T. = the function  runs synchronously, meaning that Xbasic pauses until the FTP transfer  is complete. When the function is complete, Result will be set to either "Transfer completed" or "Error".  There is no need to supply the FTPStatus parameter.
+
+.F. = the function  runs asynchronously, meaning that Xbasic continues to execute while the  FTP transfer continues in a background thread. In this case, the FTPStatus argument should be supplied. FTPStatus.  message contains the status of the FTP transfer. 
+</description>
+     </argument>
+     <argument>
+         <name>FTPstatus</name>
+         <description>The total number of bytes to be transferred by the FTP  operation. If this value is specified, then the progress dialog box will  display a progress bar.
+</description>
+     </argument>
+   </arguments>
+   <description>Run an alpha five FTP script...</description>
+   <discussion>
+Alpha Anywhere has a simple "FTP language" that can be used to  write scripts that execute various FTP commands such as uploading  and downloading files, making folders on the remove FTP target, renaming  and deleting files and folders, etc. This function executes a FTP script  created by FTP_MakeCommandList()without  a user dialog.
+
+   </discussion>
+  
+   <sections>
+       <section>
+       <title>FTP Command Syntax</title>
+           <list>
+           		<item>
+           			<name-title>Basic Commands</name-title><description-title></description-title></item>
+           		<item>
+           			<name></name><description></description></item>
+           		<item>
+           			<name>connect| Address</name><description>Connects to an FTP site specified by Address</description></item>
+           		<item>
+           			<name>login| User | Password</name><description>Logs in to an FTP site.</description></item>
+           		<item>
+           			<name>list| Optional_Mask</name><description>Lists files on a FTP site and places the result in the  List_Result variable. The Eval command can use List_Result. To list only  files that match a mask, specify the Optional_Mask.
+</description></item>
+           		<item>
+           			<name>nlist| Optional_Mask</name><description>Lists files (filenames only, no additional information)  on a FTP site and places the result in the List_Result variable. This variable can be used in the Eval command. To list only files that match a mask, specify the Optional_Mask.
+</description></item>
+           		<item>
+           			<name>quit</name><description>End the FTP session.</description></item>
+           		<item>
+           			<name>cd| Path</name><description>Change the working directory on the FTP site.</description></item>
+           		<item>
+           			<name>binary</name><description>Execute this command before transferring a binary file.</description></item>
+           		<item>
+           			<name>ascii</name><description>Execute this command before transferring an ASCII file</description></item>
+           		<item>
+           			<name>pwd</name><description>Returns the name of the current working directory (i.e.  folder) on the FTP site and places it in the Result variable which can be used in an expression with the Eval command
+</description></item>
+           		<item>
+           			<name>rm| File_Name</name><description>Deletes a file on the FTP site</description></item>
+           		<item>
+           			<name>mkdir| Folder_Name</name><description>Makes a folder on the FTP site.</description></item>
+           		<item>
+           			<name>rmdir| Folder_Name</name><description>Deletes a folder on the FTP site.</description></item>
+           		<item>
+           			<name>rename| Old_File_Name |  New_File_Name</name><description>Renames a file on the FTP site.</description></item>
+           		<item>
+           			<name>get| Remote_File_Name |  Local_File_Name</name><description>Transfers a file from the FTP site to the local machine.</description></item>
+           		<item>
+           			<name>put| Local_File_Name | Remote_File_Name</name><description>Transfers a file from the local machine to the FTP site.</description></item>
+           		<item>
+           			<name></name><description></description></item>
+           </list>
+       </section>
+   </sections>
+   
+   <sections>
+   <section>
+   <list><item><name-title>Advanced Commands</name-title><description-title></description-title></item>
+   <item><name>eval| Expression</name><description>Evaluates Expression and  then executes the resulting command. The eval command, in effect, allows you to dynamically generate FTP commands to  be executed. The Expression can reference  the following special variables:
+Result = Result of last  FTP command (e.g. error code returned, path returned by PWD command, etc.). List_Result = List of files  returned by LIST or NLIST command.</description></item>
+   <item><name>onerror| Command</name><description>If the prior FTP command fails, then the Command specified by onerror is executed.</description></item>
+  <item><name>log| Text</name><description>Concatenates text to the status text displayed by the  progress dialog box.</description></item>
+   <item><name>error| Text</name><description>Reports an error and quits the session.</description></item>
+  <item><name>replace| Searchtext | Replacetext</name><description>Modifies the commands that follow in the script. An  example of how this might be used is to replace a placeholder in the script  with the folder name that is retrieved through the pwd command.
+</description></item>
+</list>
+   </section>
+   </sections>
+   
+   <sections>
+   <section>
+   <title>Example</title>
+   <example><![CDATA[DIM myStatus as P
+DIM myStatus.message as C
+result = ftp_script_run_silent(FtpScript, myStatus)
+]]></example>
+   </section>
+   
+   
+    <section>
+   <description>This example includes a variable named varc_filenmedir. It cannot be quoted, so it is placed between 2 strings.</description>
+   <example><![CDATA[cmd = <<%a% 
+connect|ftp.mysite.com 
+onerror|error|Could not connect 
+login|user|password 
+onerror|error|Could not log in 
+cd|\newuser 
+binary 
+put|%a% + varc_filenmedir + crlf() + <<%a% 
+quit 
+%a% 
+Result = ftp_script_run_silent(cmd, .t.)
+]]></example>
+   </section>
+   </sections>
+   
+   
+   <see>
+      <ref>Internet Functions  and Methods</ref>
+      <ref>FTP_MakeCommandList()</ref>
+   </see>
+
+
+
+
+
+
+
+
+
+
+</page>

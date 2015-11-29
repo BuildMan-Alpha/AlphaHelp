@@ -1,0 +1,127 @@
+<page>
+   <topic>FTP_MakeCommandList Function</topic>
+   <syntax>Result as C = FTP_MakeCommandList(C folder ,C address ,C username ,C password [,C ascii_extension_list ])</syntax>
+   <arguments>
+     <argument>
+         <name>Result</name>
+         <description>FTP commands to execute.</description>
+     </argument>
+     <argument>
+         <name>folder</name>
+         <description>Folder on local machine that contains the files to be transferred.</description>
+     </argument>
+     <argument>
+         <name>address</name>
+         <description>FTP address of target computer. Character</description>
+     </argument>
+     <argument>
+         <name>username</name>
+         <description>User name for login purposes. Character</description>
+     </argument>
+     <argument>
+         <name>password</name>
+         <description>User password for login purposes. Character</description>
+     </argument>
+     <argument>
+         <name>ascii_extension_list</name>
+         <description>Optional. Default (see list below). Character</description>
+     </argument>
+   </arguments>
+   <description>Creates command script for use by ftp_script_run() to transfer all files in a folder and its subfolder.</description>
+   <discussion>
+The FTP_MakeCommandList() function is a helper function for use with FTP_SCRIPT_RUN()to construct a FTP script to transfer all of the files in a folder (including all sub-folders). The script will generate the necessary commands to re-create the folder structure of the source folder on the FTP client.
+
+   </discussion>
+  
+   <sections>
+       <section>
+       <title>Example</title>
+            <description>Assume that a folder (called 'folder1') on the local machine contains the following files:</description>
+            <example><![CDATA[
+c:\folder1\file1.txt
+c:\folder1\file2.txt
+c:\folder1\subfolder1\file3.txt
+c:\folder1\subfolder2\file4.txt
+]]></example>
+       </section>
+       
+        <section>
+       
+            <description>To transfer these files to a remote machine.</description>
+            <example><![CDATA[
+'generate the commands necessary to transfer files in c:\folder1
+cmd = FTP_MakeCommandList("c:\folder1","ftp.myaddress.com","myname","mypassword")
+'execute the script
+ftp_script_run("test",cmd,.f.)
+]]></example>
+       </section>
+       
+       <section>
+       
+            <description>If you examine the code in the cmd variable, you will see that the following FTP commands were generated:
+</description>
+            <example><![CDATA[
+connect|ftp.myaddress.com
+onerror|error|Could not connect
+login|myname|mypassword
+onerror|error|Could not log in
+mkdir|subfolder1
+mkdir|subfolder2
+put|c:\folder1\file1.txt|file1.txt
+put|c:\folder1\file2.txt|file2.txt
+cd|/
+cd|subfolder1
+put|c:\folder1\subfolder1\file3.txt|file3.txt
+cd|/
+cd|subfolder2
+put|c:\folder1\subfolder2\file4.txt|file4.txt
+
+]]></example>
+       </section>
+       
+       
+       
+       
+   </sections>
+   
+   <sections><section>
+   <description>FTP_MakeCommandList() recognizes files as either binary or ASCII and uses the appropriate transfer mode. The default list of files transferred as ASCII are:
+</description>
+   <list>
+   <item><name>.TXT</name></item>
+   <item><name>.HTM</name></item>
+   <item><name>.HTML</name></item>
+   <item><name>.A5W</name></item>
+   <item><name>.A5I</name></item>
+   <item><name>.INC</name></item>
+   <item><name>.CSS.CSV</name></item>
+   <item><name>.JS</name></item>
+   <item><name>.STYLE_INFO</name></item>
+   <item><name>.A5_WF_BUTTONS</name></item>
+   <item><name>.XML</name></item>
+   <item><name>.XSLT </name></item>
+   </list>
+   
+   </section>
+   <section>
+   <description>Additionally, this list of file types my be overridden using an optional fifth argument to the function call. This argument should be a CR-LF separated list of file extensions, and each extension must include the "." 
+
+ If you want to specify file extensions that should be treated as ASCII in addition to the built-in types, the first line of your CR-LF list should be "+" (a plus sign). For example, the following function call adds .INI files as a recognized ASCII file type.
+</description>
+   
+   <example>FTP_MakeCommandList("c:\files_to_upload","server.com","alpha","alphapass","+" + crlf() + ".ini")</example>
+   </section>
+   
+   <section>
+   <description>In contrast, the following function call will recognize only .INI files as ASCII and the built-in types will be transferred as binary files.
+</description>
+   
+   <example>FTP_MakeCommandList("c:\files_to_upload","server.com","alpha","alphapass",".ini")</example>
+   </section>
+   
+   </sections>
+   
+   <see>
+      <ref>Internet Functions and Methods</ref>
+   </see>
+</page>
