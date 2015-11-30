@@ -1,0 +1,150 @@
+<page>
+   <topic>HTTP_GET Function</topic>
+   <syntax>Result as P = http_get(C url [,C cookie[,N port[,N timeout[,L show_before_send[,L validate_ssl_cert[,C SSLCipherList ]]]]]])</syntax>
+   <arguments>
+     <argument>
+         <name>Result</name>
+         <description>A dot variable containing the server's response.</description>
+    <list>
+    <item><name>Argument</name><description>Type and Description</description></item>
+     <item><name>.error_text</name><description>Type C. The error message, if any.</description></item>
+     <item><name>.error_code</name><description>Type N. The error number, if any.</description></item>
+      <item><name>.headers</name><description>Type C. Response headers.</description></item>
+       <item><name>.body</name><description>Type B. Response body.</description></item>
+    </list>
+    
+
+
+
+
+     </argument>
+     <argument>
+         <name>url</name>
+         <description>The URL of the page to retrieve. Character</description>
+     </argument>
+     <argument>
+         <name>cookie</name>
+         <description>Character. Optional. Default = "". Cookie data. Limited  to 8 MBytes.</description>
+     </argument>
+     <argument>
+         <name>port</name>
+         <description>Numeric. Optional. Default = -1. The port to use.</description>
+     </argument>
+     <argument>
+         <name>timeout</name>
+         <description>Numeric. Optional. Default = 8000 milliseconds. The number of  milliseconds to wait before timing out.
+</description>
+     </argument>
+     <argument>
+         <name>show_before_send</name>
+         <description>Logical. Optional. Default = .F.. When .T., displays the request  before being sent. Useful for debugging.
+</description>
+     </argument>
+     <argument>
+         <name>validate_ssl_cert</name>
+         <description>Logical. Optional. Default = .T.. If the specified URL starts  with "https://", this flag controls whether or not the certificate  offered by the server will be validated. If set to .T., the request  will always fail. If set to .F., the request may succeed, but the  server's identity is not guaranteed. 
+</description>
+     </argument>
+     <argument>
+         <name>SSLCipherList</name>
+         <description>Character</description>
+     </argument>
+   </arguments>
+   <description>Use the HTTP method GET to retrieve the specified URL</description>
+   <discussion>
+The HTTP_GET() function downloads from a URL using HTTP/1.1 GET. The  function supports cookies and returns a pointer with the parsed response  from the server.
+Note : When the server  responds with a 302 code, HTTP_GET() does not automatically use the new  URL. The developer needs to examine result.parsed_headers.status_code,  then if appropriate, try the URL provided in   result.parsed_headers.location.
+The parsed response will include several elements, including the following.
+   </discussion>
+  
+   <sections>
+       <section>
+          <list>
+          	<item><name-title>Argument</name-title><description-title>Example</description-title></item>
+          <item><name>Result.parsed_headers.ContentType</name><description>"text/html"</description></item>
+          <item><name>Result.parsed_headers.ContentLength</name><description>"12541"</description></item>
+          <item><name>Result.parsed_headers.Date</name><description>"Wed, 30 Jun 2004 14:36:12 GMT"</description></item>
+          <item><name>Result.parsed_headers.Server</name><description>"Microsoft-IIS/5.0"</description></item>
+          </list>
+       </section>
+   </sections>
+   <sections><section><description>
+   Note : A HTTP GET is  different from a HTTP POST in two significant ways. Some devices may restrict  the total length of a URL to 128 characters, which may trim the arguments  appended by a GET command. There is no such restriction with POST commands.  You may save (bookmark) and refresh URLs formatted through a HTTP GET  command. The arguments sent by a HTTP POST command are not saved in a  bookmark.
+</description></section></sections>
+
+<sections>
+<section><title>Example</title>
+<description>The following example follows a redirect.</description>
+<example><![CDATA[
+dim url as C = "support.alphasoftware.com"
+dim result as P
+result = http_fetch(url)
+if (result.parsed_headers.status_code = 302) then
+result = http_get(result.parsed_headers.Location)
+...
+end if
+
+
+]]></example>
+</section>
+
+<section><title>Example</title>
+<description>Retrieve the Alpha Software home page.</description>
+<example><![CDATA[dim alpha as P
+alpha = http_get("http://www.alphasoftware.com/")
+a5_show_html(alpha.body)
+]]></example>
+</section>
+
+<section><title>Example</title>
+<description>Search Google.</description>
+<example><![CDATA[
+dim search_term as C
+dim google as P
+search_term = ui_get_text("Search for...","What are you looking for?")
+google = http_get("http://www.google.com/search?hl=en&ie=UTF-8&oe=UTF-8&q=" + urlencode(search_term))
+a5_show_html(google.body)
+
+]]></example>
+</section>
+
+<section><title>Example</title>
+<description>Retrieve RSS text from Slashdot.org.</description>
+<example><![CDATA[
+dim rss as P
+rss = http_get("http://slashdot.org/index.rss")
+if .not. eval_valid("rss.body")
+    ui_msg_box("Error","The RSS file was not downloaded from the server.",UI_STOP_SYMBOL)
+else
+    dim num_items as N
+    num_items = count_textblocks(rss.body,"")
+    dim item[num_items] as P
+    dim i as N
+    dim this_item as C
+    for i = 1 to num_items
+        this_item = extract_string(rss.body,"",i,.t.)
+        item[i].title = extract_string(this_item,"","")
+        item[i].link = extract_string(this_item,"","")
+        item[i].description = extract_string(this_item, "", "")
+        item[i].creator = extract_string(this_item, "", "")
+        item[i].subject = extract_string(this_item, "", "")
+        item[i].date = extract_string(this_item, "", "")
+        item[i].section = extract_string(this_item, "", "")
+        item[i].department = extract_string(this_item, "", "")
+        item[i].comments = extract_string(this_item, "", "")
+        item[i].hitparade = extract_string(this_item, "", "")
+next i
+'now do something with this, like put it into a table or build an output file.
+a5_show_variable(property_to_string(item))
+end if
+
+]]></example>
+</section>
+</sections>
+   
+   <see>
+      <ref>Internet Functions and Methods</ref>
+      <ref>How to pick an HTTP Function</ref>
+   </see>
+
+</page>
