@@ -1,0 +1,214 @@
+<page>
+  <topic>HTTP_FETCH Function</topic>
+  <syntax>Result as P = http_fetch(P settings [,L show_before_send[,C SSLCipherList ]])</syntax>
+  <arguments>
+    <argument>
+      <name>Result</name>
+      <description>A dot variable containing the server's response.</description>
+      <list>
+        <item>
+          <name-title>Argument</name-title>
+          <description-title>Type and Description</description-title>
+        </item>
+        <item>
+          <name>.error_text</name>
+          <description>Type C. The error message, if any.</description>
+        </item>
+        <item>
+          <name>.error_code</name>
+          <description>Type N. The error number, if any.</description>
+        </item>
+        <item>
+          <name>.headers</name>
+          <description>Type C. Response headers.</description>
+        </item>
+        <item>
+          <name>.body</name>
+          <description>Type C. Response body.</description>
+        </item>
+        <item>
+          <name>.parsed_headers</name>
+          <description>Type P. Contains all the headers in the response split out into individual properties. The Description section has some example values</description>
+        </item>
+      </list>
+    </argument>
+    <argument>
+      <name>settings</name>
+      <description>A dot variable containing instructions for the command. Pointer</description>
+      
+      <list>
+        <item>
+          <name-title>Argument</name-title>
+          <description-title>Type and Description</description-title>
+        </item>
+        
+        <item>
+          <name>.host</name>
+          <description>Type C. The host (server) from which to download. (NOTE: Do not include the protocol (HTTP:// or HTTPS:/ in the value).</description>
+        </item>
+        
+        <item>
+          <name>.port</name>
+          <description>Type N. Optional.  Default = 80 for HTTP (.ssl_on=.f.) and 443 for HTTPS (.ssl_on=.t.). The TCP/IP port on the server with which to communicate.</description>
+        </item>
+        
+        <item>
+          <name>.page</name>
+          <description>Type C. Optional. Default = "/". The page to request from the server.</description>
+        </item>
+        
+         <item>
+          <name>.query_string</name>
+          <description>Type C. Optional. The query string for the request.</description>
+        </item>
+        
+         <item>
+          <name>.method</name>
+          <description>Type C. Optional. Default = "GET". The HTTP method to use when making the
+request (GET, POST, HEAD, OPTIONS, etc).
+</description>
+        </item>
+        
+         <item>
+          <name>.protocol</name>
+          <description>Type C. Optional. Default = "HTTP/1.1". The protocol to use for the request.</description>
+        </item>
+        
+         <item>
+          <name>.user_agent</name>
+          <description>Type C. Optional. Default = "". Sets the User-agent header in the request.</description>
+        </item>
+        
+         <item>
+          <name>.cookie</name>
+          <description>Type C. Optional. Default = "". Sets the value of the Cookie header.</description>
+        </item>
+        
+        <item>
+          <name>.body</name>
+          <description>Type C. Optional. Default = "". The contents of the HTTP request body.</description>
+        </item>
+        
+         <item>
+          <name>.referer</name>
+          <description>Type C. Optional. Default = "". Sets the Referer header in the request.</description>
+        </item>
+        
+         <item>
+          <name>.timeout</name>
+          <description>Type N. Optional. Default = 45000 (45 seconds). Sets the timeout value, in milliseconds, for the connection.</description>
+        </item>
+        
+         <item>
+          <name>.header</name>
+          <description>Type C. Optional. Default = "". Allows setting of arbitrary headers. Would be used as: 
+settings.header = "X-Header: I like Alpha Software"</description>
+        </item>
+        
+         <item>
+          <name>.SSL_ON</name>
+          <description>Type L. Optional. Default = .F. </description>
+        </item>
+        
+         <item>
+          <name>.ssl_ValidateCert</name>
+          <description> <![CDATA[ Type L. Optional. Default = .T.. If the specified URL starts with "https://", this flag controls whether or not the certificate offered by the server will be validated. If set to .T., the request will always fail if the certificate cannot be validated. If set to .F., the request may succeed, but the server's identity is not guaranteed. ]]></description>
+        </item>
+        
+        
+      </list>
+      
+      
+      
+      
+    </argument>
+    <argument>
+      <name>show_before_send</name>
+      <description>Logical. Optional. Default = .F.. When .T., displays the request before being sent. Useful for debugging. Show_Before_Send is ignored if http_fetch is run from an A5W page.</description>
+    </argument>
+    <argument>
+      <name>SSLCipherList</name>
+      <description>Character</description>
+    </argument>
+  </arguments>
+  <description>Sends an HTTP request to a server and retrieves the response</description>
+  <discussion>The HTTP_FETCH() function sends an HTTP request to a server and receives the response. The function looks to see if a request body has been defined first. If one is found, and no .method has been specified, it uses POST, otherwise it uses GET. If a .method has been specified, that method will always be used, even if it is not a valid HTTP method. Similarly, if a .body is specified and the .method is not POST or PUT, the body is not sent. 
+Note : When the server responds with a 301 or 302 (redirect) code, HTTP_FETCH() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to HTTP_GET() for an example.
+The parsed response headers may include several elements, such as the following:
+</discussion>
+  <sections>
+    <section>
+      <list>
+        <item>
+          <name-title>Argument</name-title>
+          <description-title>Example</description-title>
+        </item>
+         <item>
+          <name>Result.parsed_headers.ContentType</name>
+          <description>"text/html"</description>
+        </item>
+         <item>
+          <name>Result.parsed_headers.ContentLength</name>
+          <description>"12541"</description>
+        </item>
+         <item>
+          <name>Result.parsed_headers.Date</name>
+          <description>"Wed, 30 Jun 2004 14:36:12 GMT"</description>
+        </item>
+         <item>
+          <name>Result.parsed_headers.Server</name>
+          <description>"Microsoft-IIS/5.0"</description>
+        </item>   
+      </list>  
+    </section>
+  </sections>
+  
+  
+  
+  
+  <sections>
+    
+    <section>
+      <example><![CDATA[
+        dim p as P
+
+dim p.host as C = "www.alphasoftware.com"
+dim p.page as C = "/"
+dim alpha as P
+alpha = http_fetch(p)
+a5_show_html(alpha.body)]]>    
+      </example>
+      
+      
+    </section>
+    
+    <section>
+      <description>The following example tests for the availability of a page.</description>
+      <example>
+        <![CDATA[ dim request as P
+dim response as P
+
+request.host = "downloads.alphasoftware.com"
+request.page = "/books/userguide.pdf"
+request.method = "HEAD"
+response = http_fetch(request)
+
+? response.parsed_headers.status_code
+= 200
+ ]]>
+      </example>
+    </section>
+    <section>
+      <description>
+Status code 200 indicates that the page exists. Status code 404 indicates that it does not. Other status codes you may encounter, along with the meanings of each, are documented at Status Codes.
+      </description>
+      
+    </section>
+    
+  </sections>
+  <see>
+    <ref>Internet Functions and Methods</ref>
+    <ref>How to pick an HTTP Function</ref>
+  </see>
+  
+</page>
