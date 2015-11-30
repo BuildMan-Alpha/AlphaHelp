@@ -1,0 +1,107 @@
+<page>
+   <topic>EXIST Function</topic>
+   <syntax>Key_Exist_Flag as L = EXIST(A keyvalue,C tablename,C tagname)</syntax>
+   <arguments>
+     <argument>
+         <name>keyvalue</name>
+         <description>A string constant, character variable, or an expression that returns a character value. Any type</description>
+     </argument>
+     <argument>
+         <name>tablename</name>
+         <description>The filename of the table you want to search. The Table_Name parameter can include a full drive and path specification. If you omit the drive and path, Alpha Anywhere searches the current directory.
+</description>
+     </argument>
+     <argument>
+         <name>tagname</name>
+         <description>The name of an index that may contain the Key_Value. The Index_Name parameter can include a full drive and path specification. If you omit the drive and path, Alpha Anywhere searches the current directory.
+</description>
+     </argument>
+   </arguments>
+   <description>Returns TRUE if the specified file exists.</description>
+   <discussion>
+EXIST() returns .T. (TRUE) if the Key_Value exists in the Index_Name index; otherwise, it returns .F. (FALSE).
+The EXIST() function is useful for checking if a record with a certain Key_Value exists in a table. You can use this function to prevent duplicate records from being entered into a table, or to ensure that a similar record exists in another table before you can enter the record into the current table.
+If you want to check for numeric or date values within a table, we recommend that you specify an index that converts the values to the character type. The following is an example Index expression for a numeric field containing dollar values:
+
+   </discussion>
+  
+   <sections>
+       <section>
+           
+            <example><![CDATA[
+ltrim( str(RETAIL, 10, 2) )
+
+]]></example>
+       </section>
+       
+       <section>
+        <description>LTRIM()trims the leading blank spaces so that you can specify a number like "50.15" as a key value and the STR()function converts values in the RETAIL numeric field to character.
+The following is an example Index expression for a date field:</description>
+        <example><![CDATA[
+dtoc(INV_DATE)       ]]> </example>
+        </section>
+       <section>
+       <description>You can then specify a date as the key value in the MM/DD/YYYY format. Or use the CDATE() function in place of DTOC().
+
+       </description>
+       </section>
+       
+   </sections>
+   <sections>
+   <section>
+   		<title>Examples</title>
+   		<description>Assume that the following table contains the records shown, and that the index PROD_ORD is defined as TRIM(PROD_NAME):
+</description>
+<list>
+	<item>
+	<name-title>PROD_ID</name-title>
+	<description-title>PROD_NAME</description-title>
+	</item>
+	<item>
+	<name>P005</name>
+	<description>Silver Fox Golf Woods</description>
+	</item>
+	<item>
+	<name>P006</name>
+	<description>Silver Fox Irons</description>
+	</item>
+
+</list>
+   
+   </section>
+   
+   <section>
+   
+   
+   
+   <example>EXIST("silver fox irons", "PRODUCT.DBF", "PROD_ORD") ? TRUE for the second record.
+</example></section>
+
+<section>
+<description>Assume that you are entering names and addresses into a contact table ( CONTACTS ), and want to prevent the entry of duplicate records. A duplicate record has the same values in the FIRSTNAME, LASTNAME, and COMPANY fields.
+During data entry, the prompt order forces you to enter data into the FIRSTNAME field first, then the LASTNAME and COMPANY fields. After you enter a value in the COMPANY field, check to see if the record is a duplicate.
+In addition, you only want the validation rule to fire during data entry, not when you edit an existing record. You therefore need to incorporate a some Xbasic methods into the expression that tell you the table's mode (0 = "View", 1 = "Change" and "2" = "Enter").
+To do this:
+</description>
+</section>
+
+<section>
+<description>1. Create an index in the CONTACTS table named CONTACT_ID using the following index expression: </description>
+<example><![CDATA[
+trim(FIRSTNAME) + trim(LASTNAME) + COMPANY
+]]></example>
+</section>
+
+<section>
+<description>2. Define the following expression as the validation rule for the COMPANY field: </description>
+<example><![CDATA[
+iif(table.current().mode_get() = 2, exist(trim(FIRSTNAME) + trim(LASTNAME) + COMPANY, "CONTACTS", "CONTACT_ID"), .T.)
+
+]]></example>
+</section>
+   
+   </sections>
+   <see>
+      <ref>Index Functions and Methods</ref>
+   </see>
+</page>

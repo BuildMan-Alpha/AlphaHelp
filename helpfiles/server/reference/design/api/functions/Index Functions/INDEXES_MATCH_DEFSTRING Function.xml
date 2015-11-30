@@ -1,0 +1,95 @@
+<page>
+   <topic>INDEXES_MATCH_DEFSTRING Function</topic>
+   <syntax>Result as P = indexes_match_defstring(C tablename ,C indexDefString )</syntax>
+   <arguments>
+      <argument>
+         <name>Result</name>
+         <description>A pointer variable that contains the result. Result has the following properties:</description>
+   <list>
+   	<item>
+   		<name>Property</name>
+   		<description>Description</description>
+   	</item>
+   	<item>
+   		<name>.Error</name>
+   		<description>.T. = an error occurred.</description>
+   	</item>
+   	<item>
+   		<name>.MissingIndexTags</name>
+   		<description>A CR-LF delimited list of index tags that are missing from the table. The format is the same as  Index_Definitions.</description>
+   	</item>
+   	<item>
+   		<name>.AdditionalIndexTags</name>
+   		<description>A CR-LF delimited list of index tags that have been added to the table. Format is same as  Index_Definitions.</description>
+   	</item>
+   	
+   
+   </list>
+     </argument>
+     <argument>
+         <name>tablename</name>
+         <description>The name of the table containing the indexes.</description>
+     </argument>
+     <argument>
+         <name>indexDefString</name>
+         <description>The index definitions as created by GET_INDEX_DEFINITIONS().</description>
+     </argument>
+   </arguments>
+   <description>Checks if a table's indexes match a Definition string (a crlf string of form Tagname|OrderExpn|FilterExpn|Flags). The definition string is typically created using Get_Index_Definitions(). Returns a pointer with these properties: Error (.t. or .f.), AdditionalIndexTags (tags in the table not in the index def), MissingIndexTags (tags in the index def, but not in the table).</description>
+   <discussion>
+The INDEXES_MATCH_DEFSTRING() function checks the indexes in a table  and compares them against a previously created index definition string.  Allows you to tell if index tags are missing, or if index tags have been  added. Used in conjunction with GET_INDEX_DEFINITIONS()and  CREATE_INDEXES(), this function allows  you to re-create the indexes for a table if they no longer match the required  indexes.
+
+   </discussion>
+   <example><![CDATA[
+DIM indexDef as C
+indexDef = get_index_definitions("customer") 
+? def 
+= Company|COMPANY|| 
+Customer_Id|CUSTOMER_ID|| 
+Customer_Id_Unique|CUSTOMER_ID||U 
+Lastname|LASTNAME+FIRSTNAME|| 
+Lastname1|LASTNAME||
+
+]]></example>
+   <sections>
+       <section>
+            <description>Now edit the customer table, adding a new index tag on the bill_state_region field, and dropping the lastname1 index tag.</description>
+            <example><![CDATA[
+? indexes_match_defstring("customer", indexDef) 
+= AdditionalIndexTags = "STATE|BILL_STATE_REGION||" 
+Error = .F. 
+MissingIndexTags = "LASTNAME|LASTNAME+FIRSTNAME||"
+]]></example>
+       </section>
+       
+       <section>
+            <description>Recreate the indexes in the customer table so that they match the index definitions stored in indexDef.</description>
+            <example><![CDATA[
+? Create_Indexes("customer", indexDef) 
+= ErrorText = "" 
+HasError = .F.
+]]></example>
+       </section>
+       
+       <section>
+            <description>Check to see what indexes the customer table has.
+</description>
+            <example><![CDATA[
+? get_index_definitions("customer") 
+= Company|COMPANY|| 
+Customer_Id|CUSTOMER_ID|| 
+Customer_Id_Unique|CUSTOMER_ID||U 
+Lastname|LASTNAME+FIRSTNAME|| 
+Lastname1|LASTNAME||
+]]></example>
+       </section>
+       
+       
+   </sections>
+   <see>
+      <ref>Index Functions and  Methods</ref>
+      <ref>CREATE_INDEXES()</ref>
+      <ref>GET_INDEX_DEFINITIONS()</ref>
+   </see>
+   
+</page>
