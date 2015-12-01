@@ -1,0 +1,84 @@
+<page>
+   <topic>*PATTERN_EXTRACT Function</topic>
+   <syntax>Result as C = *PATTERN_EXTRACT(text as c,patterns as c)</syntax>
+   <arguments>
+      <argument>
+         <name>Result</name>
+         <description>The processed text after substitutions.</description>
+     </argument>
+     <argument>
+         <name>text</name>
+         <description>The text to analyze for patterns.</description>
+     </argument>
+     <argument>
+         <name>patterns</name>
+         <description>Each line in Patterns is an Output mask, followed by a pipe "|" separator, followed by an Input mask. The mask takes the form of a SMATCH()pattern where an asterisk "*" or any sequence of "?" characters are treated as wildcard characters. The input pattern of a single "*" is special; it means use this rule for the remainder.
+ Output_Mask1 | InputMask1
+ Output_Mask2 | InputMask2
+...
+ Output_MaskN | InputMaskN</description>
+     </argument>
+   </arguments>
+   <description>Extract patterns from text - returns a cr-lf delimited list of patterns.</description>
+   <discussion>
+The *PATTERN_EXTRACT() function extracts patterns from text and returns a CR-LF delimited list of patterns.
+
+   </discussion>
+  
+   <sections>
+       <section>
+       <title>Example</title>
+            <description>Here is a string that has a format similar to the menu string - with embedded parameters of the form {NAME=SETTING} - in this example, only two patterns are needed to digest the menu parameters.
+</description>
+            <example><![CDATA[
+? *pattern_extract("{ENABLE=.t.}{DATA=ONE}{IMAGE=$a5_open}Entry One..","*=\"*\"|{*=*}"+crlf() +"TEXT=\"*\"|*")
+= ENABLE=".t."
+DATA="ONE"
+IMAGE="$a5_open"
+TEXT="Entry One.."
+
+]]></example>
+       </section>
+       
+       <section>
+       <description>The function first identifies the strings bounded by braces "{}" using pattern1 and outputs the results as  ENABLE=".t." DATA="ONE" IMAGE="$a5_open". This produces the first 3 lines of the output. The remainder of the input string is "Entry One..". The function uses the second pattern to output TEXT="Entry One..".
+Run the following code in a script to see a more complete example of how the function operates.
+</description>
+       <example><![CDATA[
+dim patterns as C
+dim result as C
+dim text as C
+patterns = <<%str%
+SETTING.*=*|{*=*}
+BUTTON=*|<*>
+CONTROL=*|*
+PLAINTEXT=*|*
+%str%
+text = <<%str%
+Text contains FName{ENABLE=.t.}{DATA=COMPLETE} embedded items
+%str%
+result = *pattern_extract(text,patterns)
+ui_dlg_box("Test",<<%dlg%
+%M%.40,20patterns%W%.40,20text%M%.40,20result|
+{region}
+;
+
+{endregion}
+%dlg%,<<%code%
+if a_dlg_button = "Recalc" then
+    a_dlg_button = ""
+    result = *pattern_extract(text,patterns)
+end if
+%code%)
+
+       
+       ]]></example>
+       
+       </section>
+       
+   </sections>
+   <see>
+      <ref>List Processing Functions</ref>
+   </see>
+
+</page>
