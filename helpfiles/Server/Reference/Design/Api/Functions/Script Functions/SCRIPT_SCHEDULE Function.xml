@@ -1,0 +1,121 @@
+<page>
+   <topic>SCRIPT_SCHEDULE Function</topic>
+   <prototypes>
+       <prototype>V SCRIPT_SCHEDULE(C script name, C time of day[, N slot(1-10)])</prototype>
+   </prototypes>
+   <arguments>
+     <argument>
+         <name>script</name>
+         <description>The name of a script or function. The Script_Name parameter can include an optional library name if you which to specify a script that is in a different database (.alb file), or is in a dictionary of a table or set that is not attached to the current database.
+</description>
+     </argument>
+     <argument>
+         <name>time</name>
+         <description>The time for the script to play back. The time is specified as a string with the following format: HH:MM.  The hour must be specified using a 24 hour count.
+</description>
+     </argument>
+     <argument>
+         <name>slot</name>
+         <description>Optional parameter that specifies which schedule timer to use.  There are ten timers available (1 - 10).
+ Note : If no parameter is specified timer 1 is used. There can only be one script assigned to each timer.
+</description>
+     </argument>
+   </arguments>
+   <description>Schedule a script for playback at a specific time.</description>
+   <discussion>
+The SCRIPT_SCHEDULE() function schedules a script for playback at a specific time. To cancel a previously scheduled script, assign a NULL string to the appropriate Timer.
+Once a script is played, it is removed from the script schedule. For example, if a script is played on schedule at 8AM, it will not play at 8AM the next day, unless it is rescheduled.
+The script schedule remains in force for the duration of your Alpha Anywhere session. Once you quit Alpha Anywhere, the script schedule is forgotten.
+Limitations: Desktop applications only.
+   </discussion>
+  
+   <sections>
+       <section><title>Examples</title>
+            <description>This script schedules script "Foo" to play at 1 AM.</description>
+            <example><![CDATA[
+script_schedule("Foo", "1")
+]]></example>
+       </section>
+       
+       <section>
+            <description>Schedules the script 'Foo2' to play at 8:30 PM using timer 2.</description>
+            <example><![CDATA[
+script_schedule("Foo2", "20:30", 2)
+]]></example>
+       </section>
+       
+       <section>
+            <description>Cancels the script scheduled by timer 3.</description>
+            <example><![CDATA[
+script_schedule("", "0", 3)
+]]></example>
+       </section>
+       
+       
+       <section>
+            <description>The following script depends on a table named scheduled_scripts with two fields.</description>
+            <list>
+            <item>
+            <name-title>Field Name</name-title>
+            <description-title>Type, Width, and Decimal</description-title>
+            </item>
+            
+            <item>
+            <name>Script_order</name>
+            <description>N, 3, 0</description>
+            </item>
+            
+            <item>
+            <name>Script_name</name>
+            <description>C, 20, 0</description>
+            </item>
+            
+
+            </list>
+       </section>
+       
+       <section>
+            <description>Make an index for the table named Script_order, whose order expression is: Script_Order. Then make a script named Batch_Script as follows:</description>
+            <example><![CDATA[
+dim num_scripts as N 
+dim curr_script as N 
+
+btbl = table.open("sheduled_scripts") 
+btbl.index_primary_put("Script_order") 
+num_scripts = btbl.records_get()
+
+FOR curr_script = 1 to num_scripts 
+btbl.fetch(num_script) 
+xbasic_wait_for_idle() 
+script_play(btbl.Script_name) 
+curr_script = curr_script + 1 
+NEXT
+
+]]></example>
+       </section>
+       
+       <section>
+       <description>To run a series of scripts, make the appropriate entries in your table, then run:</description>
+       <example><![CDATA[
+       script_schedule("Batch_Script", "21:00", 1)
+       ]]></example>
+       </section>
+       
+   </sections>
+   
+   <sections>
+   <section>
+   <title>Thanks To</title>
+   <description>Melvin Davidson </description>
+   </section>
+   </sections>
+   
+   
+   <see>
+      <ref>Script Functions</ref>
+      <ref>How to execute scripts on a repeating schedule</ref>
+   </see>
+   
+
+
+</page>
