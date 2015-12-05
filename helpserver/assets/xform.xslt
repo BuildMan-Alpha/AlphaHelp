@@ -185,7 +185,7 @@
 		</xsl:if>	
 	</xsl:template>
 	<xsl:template match="list" name="list" >
-		<table>
+		<table class="definitionTable" >
 			<xsl:for-each select="list/item">
 				<xsl:choose>
 					<xsl:when test="name-title">
@@ -204,10 +204,10 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<tr>
-							<td>
+							<td class="definitionNameTD" >
 								<xsl:value-of select="name" />
 							</td>
-							<td>
+							<td class="definitionDescriptionTD">
 								<xsl:value-of select="description" />
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
