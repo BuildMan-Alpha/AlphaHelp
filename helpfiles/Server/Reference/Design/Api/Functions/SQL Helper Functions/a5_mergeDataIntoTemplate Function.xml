@@ -1,0 +1,251 @@
+<page>
+   <topic>a5_mergeDataIntoTemplate Function</topic>
+   <syntax>C Result = a5_mergeDataIntoTemplate(C template ,* dataSource [,* mergeResult [,* localFunctions ]])</syntax>
+   <arguments>
+     <argument>
+         <name>template</name>
+         <description>HTML temple</description>
+     </argument>
+     <argument>
+         <name>dataSource</name>
+         <description>Data source</description>
+     </argument>
+     <argument>
+         <name>mergeResult</name>
+         <description>(optional) Pointer variable to return .hasErrors, .t. or .f., and .errorText, a list of errors that were encountered. Defaults to a null value.
+</description>
+     </argument>
+     <argument>
+         <name>localFunctions</name>
+         <description>*</description>
+     </argument>
+   </arguments>
+   <description>Merge data into a template. Data source can be a) Xbasic property array, b) pointer to an open .dbf table, c) SQL result set. Template uses {ds.data("fieldname")} to reference a field from the data source. Can include Xbasic expressions in { }. E.g {ut(ds.data("fieldname"))}, {date()). When merging data into an HTML template, use the a5_html_label() function to escape HTML characters. For example: {a5_html_label(ds.data("Notes"))} . Use {rowNumber} for current row. mergeResult.rows = number of rows that were merged</description>
+   <discussion>
+Merge data into a template. Data source can be:
+
+   </discussion>
+   <sections>
+   <section>
+   <list>
+   <item>
+   <name>An Xbasic property array,</name>
+   </item>
+   <item>
+   <name>A pointer to an open .dbf table, or </name>
+   </item>
+   <item>
+   <name>A SQL result set.</name>
+   </item>
+   
+   </list>
+   </section>
+       <section>
+            <description>The template can include any Xbasic function between curly brackets.
+
+To reference a field from the passed-in data source, the template uses this syntax:
+</description>
+            <example><![CDATA[
+{ds.data("fieldname")}
+]]></example>
+       </section>
+       
+         <section>
+            <description>For example, assume that the passed-in data source has a field called 'firstname'. To get the value of the firstname field, your template would use this syntax:
+</description>
+            <example><![CDATA[
+{ds.data("firstname")}
+]]></example>
+       </section>
+       
+       <section>
+            <description>To convert firstname to uppercase, you would add the upper() function to the template:</description>
+            <example><![CDATA[
+{ut(ds.data("firstname"))}
+]]></example>
+       </section>
+       
+       <section>
+            <description>If the template was  HTML and you wanted to escape HTML characters in the data, you would use this:
+</description>
+            <example><![CDATA[
+{a5_html_label(ds.data("firstname"))}
+]]></example>
+       </section>
+       
+        <section>
+            <description>You can include expressions in curly brackets that have nothing to do with data, for example, to put today's data in the template:
+</description>
+            <example><![CDATA[
+{date()}
+]]></example>
+       </section>
+       
+        <section>
+            <description>The most common reason for using the mergeResult  pointer is to detect templates that refer to fields that are not in the data source, often because of a typo.
+</description>
+            </section>
+   </sections>
+   
+   
+   
+   <sections>
+       <section>
+            <description>The following examples show how to use the function:</description>
+            <example><![CDATA[
+template = <<%html%
+<li>
+    Name: {ut(ds.data("firstname"))} {ds.data("lastname")}
+</li>
+%html%
+
+
+dim dataSource[0] as p
+dataSource[].firstname = "John"
+dataSource[..].lastname = "Jones"
+ 
+dataSource[].firstname = "Richard"
+dataSource[..].lastname = "Smith"
+
+'Merge data into the template. Array has a size of 2, so template will appear
+'twice (with merged data) in the output.
+ 
+dim htmlstring as c
+htmlstring = a5_mergeDataIntoTemplate(template,dataSource)
+]]></example>
+       </section>
+       
+        <section>
+            <description>If you examine htmlstring you see:
+</description>
+            <example><![CDATA[
+<li>
+    Name: JOHN Jones
+</li>
+<li>
+    Name: RICHARD Smith
+</li>           
+            ]]></example>
+</section>
+       
+       
+ <section>
+            <description>In this next example, the data source is an AlphaDAO resultset.
+</description>
+            <example><![CDATA[
+delete cn 
+dim cn as sql::Connection
+cn.open("firstname")
+?cn.Execute("firstname")
+= .T.
+rs = cn.ResultSet
+dim html as c 
+html =a5_mergeDataIntoTemplate(template,rs)
+            ]]></example>
+</section>
+       
+ <section>
+            <description>In this next example, the data source is a .dbf table:
+</description>
+            <example><![CDATA[
+dim tbl as p
+dim res as p
+tbl = table.open("::Name::mysql_alphasports")
+tbl.query_create("select * from customer where bill_city = 'boston'")
+dim html as c 
+html =a5_mergeDataIntoTemplate(template,tbl,res)
+if res.hasErrors then
+    ui_dlg_box("customer",res.errorText)
+end if
+            ]]></example>
+</section>
+
+
+ <section>
+            <description>In this next example, the data source is a string of JSON data:
+
+</description>
+            <example><![CDATA[
+dim jsonTxt as c
+jsonTXT = <<%txt%
+{firstname : 'John', lastname : 'Jones'},
+{firstname: 'Richard', lastname: 'Smith'}
+%txt%
+ 
+dim html as c 
+html =a5_mergeDataIntoTemplate(template,jsonTxt)         
+            ]]></example>
+</section>
+
+
+<section>
+            <description>In this final example, we demonstrate the use of user-defined local Xbasic functions:
+
+
+</description>
+            <example><![CDATA[
+'Create a string with some locally defined functions
+dim xbasic as c 
+xbasic = <<%code%
+    function myxb1 as c (data as c )
+        myxb1 = "XXX:" + data 
+    end function 
+
+    function myUT as c (data as c)
+        myUT = ut(data)
+    end function 
+%code%
+ 
+'Compile the local functions
+dim lf as p
+lf = compile_template(xbasic)
+ 
+'The template references the local functions. Note that in order to reference
+'a locally defined function, the function name is prefixed with 'lf.' 
+template = <<%html%
+<li>
+Name: {lf.myUT(ds.data("firstname"))} {lf.myxb1(ds.data("lastname"))}
+</li>
+%html%
+
+dim dataSource[0] as p
+dataSource[].firstname = "John"
+dataSource[..].lastname = "Jones"
+
+dataSource[].firstname = "Richard"
+dataSource[..].lastname = "Smith"
+
+ 
+dim result as p 
+dim htmlstring as c
+'call the a5_mergeDataIntoTemplate() function and pass in a pointer to the
+'locally defined functions
+htmlstring = a5_mergeDataIntoTemplate(template,dataSource,result,lf)
+            ]]></example>
+</section>
+
+<section>
+            <description>Htmlstring will look like this:
+</description>
+            <example><![CDATA[
+<li>
+Name: JOHN XXX:Jones
+</li>
+<li>
+Name: RICHARD XXX:Smith
+</li>     
+            ]]></example>
+</section>
+
+   </sections>
+   <see>
+      <ref>a5_json_extractvalues Function</ref>
+      <ref>a5_JSON_PopulateArray Function</ref>
+      <ref>CompileStringTemplate Function</ref>
+      <ref>EVALUATE_STRING Function</ref>
+      <ref>Character Replacement Functions</ref>
+   </see>
+  
+
+
+</page>

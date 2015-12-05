@@ -1,0 +1,93 @@
+<page>
+   <topic>SQL_Records_Get Function</topic>
+   <syntax>C Result = sql_records_get(* conn ,C table_or_sql_statement ,C filter ,C result_Expression [,* args ])</syntax>
+   <arguments>
+     <argument>
+         <name>Result</name>
+         <description>A CRLF delimited string of data from the remote table or query. CRLFs  in the data are encoded as '\cr\lf'.
+</description>
+     </argument>
+     <argument>
+         <name>conn</name>
+         <description>An explicit AlphaDAO connection string, or a named connection string.  (e.g. ::name::myconnectionstring), or a pointer to an open connection.
+</description>
+     </argument>
+     <argument>
+         <name>table_or_sql_statement</name>
+         <description>The name of the table in the remote database from which to return  data. Can either be a table name, or a SQL SELECT statement that retrieves data  from one or more tables. If a SQL SELECT statement is specified the  result_Expression parameter is meaningless and must be set to a null  string.
+</description>
+     </argument>
+     <argument>
+         <name>filter</name>
+         <description>A filter expression to determine which records in the remote table to  find. The filter expression must use SQL syntax and must use portable AlphaDAO  functions. For example, strings must be single quoted, the AND,  OR and NOT  operators are not surrounded by periods. The filter expression can use  arguments. For example, customerid = :whatcustomerid. If  table_or_sql_statement is a SQL SELECT then filter is meaningless  and must be set to a null string.
+</description>
+     </argument>
+     <argument>
+         <name>result_Expression</name>
+         <description>A expression to determine what values gets returned. The expression  can be as simple as a single column name in the remote table, or it can be a  complex expression. The expression must be written using portable AlphaDAO  syntax. If table_or_sql_statement is a SQL SELECT then  result_Expression  is meaningless and must be set to a null  string.
+</description>
+     </argument>
+     <argument>
+         <name>args</name>
+         <description>If the filter expression or the SELECT statement in the  table_or_sql_statement argument  includes arguments, you must supply  argument values using a SQL::arguments object.
+
+         </description>
+     </argument>
+   </arguments>
+   <description>Returns a CRLF delimited string with data from a table or query in a remote database using AlphaDAO. Connection can be explicit, or a named connection (e.g. ::name::myconnection).</description>
+   <discussion>
+      ...put discussion here....
+   </discussion>
+   <example><![CDATA[
+connection = "{A5API=Access,FileName='C:\northwind2\northwind2003.mdb',UserName='Admin'}"
+table = "customers"
+result_expression = "concatenate(city,' - ',contactname)"
+filter = "city = 'london'"
+? sql_records_get(connection,table,filter,result_expression)
+= London - Thomas Hardy
+London - Victoria Ashworth
+London - Elizabeth Brown
+London - Ann Devon
+London - Simon Crowther
+London - Hari Kumar
+
+'In this example the filter includes an argument
+connection = "{A5API=Access,FileName='C:\northwind2\northwind2003.mdb',UserName='Admin'}"
+table = "customers"
+result_expression = "concatenate(city,' - ',contactname)"
+filter = "city = :whatcity"
+dim args as sql::arguments
+args.set("whatcity","london")
+? sql_records_get(connection,table,filter,result_expression,args)
+= London - Thomas Hardy
+London - Victoria Ashworth
+London - Elizabeth Brown
+London - Ann Devon
+London - Simon Crowther
+London - Hari Kumar
+
+
+
+'In this example, a complete SQL SELECT statement is used for the 'table' argument.
+'Note that CRLFs in the data are returned as \cr\lf.
+'Columns in the data are pipe (e.g.'|') delimited.
+'Also, a pointer to an open connection, rather than a connection string, is passed in.
+'Since we are passing in an open connection, the function is much faster
+
+dim cn as sql::connection
+connection = "{A5API=Access,FileName='C:\northwind2\northwind2003.mdb',UserName='Admin'}"
+cn.open(connection)
+table = "select customerid, contactname, address from customers where city = 'london'"
+result_expression = ""
+filter = ""
+? sql_records_get(cn,table,filter,result_expression)
+= AROUT|Thomas Hardy|120 Hanover Sq.
+BSBEV|Victoria Ashworth|Fauntleroy Circus
+CONSH|Elizabeth Brown|Berkeley Gardens\cr\lf12 Brewery 
+EASTC|Ann Devon|35 King George
+NORTS|Simon Crowther|South House\cr\lf300 Queensbridge
+SEVES|Hari Kumar|90 Wadhurst Rd
+
+]]></example>
+   
+</page>
