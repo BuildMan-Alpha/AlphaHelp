@@ -4,14 +4,51 @@ var app = express();
 var options = require("./settingslocal");
 var Help = require('helpserver');
 var help = Help(options);
-
-app.use(bodyParser.json()); 
-app.use(bodyParser.urlencoded({ extended: false }));
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
     str = str.replace(find, replace);
     return str;
 };        
+
+// xml page index function - gets called whenever we change xml files in a folder... passes all the files 
+options.pageIndexer = function(filename,savePage) {
+      // just error out for now...
+      var extensionIndex = filename.lastIndexOf(".");
+      if( filename.substring(extensionIndex).toLowerCase() == ".xml" ) {
+        var fs = require("fs");      
+        fs.readFile(filename, "utf8", function (err, data) {          
+            if(err) {  
+                console.log(filename+" was not found");
+                savePage(null);       
+            } else {
+                var parseString = require('xml2js').parseString;
+                parseString(data, function (err, result) {
+                    if( err ) {
+                        console.log(err+" processing file "+filename);
+                        savePage(null);  
+                    } else {
+                        result = eval(result);
+                        if( result.page.description ) {
+                            if( Object.prototype.toString.call( result.page.description ) === '[object Array]' ) {
+                                savePage({ definition : result.page.description[0] });
+                            } else {
+                                savePage({ definition : result.page.description });
+                            }    
+                        } else {
+                            console.log(result);
+                            savePage(null);
+                        }                    
+                    }
+                });
+            }
+        });
+      } else {
+        savePage(null);          
+      }      
+};
+
+app.use(bodyParser.json()); 
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use("/",function (req, res) {
     if( req.path == "/test" ) {
