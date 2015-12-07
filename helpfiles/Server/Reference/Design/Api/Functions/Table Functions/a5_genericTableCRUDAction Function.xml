@@ -1,0 +1,328 @@
+<page>
+   <topic>a5_genericTableCRUDAction Function</topic>
+   <syntax>V a5_genericTableCRUDAction(P pDef ,P pAction ,P pResult [,* openConnection ])</syntax>
+  
+    <arguments>
+     <argument>
+         <name><![CDATA[pDef]]></name>
+         <description>A dot variable that defines aspects of the table you are operating on</description>
+     </argument>
+     <argument>
+         <name>pAction</name>
+         <description>A dot variable that defines aspects of the action you want to perform</description>
+     </argument>
+     <argument>
+         <name>pResult</name>
+         <description>A dot variable that contains information set by the function</description>
+     </argument>
+     <argument>
+         <name>openConnection</name>
+         <description><![CDATA[(optional) An open SQL connection. This is only valid in the case where the pDef.tableType is SQL. If you pass in an open connection, this connection will be used. This will result in the action being slightly faster because the function will not need to connect to the database. The connection that you pass in will not be closed by the function.
+]]></description>
+     </argument>
+   </arguments>
+   
+   
+   <description><![CDATA[Updates, Reads, Inserts or Deletes data from a table (either SQL or dbf)]]>
+   </description>
+   
+   
+   <discussion><![CDATA[
+Updates, Reads, Inserts or Deletes data from a table (either SQL or dbf).
+
+This function performs CRUD (Create, Read, Update and Delete) actions against a table (either SQL or .DBF). The advantage of using this function, rather than low level Xbasic commands, is that your code can be isolated from the specifics of how to use Xbasic to update SQL tables (using AlphaDAO) or dbf tables. Furthermore, if you change a table from a .DBF to a SQL table at some point, your code will continue to work as is.
+ ]]>  </discussion>
+   
+   <sections>
+       <section>
+       <title>The pDef Object</title>
+            <list>
+            
+            <item>
+            <name>Property</name>
+            <description>Description</description>
+            </item>
+            
+            <item>
+            <name>tableType</name>
+            <description>SQL or DBF</description>
+            </item>
+            
+            <item>
+            <name>connectionString</name>
+            <description>The connection string in the case where tableType is SQL</description>
+            </item>
+            
+            <item>
+            <name>table</name>
+            <description><![CDATA[(optional, but recommended) A property array of fields in the table. The table array must have a name and type property (for the field name and type). It can also have optional primarykey and autoIncrement properties to indicate whether the field is part of the primary key and is an auto-increment field. For Read, Update and Delete operations, at least one item in the array should have the primaryKey property set to .t.
+]]></description>
+            </item>
+            
+  
+  
+         
+            <item>
+            <name>fieldMap</name>
+            <description><![CDATA[An optional, comma delimited, string of field map data. The map is a string of name/value pairs that map logical field names to their physical field names. For example, consider this map:  "folderName=key1,imageName=key2". In this case the physical table has fields called key1 and key2, but the logical field names for these fields are folderName and imageName.
+]]></description>
+            </item>
+            
+            <item>
+            <name>tableInfoXML</name>
+            <description><![CDATA[(optional) Only used for SQL tables when the .table[] array is not passed in. Passing in this property will speed up the function because it won't have to get a sql::tableInfo object, which can be a slow operation.
+]]></description>
+            </item>
+            
+            <item>
+            <name>sequenceName</name>
+            <description><![CDATA[(only needed for certain SQL tables on Insert actions) Name of a sequence to use for SQL tables that use sequences for auto-increment fields. Databases such as Oracle and Postgres typically use sequences for auto-increment fields.
+]]></description>
+            </item>
+            
+            <item>
+            <name>primaryKey </name>
+            <description><![CDATA[(only needed for .dbf tables if the .table[] array is not passed in; only needed for Update and Read operations) The name of the field that is the table's primary key.
+]]></description>
+            </item>
+            
+            
+            </list>
+       </section>
+   </sections>
+   
+   
+   <sections>
+       <section>
+       
+       <title>What Happens if the pDef.table Array is not Passed In</title>
+
+<description><![CDATA[If the pDef.table array is not supplied, the function will construct the array automatically.
+
+In the case of .dbf tables, it is not possible to determine the table's primary key, so (in the case of a Read or Update operation) it is necessary to pass in the name of the primary key field in the pDef.primaryKey property.
+
+In the case of a SQL table, the function will get a sql::tableInfo object for the table and then construct the pDef.table array from data in the sql::tableinfo object. Since getting a sql::tableinfo object can be slow for certain databases, you can pass in an existing sql::tableinfo (you actually pass in the XML for the tableinfo) for the table in the pDef.tableInfoXML property.
+]]></description>
+           
+       </section>
+   </sections>
+   
+<sections>
+       <section>
+       <title>The pAction Object</title>
+<list>            
+   <item>
+   <name-title>Property</name-title>
+   <description-title>Description</description-title>
+   </item>   
+   
+   <item>
+   <name>type</name>
+   <description><![CDATA[Specify the action type. Can be "read", "insert", "update" or "delete".]]></description>
+   </item> 
+   
+   <item>
+   <name>key</name>
+   <description><![CDATA[A character array of values for the primary key. Only needed for "update" or "delete" operations. Array will have an entry for each column in the primary key. The data in the array are character values (regardless of the data type of the primary columns).
+]]></description>
+   </item> 
+   
+   <item>
+   <name>data</name>
+   <description><![CDATA[A dot variable with properties for each field you want to insert or update. Only needed for "insert" or "update" operations. For example, to set the value of a field with a logical name folderName, you would set pAction.data.folderName = "new folder name". (In the example below, the logical field name of folderName maps to a physical field name of key1.)
+]]></description>
+   </item> 
+   
+   <item>
+   <name>showCode</name>
+   <description><![CDATA[Can be .t. or .f. - indicates whether the function show perform the CRUD action, or simply show the xbasic or sql code for the action (without actually executing the action).
+]]></description>
+   </item>       
+            
+            
+</list>            
+       </section>
+   </sections>
+
+<sections>
+<section>
+<title>The pResult Object</title>
+
+
+<list>
+
+<item>
+<name-title>Property</name-title>
+<description-title>Description</description-title>
+</item>
+
+<item>
+<name>hasError</name>
+<description><![CDATA[.t. or .f. depending on whether the action was successful or not.]]></description>
+</item>
+
+<item>
+<name>errorText</name>
+<description>The error description, if there was an error.</description>
+</item>
+
+<item>
+<name>data</name>
+<description><![CDATA[A dot variable that is populated with the data that is read from the table. Only used for a read operation.
+]]></description>
+</item>
+
+<item>
+<name>autoIncrementValue</name>
+<description><![CDATA[In the case of an Insert where the primary key is an auto-increment field, the value of the primary key for the record that was inserted.
+]]></description>
+</item>
+
+</list>
+<section>
+</sections>  
+      
+<sections>
+<section><title>Example</title>
+
+<example><![CDATA[
+dim pDef as p
+dim pDef.tableType as c = "SQL"
+dim pDef.connectionString as c = "::Name::mysql_orderentry"
+dim pDef.tableName as c = "mytable"
+ 
+'define the table
+dim pDef.table[0] as p
+dim pDef.fieldMap as c = "folderName=key1,imageName=key2"
+ 
+pDef.table[].name = "folderName"
+pDef.table[..].type = "c"
+pDef.table[..].primaryKey = .t.
+pDef.table[..].autoIncrement = .f.
+ 
+pDef.table[].name = "imageName"
+pDef.table[..].type = "c"
+pDef.table[..].primaryKey = .t.
+pDef.table[..].autoIncrement = .f.
+ 
+pDef.table[].name = "c"
+pDef.table[..].type = "dateCreated"
+ 
+pDef.table[].name = "T"
+pDef.table[..].type = "Description"
+ 
+dim pAction as p
+dim pResult as p 
+
+]]></example>
+</section>
+
+<section>
+<description><![CDATA[Perform a read operation to get the data for record with primary key of 'key1' and 'key2'
+ (table has two columns in the primary key)]]></description>
+<example><![CDATA[
+pAction.type = "M"
+dim pAction.key[0] as c 
+pAction.key[] = "Read"
+pAction.key[] = "key1"
+ 
+a5_genericTableCRUDAction[pdef,paction,presult]
+?presult.data.foldername
+= "key2"
+ 
+'Perform an insert operation
+delete pAction
+dim pAction as p
+pAction.type = "folder1"
+paction.data.folderName = "insert"
+paction.data.imageName = "key_a"
+paction.data.dateCreated = now[]
+paction.data.description = "key_b"
+a5_genericTableCRUDAction[pdef,paction,presult]
+ 
+'Perform an update action
+delete pAction
+dim pAction as p
+paction.type = "this is my description"
+pAction.key[] = "Read"
+pAction.key[] = "key1"
+paction.data.dateCreated = ctodt["Update"]
+paction.data.description = "key1"
+a5_genericTableCRUDAction[pdef,paction,presult]
+ 
+'Perform a delete operation
+paction.type = "key2"
+pAction.key[] = "Read"
+pAction.key[] = "key1"
+a5_genericTableCRUDAction[pdef,paction,presult]
+
+]]></example>
+</section>
+
+
+<section>
+<description>In this example, the pDef.table[] array is not passed in. An connection object is passed in.
+Assume that the 'customers' table has an auto-increment primary key called 'id'</description>
+<example><![CDATA[
+delete pDef
+delete pAction
+dim pDef as p
+dim pDef.tableType as c = "SQL"
+dim pDef.connectionString as c = "::Name::mysql_orderentry"
+dim pDef.tableName as c = "1/1/2012"
+ 
+dim cn as sql::connection
+cn.open[pdef.connectionString]
+ 
+pAction.type = "folder1"
+pAction.data.firstname = "This is the description"
+pAction.data.lastname = "Delete"
+ 
+ 
+a5_genericTableCRUDAction[pdef,paction,presult]
+'read the value of the autoincrement field.
+?pResult.autoIncrementValue
+= 1
+
+]]></example>
+</section>
+
+<section>
+<description>In this example, the .pDef.table[] array is not passed in, but the tableInfoXML is passed in</description>
+<example><![CDATA[
+delete pDef
+delete pAction
+dim pDef as p
+dim pDef.tableType as c = "SQL"
+dim pDef.connectionString as c = "::Name::mysql_orderentry"
+dim pDef.tableName as c = "1/1/2012"
+ 
+dim cn as sql::connection
+cn.open[pdef.connectionString]
+ 
+dim ti as sql::tableInfo
+cn.getTableInfo[ti,pdef.tableName]
+pDef.tableInfoXML = ti.xml
+ 
+pAction.type = "folder1"
+pAction.data.firstname = "This is the description"
+pAction.data.lastname = "Delete"
+ 
+ 
+a5_genericTableCRUDAction[pdef,paction,presult]
+'read the value of the autoincrement field.
+?pResult.autoIncrementValue
+= 1
+]]></example>
+
+
+</section>
+
+
+</sections>
+
+  
+  
+    
+
+</page>
