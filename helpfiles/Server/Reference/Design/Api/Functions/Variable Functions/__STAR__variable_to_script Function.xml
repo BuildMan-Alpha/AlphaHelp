@@ -1,0 +1,114 @@
+<page>
+   <topic>*variable_to_script Function</topic>
+   <syntax>C Result =  *VARIABLE_TO_SCRIPT(P varFrame[,options as c[,stringTagMap as c]])</syntax>
+   <arguments>
+     
+      <argument>
+         <name>Result</name>
+         <description>Xbasic script to re-create variables that were inside the passed frame/pointer</description>
+     </argument>
+     <argument>
+         <name>varFrame</name>
+         <description>pointer variable</description>
+     </argument>
+     <argument>
+         <name>options</name>
+         <description>(optional) w : Generate with statements</description>
+     </argument>
+     <argument>
+         <name>stringTagMap</name>
+         <description>(optional) Control string tag names</description>
+     </argument>
+   </arguments>
+   <description>Create a script that would initialized the variables in the variable frame - option flag 'w' - generate with statements.</description>
+   <discussion>
+Create an Xbasic script to re-create the variables in the passed variable frame (pointer variable).
+
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>The function takes a dot variable and serializes it as an xbasic script. The dot variable can be reconstituted by executing the generated script.
+
+Contrast this with property_to_string() and property_to_blob(), which also serialize a dot variable.
+</description>
+            <example><![CDATA[
+dim p as p
+p.name = "alpha"
+p.city = "boston"
+
+?*variable_to_script(p)
+= DIM name as C = "alpha"
+DIM city as C = "boston"
+
+dim p2 as p
+p2.name = "alpha"
+dim p2.array[2] as p
+p2.array[1].prop1 = "prop1"
+p2.array[1].prop2 = "prop2"
+p2.array[2].prop1 = "prop3"
+p2.array[2].prop2 = "prop4"
+
+?*variable_to_script(p2)
+= DIM name as C = "alpha"
+DIM array[2] as P
+DIM array[1].prop1 as C = "prop1"
+DIM array[1].prop2 as C = "prop2"
+DIM array[2].prop1 as C = "prop3"
+DIM array[2].prop2 as C = "prop4"
+
+
+'using the 'w' flag you get cleaner, easier to read code
+?*variable_to_script(p2,"w")
+= DIM name as C = "alpha"
+DIM array[2] as P
+with  array[1]
+	.prop1 = "prop1"
+	.prop2 = "prop2"
+end with
+with  array[2]
+	.prop1 = "prop3"
+	.prop2 = "prop4"
+end with
+
+
+
+p3.colors = comma_to_crlf("alpha,beta,gamma")
+p3.html = "this is some html" + crlf() + "second line"
+?*variable_to_script(p3)
+= DIM colors as C = <<%str%
+alpha
+beta
+gamma%str%
+DIM html as C = <<%str%
+this is some html
+second line%str%
+
+'in the above example, a5 chose to use 'str' as the long string delimiter.
+
+
+'By passing in a map (of property name to string delimiter), 
+' you can specify what delimiter to use for various property names
+' Notice that the .html property is now delimited using %html%, 
+' not %str% as in the above example
+
+?*variable_to_script(p3,"",comma_to_crlf("*html*|%html%,*xbasic*|%code%,*serverside*|%code%"))
+= DIM colors as C = <<%str%
+alpha
+beta
+gamma%str%
+DIM html as C = <<%html%
+this is some html
+second line%html%
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>property_to_string Function</ref>
+      <ref>property_to_blob Function</ref>
+   </see>
+   
+
+
+
+</page>
