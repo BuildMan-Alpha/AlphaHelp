@@ -1,0 +1,83 @@
+<page>
+   <topic>THREAD_CREATE Function</topic>
+   <syntax>V THREAD_CREATE(C thread_name,C xbasic_code[,P variable])</syntax>
+   <arguments>
+     <argument>
+         <name>thread_name</name>
+         <description>A character string to be used as the name of the thread. This thread name must be unique among all currently running threads. There will always be a thread named "Main" running, so you cannot use this name.
+</description>
+     </argument>
+     <argument>
+         <name>xbasic_code</name>
+         <description>The string of code that should be run in this background thread.</description>
+     </argument>
+     <argument>
+         <name>variable</name>
+         <description>Optional. A pointer to a name-space you would like to use as the context for the thread. This is akin to passing pVariables into a UDF and then using with pVariables... end with.
+</description>
+     </argument>
+   </arguments>
+   <description>Create a thread - requires a unique thread name , code to run - allows for 'base' variable frame to be passed in.</description>
+   <discussion>
+The THREAD_CREATE() function creates a new thread.
+ Note : In Alpha Anywhere version 7, if you try to create a new thread using the name of a thread that is already running, the function will generate that states that the name is already in use. In version 6, you should use the error detection method described in Thread Example.
+ Note : XBASIC_ERROR_LOG()is very useful for threading because it will create a log along with some debugging information if or when a thread abnormally terminates. Without this, there is no way to tell why your thread quit.
+Limitations: Desktop applications only. No user interface related commands are allowed in a thread. Using any command that attempts to create or manipulate any type of user interface from within a thread will cause Alpha Anywhere to hang. Examples of such invalid functions include debug() , ui_*, StatusBar.*, ControlPanel.*, trace.*, etc. .
+
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            
+            <example><![CDATA[
+thread_create("mythread", <<%code%
+while flag_run
+    ' do a bunch of stuff
+end while
+%code%)
+
+]]></example>
+       </section>
+       
+       <section>
+            <description>Then when you want to stop the thread, you can do the following from another script, the interactive window, etc:</description>
+            <example><![CDATA[
+tv = thread_variables("mythread")
+tv.flag_run = .f.
+delete tv
+
+]]></example>
+       </section>
+       
+       <section>
+            <description>The following script removes unwanted temporary files. This thread works at the lowest priority.</description>
+            <example><![CDATA[
+function RaysCleanup as V()
+thread_create(thread_name_create("Ray's cleanup"),<<%code%
+dim self as P
+dim files as C
+self = thread.current()
+self.set_priority(-2)
+files = filefind.get(a5.Get_private_Path() + chr(92) + "$$*.*",0,"pn")
+*for_each(x,file.remove(x),files)
+files = filefind.get(a5.Get_private_Path() + chr(92) + "*.pdf",0,"pn")
+*for_each(x,file.remove(x),files)
+files = filefind.get(a5.get_path() + chr(92) + "$$*.*",0,"pn")
+*for_each(x,file.remove(x),files)
+%code%)
+end function
+
+]]></example>
+       </section>
+       
+       
+   </sections>
+   <see>
+      <ref>THREAD_NAME_CREATE()</ref>
+      <ref>THREAD_VARIABLES()</ref>
+      <ref>XBASIC_ERROR_LOG()</ref>
+   </see>
+  
+
+
+</page>

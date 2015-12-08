@@ -1,0 +1,325 @@
+<page>
+   <topic>TABLECOUNT Function</topic>
+   <syntax>Number_Of_Records as N = TABLECOUNT(C tablename,C filter)</syntax>
+   <arguments>
+     <argument>
+         <name>tablename</name>
+         <description>The full drive, path, name, and extension of the table. If you omit the drive, path, and extension, Alpha Anywhere searches the directory of the current table.
+</description>
+     </argument>
+     <argument>
+         <name>filter</name>
+         <description>A character filter expression that evaluates to a logical value. Selects records to count.</description>
+     </argument>
+   </arguments>
+   <description>Returns the number of matching records in a specified table.</description>
+   <discussion>
+Searches the specified Lookup_Table for one or more records that satisfy the specified Filter, and returns the number of records found. The Filter must return a logical value, either True (.T.) or False (.F.). For example, to choose all of the records in a table, use the logical constant ".T." as a filter. To choose only the records where the STATE field is equal to TN, use the filter "STATE = 'TN'".  Note that the entire filter is always in quotations, and the character value, TN, is in single quotes. The Lookup_Table parameter can contain the full drive, path, and extension.
+ NOTE: If no records satisfy the filter, Alpha Anywhere returns a zero value.
+   </discussion>
+  
+   <sections>
+       <section>
+            <description>Assume that a department purchasing table (PURCHASE) contains the following records:</description>
+          
+          <list>
+          <item>
+          <name-title>PURCHASE TABLE</name-title>
+          <description-title>></description-title>
+          </item>
+          
+          <item>
+          <name-title>MANAGER</name-title>
+          <description-title>COST, BILL_DATE, and PAID_UP</description-title>
+          </item>
+          
+          <item>
+          <name>ANDRY</name>
+          <description>18500.00 01/01/2003 T</description>
+          </item>
+          
+          <item>
+          <name>BROWN</name>
+          <description>49.95 02/01/2003 T</description>
+          </item>
+          
+          <item>
+          <name>BROWN</name>
+          <description>12.99 04/01/2003 F</description>
+          </item>
+          
+           <item>
+          <name>FARLEY</name>
+          <description>7995.00 03/01/2003 F</description>
+          </item>
+          
+           <item>
+          <name>FARLEY</name>
+          <description>142.16 04/10/2003 T</description>
+          </item>
+          
+           <item>
+          <name>FARLEY</name>
+          <description>423.00 05/10/2003 F</description>
+          </item>
+          </list>
+          </section>
+   </sections>
+          
+      
+      
+      
+      
+         
+          
+<sections>
+<section>      <title>All Records</title>
+          <description>The following expression will count all the records in the Purchase table:</description>
+            <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF", ".T.")
+= 6.000000
+]]></example>
+       </section>
+   </sections>
+   
+   <sections>
+<section>     
+          <description><![CDATA[Note : There are other ways to get a total count of the records in a table.  <TBL>.RECORDS_GET()will return the number of records in the open table referenced by .
+]]></description>
+          
+       </section>
+   </sections>
+   
+   
+    <sections>
+<section>    <title>Filter Using a Specific Character String</title>  
+          <description>The following expression returns the count of the number of records in the Purchase table where Andry is a manager.
+</description>
+            <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF", "MANAGER = 'ANDRY'")
+= 1.000000
+]]></example>
+       </section>
+       
+       <section>
+       <description>In this example we're using a specific (fixed) string of characters and asking Alpha Anywhere to compare Manager field values against this specific string. Strings are ordinarily delimited with double quotation marks, like this: "Andry". The string ("Andry") must be delimited by single quotes in this case in order to distinguish it from the double quotes that contain the filter expression. This is necessary whenever a specific (fixed) character string appears within a character string, like the case we have here. Otherwise if we did it this way:   "MANAGER = "ANDRY"" we have created an invalid expression. Alpha Anywhere would think the expression ended when the second quote mark was encountered, and would not know what to do with the remainder.
+</description>
+       
+       
+       </section>
+       
+       
+       
+       
+   </sections>
+   
+   
+    <sections>
+<section>    <title>Filter Using Character Variable (Simple)</title>  
+          <description>The following expression counts all records in the PURCHASE table whose value in the MANAGER field equals whatever value has been assigned to the vManager variable.
+</description>
+            <example><![CDATA[
+TABLECOUNT("PURCHASE.DBF","MANAGER = '" + vManager + "' ")
+]]></example>
+       </section>
+   </sections>
+   
+   
+    <sections>
+<section>      
+          <description>Note that the filter expression still contains single quotes which surround the string that will be compared with Manager field values. If we did it like this:   "MANAGER = 'vManager'" then Alpha Anywhere would use the name of the variable (" vManager ") to do the comparison. So, this time, we have to use a different syntax so that Alpha Anywhere will know that we want it to use the value of the variable, and not it's name when doing the comparisons.
+This is accomplished by breaking the filter expression down into three parts. The first part begins and ends with quotation marks, just like any other string. It looks like this:   "MANAGER = '". Next we add (concatenate) the variable name, using the plus symbol like this: + vManager. (Plus symbols are the string concatenation operators in Alpha Anywhere.) So, at this point our filter looks like this: "MANAGER = '" + vManager. Remember, now that whenever we want a string of characters to appear within a string of characters we have to delimit them with single quotes. The leading quote is already in place. The third part of our filter expression simply adds the trailing single quote mark, and looks like this:   "' ". So, the final filter expression is:   "MANAGER = '" + vManager + "' ". Look closely, can you still see the three distinct parts from which it is composed?
+In this example the variable is of character type and contains a string value. If the character string "Andry" has been assigned to the character variable vManager then Alpha Anywhere will substitute the variable's value when it evaluates the filter expression.
+ "Manager = '" + vManager + "' " becomes "Manager = '" + "Andry" + "' "
+Then the plus mark operators transform the expression from
+ "Manager = '" + "Andry" + "' " into "Manager = 'Andry' "
+This is identical to the required syntax for a literal string.</description>
+            
+       </section>
+   </sections>
+   
+   
+   <sections>
+
+
+<section>    <title>Filter Using a Character Variable (Complex)</title>  
+          <description>The same rules apply when you build more complex filter expressions using string variables. The following expression counts all records in the Purchase table where the first letter of in the Manager field falls in the range from "B" to "E". Assume the existence of two character type (string) variables with the following values: vBeginLtr = "B" ; and vEndLtr = "E".
+</description>
+            <example><![CDATA[
+TABLECOUNT("PURCHASE.DBF", "between(left(Manager,1),'" + vBeginLtr + "','" + vEndLtr + "')")
+]]></example>
+       </section>
+  
+  
+  <section>   
+          <description>When evaluated the filter expression:</description>
+            <example><![CDATA[
+"between(left(Manager,1),'" + vBeginLtr+"','" + vEndLtr + "')"
+]]></example>
+       </section>
+  
+  <section>   
+          <description>becomes this when the variable values are substituted:</description>
+            <example><![CDATA[
+"between("left(Manager,1),'" + "B" + "','" + "E" + "')"
+]]></example>
+       </section>
+       
+<section>   
+          <description>and then becomes this when the strings are concatenated:</description>
+            <example><![CDATA[
+"between("Left(Manager,1),'B', 'E')"
+]]></example>
+       </section>
+       
+       <section>   
+          <description>which returns 2 when TABLECOUNT() does its work.</description>
+           
+       </section>
+       
+   </sections>
+   
+   
+   <sections>
+   <section><title>Filter Using a Specific Number</title>
+
+<description>The following expression returns the count of the number of records in the Purchase table where the Cost field value is greater than 1000.00.</description>   
+    <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF","Cost > 1000.00")
+= 2.000000
+
+]]></example>
+   
+   </section>
+   <section>
+   <description>Here, an actual (literal) number is used in the filter expression. Notice that the literal number requires no special delimiting characters at all. However, the filter expression itself must be surrounded with double quote marks.</description>
+   
+   </section>
+   </sections>
+   
+   <sections>
+   <section><title>Filter Using a Numeric Variable</title>
+   <description>The following expression returns the count of the number of records in the Purchase table that have Cost field values greater than whatever numeric amount has been assigned to the vCost variable:
+</description>
+   <example><![CDATA[
+TABLECOUNT("PURCHASE.DBF", "Cost > " + vCost) 
+   ]]></example>
+   </section>
+   </sections>
+   
+   
+   
+   
+   <sections>
+   <section><title>Filter Using a Specific Date Value</title>
+   <description>The following expression returns the count of the number of records in the Purchase table where the Bill_date field value matches a specific, fixed, date. i.e. April 1, 2003.
+</description>
+   <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF","Bill_date = {04/01/2003}")
+= 1.000000
+   ]]></example>
+   </section>
+   </sections>
+   
+   
+   <sections>
+   <section>
+   <description>The filter expression must use French braces so that Alpha Anywhere will know that the characters within represent a date. A date type is required in order to do a comparison with the Bill_date field, since Bill_date itself is a date type field. Notice that the entire filter expression is again surrounded by quotation marks. Otherwise, this is directly comparable to the notation for a specific (fixed) string. The difference being that the specific string requires single quote marks, while the literal date requires French braces.
+</description>
+   
+   </section>
+   </sections>
+   
+   
+   
+   
+   <sections>
+   <section><title>Filter Using Date Variables</title>
+   <description>The following expression returns the count of the number of records in the Purchase table that have Bill_date field values which equal whatever date has been assigned to the date type variable vBillDate :
+</description>
+   <example><![CDATA[
+   
+   TABLECOUNT("PURCHASE.DBF","Bill_date = {"+ dtoc(vBilldate) +"}")
+   
+   ]]></example>
+   </section>
+   <section>
+    <description>Here the filter expression is:</description>
+   <example><![CDATA[
+   
+"Bill_date = {"+ dtoc(vBilldate) +"}"
+   
+   ]]></example>
+   
+   </section>
+   <section>
+   <description>You can see that again the plus symbol concatenation operators are used to stitch together distinct parts of the expression into a single character string.
+Working from the inside out, if vBillDate has been assigned the date, 04/01/2003, then the DTOC() function will convert
+ "Bill_date = {"+ dtoc(vBilldate) +"}" into    "Bill_date = {"+ "04/01/2003" +"}".
+The plus symbol concatenation operators will then convert
+ "Bill_date = {"+ "04/01/2003" +"}" into "Bill_date = {04/01/2003}", which looks remarkably similar the desired syntax for a specific (fixed) date value.
+</description>
+</section>
+   
+   
+   </sections>
+   
+   <sections>
+   <section>
+   <title>Filter a Range of Dates Using Variables</title>
+   <description>The following expression will return the count of records in the Purchase table where the Bill_Date value falls in the first quarter of 2003: (vBeginDate = {01/01/2003} .and. vEndDate = {03/31/2003}.
+</description>
+   <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF", "Between(BILL_DATE, {"+ dtoc(vBegindate) +"}, {"+ dtoc(vEndDate) +"})")
+= 3.000000
+   ]]></example>
+   
+   
+   </section>
+   </sections>
+   
+   
+    <sections>
+   <section>
+   <title>Filter Using Logical Variables</title>
+   <description>The following expression counts the number of records in the Purchase table that have a True value in the Paid_Up field:
+</description>
+   <example><![CDATA[
+? TABLECOUNT("PURCHASE.DBF", "Paid_UP")
+= 3.000000
+   ]]></example>
+   
+   
+   </section>
+   
+   
+   <section>
+  
+   <description>While this expression counts the number of records in the Purchase table that do not have a True value in the Paid_Up field:
+</description>
+   <example><![CDATA[
+TABLECOUNT("PURCHASE.DBF", ".not. Paid_Up") U94; 3.000000
+   ]]></example>
+   
+   
+   </section>
+   
+   
+   </sections>
+   
+   
+    <sections>
+   <section>
+   <title>Thanks to</title>
+   <description>Tom Cone</description>
+   </section>
+   </sections>
+   
+   <see>
+      <ref>Table Functions and Methods</ref>
+      <ref>Record Functions</ref>
+      <ref>TABLE and DB Functions Contrasted</ref>
+      <ref>Writing Expressions</ref>
+     
+   </see>
+</page>
