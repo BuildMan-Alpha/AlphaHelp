@@ -1,0 +1,156 @@
+<page>
+   <topic>A5WS_Save_User_Values Function</topic>
+   <syntax>Result as P = a5ws_Save_User_Values(P CurrentForm [,* request ])</syntax>
+   <arguments>
+     <argument>
+         <name>Result</name>
+         <description>The result value is not meaningful if the function is being used in a web component. 
+ result.errors  = Will return TRUE if any errors are found during processing. 
+
+ result.error_text = Error messages returned.  </description>
+     </argument>
+     <argument>
+         <name>CurrentForm</name>
+         <description>The CurrentForm variable, a system variable that refers to the contents of the  dialog component.
+</description>
+     </argument>
+     <argument>
+         <name>request</name>
+         <description>The Request system variable. This variable explicitly passes all request variables  to the function. Users are identified by a value in the request.variables property of the request variable. 
+request.variables.guid = The user GUID value for the desired user record  </description>
+     </argument>
+   </arguments>
+   <description>Save values in the 'CurrentForm' controls that match fields in the user table for the current project.  Used in Web Dialog component. </description>
+   <discussion>
+This function is deprecated after Alpha Five Version 9. The function A5WS_Save_WebUser_Values() should be used instead. 
+The A5WS_Save_User_Values() function validates values from  controls in a dialog component and then saves the values to fields in the Web Security User table. Only values  passed in the request.variables property of the request variable are saved. 
+The name of  each control in the dialog must exactly match  the name of the field in the user table. A list of valid field names can be found by using the A5WS_User_File_Field_List() function. It is used in the Server  Validate event of a dialog component. Adding Users with a Web Component shows how the function is used in  dialog component event. 
+If  validation errors are detected, the form will be redisplayed with the error message shown at the top of the  form and the variable CurrentForm.Has_Error will be TRUE. The user can then make corrections and resubmit the form. If the variable CurrentForm.Has_Error = .T. prior to calling the function, the function will test the security control values for validation and return any errors, but will not save the values. The security values will only be saved if CurrentForm.Has_Error =.F. 
+
+   </discussion>
+  
+   <sections>
+       <section>
+         <list><item>
+         <name>1. Display the Form > Properties menu page of the Dialog  Builder.</name>
+         
+         </item>
+         
+         <item>
+         <name>2. Click  in the Server Events > Validate property. </name>
+         
+         </item>
+         </list>
+       </section><section><description>Limitations: May only be used in a web component or web page.
+       </description></section>
+   </sections>
+   
+   <sections>
+       <section>
+            <description>Note that CurrentForm and Request are the names of variables created by the Application Server.
+</description>
+            <example><![CDATA[
+A5WS_Save_User_Values(CurrentForm, Request )
+]]></example>
+       </section>
+       </sections>
+       <sections>
+       <section><title>Using the Function Outside of a Dialog Component </title>
+            <description>The function is designed to be used within Server Events of a dialog component. However, it can be used on any xbasic code section on a web page or component to save various values for a specific user. It is helpful to get a list of valid field names currently being used in the user security table by using the A5WS_User_File_Field_List() function. One additional field named groups can be saved. Groups should contain a comma delimited or CR-LF delimited list of the security groups assigned to the user. The group values can be the group_guid value for each group or the group_name of each group. 
+</description>
+            <example><![CDATA[
+?a5ws_User_File_Field_List()
+= Email
+Guid
+Password
+Ulink
+Userid
+
+]]></example>
+       </section>
+       
+       
+       <section>
+       <description>The function will only save values for fields passed to the function in the Request system variable as request.variables. and will only save values for fields currently being used by the security system. 
+NOTE:Security Settings may be defined to require values in certain User Verification Fields during data entry on the web. If these fields are included in the Request variables, they can not be blank, or the record will not be saved and an error message will be returned. 
+A value MUST be passed to the function to find the current user. This MUST be request.variables.guid. No other input value can be used to find an existing record. 
+WARNING: If the guid value is not passed to the function, the guid value is blank, or the guid value doesn't match an existing record, a new record will be created. A userid value must be an input value for a new record, or the save is cancelled and returns an error message. Userid does not have to be entered for an existing record unless the value for userid is being changed. 
+This code will find the user with a guid="20860aa66cfa4feb83ba25887d303f59" and change the email address to "joe@email.com". If no user is found with that guid, nothing is saved and an error message is returned. 
+</description>
+       <example><![CDATA[
+dim request.variables.guid as c
+dim request.variables.email as c
+request.variables.guid = "20860aa66cfa4feb83ba25887d303f59"
+request.variables.email = "joe@email.com"
+       
+       
+       
+       
+       ]]></example>
+       </section>
+       
+       
+       <section>
+       <description>This code will enter a new user record with a userid = "Joe@email.com" and an email address with the same value. The new user record will have a password added with the value of "password". Since no guid is input, a new record is created. The function will automatically create a new guid value for the record when the record is saved. </description>
+       <example><![CDATA[
+dim request.variables.userid as c
+dim request.variables.email as c
+dim request.variables.password as c
+request.variables.userid = "joe@email.com"
+request.variables.email = "joe@email.com"
+request.variables.password = "password"
+       ]]></example>
+       </section>
+       
+       <section>
+       <description>This code will set the user's group assignments to "Administrators" and "Marketing". The function will only save groups that are valid values in security groups definitions. </description>
+       <example><![CDATA[
+dim request.variables.groups as c
+request.variables.groups = "Administrators,Marketing"
+       ]]></example>
+       </section>
+       
+       <section>
+       <description>An output pointer must be defined. The function will always return the guid value for a saved record as .Controls.guid.value. The function will also return values for any fields passed to the function in the Request system variable. </description>
+       <example><![CDATA[
+       
+dim output as p
+dim output.controls as p
+dim output.controls.guid.value as c 
+       ]]></example>
+       </section>
+       
+       <section>
+       <description>The function will return the values saved as .controls..value. The result.errors value can be tested to determine if any errors occured during processing. Any error messages will be should in the result.error_text value. </description>
+       <example><![CDATA[     
+dim result as p
+dim error_message as c
+dim group_list as c
+result = a5ws_Save_User_Values(output,request)
+if result.errors = .T. then
+    error_message = result.error_text
+    end
+end if 
+user_guid = output.controls.guid.value
+       ]]></example>
+       </section>
+       
+       
+       
+       
+   </sections>
+   
+   
+   <see>
+      <ref>Web Application Functions</ref>
+      <ref>Adding Users with a Web Component</ref>
+      <ref>Deprecated. Use A5WS_Save_WebUser_Values() instead</ref>
+   </see>
+   
+
+ 
+
+ 
+ 
+
+</page>

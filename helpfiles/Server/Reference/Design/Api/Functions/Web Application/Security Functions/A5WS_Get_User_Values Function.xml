@@ -1,0 +1,137 @@
+<page>
+   <topic>A5WS_Get_User_Values Function</topic>
+   <syntax>Result as P  = a5ws_Get_User_Values(P CurrentForm [,* request ])</syntax>
+   <arguments>
+     <argument>
+         <name>Result</name>
+         <description>The result value is not meaningful if the function is being used in a web component. 
+ </description>
+ <list>
+ <item><name>
+ result.errors  = Will return TRUE if any errors are found during processing. 
+</name></item><item><name>
+ result.error_text = Error messages returned.
+  </name></item></list>   </argument>
+     <argument>
+         <name>CurrentForm</name>
+         <description>The CurrentForm variable.</description>
+     </argument>
+     <argument>
+         <name>request</name>
+         <description>The Request system variable. This variable explicitly passes all request variables  to the function.  Users are found by three possible values passed in the request.variables property of the request variable. There are checked in sequence until a match is found. 
+</description>
+       <list><item><name>  
+request.variables.guid = The user GUID value for the desired user record 
+</name></item><item><name>
+request.variables.userid = The 'userid' value for the desired user record 
+</name></item><item><name>
+request.variables.ulink = The 'ulink' value saved in the desired user record  
+         </name></item></list>
+         
+         
+     </argument>
+   </arguments>
+   <description><![CDATA[Return values from web user table as 'CurrentForm.Controls.<fieldname>.value' for each field in table.  Accepts user identification as 'request.variables.guid','request.variables.userid' or 'request.variables.ulink'.]]></description>
+   <discussion>
+This function is deprecated after Alpha Five Version 9. The function A5WS_Get_WebUser_Values() should be used instead. 
+The A5WS_Get_User_Values() function populates control values in a  dialog component from fields in the User table. The function returns values from web user table as CurrentForm.Controls..value for each field in table.  Accepts user identification as request.variables.guid, request.variables.userid or request.variables.ulink.
+The name of each control in the dialog must exactly match the name of the field in the user table. A list of valid field names can be found by using the A5WS_User_File_Field_List() function. Typically used in the Server  Initialize event of a dialog component. You can also use this function  in the Server After Validate event to repopulate values after a save. Adding Users with a Web Component shows how the function is used in  dialog component events. 
+
+   </discussion>
+ 
+   <sections>
+       <section>
+           <list>
+           <item><name>
+           1. Display the Form > Properties menu page of the Dialog  Builder.
+           </name></item>
+           <item><name>
+           2. Click  in the Server Events > Initialize property. 
+           </name></item>
+           </list>
+       </section>
+       <section>
+       <description>Limitations: May only be used in a web component or web page. </description>
+       
+       </section>
+   </sections>
+   
+   
+   <sections>
+       <section>
+            <title>Example</title>
+            <example><![CDATA[
+a5ws_get_user_values(CurrentForm,request)
+]]></example>
+       </section>
+   </sections>
+   
+   <sections>
+       <section><title>Using the Function Outside of a Dialog Component</title>
+            <description>The function is designed to be used within Server Events of a dialog component. However, it can be used on any xbasic code section on a web page or component to return various values for a specific user. It is helpful to get a list of valid field names currently being used in the user security table by using the A5WS_User_File_Field_List() function. One additional field named groups can be returned. It will contain a comma delimited list of the security groups assigned to the user. The group values returned will be the group_guid value for each group, not the group names. A list of group names assigned to the user can be found using the function A5WS_Get_User_Assignments.
+</description>
+            <example><![CDATA[
+?a5ws_User_File_Field_List()
+= Email
+Guid
+Password
+Ulink
+Userid
+
+]]></example>
+       </section>
+       
+ <section>
+ <description>The fields to be output from the function must be defined. The function will only return values for field names passed to the function as .Controls..value and will only return values for fields currently being used by the security system. </description>
+<example><![CDATA[
+dim output as p
+dim output.controls as p
+dim output.controls.email.value as c
+dim output.controls.userid.value as c
+dim output.controls.groups.value as c
+dim output.controls.guid.value as c 
+
+]]></example>
+
+ </section>      
+       
+<section>
+ <description>A value must be passed to the function in the Request system variable to find the current user. This can be in the form request.variables.guid, request.variables.userid or request.variables.ulink.</description>
+<example><![CDATA[
+dim request.variables.ulink as c
+request.variables.ulink = "00000008"
+
+]]></example>
+
+ </section>    
+       
+       
+<section>
+ <description>The function will return the values found in the output.controls..value. The result.errors value can be tested to determine if any errors occured during processing. Any error messages will be should in the result.error_text value. The userid value can be used to get a list of group names for the user using the function A5WS_Get_User_Assignments. </description>
+<example><![CDATA[
+dim result as p
+dim error_message as c
+dim group_list as c
+result = a5ws_Get_User_Values(output,request)
+if result.errors = .T. then
+    error_message = result.error_text
+    end
+end if 
+group_list = a5ws_get_user_assignments(output.controls.userid.value,request)
+group_list = crlf_to_comma(group_list)
+
+
+
+]]></example>
+
+ </section>  
+ 
+ 
+   </sections>
+   <see>
+      <ref>Web Application Functions</ref>
+      <ref>Adding Users with a Web Component</ref>
+      <ref>Deprecated. Use A5WS_Get_WebUser_Values() instead</ref>
+   </see>
+  
+</page>

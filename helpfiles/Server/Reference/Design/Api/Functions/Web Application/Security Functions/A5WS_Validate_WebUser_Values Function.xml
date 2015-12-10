@@ -1,0 +1,163 @@
+<page>
+   <topic>A5WS_Validate_WebUser_Values Function</topic>
+   <syntax>Result as P = a5ws_Validate_WebUser_Values(P CurrentForm [,P UserValue ,P request ])</syntax>
+   <arguments>
+      <argument>
+         <name>Result</name>
+         <description>The result value is not meaningful if the function is being used in a web component. </description>
+
+<list><item><name>
+result.errors  = Will return TRUE if any errors are found during processing. 
+</name></item><item><name>
+result.error_text = Error messages returned. 
+</name></item></list>     
+     
+     </argument>
+     <argument>
+         <name>CurrentForm</name>
+         <description>The CurrentForm variable, a system variable that refers to the contents of the  dialog component.
+</description>
+     </argument>
+     <argument>
+         <name>UserValue</name>
+         <description>Optional. A pointer variable used to pass user defined value to the function. These will override the same values passed by the  Request system variable. Users are identified by a value in the guid property of UserValue. If  UserValue.guid  is not specified, the function will use the value passed by the  Request system variable.
+UserValue.guid = The user GUID value for the desired user record  </description>
+     </argument>
+     <argument>
+         <name>request</name>
+         <description>Optional. The Request system variable. The request variable should be considered READ ONLY. It is added automatically by the server when run from a web page. Users may be found by
+ request.variable.guid = The user GUID value for the desired user record </description>
+     </argument>
+   </arguments>
+   <description>Validate values only in the 'CurrentForm' controls that match fields in the user table for the current project. a5ws_Validate_WebUser_Values.errors = .F. if validated 'UserValue' overrides values passed by the request system variable. Accepts values as 'UserValue.Email', 'UserValue.Ulink', etc </description>
+   <discussion>
+The A5WS_Validate_WebUser_Values() function validates values from  controls in a dialog component but does NOT save the values to fields in the Web Security User table. If you need to validate and save values, use the function A5WS_Save_WebUser_Values. Only values  passed in the request.variable property of the request variable are saved.  The value in request.variable.guid will be used to find an existing record. An optional value can be supplied in UserValue.guid to override the value in request.variable.guid. If both values are blank, the record will be considered a new record. 
+The name of  each control in the dialog must exactly match  the name of the field in the user table. A list of valid field names can be found by using the A5WS_User_File_Field_List() function. It is used in the Server  Validate event of a dialog component. Adding Users with a Web Component shows how the function is used in  dialog component event. 
+If  validation errors are detected, the form will be redisplayed with the error message shown at the top of the  form and the variable CurrentForm.Has_Error will be TRUE. The user can then make corrections and resubmit the form. If the variable CurrentForm.Has_Error = .T. prior to calling the function, the function will test the security control values for validation and return any errors, but will not save the values. The security values will only be saved if CurrentForm.Has_Error =.F. 
+
+   </discussion>
+  <sections>
+       <section>
+            <list>
+            <item><name>
+Display the Form > Properties menu page of the Dialog  Builder.
+            </name></item><item><name>
+Click  in the Server Events > Validate property. 
+            </name></item>
+            </list>
+            
+       </section>
+       <section>
+       <description>Limitations: May only be used in a web component or web page.</description>
+       </section>
+       
+       
+   </sections>
+   
+   
+   <sections>
+       <section><title>Example</title>
+            <description>Note that CurrentForm and Request are the names of variables created by the Application Server.</description>
+            <example><![CDATA[
+A5WS_Validate_WebUser_Values(CurrentForm)
+]]></example>
+       </section>
+   </sections>
+   
+   
+   <sections>
+       <section><title>Using the Function Outside of a Dialog Component </title>
+            <description>The function is designed to be used within Server Events of a dialog component. However, it can be used on any xbasic code section on a web page or component to validate various values for a specific user. It is helpful to get a list of valid field names currently being used in the user security table by using the A5WS_User_File_Field_List() function. One additional field named groups can be checked. Groups should contain a comma delimited or CR-LF delimited list of the security groups assigned to the user. The group values can be the group_guid value for each group or the group_name of each group. </description>
+            <example><![CDATA[
+?a5ws_User_File_Field_List()
+= Email
+Guid
+Password
+Ulink
+Userid
+
+]]></example>
+       </section>
+       
+       
+<section>
+ <description>The function will only validate values for fields passed to the function in the Request system variable as request.variable. and will only validate values for fields currently being used by the security system. 
+NOTE: Security Settings may be defined to require values in certain User Verification Fields during data entry on the web. If these fields are included in the Request or UserValue variables, they can not be blank, or the record will not be validated and an error message will be returned. 
+A value MUST be passed to the function to find the current user. This MUST be provided by either the system supplied request.variable.guid or a user supplied value in UserValue.guid. No other input value can be used to find an existing record. 
+WARNING: If the guid value is not passed to the function, the guid value is blank, or the guid value doesn't match an existing record, the validate will assume this is a new record. A userid value must be an input value for a new record, or the validate is cancelled and returns an error message. Userid does not have to be entered for an existing record unless the value for userid is being changed. 
+This code below will set the parameters to send to the function to find the user with a guid="20860aa66cfa4feb83ba25887d303f59" and validate the email address of "joe@email.com". 
+</description>
+            <example><![CDATA[
+dim uservalue as p
+dim uservalue.guid as c
+dim uservalue.email as c
+uservalue.guid = "20860aa66cfa4feb83ba25887d303f59"
+uservalue.email = "joe@email.com"
+]]></example>
+       </section>
+       
+       
+<section>
+ <description>This code could be used in place of the code above to set the parameters to send to the function to validate a new user record with a userid = "Joe@email.com" and an email address with the same value. The new user record will have a password tested using the value of "password". Since no guid is input, this is considered a new record. The function will automatically create a new guid value for the record only when the record is saved using A5WS_Save_WebUser_Values.</description>
+            <example><![CDATA[
+dim uservalue.userid as c
+dim uservalue.email as c
+dim uservalue.password as c
+uservalue.userid = "joe@email.com"
+uservalue.email = "joe@email.com"
+uservalue.password = "password"
+]]></example>
+       </section>
+       
+       
+<section>
+ <description>This code will test the user's group assignments of "Administrators" and "Marketing". The function will only validate groups that are valid values in security groups definitions. </description>
+            <example><![CDATA[
+dim uservalue.groups as c
+uservalue.groups = "Administrators,Marketing"
+]]></example>
+       </section>
+       
+       
+<section>
+ <description>An output pointer must be defined before the function is run. The function will always return the guid value for an existing record as .Controls.guid.value. The function will NOT cahnge the value in request.variable.guid if request variables were passed to the function. The function will also test values for any fields passed to the function in the Request system variable. </description>
+            <example><![CDATA[
+dim output as p
+dim output.controls as p
+dim output.controls.guid.value as c 
+]]></example>
+       </section>
+       
+       
+       
+       
+<section>
+ <description>The function will return the results of the validation in two ways.
+
+If the values passed validation, .has_error = .F., and result.errors = .F.. 
+If the values failed validation, .has_error = .T., and result.errors = .T. Error messages will be shown in in .error_text and result.error_text. The actual fieldname values that failed validation will have .controls..has_error = .T. and may have an error message in .controls..error_message. The result.errors value can be tested to determine if any errors occured during processing. 
+</description>
+            <example><![CDATA[
+dim result as p
+dim error_message as c
+result = a5ws_Validate_WebUser_Values(output,uservalue)
+if result.errors = .T. then
+    error_message = result.error_text
+    end
+end if 
+user_guid = output.controls.guid.value
+ 
+]]></example>
+       </section>
+       
+   </sections>
+   
+   
+   
+   
+   <see>
+      <ref>Web Application Functions</ref>
+      <ref>Adding Users with a Web Component</ref>
+      <ref>Validates values from controls in a dialog component for fields in the Web Security User table</ref>
+   </see>
+</page>
