@@ -1,0 +1,82 @@
+<page>
+   <topic>UI_DLG_PARENT_GET Function</topic>
+   <syntax>Parent_Name as C = UI_DLG_PARENT_GET(C title)</syntax>
+   <arguments>
+     <argument>
+         <name>Parent_Name</name>
+         <description>The name of the calling (parent) dialog.</description>
+     </argument>
+     <argument>
+         <name>title</name>
+         <description>The name of the called (child) dialog.</description>
+     </argument>
+   </arguments>
+   <description>Return the name of dialogs parent (if the named dialog has a parent).</description>
+   <discussion>
+The UI_DLG_PARENT_GET()returns the name of the calling dialog. This  function is useful when an embedded dialog needs to know the name of the  dialog that caused it to appear.
+
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>One case when a dialog needs to know the name of the calling dialog  is when you create a generalized function for displaying dialogs. The  function showEmbeddedDialog() has the ability  to provide event calls to its parent because UI_DLG_PARENT_GET()provides  the parent's name.
+</description>
+            <example><![CDATA[
+ui_dlg_box("Test",<<%dlg% 
+{startup=init} 
+{embedded=80,10window1} 
+%dlg%,<<%code%
+  
+if a_dlg_button = "init" then 
+a_dlg_button = "" 
+showEmbeddedDialog("window1") 
+end if
+  
+if a_dlg_button = "EmbeddedDialogCallback" 
+a_dlg_button = "" 
+ui_msg_box("Notice","This event was fired by a button on the embedded dialog") 
+end if 
+%code%) 
+
+'--------------------------------------------------------------
+function showEmbeddedDialog as v (title as c) 
+
+ui_modeless_dlg_box(title,<<%dlg% 
+This is the embedded dialog; 
+
+%dlg%,<<%code% 
+
+if a_dlg_button = "callbackEvent" then 
+a_dlg_button = "" 
+dim dlg_parent as c 
+dlg_parent = ui_dlg_parent_get(title) 
+if dlg_parent <> "" then 
+    ui_dlg_event(dlg_parent,"embeddeddialogcallback") 
+else 
+    ui_msg_box("","I am not an embedded dialog") 
+end if 
+end if 
+
+if a_dlg_button = "close" then 
+dlg_parent = ui_dlg_parent_get(title) 
+if dlg_parent <> "" then 
+    ui_msg_box("Error","You can't close an embedded dialog. You must close its parent.") 
+else 
+    ui_modeless_dlg_close(title) 
+end if 
+end if 
+
+%code%) 
+
+end function
+
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Xdialog Function Reference</ref>
+   </see>
+  
+
+
+</page>

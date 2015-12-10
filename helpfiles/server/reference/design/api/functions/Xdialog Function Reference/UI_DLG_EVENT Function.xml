@@ -1,0 +1,126 @@
+<page>
+   <topic>UI_DLG_EVENT Function</topic>
+   <syntax>C UI_DLG_EVENT(C title,C event[,C flags])</syntax>
+   <arguments>
+     <argument>
+         <name>title</name>
+         <description>The name of the dialog.</description>
+     </argument>
+     <argument>
+         <name>event</name>
+         <description>The name of the event to pass.</description>
+     </argument>
+     <argument>
+         <name>flags</name>
+         <description>I - Immediate. Causes the script to stop executing until the event has completed executing.
+W - Wait for idle. I.e. wait until the next idle cycle to execute the event. The script can continue executing before the event has completed executing.
+</description>
+     </argument>
+   </arguments>
+   <description>Invoke an action event in the named dialog - flags I)mmediate, W)ait for input idle.</description>
+   <discussion>
+The UI_DLG_EVENT() function invokes an action event in the specified  modeless dialog. The function will generate an error if the specified  dialog does not exist. Use UI_MODELESS_DLG_EXIST()  to test if the dialog exist before calling its event. Otherwise, you can  use UI_DLG_OPTIONAL_EVENT(),  which does not generate an error.
+Limitations: Desktop applications only.
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>This example receives and displays status from multiple user defined functions.</description>
+            <example><![CDATA[
+function status_list as v ()
+dim completed as C
+dim message2 as C
+completed = ""
+ui_modeless_dlg_box("StatusList",<<%dlg%
+Completed:;
+[.100,5^#completed];
+Current task:;
+[.100message2?.t.];
+;
+%dlg%,<<%code%
+if (a_dlg_button = "close") then
+    ui_modeless_dlg_close("statuslist")
+end if
+if (atc("Completed:",a_dlg_button) = 1) then
+    completed_i = substr(a_dlg_button,11)
+    completed = completed + crlf()+ completed_i
+    completed = remove_blank_lines(completed)
+    ui_modeless_dlg_refresh("statuslist")
+end if
+if (atc("Working:",a_dlg_button) = 1) then
+    message2 = substr(a_dlg_button,9)
+    ui_modeless_dlg_refresh("statuslist")
+end if
+%code%)
+end function
+
+]]></example>
+       </section>
+       
+        <section>
+            <description>The calling user defined function calls the StatusList dialog with variations of the following syntax:</description>
+            <example><![CDATA[
+if (ui_modeless_dlg_exist("StatusList")) then
+    ui_dlg_event("StatusList", "working:Listing files in " + directory, "I")
+end if
+if (ui_modeless_dlg_exist("StatusList")) then
+    ui_dlg_event("StatusList", "completed:Adding " + directory + " files to database", "I")
+end if
+
+]]></example>
+       </section>
+       
+        <section>
+            <description>The following example sends an event from the parent modeless dialog to the embedded child modeless dialog.</description>
+            <example><![CDATA[
+ui_modeless_dlg_box("ParentDialog",<<%dlg%
+{startup=init}
+{frame=1,1}
+{embedded=40,20:ChildDialog};
+{lf};
+{sp};
+%dlg%,<<%code%
+if a_dlg_button = "Hello" then
+    ui_dlg_event("ChildDialog","Hello","I")
+    ui_msg_box("","Another message from the parent dialog")
+end if
+if a_dlg_button = "init" then
+    a_dlg_button = ""
+    show_embedded(local_variables())
+end if
+if a_dlg_button = "close" then
+    ui_modeless_dlg_close("ParentDialog")
+end if
+%code%)
+function show_embedded as v (vars as P)
+    with vars
+ui_modeless_dlg_box("ChildDialog",<<%dlg%
+{wrap=40}
+This is an embedded dialog box that responds to the Hello event sent to it from its parent.;
+{lf};
+Name: [.20name];
+{lf};
+Enter a name into the Name field and click this button. After 2 seconds, the "Hello" dialog box will appear.;
+{lf};
+;
+%dlg%,<<%code%
+if a_dlg_button = "Hello" then
+    sleep(2)
+    ui_msg_box("","Hello: " + name)
+end if
+%code%)
+  
+    end with
+end function
+
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>{EMBEDDED}</ref>
+      <ref>Xdialog  Function Reference</ref>
+      <ref>UI_MODELESS_DLG_EXIST()</ref>
+      <ref>UI_DLG_OPTIONAL_EVENT()</ref>
+   </see>
+  
+</page>
