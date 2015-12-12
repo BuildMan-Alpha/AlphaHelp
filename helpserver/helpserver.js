@@ -113,6 +113,8 @@ app.use("/",function (req, res) {
                 }
             }
         },0,20);
+    } else if( req.path.substring(0,8) == '/images/' ) {
+        res.redirect("/help"+req.path);
     } else {
         help.expressuse(req, res);
     }
