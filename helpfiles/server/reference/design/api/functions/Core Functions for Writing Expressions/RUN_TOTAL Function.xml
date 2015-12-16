@@ -1,0 +1,200 @@
+<page>
+   <topic>RUN_TOTAL Function</topic>
+   <syntax>Running_Total_Value as A = run_total(N subexpr[,G over[,G each])</syntax>
+   <arguments>
+     <argument>
+         <name>subexpr</name>
+         <description>Any valid expression that includes a field or a combination of fields from the current table or set that specifies what you want to examine.
+</description>
+
+
+
+
+
+
+     </argument>
+     <argument>
+         <name>over</name>
+         <description>Optional. When to use the function (instead of on every record).</description>
+     </argument>
+     <argument>
+         <name>each</name>
+         <description>Optional. When to reset the value produced by the function to 0 (instead at the end of all records).
+The Group and Sub_Group are optional parameters that define the range of records to summarize, and may or may not be required, depending upon the context of the summary calculation. Possible values for GRP  R11;  >Group and GRP  R11;  >Sub_Group include:
+</description>
+<list>
+<item>
+<name>GRAND (all records)</name>
+</item>
+
+<item>
+<name>The name of the current table
+</name>
+</item>
+
+<item>
+<name>The name of a table in the current set</name>
+</item>
+
+<item>
+<name>The name of a grouping level that is defined in a report layout</name>
+</item>
+
+<item>
+<name>DETAIL (over the records in the detail section) </name>
+</item>
+</list>
+
+
+     </argument>
+   </arguments>
+   <description>Get the running total of subexpression over group 'over' sampled each group 'each'</description>
+   <discussion>
+RUN_TOTAL() is used in the Detail section of a report to return the running total of the Expression evaluated from the first record to the current record related to the group. The expression is evaluated from the first record to the current record in the sub-group, and the resulting total value is returned.
+For example, to summarize the line-items in an invoice set, the Group parameter might be GRP -> INV_HEAD and the Sub_Group parameter GRP -> INV_ITEM. This means the Summary operation includes only those child records in INV_ITEM related to the current parent record in the Inv_head table. To summarize all the records in a table or set, use the name GRAND as the Group name. The Group GRP -> GRAND and Sub_Group GRP -> INV_ITEM produce a summary result based upon all invoices.
+Limitations: This function is a report writer function, not intended for table level field rules or other expressions. While the function may perform in some areas outside of the report writer, its use there is not supported.
+
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>Assume that an invoicing set consists of two tables. One holds the invoices (INVOICE), and the other holds each invoice's line-items ( INV_ITEM ):
+
+
+
+</description>
+
+<list>
+
+<item>
+<name-title>INVOICE</name-title>
+<description-title>></description-title>
+</item>
+
+<item>
+<name-title>INV_NO</name-title>
+<description-title>CUST_ID and INV_TOTAL</description-title>
+</item>
+
+<item>
+<name>I100</name>
+<description>C001 10.00</description>
+</item>
+
+<item>
+<name>I101</name>
+<description>C003 25.50</description>
+</item>
+
+<item>
+<name>I102</name>
+<description>C001 100.75</description>
+</item>
+
+<item>
+<name>I103</name>
+<description>C004 32.50</description>
+</item>
+
+<item>
+<name>I104</name>
+<description>C002 110.25</description>
+</item>
+
+<item>
+<name>I105</name>
+<description>C005 98.35</description>
+</item>
+
+</list>
+
+
+</section><section>
+
+<list>
+<item>
+<name-title>INV_ITEM</name-title>
+<description-title>></description-title>
+</item>
+
+<item>
+<name-title>INV_NO</name-title>
+<description-title>AMOUNT</description-title>
+</item>
+
+<item>
+<name>I100</name>
+<description>4.50</description>
+</item>
+
+<item>
+<name>I100</name>
+<description>5.50</description>
+</item>
+
+<item>
+<name>I101</name>
+<description>25.50</description>
+</item>
+
+<item>
+<name>I102</name>
+<description>3.25</description>
+</item>
+
+ 
+<item>
+<name>I102</name>
+<description>35.25</description>
+</item>
+  
+<item>
+<name>I102</name>
+<description>62.25</description>
+</item>
+  
+<item>
+<name>I103</name>
+<description>32.50</description>
+</item>
+  
+  
+<item>
+<name>I104</name>
+<description>110.25</description>
+</item>
+
+<item>
+<name>I105</name>
+<description>98.35</description>
+</item>
+  
+  
+  
+</list>
+</section><section>
+
+<description>INVOICE is related to INV_ITEM through a one-to-many link on the INV_NO field. To find the running total of line-item records, use the following expressions:
+</description>
+
+            <example><![CDATA[
+run_total(INV_ITEM->AMOUNT) -> 35.50, if the current INV_NO is "I101"
+run_total(INV_ITEM->AMOUNT) -> 168.75, if the current INV_NO is "I103"
+]]></example>
+       </section>
+       
+<section>
+
+<description>The following calculated field provides a running total in a browse that contains a field named num_field.
+</description>
+
+            <example><![CDATA[
+if( eof( "tablename"),total(num_field),run_total(num_field) )
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Report Functions and Methods</ref>
+   </see>
+  
+</page>
