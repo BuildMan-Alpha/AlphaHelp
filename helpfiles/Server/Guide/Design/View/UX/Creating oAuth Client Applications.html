@@ -363,6 +363,9 @@
   <br/> Click on the 'Execute the REST call using generated code...' button, which should prompt for the id, enter your email
   address . Change the 'email' address portion of the URI to be a placeholder '{id}'.
   <br/>
+  <div class="docFigure">
+    <img src="oauth_rest_genie_args.PNG">
+  </div>  
 
   <br/> When you run this command, you should get the same results you got back from the Google Api Explorer. Copy the generated
   code into a new script, and save the script '_testEventPopulate'.
@@ -421,6 +424,134 @@ end function
   <br/> Now loading the UX component will start up empty, Then when the 'button' is pressed, will first 'prompt' for credentials,
   then reload the component using the provided credentails.
   <br/>
+
+<p> onClick event for 'lb1' </p> 
+<pre>  
+  populateChildList(this.selectionData[0]);
+</pre>
+  
+<p>Final Javascript functions for component</p>   
+  <pre>
+function populateChildList(data) {
+   var lObj2 = {dialog.object}.getControl('lb2');
+   lObj2.populate([{}]);
+   {dialog.object}.ajaxCallback("","","xbpopulateCalendarList","","calendarId="+data.id)
+}    
+  </pre>
+<p>Final Xbasic functions for component</p>   
+  <pre>
+function xbpopulateCalendarList as c(e as p)
+	on error goto done
+	dim eventsResolve as c = populateEvents( urlencode(e.calendarId),"")
+	if eventsResolve <> "" then
+		eventsResolve = json_extract( eventsResolve , "items" )
+		if eventsResolve <> "" then
+			xbpopulateCalendarList = "var lObj2 = {dialog.object}.getControl('lb2');"+\
+			crlf()+"lObj2.populate("+eventsResolve+")";		
+		end if	
+	end if
+done:	
+end function  	
+
+function populateList as c(e as p)
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	populateList = json_extract( eventsResolve , "items" )
+    end if
+end function   
+
+function populateEventList as c(e as p)	
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	eventsResolve = json_extract( eventsResolve , "items" )
+    	if eventsResolve <> "" then
+    		dim arr as p = json_parse(eventsResolve)
+			dim eventsResolve as c = populateEvents( urlencode(arr[1].id) ,"")
+			if eventsResolve <> " " then
+		    	populateEventList = json_extract( eventsResolve , "items" )
+		    end if    		
+    	end if
+	end if
+end function   
+
+function populateEvents as c(id as c,YOUR_API_KEY as c)
+    dim cred as p
+    'cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+    cred = scaffoldCredentials() 'testing code...
+    if cred.hasToken = .f. then
+       exit function
+    end if
+    dim api_path as c = "/calendar/v3/calendars/"+(id)+"/events?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     populateEvents = curlResponse.GetContent()
+	else 
+		 populateEvents = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+'Implementation of REST call
+function GetCalendars as c(YOUR_API_KEY as c)
+    dim cred as p
+    'cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+    cred = scaffoldCredentials() 'testing code...
+    if cred.hasToken = .f. then
+       exit function
+    end if
+    dim api_path as c = "/calendar/v3/users/me/calendarList?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     GetCalendars = curlResponse.GetContent()
+	else 
+		 GetCalendars = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+'Scaffold function to test credentials...
+function scaffoldCredentials as p()
+    dim cred.hasToken as l = .t.
+    dim cred.access_token as c = "{your access token - can be regenerated}"
+    dim cred.clientid as c = "{your client id}"
+    dim cred.resourceURL as c = "www.googleapis.com"
+    scaffoldCredentials = cred
+end function
+  </pre>
 
   <!---HELPMETADATA:{"status ":"pending ","tags ":"web ","keywords ":"server,design,guide "}--->
 
