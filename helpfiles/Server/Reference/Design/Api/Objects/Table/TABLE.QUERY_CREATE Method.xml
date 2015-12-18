@@ -1,0 +1,137 @@
+<page>
+   <topic>table.QUERY_CREATE Function</topic>
+   <syntax>P Query_Create([C flags[,C Filter_expression[,C Order_Expression[,args as p]]]])</syntax>
+   <arguments>
+     <argument>
+         <name>flags</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>Filter_expression</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>Order_Expression</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>args</name>
+         <description>Pointer</description>
+     </argument>
+   </arguments>
+   <description>Create a new query - flags (N)ot remembered - if optional order and filter expressions are specified, then the query variable is ignored.</description>
+   <discussion>
+      ...put discussion here....
+   </discussion>
+   <example><![CDATA[
+...put example code here....
+]]></example>
+   <sections>
+       <section>
+            <description>put description here</description>
+            <example><![CDATA[
+      ...put example here....
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Table Functions and  Methods</ref>
+      <ref>FLATTENQUERY</ref>
+      <ref>Query Functions and  Methods</ref>
+   </see>
+   <original><![CDATA[&ltTBL>.QUERY_CREATE()
+Syntax
+Either specify the Flags, Filter_Expression, and Order_Expression arguments or specify the required values in the Query dot variable, then use the following command:
+&ltINDEX> as P = &ltTBL>.QUERY_CREATE( [ Flags as C [, Filter_Expression as C [, Order_Expression as C ]]] )
+ArgumentDescription
+FlagsOptional. Default = the current value of Query.options. If query.options are not specified, you can provide instructions using the Flags variable. Refer to query.options below.
+ Note : Alpha Five does not clear the prior values of Query.options, Query.Filter , or Query.Order when you do a new query.
+Filter_ExpressionOptional. Default = the current value of Query.Filter. An expression that evaluates to a logical value for each record in the table.
+Order_ExpressionOptional. Default = the current value of Query.Order. An expression that evaluates to a character value and references one or more fields in the table.
+VariableTypeDescription
+Query.DescriptionCThe name of the query.
+Query.OrderCOptional. Default = "" (record number order). A character expression that includes a reference to at least one field in the table. DEPRECATED: Use Order_Expression variable
+Query.FilterCOptional. Default = ".T." (all records). A character  filter expression that evaluates to a logical value and selects the records to retrieve. DEPRECATED: Use Filter_Expression variable
+Query.OptionsCOptional. Default = Record order, ascending, not unique.  DEPRECATED: Use Flags variable.Controls whether Alpha Five uses an index, a new query list, or an existing query list to satisfy a query. This string can contain one or more of the following codes:
+CodeDescription
+NThis flag does two things. The first behaviour is to force Alpha Five to build a query list rather than use an index (should an existing index that matches the query definition be available). The second behaviour is to prevent Alpha Five from setting this query list as the "last used query". (When you open a Form or Browse, if you do not explicitly define a query for the layout, Alpha Five will use the "last used query" for the table or set on which the layout is based. ) 
+DThe descending order option puts the records in descending alphabetical order or, for a numeric field, from highest to lowest value.
+TTemporary query. Alpha Five will automatically delete this query if necessary if building a new query would cause it to run out of query slots. there are a maximum of 16 query slots.
+UThe unique option includes only unique records in the query list.
+MInstructs Alpha Five not to check to see if an existing query list could be used. Alpha Five will build a new query list, even if there was an existing query list that matched the query definition.
+XUse an index even if an existing query exists (which Alpha Five would otherwise have used in preference to the index).
+IThe I flag is obsolete. It was used by Alpha Five V1 to indicate that the index should be case-insensitive. However since V2, Alpha Five automatically builds all indexes as Case-insensitive. It is documented because in some situations, the Script Recorder will show Xbasic code that includes the "I" flag.
+L(Version 9) Forces a query on an active-link table to be performed locally (i.e. client-side), even if the query optimizer determines that the query could have been performed on the server.
+S(Version 9) Executes a query on an active-link table on the server if the query optimizer determines that the query can be performed on the server. This is the default for queries on active-link tables.
+
+Description
+The &ltTBL>.QUERY_CREATE() method orders and selects data from the table referenced by &ltTBL>. Originally, you specified the selection criteria, order expression and query options by setting the values of the query variables ( query.description, query.order, etc.). In more modern, robust usage you specify the optional function arguments instead.
+Once you have set the query variables, use the &ltTBL>.QUERY_CREATE() method to run the query. An object pointer, &ltINDEX>, is returned. &ltINDEX> will reference either:
+
+a previously created query list that satisfies the query definition
+
+an index with the same definition as the query
+
+a new query list 
+Alpha Five will only select a previously created query list if the query list is still up to date. It will be out of date if the table was edited after the query list was built.
+If Alpha Five selects a previously created query list, or an existing index, the result is returned instantaneously. If a new query list must be built, the time taken to build the query list is a function of the size of the table, and whether Alpha Five can use Lightning Query Optimization.
+Query.Filter is the filter expression (a character string). It can be any valid Alpha Five expression that returns a result of .T. (TRUE) or .F. (FALSE). For example, the following are valid filter expressions:
+"Lastname = \"smith\" .and. state = \"CA\""
+"Lastname = 'smith' .and. state = 'CA'"
+".not. (Company = \"\")"
+"(lastname = \"smith\" .or. lastname = \"jones\") .and. state = \"ca\""
+"(lastname = 'smith' .or. lastname = 'jones') .and. state = 'ca'"
+
+Note : The Query.Filter and Query.Order expressions cannot include references to the table pointer.
+Query.Order is the order expression (a character string). It can be any valid Alpha Five expression that references one or more fields. If you want to perform a multi-level sort on character fields, (i.e. sort by Lastname, and within Lastname, sort by firstname ), you simply create an expression on your sort fields, starting with the outer level sort. For example to sort by Lastname, and then by firstname, you would use this order expression:
+Lastname + firstname
+
+If your sort expression concatenates fields of a different type, (e.g. a character field and a date field), you should convert all of the fields to character. For example:
+Lastname + cdate(donation_date) ' a character field and a date
+Str(score) + Lastname ' a numeric field and a character field           
+
+You can set an option in query.options to control whether Alpha Five uses an index, a new query list, or an existing query list to satisfy a query.
+Note : You should reset query.filter, query.order, and query.options to NULL ("") after you finish using them. Since they are global variables, this prevents other scripts from accidentally using inappropriate values.
+You can determine whether a reference to an index or a query list was returned by using the <INDEX>.TYPE_GET() method. It returns 2 for an index and 6 for a query list.
+A query list is like an index in that it does not contain the records themselves. It just contains the key values of the selected records, and pointers to the actual records in the underlying table. Therefore, if you modify a record value when a query list is active, you are modifying the actual data in the table.
+The query list files are stored in the private path, which is set using the View > Settings command from the Control Panel. The query list file names match this pattern: $$*.MPX. The View > Settings command has an option that allows you to specify that the $$*.MPX files (i.e. the temporary query files) for a table should be automatically deleted when Alpha Five is exited. Otherwise, Alpha Five will retain the last four queries for each table.
+As with indexes, you can use the &ltTBL>.FETCH_FIND() method with query lists to find records by key value. In most ways, query list behave the same as indexes. The table below summarizes the differences.
+IndexesQuery Lists
+All users who share a table have the same indexes.Each user creates their own query lists.
+Exclusive access to the table is required to add an index.Exclusive access to the table is not required to build a query list.
+Indexes are dynamic. They are updated when records are edited. Key values are always correctly sorted and records that do not satisfy index filters are removed from the index immediately.Queries are static. They are not updated when records are edited. After it is edited, a record that no longer satisfies the query filter remains in the query list. New records are added to the end of the query list.
+Can use the &ltTBL>.FETCH_FIND() method to find records by key value.Can use the &ltTBL>.FETCH_FIND() method to find records by key value.
+
+The optional query.description assigns a name to the query. The query name can be up to 24 characters long. If Alpha Five selects an existing query, or index, rather than running building a new query list, the query.description is not used.
+The Query.Order expression is used to designate which field or expression sets the primary order of the query. To query a subset of records, you can specify a Query.Filter expression. To be included in the query list, a record must satisfy this filter.
+If the Query.Filter expression is undefined, the filter is assumed to be .T. (TRUE). This means that every record in the table will be selected. If the Order expression is undefined, the order is assumed to be record number order. You cannot leave both the Query.Order expression and Query.Filter expression undefined. If you wish to select all records in the table, you should specify:
+query.filter = ".T."
+
+In the case where &ltTBL> references a table that is the parent table of a set, the Query.Filter expression can reference fields in the sets primary table, and any child tables linked to the parent table with a one-to-one link. Fields from child tables linked to the parent with a one-to-many link cannot be used in the Query.Filter expression, unless the FLATTENQUERY()or CROSSLEVEL() function is used (See below).
+Use the <INDEX>.RECORDS_GET() method to find out how many records were selected by a query.
+When you create a query for a table using the &ltTBL>.QUERY_CREATE() method, then next time a form or browse that is based on the same table is opened, the last created query will be automatically selected, unless the form or browse specifies its own filter and order properties.
+Each table has four slots for query lists. If you create more that four queries for a table (without using the &ltINDEX>.DROP(), or <TBL>.QUERY_DETACH_ALL() method to delete previously built queries), the new queries will take up one of the four slot positions, pushing one of the older queries off the list of open query lists.
+Responding to a Query with No Records
+dim tbl as P
+dim qry as P
+dim nrecs as N
+tbl = table.current()
+query.description = "Time Sheet"
+query_order = "NAME"
+query_filter = "NAME = VAR->Name .and. DATE = {" + VAR->Date + "}"
+query_flags = ""
+qry = tbl.query_create(query_flags, query_filter, query_order)
+nrecs = qry.records_get()
+IF (nrecs = 0) then
+    qry.drop()
+    ui_msg_box("Null Query","There are no records in the Query" ,UI_INFORMATION_SYMBOL)
+    query.order = ""
+    query.filter = ""
+    END
+end if
+
+Active-Link Tables (Version 9)
+When a query is run on an active-link table, Alpha Five will analyze the query expression and determine if any part of the query can be run on the server. If possible, then the portion of the query that can be run on the server, and any remaining portion of the query will be run on the client. If you want to disable the query analyzer and force the query to run on the client, use the "L" query flag.
+See Also
+Table Functions and  Methods, FLATTENQUERY, Query Functions and  Methods]]></original>
+</page>

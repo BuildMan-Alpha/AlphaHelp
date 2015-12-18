@@ -1,0 +1,170 @@
+<page>
+   <topic>table.POPULATE_GRID Function</topic>
+   <syntax>V Populate_Grid(C expression_template[,C start_row_state[,C end_row_state[,C flags[,P variable_frame]]]])</syntax>
+   <arguments>
+     <argument>
+         <name>expression_template</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>start_row_state</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>end_row_state</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>flags</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name>variable_frame</name>
+         <description>Pointer</description>
+     </argument>
+   </arguments>
+   <description>Populate via arrays a grid - use $row$ and $column$ as placeholders for the row/column index.
+B - don't resize the array to be bigger
+S - don't resize the array to be smaller
+F - fill (letover) empty fields in array with blanks
+D - include the deleted/marked/unmarked psuedofield in the list of fields (as field #1)
+R+# - start rows at +# position
+C+# - start column at +# position</description>
+   <discussion>
+      ...put discussion here....
+   </discussion>
+   <example><![CDATA[
+...put example code here....
+]]></example>
+   <sections>
+       <section>
+            <description>put description here</description>
+            <example><![CDATA[
+      ...put example here....
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Table Functions and  Methods</ref>
+      <ref>Array  Functions and Methods</ref>
+      <ref>DIM</ref>
+      <ref>Arrays</ref>
+   </see>
+   <original><![CDATA[&ltTBL>.POPULATE_GRID() 
+Syntax
+&ltTBL>.POPULATE_GRID( Expression_Template as C [ Start_Row_State as C [, End_Row_State as C [, Flags as C [, Variable_Frame as P ]]]] )
+ArgumentDescription
+Expression_TemplateAn expression that duplicates the structure of the target array. Use $row$ and $column$ as Placeholders for the row/column index. The target array must have sufficient rows and columns to accept the table's records and fields.
+Start_Row_StateThe first row to export. Subtract 1 from the number of the first record. For example, to start with record (row) 5, this number would be 4.
+End_Row_StateThe last row to export. Subtract 1 from the number of the last record. For example, to end with record (row) 20, this number would be 19.
+FlagsThe Flags argument allows you to limit the size of the array (B and S flags), and skip records or fields (R+ and C+ flags).
+
+ "B" = do not resize the array to be bigger
+
+ "S" = do not resize the array to be smaller
+
+ "F" = fill (leftover) empty fields in array with blanks
+
+ "D" = include the deleted/marked/unmarked pseudo field in the list of fields (as field #1)
+
+ "p" = preserve trailing blanks
+
+ "R+#" = start rows at +# position
+
+ "C+#" = start column at +# position 
+R+ and C+ are 0 based. I.e. set to 19 for the 20th row.
+Variable_FrameThe name of the pointer variable or a pointer to the variable's name-space, such as  LOCAL_VARIABLES(), GLOBAL_VARIABLES() or SESSION_VARIABLES().
+
+Description
+The &ltTBL>.POPULATE_GRID() method populates arrays quickly with data from a table. The methods strips trailing blanks from the data. If you want to preserve the trailing blanks, then you must use the "P" flag in the list of flags.
+Example
+' type A does not force different field types to be converted
+' create an array to capture up to 40 records, each with 10 fields
+dim arr.row[1..40].col[1..10].myvarname as A
+dim tm as P
+tm = table.open("customer")
+tm.order("lastname")
+' start at logical record 5. subtract 1 since this is zero based.
+start_rowstate = tm.row_position_set(5-1)
+' end at logical record 40. subtract 1 since this is zero based.
+end_rowstate = tm.row_position_set(40-1)
+tm.populate_grid("row[$row$].col[$column$].myvarname", start_rowstate, end_rowstate, "BSF", arr)
+' the lastname field is the 3rd field in the table, so the index into data[] is 3.
+txt = ""
+for i = 1 TO arr.row.first_empty()-1
+    txt = txt + arr.row[i].col[3].myvarname+ CRLF()
+next i
+? txt
+= Barber
+Belafonte
+Bernstein
+Blue
+Boschetti
+Burtonski
+Campana
+Caritos
+Carr
+Copen
+Dawson
+Dodds
+fred
+Fuller
+Hall
+Hammell
+Harrington
+Harris
+Harrison
+Harrison
+Hite
+Houston
+Jenkins
+Jennings
+Johnson
+Jones
+Kelley
+Kirk
+Litton
+Macabe
+McAndrews
+McDonald
+McDonald2
+McMiggan
+Mederos
+Mesnik  
+
+Another example.
+dim row[1..40].col[1..10].myvarname as A
+dim tm as P
+tm = table.open("customer")
+start_rowstate = tm.row_position_set(5-1)
+end_rowstate = tm.row_position_set(40-1)
+tm.populate_grid("row$row$.col$column$.myvarname", start_rowstate, end_rowstate, "BSF", local_variables())
+?row[1].col[1].myvarname
+= "00000005"
+
+In the above example, notice that we dimmed row[1..40].col[1..10].myvarname. This is shorthand for:
+dim row[40] as P
+for i = 1 to 40
+    dim row[i].col[10] as P
+    for i2 = 1 to 10
+        dim row[i].col[i2].myvarname as a
+    next i2
+next i
+
+The Expression_Template that we want the &ltTBL>.POPULATE_GRID() method to populate is row[$row$].col[$column$].myvarname. This matches the variable that we dimmed.
+Variable Frame
+ Note : The row[] array lives in the local name-space. Therefore, the last argument to the tm.populate_grid() method is a pointer to the local variable frame, provided by local_variables().
+In the first example above we have the statement:
+dim arr.row[1..40].col[1..10].myvarname as A
+
+In this case, the array "lives" in the arr name-space, and so we passed in arr as the last argument. If instead we had dimmed the variable as:
+dim r[1..40].d[1..10].vardata as A
+
+then the name-space would be local_variables().
+tm.populate_grid("r[$row$].d[$column$].vardata", start_rowstate, end_rowstate, "BSF", local_variables())
+? r[1].d[2].vardata
+= "Evan"
+
+See Also
+Table Functions and  Methods, Array  Functions and Methods, DIM, Arrays]]></original>
+</page>
