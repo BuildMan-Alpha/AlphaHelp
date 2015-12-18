@@ -1,0 +1,97 @@
+<page>
+   <topic>table.Get_Cursor Function</topic>
+   <syntax>P Get_Cursor()</syntax>
+   <description>Returns 'cursor' for table (keeps own position).</description>
+   <discussion>
+      ...put discussion here....
+   </discussion>
+   <example><![CDATA[
+...put example code here....
+]]></example>
+   <sections>
+       <section>
+            <description>put description here</description>
+            <example><![CDATA[
+      ...put example here....
+]]></example>
+       </section>
+   </sections>
+   <original><![CDATA[&lttbl>.get_cursor() Method - Allows you to get a 'cursor' for an open table. A 'cursor' is just a pointer to an open table that can be navigated independently of the base table. When you move the pointer in a cursor, you do not change the record that the base table pointer is pointing to.
+Syntax:
+tCursor = &lttbl>.get_cursor()
+ 
+Example:
+ 
+dim t as p
+dim tc1 as p
+dim tc2 as p
+t = table.open("customer")
+tc1 = t.get_cursor()
+tc2 = t.get_cursor()
+ 
+'The cursors can each have their own order. Has no impact on the base table
+tc1.order("Firstname")
+tc2.order("Lastname")
+?t.recno()
+=1
+?tc1.recno()
+=23
+?tc2.recno()
+=34
+tc1.fetch_next()
+?tc1.recno()
+= 56
+'Notice how we have moved the record pointer in the first cursor, but
+'it has had no effect on the base table (which still points to record 1)
+?t.recno()
+= 1
+ 
+ 
+The primary motivation for this method is to allow you to use Xbasic to get a pointer to the table that an Embedded Browse is based on, and then to safely loop over the records in that table and manipulate the data in that table. If your Xbasic loop used the table pointer itself, rather than a cursor, your script may not work reliably. This is because you have no control over events that cause the Browse to repaint, and when the Browse repaints, it might move the record pointer.
+ 
+Example. The 'Invoice' Form in AlphaSports is based on the Invoice.set. This Form has an embedded browse that is based on the 'invoice_items' table. You want to write a script that will loop through all of the records for the current invoice, increasing the quantity by one.
+Here is code that could be inserted in a button on the Invoice form:
+ 
+dim tbl as p 
+dim t as p
+
+'get a pointer to the SAME table instance that the embedded browse is based on.
+'Note: Could also have done: tbl = Browse1.table_get()
+tbl = table.get("invoice_items")
+
+'Get a cursor on the table instance
+t = tbl.get_cursor()
+
+ 
+t.fetch_first()
+while .not. t.fetch_eof()
+    t.change_begin()
+    t.quantity = t.quantity + 1 
+    t.change_end(.t.)
+    t.fetch_next()
+end while
+ 
+
+You might ask, "Why do I have to go to the trouble of getting a cursor? Why can't I just write code that uses the same table pointer that the Embedded Browse uses?". The reason is that the script shown below will not work reliably.
+The reason is this: You have no control over when the Browse will repaint. When the Browse repaints it affects the record that the table pointer is positioned on. So, if your script is using the same table pointer that the Embedded Browse is using, then the code in your loop that positions the record pointer will be impacted every time the Browse repaints during the course of your loop. The Browse will be repainted every time the message box is dismissed.
+ 
+'This code is NOT safe (could result in Browse repaint errors)
+dim tbl as p 
+tbl = table.get("invoice_items")
+
+ 
+tbl.fetch_first()
+dim count as n = 0 
+while .not. tbl.fetch_eof()
+
+    count = count + 1
+    ui_msg_box("Notice","Editing item number: " + count)
+    tbl.change_begin()
+    tbl.quantity = t.quantity + 1 
+    tbl.change_end(.t.)
+    tbl.fetch_next()
+end while
+
+ 
+ ]]></original>
+</page>
