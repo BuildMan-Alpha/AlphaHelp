@@ -1,0 +1,141 @@
+<page>
+   <topic>REGEX_MERGE Function</topic>
+   <syntax>New_Text as C = REGEX_MERGE( text as c , RegExp as c , Format as c[,options as c])</syntax>
+   <arguments>
+     <argument>
+         <name>New_Tex</name>
+         <description>The function modified text.</description>
+     </argument>
+     <argument>
+         <name>text</name>
+         <description>The character string to examine. The parentheses characters  " ( " and " ) " have special meaning. If present, they enclose a regular expression  argument. If you want parentheses characters to be part of the text, you  must precede them with " \ " characters.
+</description>
+     </argument>
+     <argument>
+         <name> RegExp</name>
+         <description>A regular expression that contains one or more search  arguments. Refer to Regular  Expressions for detailed information.
+</description>
+     </argument>
+     <argument>
+         <name> Format</name>
+         <description>A regular expression that contains a replacement argument  for each search argument. Refer to Regular  Expressions for detailed information.
+</description>
+     </argument>
+     <argument>
+         <name>options</name>
+         <description>Optional. Default = "S". Specify which compatibility  with a common implementation. tHE flags for Emacs, Awk, Grep, Egrep and  Sed conventions allow the pattern to follow the conventions of those utilities  (which have slightly different variants regarding what is escaped and  what is not escaped).
+</description>
+<list>
+<item>
+<name>"I"</name>
+<description>Ignore case</description>
+</item>
+
+<item>
+<name>"N"</name>
+<description>No copy of unmatched text</description>
+</item>
+
+<item>
+<name>"F"</name>
+<description>Only process first match</description>
+</item>
+
+<item>
+<name>"E"</name>
+<description>Follow Emacs conventions</description>
+</item>
+
+<item>
+<name>"A"</name>
+<description>Follow Awk conventions</description>
+</item>
+
+<item>
+<name>"G"</name>
+<description>Follow Grep conventions
+</description>
+</item>
+
+<item>
+<name>"EG"</name>
+<description>Follow Egrep conventions</description>
+</item>
+
+<item>
+<name>"S"</name>
+<description>Follow Sed conventions</description>
+</item>
+
+<item>
+<name>"X"</name>
+<description>Extended (similar to Awk but no need to escape '' inside of [])</description>
+</item>
+
+
+</list>
+     </argument>
+   </arguments>
+   <description>Performs a regex merge on text. options same as regex_match with additional options:
+	N  No copy of unmatched text.
+	F  Only process first match.</description>
+   <discussion>
+The REGEX_MERGE() function searches Text for one or more matches to Search_Expresssion and conditionally performs replacement operations. REGEX_MERGE() is similar  to STRTRAN_MULTI(), except much more  powerful. Search_Expresssion can have multiple  search arguments (separated by '|' characters). The Replace_Expression uses ?# syntax to indicate which pattern replacement  follows.
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description><![CDATA[The following example has two regular expression search arguments separated  by the " | " character: [a-z]+ and [0-9]+. Their meanings are: any number of  alphabetic characters and any number of numeric characters.
+There are two regular expression replacement arguments. The first argument  \"$&\" has three parts: \",  $&, and \".  The found alphabetic string replaces the $& characters. The function adds the quote characters before and after the  found string. Note that the " \ " character  indicate that the quote character is not syntax but data. Since there  are two words that match the first regular expression replacement argument,  both are quoted.
+The second regular expression replacement argument #$& has two parts: # and $&.  The found numeric string replaces the $& characters. The function adds the # before the  found string.
+]]></description>
+            <example><![CDATA[
+? regex_merge("some strings 1","([a-z]+)|([0-9]+)","(?1\"$&\")"+"(?2#$&)")
+= "some" "strings" #1
+]]></example>
+       </section>
+       
+       <section>
+            <description>This example shows the use of a case-insensitive compare.</description>
+            <example><![CDATA[
+str = <<%str%
+<HTML>
+<BODY>
+First Name <INPUT name="first_name" value="Fred" >
+Last Name <INPUT name="last_name" value="Flintstone">
+</BODY>
+</HTML>
+%str%
+'If we want to add HREF tags around inputs - (i means case insensitive compares)
+? REGEX_MERGE( str , "(<input [^>]+>)","(?1<HREF>$&</HREF>)","i")
+= <HTML>
+<BODY>
+First Name <HREF><INPUT name="first_name" value="Fred" ></HREF>
+Last Name <HREF><INPUT name="last_name" value="Flintstone"></HREF>
+</BODY>
+</HTML>
+
+]]></example>
+       </section>
+       
+       <section>
+            <description>This example shows the use of the N and F flags. The N flag means only dump out the matched text . This is good for extracting information from HTML code.</description>
+            <example><![CDATA[
+'Note the \r\n - the CR-LF that is added to the end of every input
+? REGEX_MERGE( str , "(<input [^>]+>)","(?1$&\r\n)","NI")
+= <INPUT name="first_name" value="Fred" >
+<INPUT name="last_name" value="Flintstone">
+'Add the 'F' flag and we get the first occurence only
+? REGEX_MERGE( str , "(<input [^>]+>)", "(?1$&\r\n)", "NIF")
+= <INPUT name="first_name" value="Fred" >
+
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Regular  Expressions</ref>
+      <ref>Regular  Expressions Functions and Methods</ref>
+      <ref>Character  Replacement Functions</ref>
+   </see>
+  
+</page>
