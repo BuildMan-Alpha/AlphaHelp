@@ -8,37 +8,64 @@ json_sample_array(c jsontext[, format [,n limit]])
 	</syntax>
 	
 <description>
-Takes json and reformats it so that it is presented on one line or extended to include multiple lines. 
+Enumerate top level properties in array entries and return name+count. 
 </description>
 <discussion>
- The json_reformat() function only accepts 'properly formed' JSON strings (property names must be double quoted and string values must be double quoted).	
-format spec parameters
-
-$n - name,
-$i - case insensitive name,
-$c - count - occurences of field,
-$m - records sampled,
-$s - field is sparse (true or false).
+Uses format spec parameters	
 </discussion>
-	
+<list>
+ <item><name>$n</name><description>name</description></item>
+ <item><name>$i</name><description>case insensitive name,</description></item>
+ <item><name>$t</name><description>type (C-charcter/N-number/L-logical/Z-null/?-unknown)</description></item>
+ <item><name>$c</name><description>count - occurences of field,</description></item>
+ <item><name>$m</name><description>records sampled,</description></item>
+ <item><name>$s</name><description>field is sparse (true or false).</description></item>
+ <item><name>$r</name><description>Recurse into child objects.</description></item>
+</list>	
+<sections>
+  <section>
 	<example>
-? json_reformat( extn.ToJson() , .t.)
-= {
-   "Alternate-Protocol": "443:quic",
-   "Cache-Control": "private, max-age=0",
-   "Content-Disposition": "attachment",
-   "Content-Encoding": "gzip",
-   "Content-Type": "application/json; charset=UTF-8",
-   "Date": "Tue, 28 Jan 2014 22:14:23 GMT",
-   "Expires": "-1",
-   "Server": "gws",
-   "X-Frame-Options": "SAMEORIGIN",
-   "X-XSS-Protection": "1; mode=block",
-   "X-Firefox-Spdy": "3"
-}
+	<![CDATA[
+dim json as c 
+json = <<%json%
+[
+	{"Firstname" : "Fred", "Lastname" : "Smith"},
+	{"Firstname" : "Harry", "Lastname" : "Jones","age" : 30},
+]
+%json%
+? json_sample_array(json)
+= Firstname
+Lastname
+age
 
+? json_sample_array(json,"$n - $t")
+= Firstname - C
+Lastname - C
+age - N
+]]>
 	</example>
-
+ </section>
+ <section>
+    <discussion> Example showing recursion into name.</discussion>
+	<example>
+	<![CDATA[
+dim json as c 
+json = <<%json%
+[
+	{"Firstname" : "Fred", "Lastname" : "Smith" , "address" : { "city" : "Boston" , "state" : "ma" } },
+	{"Firstname" : "Harry", "Lastname" : "Jones","age" : 30},
+]
+%json%
+? json_sample_array(json,"$r")
+= Firstname
+Lastname
+address.city
+address.state
+age
+]]>
+	</example>
+  </section>
+</sections>  
 
 
 
