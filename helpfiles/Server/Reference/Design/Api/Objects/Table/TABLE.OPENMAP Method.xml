@@ -1,22 +1,60 @@
 <page>
    <topic>TABLE.OPENMAP Function</topic>
-   <syntax>P Table.OpenMap(C tablename ,C fieldlist [,N mode [,C alias [,C encryption_key ]]])</syntax>
+   <syntax>as P = Table.OpenMap(C tablename ,C fieldlist [,N mode [,C alias [,C encryption_key ]]])</syntax>
    <arguments>
      <argument>
          <name>tablename</name>
-         <description>Character</description>
+         <description>The table file's path and name. The .DBF file extension is automatically added to the filename if you do not specify a file extension. To open a set, you must supply the .SET extension.
+</description>
      </argument>
      <argument>
          <name>fieldlist</name>
-         <description>Character</description>
+         <description>A comma delimited list of fields to open. There should not be any space characters between field names. The list should be formatted: field1,field2,field3.
+</description>
      </argument>
      <argument>
          <name>mode</name>
-         <description>Numeric</description>
+         <description>Optional. Determines the access privileges that apply to the open table file. You can use one of the following system variables:
+</description>
+<list>
+<item>
+<name-title>Variable</name-title>
+<description-title>Function</description-title>
+</item>
+
+<item>
+<name>FILE_RO_EXCLUSIVE</name>
+<description>Read Only (Exclusive)</description>
+</item>
+
+<item>
+<name>FILE_RW_EXCLUSIVE</name>
+<description>Read or Write (Exclusive)</description>
+</item>
+
+<item>
+<name>FILE_RO_SHARED</name>
+<description>Read Only (Shared)</description>
+</item>
+
+<item>
+<name>FILE_RW_SHARED</name>
+<description>Read or Write (Shared)</description>
+</item>
+
+<item>
+<name>FILE_REUSE_EXISTING</name>
+<description>Intended for internal use only. Allows you to create another pointer to an open file.</description>
+</item>
+
+
+</list>
      </argument>
      <argument>
          <name>alias</name>
-         <description>Character</description>
+         <description>Optional. Specifies the alias that the table will have. By default, the table alias is automatically derived from the table name. For example, if the table name is "customer", the first instance of the table that is opened will have an alias of "customer", the second instance will have an alias of "customer0" and so on. It is rare that you would need to specify a specific alias for a table when opening it. If you specify a NULL Alias, Alpha Anywhere automatically computes the alias name.
+PasswordOptional. Only needed if the table has been encrypted, and the default encryption key has not been set (using the DEFAULT_ENCRYPTION_KEY_SET() function), of if the table was encrypted using a different encryption key than the default encryption key.
+</description>
      </argument>
      <argument>
          <name>encryption_key</name>
@@ -24,40 +62,7 @@
      </argument>
    </arguments>
    <description>Open a table with just the specified fieldnames.</description>
-   <discussion>
-      ...put discussion here....
-   </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
-   <sections>
-       <section>
-            <description>put description here</description>
-            <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref>Table Functions and  Methods</ref>
-   </see>
-   <original><![CDATA[TABLE.OPENMAP()
-Syntax
- as P = TABLE.OPENMAP( Tablename as C, Fieldlist as C [, Open_Mode as N [, Alias as C [, Password as C ]]] )
-ArgumentDescription
-TablenameThe table file's path and name. The .DBF file extension is automatically added to the filename if you do not specify a file extension. To open a set, you must supply the .SET extension.
-FieldlistA comma delimited list of fields to open. There should not be any space characters between field names. The list should be formatted: field1,field2,field3.
-Open_ModeOptional. Determines the access privileges that apply to the open table file. You can use one of the following system variables:
-VariableFunction
-FILE_RO_EXCLUSIVERead Only (Exclusive)
-FILE_RW_EXCLUSIVERead or Write (Exclusive)
-FILE_RO_SHAREDRead Only (Shared)
-FILE_RW_SHAREDRead or Write (Shared)
-FILE_REUSE_EXISTINGIntended for internal use only. Allows you to create another pointer to an open file.
-AliasOptional. Specifies the alias that the table will have. By default, the table alias is automatically derived from the table name. For example, if the table name is "customer", the first instance of the table that is opened will have an alias of "customer", the second instance will have an alias of "customer0" and so on. It is rare that you would need to specify a specific alias for a table when opening it. If you specify a NULL Alias, Alpha Anywhere automatically computes the alias name.
-PasswordOptional. Only needed if the table has been encrypted, and the default encryption key has not been set (using the DEFAULT_ENCRYPTION_KEY_SET() function), of if the table was encrypted using a different encryption key than the default encryption key.
-
-Description
+   <discussion><![CDATA[
 The TABLE.OPENMAP() method opens an existing table or set, and creates an object pointer that references the table, or in the case of a set, the parent table of the set. The function is similar to the TABLE.OPEN() method, but limits the fields that are visible to those in a specified field list. This command is especially useful in conjunction with the <ARRAY>.INITIALIZE_FROM_TABLE() method to load an array with data from a table.
 Note : If you have set a Master Password for your database, and have encrypted tables using the Tools > Security menu, then the default encryption key is automatically set when the database is opened, and you do not need to specify the Password parameter when opening tables.
 The TABLE.OPEN() method automatically finds and opens an associated index file (.cdx) matching the table name and its related data dictionary.
@@ -68,29 +73,34 @@ The TABLE.CURRENT() method automatically assigns a unique alias to the table. To
 The .OPEN() method will fail if you try to open a set, and any of the tables in the set are already open. This is because Alpha Anywhere assumes that the aliases for all of the tables in the set will be the same as the table names. If, however, one of the tables in the set is already open in the session, the table name will have already been assigned as the alias name to the open table.
 Refer to ((Contrasting TABLE.OPEN Functionwith TABLE.CURRENT Functionand TABLE.GET Function|Contrasting  TABLE.OPEN()with TABLE.CURRENT()and TABLE.GET())).
 Use the <TBL>.FETCH_FIRST(), <TBL>.FETCH_LAST(), <TBL>.FETCH_FIND(), or <TBL>.FETCH_GOTO() methods to position the record pointer in the table after you first open it.
-Example
-The following example shows how you can open a view on the customer table in AlphaSports.
+]]>
+   </discussion>
+   
+   <sections>
+       <section><title>Example</title>
+            <description>The following example shows how you can open a view on the customer table in AlphaSports.</description>
+            <example><![CDATA[
 dim fieldlist as C
 dim tbl as P
 dim cn as sql::connection
- 
-fieldlist = 
+
+fieldlist = <<%txt%
 fname = firstname
 lastname
 fullname = alltrim(lastname) + ", " + alltrim(firstname)
 date = date()
 number = 123.45
 %txt%
- 
+
 tbl = table.OpenMap("customer",fieldlist)
 ui_msg_box("Fullname",tbl.fullname)
- 
+
 'Get a resultset from the open table
 rs = cn.ResultSetFromDBF(tbl)
- 
+
 'Display a window showing the rows in the resultset
 sql_resultset_preview(rs)
- 
+
 'Now export the results to a text file
 export.type = 0
 export.names = .T.
@@ -99,32 +109,42 @@ export.options = ""
 export.field_sep = ","
 export.record_sep = ""
 export.fields = 5
-
 export.field1 = "fname"
 export.field2 = "lastname"
 export.field3 = "fullname"
 export.field4 = "date"
 export.field5 = "number"
 t.export()
-
 sys_open(export.file)
- 
+
 tbl.close()
 
-This script opens the same table but with only two fields.
-dim tt as P
+]]></example>
+       </section>
+       
+       
+<section>
+            <description>This script opens the same table but with only two fields.</description>
+            <example><![CDATA[
+dim tt as P
 tt = table.openmap("customer","firstname,lastname")
 ? tt.fields_get()
 = 2
 ? tt.field_name_get()
 = firstname
 lastname
-dim a100 as P
+dim a100 as P
 a.initialize_from_table(tt)
 ? a1
 = FIRSTNAME = "Fred"
 LASTNAME = "Harrison"
 
-See Also
-Table Functions and  Methods]]></original>
+]]></example>
+       </section>       
+       
+   </sections>
+   <see>
+      <ref>Table Functions and  Methods</ref>
+   </see>
+   
 </page>
