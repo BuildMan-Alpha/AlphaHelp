@@ -4,80 +4,59 @@
    <arguments>
      <argument>
          <name>expression_template</name>
-         <description>Character</description>
+         <description>An expression that duplicates the structure of the target array. Use $row$ and $column$ as Placeholders for the row/column index. The target array must have sufficient rows and columns to accept the table's records and fields.
+</description>
      </argument>
      <argument>
          <name>start_row_state</name>
-         <description>Character</description>
+         <description>The first row to export. Subtract 1 from the number of the first record. For example, to start with record (row) 5, this number would be 4.
+</description>
      </argument>
      <argument>
          <name>end_row_state</name>
-         <description>Character</description>
+         <description>The last row to export. Subtract 1 from the number of the last record. For example, to end with record (row) 20, this number would be 19.
+</description>
      </argument>
      <argument>
          <name>flags</name>
-         <description>Character</description>
+         <description>The Flags argument allows you to limit the size of the array (B and S flags), and skip records or fields (R+ and C+ flags).
+</description>
+<list>
+<item><name>
+"B" = do not resize the array to be bigger
+</name></item><item><name>
+ "S" = do not resize the array to be smaller
+</name></item><item><name>
+ "F" = fill (leftover) empty fields in array with blanks
+</name></item><item><name>
+ "D" = include the deleted/marked/unmarked pseudo field in the list of fields (as field #1)
+</name></item><item><name>
+ "p" = preserve trailing blanks
+</name></item><item><name>
+ "R+#" = start rows at +# position. R+ is 0 based. I.e. set to 19 for the 20th row.
+</name></item><item><name>
+ "C+#" = start column at +# position. C+ is 0 based. I.e. set to 19 for the 20th row.
+</name></item></list>
+
+
+
      </argument>
      <argument>
          <name>variable_frame</name>
-         <description>Pointer</description>
+         <description>The name of the pointer variable or a pointer to the variable's name-space, such as  LOCAL_VARIABLES(), GLOBAL_VARIABLES() or SESSION_VARIABLES().
+</description>
      </argument>
    </arguments>
    <description>Populate via arrays a grid - use $row$ and $column$ as placeholders for the row/column index.
-B - don't resize the array to be bigger
-S - don't resize the array to be smaller
-F - fill (letover) empty fields in array with blanks
-D - include the deleted/marked/unmarked psuedofield in the list of fields (as field #1)
-R+# - start rows at +# position
-C+# - start column at +# position</description>
-   <discussion>
-      ...put discussion here....
-   </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
-   <sections>
-       <section>
-            <description>put description here</description>
-            <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref>Table Functions and  Methods</ref>
-      <ref>Array  Functions and Methods</ref>
-      <ref>DIM</ref>
-      <ref>Arrays</ref>
-   </see>
-   <original><![CDATA[&ltTBL>.POPULATE_GRID() 
-Syntax
-&ltTBL>.POPULATE_GRID( Expression_Template as C [ Start_Row_State as C [, End_Row_State as C [, Flags as C [, Variable_Frame as P ]]]] )
-ArgumentDescription
-Expression_TemplateAn expression that duplicates the structure of the target array. Use $row$ and $column$ as Placeholders for the row/column index. The target array must have sufficient rows and columns to accept the table's records and fields.
-Start_Row_StateThe first row to export. Subtract 1 from the number of the first record. For example, to start with record (row) 5, this number would be 4.
-End_Row_StateThe last row to export. Subtract 1 from the number of the last record. For example, to end with record (row) 20, this number would be 19.
-FlagsThe Flags argument allows you to limit the size of the array (B and S flags), and skip records or fields (R+ and C+ flags).
+</description>
 
- "B" = do not resize the array to be bigger
+<discussion><![CDATA[The <TBL>.POPULATE_GRID() method populates arrays quickly with data from a table. The methods strips trailing blanks from the data. If you want to preserve the trailing blanks, then you must use the "P" flag in the list of flags.
+]]></discussion>
 
- "S" = do not resize the array to be smaller
+<sections>
+<section><title>Example</title>
 
- "F" = fill (leftover) empty fields in array with blanks
-
- "D" = include the deleted/marked/unmarked pseudo field in the list of fields (as field #1)
-
- "p" = preserve trailing blanks
-
- "R+#" = start rows at +# position
-
- "C+#" = start column at +# position 
-R+ and C+ are 0 based. I.e. set to 19 for the 20th row.
-Variable_FrameThe name of the pointer variable or a pointer to the variable's name-space, such as  LOCAL_VARIABLES(), GLOBAL_VARIABLES() or SESSION_VARIABLES().
-
-Description
-The &ltTBL>.POPULATE_GRID() method populates arrays quickly with data from a table. The methods strips trailing blanks from the data. If you want to preserve the trailing blanks, then you must use the "P" flag in the list of flags.
-Example
+<example><![CDATA[
 ' type A does not force different field types to be converted
 ' create an array to capture up to 40 records, each with 10 fields
 dim arr.row[1..40].col[1..10].myvarname as A
@@ -131,8 +110,13 @@ McDonald2
 McMiggan
 Mederos
 Mesnik  
+]]></example>
 
-Another example.
+</section>
+
+<section>
+<description>Another example.</description>
+<example><![CDATA[
 dim row[1..40].col[1..10].myvarname as A
 dim tm as P
 tm = table.open("customer")
@@ -141,8 +125,14 @@ end_rowstate = tm.row_position_set(40-1)
 tm.populate_grid("row$row$.col$column$.myvarname", start_rowstate, end_rowstate, "BSF", local_variables())
 ?row[1].col[1].myvarname
 = "00000005"
+]]></example>
 
-In the above example, notice that we dimmed row[1..40].col[1..10].myvarname. This is shorthand for:
+</section>
+
+
+<section>
+<description>In the above example, notice that we dimmed row[1..40].col[1..10].myvarname. This is shorthand for:</description>
+<example><![CDATA[
 dim row[40] as P
 for i = 1 to 40
     dim row[i].col[10] as P
@@ -150,21 +140,54 @@ for i = 1 to 40
         dim row[i].col[i2].myvarname as a
     next i2
 next i
+]]></example>
 
-The Expression_Template that we want the &ltTBL>.POPULATE_GRID() method to populate is row[$row$].col[$column$].myvarname. This matches the variable that we dimmed.
-Variable Frame
- Note : The row[] array lives in the local name-space. Therefore, the last argument to the tm.populate_grid() method is a pointer to the local variable frame, provided by local_variables().
+</section>
+
+<section>
+<description><![CDATA[The Expression_Template that we want the <TBL>.POPULATE_GRID() method to populate is row[$row$].col[$column$].myvarname. This matches the variable that we dimmed.]]></description>
+
+</section>
+
+
+
+</sections>
+
+<sections>
+<section><title>Variable Frame</title>
+<description>Note : The row[] array lives in the local name-space. Therefore, the last argument to the tm.populate_grid() method is a pointer to the local variable frame, provided by local_variables().
 In the first example above we have the statement:
+</description>
+<example><![CDATA[
 dim arr.row[1..40].col[1..10].myvarname as A
+]]></example>
 
-In this case, the array "lives" in the arr name-space, and so we passed in arr as the last argument. If instead we had dimmed the variable as:
+</section>
+
+<section>
+<description>In this case, the array "lives" in the arr name-space, and so we passed in arr as the last argument. If instead we had dimmed the variable as:</description>
+<example><![CDATA[
 dim r[1..40].d[1..10].vardata as A
+]]></example>
 
-then the name-space would be local_variables().
+</section>
+
+<section>
+<description>then the name-space would be local_variables().</description>
+<example><![CDATA[
 tm.populate_grid("r[$row$].d[$column$].vardata", start_rowstate, end_rowstate, "BSF", local_variables())
 ? r[1].d[2].vardata
 = "Evan"
+]]></example>
 
-See Also
-Table Functions and  Methods, Array  Functions and Methods, DIM, Arrays]]></original>
+</section>
+</sections>
+
+   
+   <see>
+      <ref>Table Functions and  Methods</ref>
+      <ref>Array  Functions and Methods</ref>
+      <ref>DIM</ref>
+      <ref>Arrays</ref>
+   </see>
 </page>
