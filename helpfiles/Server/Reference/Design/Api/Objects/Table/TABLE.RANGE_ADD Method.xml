@@ -1,92 +1,182 @@
 <page>
    <topic>table.RANGE_ADD Function</topic>
-   <syntax>V Range_Add([A first_key[,A Last_Key])</syntax>
+   <syntax><![CDATA[V Range_Add([A first_key[,A Last_Key]), Specify the required values in the Range dot variable, then use the following command:
+<TBL>.RANGE_ADD( [ First_Key as C [, Last_Key as C ]] )]]></syntax>
    <arguments>
      <argument>
          <name>first_key</name>
-         <description>Any type</description>
+         <description>Specify the first ordered record to be included in the range. Must match the index key type.</description>
      </argument>
      <argument>
          <name>Last_Key</name>
-         <description>Any type</description>
+         <description>Optional. Default = the last record. Specify the last ordered record to be included in the range. Must match the index key type.</description>
      </argument>
+     
+   
    </arguments>
-   <description>Add a range filter to the table.</description>
-   <discussion>
-      ...put discussion here....
-   </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
-   <sections>
-       <section>
-            <description>put description here</description>
-            <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref>Table Functions and  Methods</ref>
-      <ref>Writing Expressions</ref>
-   </see>
-   <original><![CDATA[&ltTBL>.RANGE_ADD()
-Syntax
- Specify the required values in the Range dot variable, then use the following command:
-&ltTBL>.RANGE_ADD( [ First_Key as C [, Last_Key as C ]] )
-ArgumentDescription
-First_KeySpecify the first ordered record to be included in the range. Must match the index key type.
-Last_KeyOptional. Default = the last record. Specify the last ordered record to be included in the range. Must match the index key type.
-VariableTypeDescription
-Range.FlagsNUsed together (using the .OR. operator) to determine which &ltTBL>.RANGE_ADD()parameters are valid, and how the range performs. The range flag variables are:
-Range FlagEffect
-RANGE_FIRSTUse first key.
-RANGE_LASTUse last key.
-RANGE_FILTERUse a Filter Expression.
-RANGE_INDEXUse the specified Index Pointer.
-RANGE_DESCENDINGReverse the order.
-RANGE_MARKEDFlag to indicate whether or not marked or unmarked records should be included in the range. See example below.
-RANGE_MARKED_
-DELETEDFlag to indicate whether or not marked or unmarked records should be included in the range. See example below.
-RANGE_UNIQUESelect only unique keys in index order.
-Range.Index_PointerPA pointer to an index.
-Range.FilterCA character  filter expression that selects records from the table.
+ <sections><section>
+<list>
+<item>
+<name-title>Variable</name-title>
+<description-title>Description
+</description-title>
+</item>
 
-Description
-The &ltTBL>.RANGE_ADD() method applies a range to a table. Old ranges are maintained in a stack, and you can retrieve them in the reverse order in which they were applied with the &ltTBL>.RANGE_DROP() method.
+<item>
+<name>Range.Flags
+</name>
+<description><![CDATA[Type "N". Used together (using the .OR. operator) to determine which <TBL>.RANGE_ADD()parameters are valid, and how the range performs. The range flag variables are:
+]]></description>
+<list>
+<item>
+<name-title>Range Flag</name-title>
+<description-title>Effect</description-title>
+</item>
+
+<item>
+<name>RANGE_FIRST
+</name>
+<description>Use first key.
+</description>
+</item>
+
+<item>
+<name>RANGE_LAST
+</name>
+<description>Use last key.
+</description>
+</item>
+
+<item>
+<name>RANGE_FILTER
+</name>
+<description>Use a Filter Expression.
+</description>
+</item>
+
+<item>
+<name>RANGE_INDEX
+</name>
+<description>Use the specified Index Pointer.
+</description>
+</item>
+
+<item>
+<name>RANGE_DESCENDING
+</name>
+<description>Reverse the order.
+</description>
+</item>
+
+<item>
+<name>RANGE_MARKED
+</name>
+<description>Flag to indicate whether or not marked or unmarked records should be included in the range. See example below.
+</description>
+</item>
+
+<item>
+<name>RANGE_MARKED_DELETED
+</name>
+<description>Flag to indicate whether or not marked or unmarked records should be included in the range. See example below.
+</description>
+</item>
+
+<item>
+<name>RANGE_UNIQUE</name>
+<description>Select only unique keys in index order.</description>
+</item>
+
+
+</list>
+</item>
+
+<item>
+<name>Range.Index_Pointer</name>
+<description>Type "P". A pointer to an index.</description>
+</item>
+
+<item>
+<name>Range.Filter</name>
+<description>Type "C". A character filter expression that selects records from the table.</description>
+</item>
+
+</list>
+</section></sections>
+
+<sections><section><title>Description</title>
+<description>Add a range filter to the table.</description>
+</section></sections>
+
+<sections><section>
+<title>Discussion</title>
+<description>
+<![CDATA[
+The <TBL>.RANGE_ADD() method applies a range to a table. Old ranges are maintained in a stack, and you can retrieve them in the reverse order in which they were applied with the &ltTBL>.RANGE_DROP() method.
 The range is applied to the table referenced by the object pointer, &ltTBL>. You must supply one or more Range.Flags variables. The range flags determine which optional parameters are to be used: an Index Pointer, a Filter Expression, a First Key, and a Last Key. The first and last key expression values should match the index key type, and are used to specify the first and last ordered records to be included in the range.
 Range.Flags are used together (using the .OR. operator) to determine which &ltTBL>.RANGE_ADD()parameters are valid, and how the range performs.
 Note : Once you add a range, it is not activated until the record pointer is moved from its current position. You can use the <TBL>.FETCH_FIRST() method to activate it. The record pointer should be considered undefined until this is done. To determine if there are any records in the scope of the defined range, use the <TBL>.FETCH_EOF() method. If it returns .T. after moving the record pointer once, there are no records in the defined range.
 To include only records that are marked use both the RANGE_MARKED and RANGE_MARKED_DELETED flags together. For example, the following range selects marked records using the current index:
+]]></description>
+ <example><![CDATA[
 tbl = table.current()
 idx = tbl.index_primary_get()
 range.flags = RANGE_INDEX .or. RANGE_MARKED .or. RANGE_MARKED_DELETED
 range.index_pointer = idx
 range.filter = ""
 tbl.range_add()
+]]></example>
+   
+   
+</section>
 
-To include only records that have not been marked, use the RANGE_MARKED flag without the RANGE_MARKED_DELETED flag:
+<section>
+            <description>To include only records that have not been marked, use the RANGE_MARKED flag without the RANGE_MARKED_DELETED flag:</description>
+            <example><![CDATA[
 tbl = table.current()
 idx = tbl.index_primary_get()
 range.flags = RANGE_INDEX .or. RANGE_MARKED
 range.index_pointer = idx
 range.filter = ""
 tbl.range_add()
+]]></example>
+       </section>
 
-To include both marked and unmarked records in the range, do not specify either the RANGE_MARKED or RANGE_MARKED_DELETED flags.
-When to Use Ranges
-Ranges are useful when you have a batch operation that processes selected records in a table. For example, assume that you want to process all of the records in the state of California. You could use the <TBL>.QUERY_CREATE() method to build a query list, but this could take some time. However, setting a range with State as the primary index and "CA" as the first and last key value will instantaneously select the subset of records that you want to process.
-Ranges are most efficient when used with the RANGE_FIRST and RANGE_LAST flags. If you use the range_filter flag on a large table whose scope has not been limited with the RANGE_FIRST and RANGE_LAST flags, and only a small percentage of the records satisfy the filter expression, you should consider using the &ltTBL>.QUERY_CREATE() method instead, since this method can use Lightning Query Optimization, while ranges cannot.
-Example
-This script sets the range on the current table to display customers from either New York or Massachusetts, with last names between C and N, using the last name index in descending order, and including only records with unique last names that are not marked.
+<section>
+            <description>To include both marked and unmarked records in the range, do not specify either the RANGE_MARKED or RANGE_MARKED_DELETED flags.</description>
+           
+       </section>
+
+
+</sections>
+  
+   <sections>
+       <section><title>When to Use Ranges</title>
+            <description><![CDATA[Ranges are useful when you have a batch operation that processes selected records in a table. For example, assume that you want to process all of the records in the state of California. You could use the <TBL>.QUERY_CREATE() method to build a query list, but this could take some time. However, setting a range with State as the primary index and "CA" as the first and last key value will instantaneously select the subset of records that you want to process.
+Ranges are most efficient when used with the RANGE_FIRST and RANGE_LAST flags. If you use the range_filter flag on a large table whose scope has not been limited with the RANGE_FIRST and RANGE_LAST flags, and only a small percentage of the records satisfy the filter expression, you should consider using the <TBL>.QUERY_CREATE() method instead, since this method can use Lightning Query Optimization, while ranges cannot.
+]]></description>
+          
+       </section>
+   </sections>
+   
+   
+   
+<sections>
+       <section><title>Example</title>
+            <description>This script sets the range on the current table to display customers from either New York or Massachusetts, with last names between C and N, using the last name index in descending order, and including only records with unique last names that are not marked.</description>
+            <example><![CDATA[
 tbl = table.current()
 idx = tbl.index_get("LAST")
 range.flags = RANGE_INDEX .or. RANGE_FIRST .or. RANGE_LAST .or. RANGE_FILTER .or. RANGE_DESCendING .or. RANGE_MARKED .or. RANGE_UNIQUE
 range.index_pointer = idx
 range.filter = "STATE_PROV = 'MA' .OR. STATE_PROV = 'NY'"
 tbl.range_add("C", "N")
-
-The following Xbasic code illustrates how to count the records in table returned by a range. The table name is volume. It has an index named test, which indexes the field whose value is passed in as  id. It filters the values in the field table named entrydate.
+]]></example>
+       </section>
+       
+        <section>
+            <description>The following Xbasic code illustrates how to count the records in table returned by a range. The table name is volume. It has an index named test, which indexes the field whose value is passed in as  id. It filters the values in the field table named entrydate.</description>
+            <example><![CDATA[
 FUNCTION aging as N (id as C )
 dim tbl as P
 dim dbegin as D
@@ -110,7 +200,22 @@ end while
 aging = ntot
 tbl.close()
 END FUNCTION
+]]></example>
+       </section>
+       
+       
+   </sections>
+   
+   
+   
+   
+   <see>
+      <ref>Table Functions and  Methods</ref>
+      <ref>Writing Expressions</ref>
+   </see>
+   
+ 
 
-See Also
-Table Functions and  Methods, Writing Expressions]]></original>
+
+
 </page>

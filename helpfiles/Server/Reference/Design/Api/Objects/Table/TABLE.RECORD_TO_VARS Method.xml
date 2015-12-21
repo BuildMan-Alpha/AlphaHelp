@@ -4,42 +4,23 @@
    <arguments>
      <argument>
          <name>vars</name>
-         <description>Pointer</description>
+         <description>Pointer variable that is populated with the values of the current record's fields.</description>
      </argument>
      <argument>
          <name>flagTrimTrailingSpaces</name>
-         <description>Logical</description>
+         <description>Specify if trailing spaces in each field should be trimmed. Default value is .t..
+</description>
      </argument>
    </arguments>
    <description> convert a record to a set of variables in vars</description>
-   <discussion>
-      ...put discussion here....
-   </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
+   <discussion><![CDATA[
+The <TBL>.RECORD_TO_VARS() method populates the Vars pointer variable with the values of the current record's fields.
+ ]]>  </discussion>
+  
    <sections>
-       <section>
-            <description>put description here</description>
+       <section><title>Example</title>
+            <description>This example lists field names and the values in the current record.</description>
             <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref>Table Functions and  Methods</ref>
-   </see>
-   <original><![CDATA[&ltTBL>.RECORD_TO_VARS()
-Syntax
-&ltTBL>.RECORD_TO_VARS( Vars as P [, L flagTrimTrailingSpaces] )
-ArgumentDescription
-VarsPointer variable that is populated with the values of the current record's fields.
-flagTrimTrailingSpacesSpecify if trailing spaces in each field should be trimmed. Default value is .t..
-
-Description
-The &ltTBL>.RECORD_TO_VARS() method populates the Vars pointer variable with the values of the current record's fields.
-Examples
-This example lists field names and the values in the current record.
 dim vars as P
 dim tbl as P
 tbl = table.open("customer")
@@ -48,35 +29,49 @@ tbl.record_to_vars(vars)
 = firstname = "Aaron"
 lastname = "Brown "
 ....
-
-This more complex example retrieves the field names and values of the current record, then generates the appropriate DIM statements for each variable. First, get the data from the current record. Note, you must dim myptr in the same scope that you are passing into the function, otherwise you will have two different myptr variables in different scopes. In this case myptr is local and the call to GetFieldnamesToPointers() leaves the scope parameter blank.
+]]></example>
+       </section>
+       
+        <section>
+            <description>This more complex example retrieves the field names and values of the current record, then generates the appropriate DIM statements for each variable. First, get the data from the current record. Note, you must dim myptr in the same scope that you are passing into the function, otherwise you will have two different myptr variables in different scopes. In this case myptr is local and the call to GetFieldnamesToPointers() leaves the scope parameter blank.</description>
+            <example><![CDATA[
 dim myptr as P
 dim cResult as C
 dim tbl as P
 tbl = table.open("customer")
 tbl.record_to_vars(myptr)
-
-Next, generate the code that will dim the variables.
+]]></example>
+       </section>
+       
+        <section>
+            <description>Next, generate the code that will dim the variables.</description>
+            <example><![CDATA[
 cResult = GetFieldnamesToPointers("customer", myptr, "")
 IF cResult = ""
     ' success   showvar(properties_enum(myptr))
 ELSE
     ui_msg_box("Error occurred", cResult)
 END IF
-
-This function calls GenerateDIMLine for each variable.
+]]></example>
+       </section>
+       
+        <section>
+            <description>This function calls GenerateDIMLine for each variable.</description>
+            <example><![CDATA[
 FUNCTION GetFieldnamesToPointers as C (TableName as C, ptr as P, Scope = "Shared")
     DIM code as C
     DIM fldlist as C
     DIM cResult as C
-    
     fldlist = table.EXTERNAL_FIELD_NAME_GET(TableName, "N|t|T")
-    
     code = *for_each(tag, GenerateDIMLine(word(tag,1,"|"), word(tag,2,"|"), word(tag,3,"|"), Scope), fldlist)
     cResult = evaluate_template(code)
 END FUNCTION
-
-This function creates the DIM statement for each variable.
+]]></example>
+       </section>
+       
+        <section>
+            <description>This function creates the DIM statement for each variable.</description>
+            <example><![CDATA[
 FUNCTION GenerateDIMLine as C ( Name as C , ShortType as C, LongType as C, Scope as C )
     DIM cResult as C
     IF LongType = "Memo"
@@ -89,7 +84,11 @@ FUNCTION GenerateDIMLine as C ( Name as C , ShortType as C, LongType as C, Scope
     cResult = "DIM "+Scope+" ptr." + Name + " as " + ShortType    
     GenerateDIMLine = cResult
 END FUNCTION
-
-See Also
-Table Functions and  Methods]]></original>
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Table Functions and  Methods</ref>
+   </see>
+  
 </page>
