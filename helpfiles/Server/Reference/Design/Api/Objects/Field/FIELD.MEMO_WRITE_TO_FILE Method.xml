@@ -1,0 +1,58 @@
+<page>
+   <topic>FIELD.MEMO_WRITE_TO_FILE Function</topic>
+   <syntax>V Memo_Write_To_File(C Filename[,N flags])</syntax>
+   <arguments>
+     <argument>
+         <name>Filename</name>
+         <description>A fully qualified file name.
+</description>
+     </argument>
+     <argument>
+         <name>flags</name>
+         <description>Optional. Default = "" (Overwrite Filename with text memo.)
+MEMO_APPEND = Appends memo to existing Filename, rather than overwriting it.
+MEMO_BINARY = Binary memo.
+</description>
+     </argument>
+   </arguments>
+   <description>Write the contents of a memo field to a file.</description>
+   <discussion>
+The .MEMO_WRITE_TO_FILE() method transfers data from the memo field referenced by the  object pointer to a new File.
+The optional Flag parameters allow you to specify if the memo you are writing is a text memo, or a binary memo, and whether you want to overwrite, or append to, File. The Flag values are MEMO_BINARY and MEMO_APPEND. To specify both of these flags, you join then with a + sign. For example: MEMO_BINARY + MEMO_APPEND.
+If the memo you are writing contains binary data, you must use the MEMO_BINARY flag, or else, Alpha Anywhere will strip NULL characters at the end of the memo data.
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>This script scans through all of the records in the current table and writes the contents of the memo fields to a text file. The text file contains the memos from all of the records. The script is on a button on a form.</description>
+            <example><![CDATA[
+dim tbl as P
+dim fptr as P
+tbl = table.current()
+'Save current record if not in view mode.
+if (tbl.mode_get()<> 0) then
+    parent.commit()
+end if
+tbl.fetch_first()
+filename = A_DB_CURRENT_PATH + "memos.txt"
+fptr = file.create(filename, FILE_RW_EXCLUSIVE)
+fptr.close()
+while .not. tbl.fetch_eof()
+    fptr = file.open(filename, FILE_RW_EXCLUSIVE)
+    'Next 2 lines position insertion point at end of file
+    size = fptr.bytes_get()
+    fptr.seek(size)
+    fptr.write_line("")
+    fptr.write_line("Memo from record: " + ltrim( str(tbl.recno(), 5,0) ) )
+    fptr.close()
+    tbl.memo.memo_write_to_file(filename, MEMO_APPEND)
+    tbl.fetch_next()
+end while
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Field Functions and  Methods</ref>
+   </see>
+  
+</page>
