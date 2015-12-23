@@ -14,7 +14,7 @@ var replaceAll = function (str, find, replace) {
 options.pageIndexer = function(filename,savePage) {
       // just error out for now...
       var extensionIndex = filename.lastIndexOf(".");
-      if( filename.substring(extensionIndex).toLowerCase() == ".xml" ) {
+      if( filename.substring(extensionIndex).toLowerCase() == ".xml" && filename.indexOf( "/index.xml") < 0 ) {
         var fs = require("fs");      
         fs.readFile(filename, "utf8", function (err, data) {          
             if(err) {  

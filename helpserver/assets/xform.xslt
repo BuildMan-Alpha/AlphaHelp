@@ -58,6 +58,9 @@
 					<xsl:value-of select="discussion" /> </p>
 			</xsl:when>
 		</xsl:choose>
+        <xsl:if test="list">
+            <xsl:call-template name="list-rule"/>
+        </xsl:if>
 		<xsl:if test="example">
 			<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
 		</xsl:if>
@@ -84,9 +87,10 @@
 							<xsl:value-of select="description" />
 						</p>
 					</xsl:when>
+                    <xsl:otherwise></xsl:otherwise>
 				</xsl:choose>
 				<xsl:if test="list">
-				    <xsl:call-template name="list"/>
+				    <xsl:call-template name="list-rule"/>
 				</xsl:if>
 				<xsl:if test="example">
 					<pre class="codeTable"><xsl:value-of select="example" /></pre>
@@ -184,7 +188,7 @@
 			</ul>
 		</xsl:if>	
 	</xsl:template>
-	<xsl:template match="list" name="list" >
+	<xsl:template match="list-rule" name="list-rule" >
 		<table class="definitionTable" >
 			<xsl:for-each select="list/item">
 				<xsl:choose>
@@ -205,7 +209,14 @@
 					<xsl:otherwise>
 						<tr>
 							<td class="definitionNameTD" >
-								<xsl:value-of select="name" />
+                                <xsl:choose>
+                                    <xsl:when test="name/@href">
+                                        <a href="{name/@href}"><xsl:value-of select="name" /></a>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="name" />
+                                    </xsl:otherwise>
+                                </xsl:choose>
 							</td>
 							<td class="definitionDescriptionTD">
 								<xsl:value-of select="description" />
