@@ -1,0 +1,98 @@
+<page>
+   <topic>DDE.SEND Function</topic>
+   <syntax>V Send(C Application,C Topic,C Item,C Data[,N clipboard_format])</syntax>
+   <arguments>
+     <argument>
+         <name>Application</name>
+         <description>The name of an application that is currently running in another window.
+</description>
+     </argument>
+     <argument>
+         <name>Topic</name>
+         <description>The name of a topic that the application recognizes.
+</description>
+     </argument>
+     <argument>
+         <name>Item</name>
+         <description>The name of a data item the application recognizes.
+</description>
+     </argument>
+     <argument>
+         <name>Data</name>
+         <description>Contains the information to be sent to the application.
+</description>
+     </argument>
+     <argument>
+         <name>clipboard_format</name>
+         <description>Numeric</description>
+     </argument>
+   </arguments>
+   <description>Supply data to another specified application for topic.</description>
+   <discussion>
+The DDE.SEND() method establishes dynamic data exchange (DDE) with another active Windows application and then sends an item of information to that application.
+The Application_Name parameter is a character string containing the name of an application that is currently running in another window. It is usually the name of an .EXE file (without the .EXE extension or path) that can hold a DDE conversation.
+The contents of the Topic_String should be the name of a topic the application recognizes. The choice of valid topic names depends upon the application. For applications that operate on documents or tables, the topic usually includes the names for those files.
+The Item parameter is a character string containing the name of a data item the application recognizes. For instance, Microsoft Excel recognizes the data item "R1C1" as a row and column identifier.
+The Data_String parameter contains the information to be sent to the application.
+To establish a DDE connection, both Alpha Anywhere and the other Windows application must be running at the same time. It is good practice to include the sys_shell() function at the start of a DDE script to automatically start up the other application before trying to initiate the DDE conversation.
+   </discussion>
+  
+   <sections>
+       <section><title>Example</title>
+            <description>Send information to the cell at row 1, column 1 of a Microsoft Excel worksheet.</description>
+            <example><![CDATA[
+sys_shell("c:\excel\excel.exe")
+dde.send("Excel", "Sheet1", "R1C1", "1356")
+]]></example>
+       </section>
+       
+        <section>
+            <description>This script sends the contents of the records and fields in the specified table to an Excel spreadsheet.</description>
+            <example><![CDATA[
+dim data as C
+dim l_val as L
+sys_shell("c:\excel\excel.exe")
+filename = ui_get_file("Table to send? ", "Tables(*.DBF)", "", "X")
+if (filename = "") then
+    end
+end if
+tbl = table.open(filename)
+number_of_fields = tbl.fields_get()
+row = 1
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    for col = 1 TO number_of_fields
+        fld = tbl.field_get(col)
+        type = field.type_get()
+        value = field.value_get()
+        select
+          case type = "d"
+               data = dtoc(value)
+            case type = "n"
+                data = str(value)
+            case type = "l"
+                if value then
+                    data = "T"
+                else
+                    data = "F"
+                end IF
+            case else
+                data = value
+        end select
+        cell = "R" + alltrim(str(row) ) + "C" + alltrim(str(col) )
+        dde.send("Excel", "Sheet1", cell, data)
+    next col
+    row = row + 1
+    tbl.fetch_next()
+end while
+]]></example>
+       </section>
+       
+       
+   </sections>
+   <see>
+      <ref>DDE Methods</ref>
+      <ref>OLE  and ActiveX Methods</ref>
+   </see>
+   
+</page>

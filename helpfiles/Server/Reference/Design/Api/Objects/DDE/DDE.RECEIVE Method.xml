@@ -1,0 +1,79 @@
+<page>
+   <topic>DDE.RECEIVE Function</topic>
+   <syntax>Data_String as C = Receive(C Application,C Topic,C Item)</syntax>
+   <arguments>
+     <argument>
+         <name>Application</name>
+         <description>The name of an application that is currently running in another window.
+</description>
+     </argument>
+     <argument>
+         <name>Topic</name>
+         <description>The name of a topic that the application recognizes.
+</description>
+     </argument>
+     <argument>
+         <name>Item</name>
+         <description>The name of a data item the application recognizes.
+</description>
+     </argument>
+   </arguments>
+   <description>Obtain data from specified application on topic.</description>
+   <discussion>
+The DDE.RECEIVE() method establishes dynamic data exchange (DDE) with another active Windows application, and then requests an item of information which is returned as a Data_String.
+The Application_Name parameter is a character string containing the name of an application that is currently running in another window. It is usually the name of an .EXE file (without the .EXE extension or path) that can hold a DDE conversation.
+The contents of the Topic_String should be the name of a topic the application recognizes. The choice of valid topic names depends on the application. For applications that operate on documents or tables, the topic usually includes the names for those files.
+The Item parameter is a character string containing the name of a data item the application recognizes. For instance, Microsoft Excel recognizes the data item "R1C1" as a row and column identifier.
+To establish a DDE connection, both Alpha Anywhere and the other Windows application must be running at the same time. It is good practice to include the SYS_SHELL() function at the start of a DDE script to automatically start up the other application before trying to initiate the DDE conversation.
+   </discussion>
+ 
+   <sections>
+       <section><title>Example</title>
+            <description>Requests information from the cell at row 1, column 1 of an Excel worksheet.</description>
+            <example><![CDATA[
+sys_shell("c:\excel\excel.exe")
+data = dde.receive("Excel", "Sheet1", "R1C1")
+]]></example>
+       </section>
+       
+       
+          <section>
+            <description>This script uses DDE to retrieve data from a Lotus 123 spreadsheet and place it in a new table.</description>
+            <example><![CDATA[
+number_of_fields = val(ui_get_number("Columns", "Number of Columns:") )
+number_of_records = val(ui_get_number("Rows", "Number of Rows:") )
+filename = ui_get_file("File to create", "Tables(*.DBF)", "", "N")
+if (filename = "") then
+    end
+end if
+table.create_begin("field1", "c", 20)
+for i = 2 to number_of_fields
+    table.field_add("field" + ltrim(str(i) ), "c", 20)
+next i
+tbl = table.create_end(filename)
+sys_shell("c:\123r4w\programs\123w.exe")
+dim datanumber_of_fields as C
+for row = 1 TO number_of_records
+    for col = 1 TO number_of_fields
+        cell = "R" + alltrim(str(row) ) + "C" + alltrim(str(col) )
+        datacol = alltrim(dde.receive("123W", "employee.wk4", cell) )
+    next col
+    tbl.enter_begin()
+    for fld = 1 to number_of_fields
+      fld_pointer = tbl.field_get(fld)
+        fld_pointer.value_put(datafld )
+    next fld
+    tbl.enter_end(.T.)
+next row
+tbl.close()
+]]></example>
+       </section>
+       
+       
+   </sections>
+   <see>
+      <ref>DDE Methods</ref>
+      <ref>OLE  and ActiveX Methods</ref>
+   </see>
+  
+</page>
