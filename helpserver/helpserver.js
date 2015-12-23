@@ -13,7 +13,7 @@ var replaceAll = function (str, find, replace) {
 options.pageIndexer = function(filename,savePage) {
       // just error out for now...
       var extensionIndex = filename.lastIndexOf(".");
-      if( filename.substring(extensionIndex).toLowerCase() == ".xml" ) {
+      if( filename.substring(extensionIndex).toLowerCase() == ".xml" && filename.indexOf( "/index.xml") < 0 ) {
         var fs = require("fs");      
         fs.readFile(filename, "utf8", function (err, data) {          
             if(err) {  
@@ -27,15 +27,24 @@ options.pageIndexer = function(filename,savePage) {
                         savePage(null);  
                     } else {
                         result = eval(result);
-                        if( result.page.description ) {
-                            if( Object.prototype.toString.call( result.page.description ) === '[object Array]' ) {
-                                savePage({ definition : result.page.description[0] });
+                        if( result ) {
+                            if( result.page ) {
+                                if( result.page.description ) {
+                                    if( Object.prototype.toString.call( result.page.description ) === '[object Array]' ) {
+                                        savePage({ definition : result.page.description[0] });
+                                    } else {
+                                        savePage({ definition : result.page.description });
+                                    }
+                                } else {
+                                    console.log(result);
+                                    savePage(null);                                
+                                }    
                             } else {
-                                savePage({ definition : result.page.description });
-                            }    
+                                console.log(result);
+                                savePage(null);
+                            }
                         } else {
-                            console.log(result);
-                            savePage(null);
+                            savePage(null);                            
                         }                    
                     }
                 });
