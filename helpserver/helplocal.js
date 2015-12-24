@@ -8,53 +8,95 @@ var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
     str = str.replace(find, replace);
     return str;
-};        
+};
 
-// xml page index function - gets called whenever we change xml files in a folder... passes all the files 
-options.pageIndexer = function(filename,savePage) {
-      // just error out for now...
-      var extensionIndex = filename.lastIndexOf(".");
-      if( filename.substring(extensionIndex).toLowerCase() == ".xml" && filename.indexOf( "/index.xml") < 0 ) {
-        var fs = require("fs");      
-        fs.readFile(filename, "utf8", function (err, data) {          
-            if(err) {  
-                console.log(filename+" was not found");
-                savePage(null);       
+
+//--------------------------------------------------------------------------------------
+// page index function - gets called whenever we change xml files in a folder... passes all the files 
+var outputSnippet = function(args,description) {
+    var result = "";
+    if( args.isFolder ) {
+        if( args.format == ".xml" ) {
+            args.path = args.path + "/index.xml"; 
+        }
+    }
+    if( description ) {
+        if( args.format == ".xml" ) {
+            if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
+                description = "<![CDATA["+description+"]]>";
+                result =  "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
+        } else {
+                result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>\n<dd>" + description + "</dd>";
+        }
+    } else {
+        if( args.format == ".xml" ) {
+            result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+        } else {
+            result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>";
+        }
+    }
+    return result;
+}
+
+options.pageIndexer = function (args, savePage) {
+    // just error out for now...
+    var filename = args.filename;
+    var extensionIndex = filename.lastIndexOf(".");
+    if (filename.substring(extensionIndex).toLowerCase() == ".xml" && filename.indexOf("/index.xml") < 0) {
+        var fs = require("fs");
+        fs.readFile(filename, "utf8", function (err, data) {
+            if (err) {
+                console.log(filename + " was not found");
+                savePage(outputSnippet(args,null));
             } else {
                 var parseString = require('xml2js').parseString;
                 parseString(data, function (err, result) {
-                    if( err ) {
-                        console.log(err+" processing file "+filename);
-                        savePage(null);  
+                    var description = null;
+                    if (err) {
+                        console.log(err + " processing file " + filename);
                     } else {
                         result = eval(result);
-                        if( result ) {
-                            if( result.page ) {
-                                if( result.page.description ) {
-                                    if( Object.prototype.toString.call( result.page.description ) === '[object Array]' ) {
-                                        savePage({ definition : result.page.description[0] });
+                        if (result) {
+                            if (result.page) {
+                                if (result.page.description) {
+                                    if (Object.prototype.toString.call(result.page.description) === '[object Array]') {
+                                        description = result.page.description[0];
                                     } else {
-                                        savePage({ definition : result.page.description });
+                                        description = result.page.description;
                                     }
-                                } else {
-                                    console.log(result);
-                                    savePage(null);                                
-                                }    
-                            } else {
-                                console.log(result);
-                                savePage(null);
+                                }
                             }
-                        } else {
-                            savePage(null);                            
-                        }                    
+                        }
                     }
+                    savePage(outputSnippet(args,description));
                 });
             }
         });
-      } else {
-        savePage(null);          
-      }      
+    } else {
+        savePage(outputSnippet(args,null));
+    }
 };
+
+options.wrapIndex = function( args ) {
+    var result = "";
+    if( args.format == ".xml" ) {
+        result = "<list><item><name-title>Name</name-title></item>"+args.content+"</list>";
+    } else {
+        result = "<dl id='generatedTopics'>"+args.content+"</dl>";
+    }
+    return result;
+};
+
+options.getDefaultIndexTemplate = function( args ) {
+    var result = "";
+    if( args.format == ".xml" ) {
+        result = "<page><!--list:.--></page>";
+    } else {
+        result = "<html><body><!--list:.--></body></html>";
+    }
+    return result;
+};
+//--------------------------------------------------------------------------------------
 
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: false }));
