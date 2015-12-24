@@ -1,0 +1,201 @@
+<page>
+   <topic>REPORT.PRINTER_OVERRIDE Function</topic>
+   <syntax>Last_Printer as C = .Printer_override(C printername[,P printeroptions[,P saveoldoptions]])</syntax>
+   <arguments>
+     <argument>
+         <name>printername</name>
+         <description>The printer's name (as it appears in the Control Panel ) followed optionally by "on port:", where port is the port on which you want to print. If Printer_Name is equal to a NULL string (""), then Alpha Anywhere will use the Default Windows printer.
+</description>
+     </argument>
+     <argument>
+         <name>printeroptions</name>
+         <description>Optional. A dot variable specifying the new options to set. The options that will be available depend on the printer you select. The following options appear for a Compaq laser printer. For a view of your printer's options:</description>
+<list>
+<item>
+<name>1. Create a new Action Script.</name>
+</item>
+
+<item>
+<name>2. Select Reports > Print a Layout.</name>
+</item>
+
+<item>
+<name>3. Display the Options tab.</name>
+</item>
+
+<item>
+<name>4. Click Override printer settings.</name>
+</item>
+
+<item>
+<name-title>Option</name-title>
+<description-title>Description</description-title>
+</item>
+
+<item>
+<name>papersize</name>
+<description>"Letter", "Legal", "Tabloid", etc.
+</description>
+</item>
+
+<item>
+<name>
+orientation</name>
+<description>"Portrait" or "Landscape"</description>
+</item>
+
+<item>
+<name>paperlength</name>
+<description>A positive number (e.g. 11).</description>
+</item>
+
+<item>
+<name>paperwidth</name>
+<description>A positive number (e.g. 8.5).</description>
+</item>
+
+<item>
+<name>scale</name>
+<description>A positive number
+</description>
+</item>
+
+<item>
+<name>copies
+</name>
+<description>An integer number greater than or equal to 1.
+</description>
+</item>
+
+<item>
+<name>quality
+</name>
+<description>"High", "Medium", "Low", or "Draft".
+</description>
+</item>
+
+<item>
+<name>color
+</name>
+<description>"Color" or "Monochrome".
+</description>
+</item>
+
+<item>
+
+<name>duplex
+</name>
+<description>"Simplex", "Horizontal", "Vertical"
+
+</description>
+</item>
+
+<item>
+<name>truetype</name>
+<description>"Bitmap", "Download", "Substitute"</description>
+</item>
+
+<item>
+<name>collate</name>
+<description>.T. or .F.</description>
+</item>
+
+<item>
+<name>defaultsource</name>
+<description>"Automatically Select", "Manual Paper Feed", "Tray 1", etc.</description>
+</item>
+
+
+</list>
+   
+   
+   
+   
+   
+   
+   
+     </argument>
+     <argument>
+         <name>saveoldoptions</name>
+         <description>Optional. A dot variable to hold the previous set of options.
+</description>
+     </argument>
+   </arguments>
+   <description>Override the Report printer.</description>
+   <discussion>
+The REPORT.PRINTER_OVERRIDE() method sets the printer to Printer_Name for all subsequent print operations. Alpha Anywhere will use Printer_Name regardless of whether the layout specifies an explicit printer name, or the default printer. In addition, Alpha Anywhere will not display the Printer Selection dialog box even if you checked the "Show printer setup on print" check box in the layout.
+Last_Printer is the name of the printer that Alpha Anywhere was previously set to use. This allows you to restore the previously set printer driver.
+Printer_Name should be the printer's name (as it appears in the Control Panel ) followed optionally by "on port:", where port is the port on which you want to print. For example:
+   </discussion>
+   <sections>
+       <section>
+            
+            <example><![CDATA[
+:report.printer_override("HPLaserJet 6 on LPT1:")
+:report.printer_override("EPSON on COM1:")
+:report.printer_override("Generic on FILE:")
+]]></example>
+       </section>
+       
+<section>
+<description>If you omit the port, Alpha Anywhere will try to infer the port from the printer definition.</description>
+</section>
+       
+   </sections>
+   <sections>
+       <section><title>Example</title>
+            <description>Set the printer, prints a report, then restores the printer.</description>
+            <example><![CDATA[
+last_printer = :report.printer_override("HPLaserJet 4P")
+:report.print("invoices")
+:report.printer_override(last_printer)
+]]></example>
+       </section>
+       
+       <section>
+            <description>Set printer to a network printer on the server called ATLANTIC.</description>
+            <example><![CDATA[
+last_printer = :report.printer_override("\\ATLANTIC\HPLaserJet 4P")
+:report.print("invoices")
+:report.printer_override(last_printer)
+]]></example>
+       </section>
+       
+       <section>
+            <description>This example shows how to override certain printer properties.</description>
+            <example><![CDATA[
+query.filter = ""
+query.order = ""
+delete options
+dim options as P
+dim options_text as C
+' Before you can initialize 'options' using the property_from_string() function at least one dot variable must exist. therefore, create a dummy variable.
+options.dummy = 1
+options_text = <<%str%
+
+%str%
+' Create a dot variable from options_text.
+' The dot variable contains the printer properties to be overridden
+property_from_string(options, options_text)
+' Now you can delete the dummy variable
+delete option.dummy
+' oldOptions will store the current printer options, so that we can restore them.
+delete oldOptions
+dim oldOptions as P
+oldOptions.dummy = 1
+' Set the printer override settings.
+old_printer_name = report.Printer_override("WebWorks Rasterizer on LPT1:", options, oldOptions)
+' Delete the dummy variable
+delete oldOptions.dummy
+:Report.Print("report1", query.filter, query.order)
+' Now restore the original printer settings
+report.printer_override(old_printer_name, oldOptions)
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>Report Functions</ref>
+      <ref>REPORT.OUTPUT_FILE_OVERRIDE()</ref>
+   </see>
+   
+</page>
