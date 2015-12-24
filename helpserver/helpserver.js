@@ -13,6 +13,11 @@ var replaceAll = function (str, find, replace) {
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
 var outputSnippet = function(args,description) {
     var result = "";
+    if( args.isFolder ) {
+        if( args.format == ".xml" ) {
+            args.path = args.path + "/index.xml"; 
+        }
+    }
     if( description ) {
         if( args.format == ".xml" ) {
             if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
