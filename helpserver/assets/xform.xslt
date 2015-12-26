@@ -59,7 +59,7 @@
 			</xsl:when>
 		</xsl:choose>
         <xsl:if test="list">
-            <xsl:call-template name="list-rule"/>
+            <xsl:call-template name="list"/>
         </xsl:if>
 		<xsl:if test="example">
 			<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
@@ -90,7 +90,7 @@
                     <xsl:otherwise></xsl:otherwise>
 				</xsl:choose>
 				<xsl:if test="list">
-				    <xsl:call-template name="list-rule"/>
+				    <xsl:call-template name="list"/>
 				</xsl:if>
 				<xsl:if test="example">
 					<pre class="codeTable"><xsl:value-of select="example" /></pre>
@@ -188,7 +188,7 @@
 			</ul>
 		</xsl:if>	
 	</xsl:template>
-	<xsl:template match="list-rule" name="list-rule" >
+	<xsl:template match="list" name="list" >
 		<table class="definitionTable" >
 			<xsl:for-each select="list/item">
 				<xsl:choose>
