@@ -1,0 +1,138 @@
+<page>
+   <topic>StringScanner.ScanToToken Function</topic>
+   <syntax>Text as C = ScanToToken as C(kind as c)</syntax>
+   <arguments>
+    <argument>
+         <name>Text</name>
+         <description>The text between the starting and ending offset positions.
+</description>
+     </argument>
+     <argument>
+         <name>kind</name>
+         <description>The type of token to find. The value of this argument can be a combination of the following flags.</description>
+         <list>
+<item>
+<name>"I" = identifier</name>
+</item>
+
+<item>
+<name>"F" = function</name>
+</item>
+
+<item>
+<name>"S" = string</name>
+</item>
+
+<item>
+<name>"D" = date</name>
+</item>
+
+<item>
+<name>"N" = number</name>
+</item>
+
+<item>
+<name>"L" = logical</name>
+</item>
+
+<item>
+<name>"U" = unary operator</name>
+</item>
+
+<item>
+<name>"B" = binary</name>
+</item>
+
+<item>
+<name>"A" = array</name>
+</item>
+
+<item>
+<name>"P" = property of array</name>
+</item>
+
+<item>
+<name>"M" = array that is a child property of another array (multi-level array)</name>
+</item>
+
+<item>
+<name>"*" = all token types</name>
+</item>
+
+<item>
+<name>"X" = XBASIC expression (ignore xbasic comments)</name>
+</item>
+         
+         </list>
+         
+         
+         
+     </argument>
+   </arguments>
+   <description>Skip until a token is encountered. Return text we scanned over.</description>
+   <discussion><![CDATA[
+The <StringScanner>.ScanToToken() function moves the offset to the beginning of the token.
+  ]]> </discussion>
+   <example><![CDATA[
+dim t as C
+t = <<%txt%
+result[1] = foo( x + y , "Some text" ) .or. (lookfor = .F.) .or. ( date()= {10/10/2005}
+complex[1].subelement[1].property
+%txt%
+scanner = stringscanner.create(t)
+' find the first line with a logical operator
+? scanner.SkipToToken("L")
+= .T.
+? scanner.GetToOffset()
+= result[1] = foo( x + y , "Some text" ) .or. (lookfor =
+? scanner.GetRemainder()
+= .F.) .or. ( date()= {10/10/2005}
+complex[1].subelement[1].property
+' find the first line with a property of array
+? scanner.SkipToToken("P")
+= .T.
+? scanner.GetLineText()
+= "complex[1].subelement[1].property"
+]]></example>
+   <sections>
+       <section>
+            <description>The following script produces the dialog shown below. </description>
+           <example><![CDATA[
+dim t as C
+dim all as C
+t = <<%txt%
+result[1] = foo( x + y , "Some text" ) .or. (lookfor = .F.) .or. ( date()= {10/10/2005}
+complex[1].subelement[1].property
+%txt%
+scanner = stringscanner.create(t)
+all = ""
+while scanner.SkipToToken("*")
+    all = all + scanner.ScanTypedToken("*") + crlf()
+end while
+scanner.Offset = 1
+while scanner.SkipToToken("S")
+    saveOffset = scanner.Offset
+    oldString = unquote(scanner.ScanOverToken("S"))
+    newOffset = scanner.Offset
+    scanner.Offset = saveOffset
+    scanner.Replace(quote("["+upper(oldString)+"]"),newOffset-saveOffset)
+end while
+result = scanner.Text
+ui_dlg_box("token demo",<<%dlg%
+Scanned tokens|Changed String;
+[%M%.25,22all]|[%M%.75,22result];
+<&Ok>
+%dlg%)
+]]></example>
+       </section>
+       
+<section>
+<figure><link>images/SkipToToken().gif</link></figure>
+</section>
+       
+   </sections>
+   <see>
+      <ref>StringScanner</ref>
+   </see>
+ 
+</page>
