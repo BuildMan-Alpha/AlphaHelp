@@ -3,7 +3,6 @@ var bodyParser = require('body-parser');
 var app = express();
 var options = require("./settingslocal");
 var Help = require('helpserver');
-var help = Help(options);
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
     str = str.replace(find, replace);
@@ -97,6 +96,19 @@ options.getDefaultIndexTemplate = function( args ) {
     return result;
 };
 //--------------------------------------------------------------------------------------
+/*options.translateXML = function(xmlFile,htmlFile,callback) {
+    var fs = require('fs');
+    fs.readFile(xmlFile,"utf8",function(err,data) {
+       if( err ) {
+           callback(err,data);           
+       } else {
+           fs.writeFile(htmlFile,"XML follows"+data,function(err,data) {
+               callback(err,data);           
+           });
+       }
+    });
+};*/
+var help = Help(options);
 
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: false }));
