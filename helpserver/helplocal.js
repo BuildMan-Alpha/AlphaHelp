@@ -96,18 +96,30 @@ options.getDefaultIndexTemplate = function( args ) {
     return result;
 };
 //--------------------------------------------------------------------------------------
-/*options.translateXML = function(xmlFile,htmlFile,callback) {
-    var fs = require('fs');
-    fs.readFile(xmlFile,"utf8",function(err,data) {
-       if( err ) {
-           callback(err,data);           
-       } else {
-           fs.writeFile(htmlFile,"XML follows"+data,function(err,data) {
-               callback(err,data);           
+/*
+var xsltproc = require('xsltproc');
+options.translateXML = function(xmlFile,htmlFile,callback) {
+   var xslt = xsltproc.transform('/home/AlphaHelp/helpserver/assets/xform.xslt', xmlFile);
+   var err = null;
+   var dataOut = '';
+   xslt.stdout.on('data', function (data) {
+      dataOut += data;
+   }); 
+   xslt.stderr.on('data', function (data) {
+      err = data;
+   }); 
+   xslt.on('exit', function (code) {
+      if( err ) {
+           callback(err,null);
+      } else {
+           var fs = require('fs');
+           fs.writeFile(htmlFile,dataOut,function(err) {
+               callback(err,dataOut);
            });
-       }
-    });
-};*/
+      }
+   });
+};
+*/
 var help = Help(options);
 
 app.use(bodyParser.json()); 

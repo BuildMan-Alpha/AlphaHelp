@@ -2,7 +2,6 @@ var express = require('express');
 var app = express();
 var options = require("./settings");
 var Help = require('helpserver');
-var help = Help(options);
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
         str = str.replace(find, replace);
@@ -95,7 +94,29 @@ options.getDefaultIndexTemplate = function( args ) {
     return result;
 };
 //--------------------------------------------------------------------------------------
-
+var xsltproc = require('xsltproc');
+options.translateXML = function(xmlFile,htmlFile,callback) {
+   var xslt = xsltproc.transform('/home/AlphaHelp/helpserver/assets/xform.xslt', xmlFile);
+   var err = null;
+   var dataOut = '';
+   xslt.stdout.on('data', function (data) {
+      dataOut += data;
+   }); 
+   xslt.stderr.on('data', function (data) {
+      err = data;
+   }); 
+   xslt.on('exit', function (code) {
+      if( err ) {
+           callback(err,null);
+      } else {
+           var fs = require('fs');
+           fs.writeFile(htmlFile,dataOut,function(err) {
+               callback(err,dataOut);
+           });
+      }
+   });
+};
+var help = Help(options);
 
 app.use("/", function (req, res) {
     if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
