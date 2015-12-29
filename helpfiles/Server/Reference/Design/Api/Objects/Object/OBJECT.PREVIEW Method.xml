@@ -1,138 +1,191 @@
 <page>
    <topic>OBJECT.PREVIEW Function</topic>
-   <syntax>.Preview(c layoutname [,c filter [,c order [,l modal [,l session_modal [,* arguments [,* options ]]]]]])</syntax>
+   <syntax>Output_Filename as C = :object_type.Preview(c layoutname [,c filter [,c order [,l modal [,l session_modal [,* arguments [,* options ]]]]]])</syntax>
    <arguments>
+   <argument>
+         <name>object_type</name>
+         <description>This word can be any of the following:</description>
+<list>
+
+<item>
+<name>"Browse"</name>
+</item>
+
+<item>
+<name>"Form"</name>
+</item>
+
+<item>
+<name>"Label"</name>
+</item>
+
+<item>
+<name>"Letter"</name>
+</item>
+
+<item>
+<name>"Report"</name>
+</item>
+
+</list>
+         
+         
+     </argument>
      <argument>
          <name>layoutname</name>
-         <description>Character</description>
+         <description>The name of the layout to preview.
+</description>
      </argument>
      <argument>
          <name>filter</name>
-         <description>Character</description>
+         <description>Optional. Default = ".T." (All records).
+A character filter expression that evaluates to a logical value and selects records for the report.
+</description>
      </argument>
      <argument>
          <name>order</name>
-         <description>Character</description>
+         <description>Optional. Default = record order.
+A character order expression that sorts selected records.</description>
      </argument>
      <argument>
          <name>modal</name>
-         <description>Logical</description>
+         <description>Optional. Default = .F.</description>
+<list>
+<item>
+<name>.T. = The user cannot change focus without closing the dialog.</name>
+</item>
+<item>
+<name>.F. = The user can change focus without closing the dialog.</name>
+</item>
+
+</list>
+         
+         
+         
      </argument>
      <argument>
          <name>session_modal</name>
-         <description>Logical</description>
+         <description>Optional. Default = .T.</description>
+<list>
+<item>
+<name>.T. = This means that any script that calls the REPORT.PREVIEW() method will pause until the Print Preview window is closed. However, the preview window itself is not a modal dialog box. The user is free to select other windows in Alpha Anywhere.</name>
+</item>
+<item>
+<name>.F. = The script does not pause until the Print Preview window is closed.</name>
+</item>
+
+</list>
+
      </argument>
+     
+     
      <argument>
          <name>arguments</name>
-         <description>*</description>
+         <description>Optional. Default = NULL_VALUE(). Arguments that retrieve value(s) from variable(s) or prompts for value(s) at runtime. Only applicable to SQL Reports. Refer to SQL::Arguments Object.
+</description>
      </argument>
+     
+     
      <argument>
          <name>options</name>
-         <description>*</description>
+         <description>Optional. Default = NULL_VALUE(). Sets filter (WHERE) and order (ORDER BY) expressions for a query against a passive-linked table. A pointer dot variable with 2 elements.</description>
+<list>
+
+<item>
+<name>.filter = Adds to the WHERE clause in the underlying SQL expression.</name>
+</item>
+
+<item>
+<name>.order = Replaces the ORDER BY clause in the underlying SQL expression.</name>
+</item>
+
+</list>
+    
+    
      </argument>
    </arguments>
    <description>method</description>
-   <discussion>
-      ...put discussion here....
+   <discussion><![CDATA[
+The <OBJECT>.PREVIEW() method displays the Preview dialog box showing the selected layout.
+Limitations: Desktop applications only.]]>
    </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
+  
    <sections>
-       <section>
-            <description>put description here</description>
+       <section><title>Example</title>
+            <description>This script previews the Invoice report with an argument. You can add as many arguments to the arguments collection as you want.</description>
             <example><![CDATA[
-      ...put example here....
+:Report.archive("Invoice")
+DIM myargs as SQL::arguments
+ myargs.add("whatcity", "London") 
+ report.print("report1", "", "", .f., .f., myargs)
 ]]></example>
        </section>
    </sections>
+   
+   
+<sections>
+       <section><title>Using the Options Argument</title>
+            <description><![CDATA[If you have a SQL report called "nw_customers" and its SQL Select statement is select * from customers, you could use the following <OBJECT>.PREVIEW()statements.
+Previews a report showing all of the customer records.]]>
+</description>
+            <example><![CDATA[
+report.preview("Nw_customers")
+]]></example>
+       </section>
+       
+        <section>
+            <description>Previews a report showing records for the city of London, but this could potentially be quite slow.</description>
+            <example><![CDATA[
+report.preview("Nw_customers", "city = 'london'")
+]]></example>
+       </section>
+       
+        <section>
+            <description><![CDATA[If the table had 1,000,000 records, and there were only 5 records for London, Alpha Anywhere would bring down all 1,000,000 records to the local computer and then do a filter on the table to get the 5 records to print. 
+ It would obviously be more efficient to do the filter at the SQL database.]]></description>
+            <example><![CDATA[
+dim opt as P 
+ opt.filter = "city = 'london'" 
+ report.preview("nw_customers", "", "", .f., .f., null_value(), opt)
+]]></example>
+       </section>
+       
+        <section>
+            <description>Note, that since opt is the last argument in the function prototype you must supply values for all of the preceding arguments, even if they were optional arguments. If you do not have a value for the Argument parameter, you may pass in NULL_VALUE(). Another solution would be to do this:</description>
+            <example><![CDATA[
+dim opt as P 
+ dim dummyargs as SQL::arguments 
+ opt.filter = "city = 'london'"
+report.preview("nw_customers", "", "", .f., .f., dummyargs, opt)
+]]></example>
+       </section>
+       
+        <section>
+            <description>This example shows how to use the .Order property.</description>
+            <example><![CDATA[
+dim opt as P 
+ opt.filter = "city = 'london'" 
+ opt.order = "contactname, desc"
+]]></example>
+       </section>
+       
+        <section>
+            <description>The filter argument is added to the existing SQL SELECT statement's WHERE clause. If the existing SQL SELECT statement was select * from customers where customertype = 'retail', and you specified options.filter = "city = 'london'", the actual SQL for the report would be select * from customers where customertype = 'retail' AND city = 'london'. 
+</description>
+           
+       </section>
+       
+<section>
+<description>The order argument replaces any existing ORDER clause in the SQL statement. If the original sql statement was select * from customers order by city, and you set options.order to contactname, desc, region, the resulting SQL for the report will be select * from customers order by contactname, desc, region.</description>
+       
+</section>
+   </sections>   
+   
+   
+   
    <see>
       <ref>Report Functions  and Methods</ref>
       <ref>Writing Expressions</ref>
    </see>
-   <original><![CDATA[&ltOBJECT>.PREVIEW()
-Syntax
-Output_Filename as C = :Object_Type.PREVIEW( Layout_Name as C [, Filter_Expression as C [, Order_Expression as C [, Modal as L [, Session_Modal as L [, Argument as SQL::Arguments ]]]]] )
-ArgumentDescription
-Object_TypeThis word can be any of the following:
-
- "Browse"
-
- "Form"
-
- "Label"
-
- "Letter"
-
- "Report" 
-Layout_NameThe name of the layout to preview.
-Filter_ExpressionOptional. Default = ".T." (All records).
-A character  filter expression that evaluates to a logical value and selects records for the report.
-Order_ExpressionOptional. Default = record order.
-A character  order expression that sorts selected records.
-ModalOptional. Default = .F.
-
- .T. = The user cannot change focus without closing the dialog.
-
- .F. = The user can change focus without closing the dialog. 
-Session_ModalOptional. Default = .T.
-
- .T. = This means that any script that calls the REPORT.PREVIEW() method will pause until the Print Preview window is closed. However, the preview window itself is not a modal dialog box. The user is free to select other windows in Alpha Anywhere.
-
- .F. = The script does not pause until the Print Preview window is closed. 
-ArgumentOptional. Default = NULL_VALUE(). Arguments that retrieve value(s) from variable(s) or prompts for value(s) at runtime. Only applicable to SQL  Reports. Refer to SQL::Arguments  Object.
-OptionsOptional. Default = NULL_VALUE(). Sets filter (WHERE) and order (ORDER BY) expressions for a query against a passive-linked  table. A pointer dot variable with 2 elements.
-
- .filter = Adds to the WHERE clause in the underlying SQL expression.
-
- .order = Replaces the ORDER BY clause in the underlying SQL expression. 
-
-Description
-The &ltOBJECT>.PREVIEW() method displays the Preview dialog box showing the selected layout.
-Limitations
-Desktop applications only.
-Example
-This script previews the Invoice report with an argument. You can add as many arguments to the arguments collection as you want.
-:Report.archive("Invoice")
-DIM myargs as SQL::arguments 
-myargs.add("whatcity", "London") 
-
-report.print("report1", "", "", .f., .f., myargs)
-
-
-Using the Options Argument
-If you have a SQL report called "nw_customers" and its SQL Select statement is select * from customers, you could use the following &ltOBJECT>.PREVIEW()statements.
-Previews a report showing all of the customer records.
-report.preview("Nw_customers")
-
-Previews a report showing records for the city of London, but this could potentially be quite slow.
-report.preview("Nw_customers", "city = 'london'")
-
-If the table had 1,000,000 records, and there were only 5 records for London, Alpha Anywhere would bring down all 1,000,000 records to the local computer and then do a filter on the table to get the 5 records to print. 
-It would obviously be more efficient to do the filter at the SQL database.
-
-dim opt as P 
-opt.filter = "city = 'london'" 
-report.preview("nw_customers", "", "", .f., .f., null_value(), opt)
-
-
-Note, that since opt is the last argument in the function prototype you must supply values for all of the preceding arguments, even if they were optional arguments. If you do not have a value for the Argument parameter, you may pass in NULL_VALUE(). Another solution would be to do this:
-dim opt as P 
-dim dummyargs as SQL::arguments 
-opt.filter = "city = 'london'"
-
-report.preview("nw_customers", "", "", .f., .f., dummyargs, opt)
-
-This example shows how to use the .Order property.
-dim opt as P 
-opt.filter = "city = 'london'" 
-opt.order = "contactname, desc"
-
-
-The filter argument is added to the existing SQL SELECT statement's WHERE clause. If the existing SQL SELECT statement was select * from customers where customertype = 'retail', and you specified options.filter = "city = 'london'", the actual SQL for the report would be select * from customers where customertype = 'retail' AND city = 'london'. 
-
-The order argument replaces any existing ORDER clause in the SQL statement. If the original sql statement was select * from customers order by city, and you set options.order to contactname, desc, region, the resulting SQL for the report will be select * from customers order by contactname, desc, region.
-
-See Also
-Report Functions  and Methods, Writing Expressions]]></original>
+   
 </page>

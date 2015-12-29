@@ -1,51 +1,598 @@
 <page>
    <topic>OBJECT.SAVEAS Function</topic>
-   <syntax>.Saveas(c layoutname [,c saveas_format [,c filter [,c order [,c filename [,l openoutputfile [,* printoptions ]]]]]])</syntax>
+   <prototypes><prototype>Output_Filename as C = Object_Type.Saveas(c layoutname [,c saveas_format [,c filter [,c order [,c filename [,l openoutputfile [,* printoptions ]]]]]])</prototype>
+  
+   
+   </prototypes>
    <arguments>
+   <argument>
+         <name>Object_Type</name>
+         <description>This word can be any of the following:</description>
+         <list>
+         <item>
+         <name>"Browse"</name>
+         </item>
+         
+         <item>
+         <name>"Form"</name>
+         </item>
+         
+         <item>
+         <name>"Label"</name>
+         </item>
+         
+         <item>
+         <name>"Letter"</name>
+         </item>
+         
+         <item>
+         <name>"Report"</name>
+         </item>
+         
+         </list>
+     </argument>
      <argument>
          <name>layoutname</name>
-         <description>Character</description>
+         <description>The name of a form, browse, label, letter, or report layout.
+</description>
      </argument>
      <argument>
          <name>saveas_format</name>
-         <description>Character</description>
+         <description>Optional. Default = "PDF". The options for Format are:
+</description>
+<list>
+<item>
+<name-title>Format</name-title>
+<description-title>File Type</description-title>
+</item>
+
+<item>
+<name>"PDF"</name>
+<description>Adobe Acrobat PDF Format.
+ Note : The PDF Printer drivers used in Version 7 will not create valid PDF files if you have created layouts that use a "percentage" as the property for the Background Fill property an object. The work around is to only use the "Solid", "Translucent" or "Transparent" option for the Background, Fill property.
+</description>
+</item>
+
+<item>
+<name>"HTML"
+</name>
+<description>Dynamic HTML
+</description>
+</item>
+
+<item>
+<name>"RTF"
+</name>
+<description>Rich Text Format
+</description>
+</item>
+
+<item>
+<name>"TXT"
+</name>
+<description>Plain Text Format
+</description>
+</item>
+
+<item>
+<name>"XPS"
+</name>
+<description>XPS (XML Paper Specification, an alternative to PDF) Format
+</description>
+</item>
+
+</list>
      </argument>
      <argument>
          <name>filter</name>
-         <description>Character</description>
+         <description>Optional. Default = ".T." (All records).
+A character filter expression that evaluates to a logical value and selects records from the table.
+</description>
      </argument>
      <argument>
          <name>order</name>
-         <description>Character</description>
+         <description>Optional. Default = record order.
+A character order expression that sorts selected records.
+</description>
      </argument>
      <argument>
          <name>filename</name>
-         <description>Character</description>
+         <description>Optional. Default = Layout_Name in the same folder as the database. The path and name to give the saved file.
+</description>
      </argument>
      <argument>
          <name>openoutputfile</name>
-         <description>Logical</description>
+         <description>Optional. Default = .F. (FALSE).
+.T. = After the layout is printed, Alpha Anywhere opens the file with its associated applications. For example, if you saved as a Rich Text Format file, and WordPerfect is the associated application for .RTF files on your computer, Alpha Anywhere will start WordPerfect and load the file.
+.F. = Do not open associated application.
+</description>
      </argument>
      <argument>
          <name>printoptions</name>
-         <description>*</description>
+         <description>Optional. Default = NULL. You can override the default system settings on a permanent basis. When you override the system defaults, your settings are stored in a text file in the Alpha Anywhere program folder. These files are named: 
+ AlphaFivePrinterDriver_htm.PrintOptions 
+ AlphaFivePrinterDriver_pdf.PrintOptions 
+ AlphaFivePrinterDriver_rtf.PrintOptions
+For more information about print options.
+</description>
      </argument>
+     
+<argument>
+<name>arguments</name>
+<description>Optional. Default = NULL_VALUE(). Arguments that retrieve value(s) from variable(s) or prompts for value(s) at runtime. Only applicable to SQL Reports. Refer to SQL::Arguments Object.
+</description>
+</argument>
+
+<argument>
+<name>options</name>
+<description>Optional. Default = NULL_VALUE(). Sets filter (WHERE) and order (ORDER BY) expressions for a query against a passive-linked table. A pointer dot variable with 2 elements. Refer to Using the Options Argument.
+•.filter = Adds to the WHERE clause in the underlying SQL expression.
+•.order = Replaces the ORDER BY clause in the underlying SQL expression.
+</description>
+</argument>
+     
+     
    </arguments>
    <description>method</description>
-   <discussion>
-      ...put discussion here....
-   </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
+   <discussion><![CDATA[
+The <OBJECT>.SAVEAS() method prints Layout_Name to file in PDF, HTML, RTF, or TXT formats. If no format is specified, the .PDF format is used.
+If you specify an optional Filter_Expression, the only records matching the filter are printed. (In addition to the filter specified here, the layout may have a filter defined within the layout definition).
+The layout is printed to Filename. If Filename is not specified, the layout is printed to a file with the same name as the Layout_Name in the same folder as the database.
+Limitations: Desktop applications only.
+  ]]> </discussion>
+  
    <sections>
-       <section>
-            <description>put description here</description>
+       <section><title>Example</title>
+            <description>This script saves a report as a RTF file.</description>
             <example><![CDATA[
-      ...put example here....
+filename = :Report.saveas("Invoice","rtf")
 ]]></example>
        </section>
+       
+       <section>
+            <description>This script saves a report as a PDF file, then launches Adobe Acrobat to view it.</description>
+            <example><![CDATA[
+dim fn as C
+fn = report.saveas("Customer List", "PDF", "", "", "C:\test.pdf", .T.)
+]]></example>
+       </section>
+       
+       <section>
+            <description>This script saves copy of the Invoice report with an argument. You can add as many arguments to the arguments collection as you want.</description>
+            <example><![CDATA[
+DIM myargs as SQL::arguments 
+ myargs.add("whatcity","London") 
+ report.saveas("report1", "", "", .f., .f., myargs)
+]]></example>
+       </section>
+       
+       <section>
+            <description>In this example, let's assume that the report is based on a SQL data source. If you specify a filter and order in the method's Filter_expression and Order_expression arguments, the filter and order will be applied after the data has been extracted from the SQL table and moved into a temporary local .dbf table. This is very inefficient. It would be much better to do the filtering and ordering on the server before the data is moved to the local temporary table. This is done using the optional Options argument. For example:</description>
+            <example><![CDATA[
+DIM myargs as SQL::arguments 
+dim options as p
+options.filter = "city = 'london' .and. title = 'manager'"
+options.order = "lastname"
+ report.saveas("report1", "", "", .f., .f., myargs,options)
+]]></example>
+       </section>
+       
+       <section>
+            <description>When you specify the filter in options.filter, you can use arguments. For example:</description>
+            <example><![CDATA[
+DIM myargs as SQL::arguments
+myargs.add("whatcity","london")
+myargs.add("whattitle","manager") 
+  
+dim options as p
+options.filter = "city = :whatcity .and. title = :whatmanager"
+options.order = "lastname"
+ report.saveas("report1", "", "", .f., .f., myargs,options)
+]]></example>
+       </section>
+       
+       <section>
+            <description>When the report is based on a SQL data source you can combine local filtering with filtering on the server. In the above two examples, the filtering was performed on the server. However you can do further filtering on the client if you specify the Filter_expression argument. You might take this approach if you want to do some pre-filtering on the server to limit the number of record that are moved to the temporary local .dbf table, but then use some user-designed function in your local filter.</description>
+           
+       </section>
+       
+      
    </sections>
+   
+   
+<sections>
+ <section><title>PDF Print Options</title>
+<list>
+<item>
+<name-title>Option</name-title>
+<description-title>Type and Default</description-title>
+</item>
+
+<item>
+<name>PrintOptions.Concatenate
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.HasWatermark
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.MultilingualSupport
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.LinearizeForWeb
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.Colors2GrayScale
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.ConvertHyperlinks
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+
+
+<item>
+<name>PrintOptions.WatermarkType
+</name>
+<description>
+C-------------
+ 
+"Text"
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.WatermarkText
+</name>
+<description>
+C-------------
+ 
+"D R A F T"
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.WatermarkFontName
+ 
+ </name>
+<description>
+C-------------
+ 
+"Times New Roman"
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.WatermarkFontSize
+</name>
+<description>
+N-------------
+ 
+172
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.WatermarkRotation
+ 
+ </name>
+<description>
+N-------------
+ 
+450
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.WatermarkColorHex
+</name>
+<description>
+C-------------
+ 
+upper("e8fed2")
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.WatermarkHorizPos
+ 
+ </name>
+<description>
+N-------------
+ 
+120
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.WatermarkVertPos
+</name>
+<description>
+N-------------
+ 
+120
+ </description>
+</item>
+
+
+<item>
+<name>PrintOptions.WatermarkOnTop
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.WatermarkPDF
+</name>
+<description>
+C-------------
+ 
+""
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.Encrypt
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.OwnerPassword
+</name>
+<description>
+C-------------
+ 
+""
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.UserPassword
+</name>
+<description>
+C-------------
+ 
+""
+ </description>
+</item>
+
+
+<item>
+<name>PrintOptions.CanPrint
+</name>
+<description>
+L-------------
+ 
+.T.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.CanModifyDocument
+</name>
+<description>
+L-------------
+ 
+.T.
+ </description>
+</item>
+
+
+<item>
+<name>PrintOptions.CanCopy
+</name>
+<description>
+L-------------
+ 
+.T.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.CanAddNotes
+</name>
+<description>
+L-------------
+ 
+.T.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.Use128BitKey
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.EmbedFonts
+</name>
+<description>
+L-------------
+ 
+.F. (Note: If a font is protected, it can't be embedded; this is often the case for bar code fonts, such as Code39.)
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.JpegQuality
+</name>
+<description>
+C-------------
+ 
+"Low" (default), "Medium", "High", "No Compression"
+ </description>
+</item>
+</list>
+       </section>
+
+
+
+
+</sections>
+   
+   
+<sections>
+<section><title>RTF PrintOptions</title>
+<list>
+<item>
+<name-title>Option
+</name-title>
+<description-title>Type and Default</description-title>
+</item>
+
+<item>
+<name>PrintOptions.MultilingualSupport
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.Colors2GrayScale
+ 
+ </name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.RTFType
+</name>
+<description>
+C-------------
+ 
+"Formatted Text"
+ </description>
+</item>
+
+</list>
+
+</section>
+</sections>
+   
+   
+<sections>
+<section><title>HTML PrintOptions</title>
+<list>
+<item>
+<name-title>Option
+</name-title>
+<description-title>Type and Default</description-title>
+</item>
+
+<item>
+<name>PrintOptions.MultilingualSupport
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>PrintOptions.Colors2GrayScale
+</name>
+<description>
+L-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.ConvertHyperlinks
+ 
+ </name>
+<description>
+C-------------
+ 
+.F.
+ </description>
+</item>
+
+<item>
+<name>
+PrintOptions.HTMType
+
+ 
+ </name>
+<description>
+
+C-------------
+ 
+"Layers"
+ </description>
+</item>
+</list>
+
+</section>
+</sections>
+   
    <see>
       <ref>Form Functions and  Methods</ref>
       <ref>Browse  Functions and Methods</ref>
