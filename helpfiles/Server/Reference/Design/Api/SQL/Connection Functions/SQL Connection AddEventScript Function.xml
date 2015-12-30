@@ -1,0 +1,108 @@
+<page>
+   <topic>SQL::Connection AddEventScript Function Function</topic>
+   <syntax>V AddEventScript(ScriptSource as C [, Name as C])</syntax>
+   <arguments>
+     <argument>
+         <name>ScriptSource</name>
+         <description>Character</description>
+     </argument>
+     <argument>
+         <name> Name</name>
+         <description>Character</description>
+     </argument>
+   </arguments>
+   <description>Add a connection event script with functions to handle one or more of the following events: 
+
+    UpdateBegin(Connection as SQL::Connection, RowsExpected as N, BYREF ProgressInterval as N, Cancel BYREF as L)
+    UpdateProgress(Connection as SQL::Connection, RowsUpdated as N, RowsExpected as N, Cancel BYREF as L)
+    UpdateEnd(Connection as SQL::Connection, RowsUpdated as N)</description>
+   <discussion>
+      ...put discussion here....
+   </discussion>
+   <example><![CDATA[
+...put example code here....
+]]></example>
+   <sections>
+       <section>
+            <description>put description here</description>
+            <example><![CDATA[
+      ...put example here....
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>SQL::Connection Object</ref>
+   </see>
+   <original><![CDATA[ SQL::Connection::AddEventScript()
+Syntax
+Result_Flag as L = .AddEventScript(  EventScript as C [, Name as C  ] )
+ArgumentDescription
+Result_FlagTRUE (.T.) if the operation was successful; otherwise  FALSE (.F.).
+A SQL::Connection object.
+EventScriptOptional. Default = "". An Xbasic Script implementing  any of the following functions:
+
+UpdateBegin()
+
+UpdateProgress()
+
+UpdateEnd() 
+In each case, the Context argument is the connection itself.
+NameThe name of the script.
+
+Description
+The AddEventScript() method adds an additional event script (see SQL  Events ) to the connection. You can have more than one event script  on a connection. The scripts are invoked in order from the most recently  added to the least recently added. Scripts can be given a name (allowing  you to selectively delete them by name).
+Limitations
+Example
+The calling script replaces the ROWCOUNT placeholder in the event script  with a numerical value before submitting it.
+dim sqlconn as SQL::Connection
+dim cs as C
+cs = "{A5API='SQLServer', A5Syntax='SQLServer', Database='Database',  Password='password', Server='URL', UserName='UserName'}"
+sqlconn.open(cs)
+
+The event script is a series of Xbasic commands presented as a  CR-LF delimited list.
+EventScriptTemplate = 
+'======================================================
+FUNCTION UpdateBegin(Context as P, RowsExpected as N,  BYREF ProgressInterval as N, BYREF Cancel as L)
+if ROWCOUNT > 0
+    ProgressInterval  = ROWCOUNT / 100
+end if
+dim num as n = 0
+ui_modeless_dlg_box("Progress",
+{progress=80num};
+{justify=center}
+;
+'%dlg%,
+if left(a_dlg_button,4) = "set:" then
+    num  = vala_dlg_button,5?
+end if
+If a_dlg_button ="Cancel" then
+    ui_modeless_dlg_close("Progress")
+end if
+%code2%)
+ui_yield()
+END FUNCTION
+'-----------------------------------------------------
+FUNCTION UpdateProgress(Context as P, RowsUpdated as N,  RowsExpected as N, BYREF Cancel as L)
+trace.Writeln("" + (rowsupdated/rowcount))
+ui_yield()
+ui_dlg_event("progress","set: " + (rowsupdated/rowcount),"I")
+ui_yield()' to be sure we processed the cancel button click
+END FUNCTION
+'-----------------------------------------------------
+FUNCTION UpdateEnd(Context as P, RowsUpdated as N)
+on error resume next
+ui_modeless_dlg_close("Progress")
+ui_yield()
+END FUNCTION
+'======================================================
+%code%
+
+The calling script adds the event script and names it "Import".
+if EventScript > "" then
+    sqlconn.addeventscript(EventScript,  "Import")
+end if 
+sqlconn.close()
+
+See Also
+SQL::Connection Object]]></original>
+</page>
