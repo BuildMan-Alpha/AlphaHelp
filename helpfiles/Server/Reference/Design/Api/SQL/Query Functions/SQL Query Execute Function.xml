@@ -1,63 +1,73 @@
 <page>
-   <topic>SQL::Query Execute Function Function</topic>
-   <syntax>L Execute([SQLConnection as SQL::Connection | SQLConnectionString as C] [, Arguments as SQL::Arguments | Arguments as C])</syntax>
+   <topic>SQL::Query::Execute Function</topic>
+   <prototypes><prototype>Result_Flag as L = Execute([SQLConnection as SQL::Connection | SQLConnectionString as C] [, Arguments as SQL::Arguments | Arguments as C])</prototype>
+   <prototype><![CDATA[Result_Flag as L = <SQL::Query>.Execute( [ <SQLConnection> as SQL::Connection  | ConnectString as C [, <Arguments> as SQL::Arguments  | <Arguments>.XML as C   ]] )]]></prototype>
+   <prototype><![CDATA[Result_Flag as L = <SQL::Query>.Execute( <Arguments> as SQL::Arguments  | <Arguments>.XML as C )]]></prototype>
+   </prototypes>
    <arguments>
-     <argument>
-         <name>SQLConnection</name>
-         <description>SQL::Connection | SQLConnectionString</description>
+   <argument>
+         <name>Result_Flag
+</name>
+         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
+</description>
      </argument>
      <argument>
-         <name> Arguments</name>
-         <description>SQL::Arguments | Arguments</description>
+         <name><![CDATA[<SQL::Query>]]>
+</name>
+         <description>A SQL::Query object created with a DIM statement.
+</description>
      </argument>
-   </arguments>
+     <argument>
+         <name><![CDATA[
+<SQLConnection>]]></name>
+         <description>Optional. A SQL::Connection object with a defined .ConnectionString property.
+g</description>
+     </argument>
+     <argument>
+         <name>ConnectString</name>
+         <description>Optional. A connection string.</description>
+     </argument>
+     <argument>
+         <name><![CDATA[ <Arguments>]]></name>
+         <description>Optional. A SQL::Arguments object.
+</description>
+     </argument>
+   
+   <argument>
+         <name><![CDATA[ <Arguments>.XML]]></name>
+         <description>Optional. The XML property of a SQL::Arguments object.
+</description>
+     </argument>
+     </arguments>
    <description>Execute the current statement using the current or passed connection.
 Optionally providing argument values as an object or as XML.
 Note: Argument values are merged with those already set on the query.</description>
    <discussion>
-      ...put discussion here....
+The .Execute() method retrieves data and populates a SQL::ResultSet object. It connects to the back-end database using the information in the SQL::Connection::ConnectionString property or in the ConnectString string, then executes the current SQL statement in the SQL::Query.SQLStatement property.
+Note : If you set the SQL::Query object's ResolveColumnTables property prior to calling SQL::Query::Execute(), the columns resolved will now have valid values for MaximumActualLength . Internally, SQL::Query now calls UpdateStatistics()for each table definition it retrieves and populates the ColumnInfo entries.
    </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
+  
    <sections>
-       <section>
-            <description>put description here</description>
+       <section><title>Example</title>
+            <description>The following code was run in the Interactive Window.</description>
             <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
-   </sections>
-   <original><![CDATA[ SQL::Query::Execute()
-Syntax
-Result_Flag as L = &ltSQL::Query>.Execute(  [ &ltSQLConnection> as SQL::Connection   | ConnectString as C  [, &ltArguments> as SQL::Arguments   | &ltArguments>.XML as C   ]] )
-Result_Flag as L = &ltSQL::Query>.Execute(  &ltArguments> as SQL::Arguments   | &ltArguments>.XML as C  )
-ArgumentDescription
-Result_FlagTRUE (.T.) if the operation was successful; otherwise  FALSE (.F.).
-&ltSQL::Query>A SQL::Query object  created with a DIM statement.
-&ltSQLConnection>Optional. A SQL::Connection object with a defined .ConnectionString property.
-ConnectStringOptional. A connection string.
-&ltArguments>Optional. A SQL::Arguments object.
-&ltArguments>.XMLOptional. The XML property of a SQL::Arguments object.
-
-Description
-The .Execute() method retrieves data and populates a SQL::ResultSet object. It connects to the back-end database using the information in  the SQL::Connection::ConnectionString property  or in the ConnectString string, then  executes the current SQL statement in the SQL::Query.SQLStatement property.
-Note : If you set the  SQL::Query object's ResolveColumnTables property prior to calling SQL::Query::Execute(), the columns resolved  will now have valid values for MaximumActualLength . Internally, SQL::Query now calls UpdateStatistics()for  each table definition it retrieves and populates the ColumnInfo entries.
-Examples
-The following code was run in the Interactive Window.
 dim qry as SQL::Query
 dim conn as SQL::Connection
 dim connString as C
-connString = "{A5API='Access', FileName='c:\program  files\a5v7\mdbfiles\alphasports.mdb'}"
+connString = "{A5API='Access', FileName='c:\program files\a5v7\mdbfiles\alphasports.mdb'}"
 ? conn.open(connString)
 = .T.
 ? qry.parse("Select * from Customer")
 = .T.
 ? qry.Execute(conn)
 = .T.
-
-The following code shows how to use the various argument alternatives. 
- dim c as SQL::connection
+]]></example>
+       </section>
+       
+        <section>
+            <description>The following code shows how to use the various argument alternatives. </description>
+            <example><![CDATA[
+dim c as SQL::connection
 dim q as SQL::query
 dim a as SQL::arguments
 dim axml as c
@@ -66,21 +76,25 @@ axml = a.xml
 cs = "{A5API=Access,FileName='c:\northwind.mdb',UserName='Admin'}"
 ? c.open(cs)
 ? q.parse("select * from customers where region = :state")
-? q.execute(c, a)          '  Open Connection and arguments object
-? q.execute(c, axml)       '  Open Connection and XML version of arguments
-? q.execute(cs, a)         '  Connection String and arguments object
-? q.execute(cs, axml)      '  Connection string and XML version of arguments
+? q.execute(c, a)          ' Open Connection and arguments object
+? q.execute(c, axml)       ' Open Connection and XML version of arguments
+? q.execute(cs, a)         ' Connection String and arguments object
+? q.execute(cs, axml)      ' Connection string and XML version of arguments
 ? If you assign the connection, you don't need to pass it.
 q.connection = c
-? q.execute(a)             '  Arguments object
-? q.execute(axml)          '  XML version of arguments
+? q.execute(a)             ' Arguments object
+? q.execute(axml)          ' XML version of arguments
 ? Adding the argument to the query directly works as well.
 q.arguments.add("state", "CA")
 ? q.execute()
 ? q.execute(c)
 ? q.execute(cs)
-
-T he following code shows the use of .ResolveColumnTables.
+]]></example>
+       </section>
+       
+        <section>
+            <description>The following code shows the use of .ResolveColumnTables.</description>
+            <example><![CDATA[
 dim c as SQL::connection
 dim q as SQL::query
 c.open("{A5API='Access',A5Syntax='Access',FileName='c:\northwind.mdb',UserName='Admin'}")
@@ -88,8 +102,12 @@ q.parse("select * from customers")
 q.ResolveColumnTables = .t.
 q.execute(c)
 q.resultset.sizetofit = .t.
-
-This example retrieves column specifications, then resizes the fields  to fit the data.
+]]></example>
+       </section>
+       
+        <section>
+            <description>This example retrieves column specifications, then resizes the fields to fit the data.</description>
+            <example><![CDATA[
 dim c as SQL::connection
 dim q as SQL::query
 ? c.open("{A5API='Access',A5Syntax='Access',FileName='c:\northwind.mdb',UserName='Admin'}")
@@ -138,6 +156,10 @@ POSTALCODE,C,9,0
 COUNTRY,C,11,0
 PHONE,C,17,0
 FAX,C,17,0
-
-]]></original>
+]]></example>
+       </section>
+       
+        
+   </sections>
+   
 </page>

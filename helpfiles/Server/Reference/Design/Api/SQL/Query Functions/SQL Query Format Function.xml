@@ -1,59 +1,188 @@
 <page>
-   <topic>SQL::Query Format Function Function</topic>
-   <syntax>C Format([AddCrLf = .t. as L])</syntax>
+   <topic>SQL::Query::Format Function</topic>
+   <prototypes><prototype>C Format([AddCrLf = .t. as L])</prototype>
+   <prototype><![CDATA[Result_Flag as L = <SQL::Query>.Execute( [ <SQLConnection> as SQL::Connection  | ConnectString as C [, <Arguments> as SQL::Arguments  | <Arguments>.XML as C   ]] )]]></prototype>
+   <prototype><![CDATA[Result_Flag as L = <SQL::Query>.Execute( <Arguments> as SQL::Arguments  | <Arguments>.XML as C )]]></prototype>
+   </prototypes>
    <arguments>
+   
+   <argument>
+         <name>Result_Flag
+</name>
+         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
+</description>
+     </argument>
+     
      <argument>
+         <name><![CDATA[<SQL::Query>]]>
+</name>
+         <description>A SQL::Query object created with a DIM statement.
+</description>
+     </argument>
+     
+     <argument>
+         <name><![CDATA[<SQLConnection>]]>
+</name>
+         <description>Optional. A SQL::Connection object with a defined .ConnectionString property.
+</description>
+     </argument>
+     
+     <argument>
+         <name>
+ConnectString
+ 
+ </name>
+         <description>Optional. A connection string.
+</description>
+     </argument>
+     <argument>
+         <name><![CDATA[<Arguments>]]>
+</name>
+         <description>Optional. A SQL::Arguments object.
+</description>
+     </argument>
+     
+     <argument>
+         <name>
+<![CDATA[<Arguments>.XML]]>
+ </name>
+         <description>
+Optional. The XML property of a SQL::Arguments object.
+ </description>
+     </argument>
+     
+      <argument>
          <name>AddCrLf = .t.</name>
          <description>Logical</description>
      </argument>
+     
+     
    </arguments>
    <description>Format the original source (by default, lines are broken at significant keywords)..</description>
    <discussion>
-      ...put discussion here....
+The .Execute() method retrieves data and populates a SQL::ResultSet object. It connects to the back-end database using the information in the SQL::Connection::ConnectionString property or in the ConnectString string, then executes the current SQL statement in the SQL::Query.SQLStatement property.
+Note : If you set the SQL::Query object's ResolveColumnTables property prior to calling SQL::Query::Execute(), the columns resolved will now have valid values for MaximumActualLength . Internally, SQL::Query now calls UpdateStatistics()for each table definition it retrieves and populates the ColumnInfo entries.
    </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
+  
    <sections>
-       <section>
-            <description>put description here</description>
+       <section><title>Example</title>
+            <description>The following code was run in the Interactive Window.</description>
             <example><![CDATA[
-      ...put example here....
+dim qry as SQL::Query
+dim conn as SQL::Connection
+dim connString as C
+connString = "{A5API='Access', FileName='c:\program files\a5v7\mdbfiles\alphasports.mdb'}"
+? conn.open(connString)
+= .T.
+? qry.parse("Select * from Customer")
+= .T.
+? qry.Execute(conn)
+= .T.
 ]]></example>
        </section>
+       
+       <section>
+            <description>The following code shows how to use the various argument alternatives. </description>
+            <example><![CDATA[
+dim c as SQL::connection
+dim q as SQL::query
+dim a as SQL::arguments
+dim axml as c
+a.add("state", "CA")
+axml = a.xml
+cs = "{A5API=Access,FileName='c:\northwind.mdb',UserName='Admin'}"
+? c.open(cs)
+? q.parse("select * from customers where region = :state")
+? q.execute(c, a)          ' Open Connection and arguments object
+? q.execute(c, axml)       ' Open Connection and XML version of arguments
+? q.execute(cs, a)         ' Connection String and arguments object
+? q.execute(cs, axml)      ' Connection string and XML version of arguments
+? If you assign the connection, you don't need to pass it.
+q.connection = c
+? q.execute(a)             ' Arguments object
+? q.execute(axml)          ' XML version of arguments
+? Adding the argument to the query directly works as well.
+q.arguments.add("state", "CA")
+? q.execute()
+? q.execute(c)
+? q.execute(cs)
+]]></example>
+       </section>
+       
+        <section>
+            <description>The following code shows the use of .ResolveColumnTables.</description>
+            <example><![CDATA[
+dim c as SQL::connection
+dim q as SQL::query
+c.open("{A5API='Access',A5Syntax='Access',FileName='c:\northwind.mdb',UserName='Admin'}")
+q.parse("select * from customers")
+q.ResolveColumnTables = .t.
+q.execute(c)
+q.resultset.sizetofit = .t.
+]]></example>
+       </section>
+       
+       
+         <section>
+            <description>This example retrieves column specifications, then resizes the fields to fit the data.</description>
+            <example><![CDATA[
+dim c as SQL::connection
+dim q as SQL::query
+? c.open("{A5API='Access',A5Syntax='Access',FileName='c:\northwind.mdb',UserName='Admin'}")
+= .T.
+? q.parse("select * from customers")
+= .T.
+? q.execute(c)
+= .T.
+? q.resultset.dbfrowsyntax
+= CUSTOMERID,C,5,0
+COMPANYNAME,C,40,0
+CONTACTNAME,C,30,0
+CONTACTTITLE,C,30,0
+ADDRESS,C,60,0
+CITY,C,15,0
+REGION,C,15,0
+POSTALCODE,C,10,0
+COUNTRY,C,15,0
+PHONE,C,24,0
+FAX,C,24,0
+q.ResolveColumnTables = .t.
+? q.execute(c)
+= .T.
+? q.resultset.dbfrowsyntax
+= CUSTOMERID,C,5,0
+COMPANYNAME,C,40,0
+CONTACTNAME,C,30,0
+CONTACTTITLE,C,30,0
+ADDRESS,C,60,0
+CITY,C,15,0
+REGION,C,15,0
+POSTALCODE,C,10,0
+COUNTRY,C,15,0
+PHONE,C,24,0
+FAX,C,24,0
+q.resultset.sizetofit = .t.
+? q.resultset.dbfRowsyntax
+= CUSTOMERID,C,5,0
+COMPANYNAME,C,38,0
+CONTACTNAME,C,23,0
+CONTACTTITLE,C,30,0
+ADDRESS,C,46,0
+CITY,C,15,0
+REGION,C,13,0
+POSTALCODE,C,9,0
+COUNTRY,C,11,0
+PHONE,C,17,0
+FAX,C,17,0
+]]></example>
+       </section>
+       
+       
+       
    </sections>
    <see>
       <ref>SQL::Query Object</ref>
-      <ref>Limitations</ref>
+     
    </see>
-   <original> SQL::Query::Format()
-Syntax
- Formatted_Statement as C = .Format( [ CR-LF as L ] )
- Argument Description
- Formatted_Statement A formatted version of the SQL statement.
- A SQL::Query object created with a DIM statement.
- CR-LF Optional. Default = .T.
-
- .T. = Insert a CR-LF at the end of each parsed element.
-
- .F. = Do not insert a CR-LF at the end of each parsed element. 
-
- Description
-The SQL::Query::Format() method formats a SQL statement, optionally placing each element on its own line.
-Examples
- dim qry as SQL::Query
-qry.parse("select firstname, lastname, phone from foo where lastname = 'ed'")
-? qry.format()
-= SELECT firstname, lastname, phone
-FROM foo
-
-WHERE (lastname = 'ed')
-? qry.format(.f.)
-= "SELECT firstname, lastname, phone FROM foo
-
-WHERE (lastname = 'ed')"
-
- See Also
- SQL::Query Object
-Limitations</original>
+   
 </page>

@@ -1,79 +1,93 @@
 <page>
-   <topic>SQL::Connection AddEventScript Function Function</topic>
-   <syntax>V AddEventScript(ScriptSource as C [, Name as C])</syntax>
+   <topic>SQL::Connection::AddEventScript Function</topic>
+   <syntax>Result_Flag as L = AddEventScript(ScriptSource as C [, Name as C])</syntax>
    <arguments>
+    <argument>
+         <name>Result_Flag</name>
+         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
+</description>
+     </argument>
+      <argument>
+         <name>SQL::Connection</name>
+         <description>A SQL::Connection object.
+</description>
+     </argument>
+     
+     
      <argument>
          <name>ScriptSource</name>
-         <description>Character</description>
+         <description>Optional. Default = "". An Xbasic Script implementing any of the following functions. In each case, the Context argument is the connection itself.
+</description>
+<list>
+<item>
+<name>UpdateBegin()</name>
+</item>
+
+<item>
+<name>UpdateProgress()</name>
+</item>
+
+<item>
+<name>UpdateEnd()</name>
+</item>
+
+
+</list>
+
+
      </argument>
      <argument>
          <name> Name</name>
-         <description>Character</description>
+         <description>The name of the script.</description>
      </argument>
    </arguments>
-   <description>Add a connection event script with functions to handle one or more of the following events: 
-
-    UpdateBegin(Connection as SQL::Connection, RowsExpected as N, BYREF ProgressInterval as N, Cancel BYREF as L)
-    UpdateProgress(Connection as SQL::Connection, RowsUpdated as N, RowsExpected as N, Cancel BYREF as L)
-    UpdateEnd(Connection as SQL::Connection, RowsUpdated as N)</description>
+   <description>Add a connection event script with functions to handle one or more events.
+</description>
    <discussion>
-      ...put discussion here....
+The AddEventScript() method adds an additional event script (see SQL Events ) to the connection. You can have more than one event script on a connection. The scripts are invoked in order from the most recently added to the least recently added. Scripts can be given a name (allowing you to selectively delete them by name).
+Add a connection event script with functions to handle one or more of the following events: 
    </discussion>
-   <example><![CDATA[
-...put example code here....
-]]></example>
-   <sections>
-       <section>
-            <description>put description here</description>
-            <example><![CDATA[
-      ...put example here....
-]]></example>
-       </section>
+   <sections><section>
+   <list>
+   <item><name>
+    UpdateBegin(Connection as SQL::Connection, RowsExpected as N, BYREF ProgressInterval as N, Cancel BYREF as L)
+    </name></item><item><name>
+    
+    UpdateProgress(Connection as SQL::Connection, RowsUpdated as N, RowsExpected as N, Cancel BYREF as L)
+     </name></item><item><name>
+    UpdateEnd(Connection as SQL::Connection, RowsUpdated as N)
+   </name></item></list>
+</section>
    </sections>
-   <see>
-      <ref>SQL::Connection Object</ref>
-   </see>
-   <original><![CDATA[ SQL::Connection::AddEventScript()
-Syntax
-Result_Flag as L = .AddEventScript(  EventScript as C [, Name as C  ] )
-ArgumentDescription
-Result_FlagTRUE (.T.) if the operation was successful; otherwise  FALSE (.F.).
-A SQL::Connection object.
-EventScriptOptional. Default = "". An Xbasic Script implementing  any of the following functions:
-
-UpdateBegin()
-
-UpdateProgress()
-
-UpdateEnd() 
-In each case, the Context argument is the connection itself.
-NameThe name of the script.
-
-Description
-The AddEventScript() method adds an additional event script (see SQL  Events ) to the connection. You can have more than one event script  on a connection. The scripts are invoked in order from the most recently  added to the least recently added. Scripts can be given a name (allowing  you to selectively delete them by name).
-Limitations
-Example
-The calling script replaces the ROWCOUNT placeholder in the event script  with a numerical value before submitting it.
+ 
+   <sections>
+       <section><title>Example</title>
+            <description>The calling script replaces the ROWCOUNT placeholder in the event script with a numerical value before submitting it.</description>
+            <example><![CDATA[
 dim sqlconn as SQL::Connection
 dim cs as C
-cs = "{A5API='SQLServer', A5Syntax='SQLServer', Database='Database',  Password='password', Server='URL', UserName='UserName'}"
+cs = "{A5API='SQLServer', A5Syntax='SQLServer', Database='Database', Password='password', Server='URL', UserName='UserName'}"
 sqlconn.open(cs)
-
-The event script is a series of Xbasic commands presented as a  CR-LF delimited list.
-EventScriptTemplate = 
+]]></example>
+       </section>
+       
+       <section>
+            <description>The event script is a series of Xbasic commands presented as a CR-LF delimited list.</description>
+            <example><![CDATA[
+EventScriptTemplate = <<%code%
 '======================================================
-FUNCTION UpdateBegin(Context as P, RowsExpected as N,  BYREF ProgressInterval as N, BYREF Cancel as L)
+FUNCTION UpdateBegin(Context as P, RowsExpected as N, BYREF ProgressInterval as N, BYREF Cancel as L)
 if ROWCOUNT > 0
-    ProgressInterval  = ROWCOUNT / 100
+    ProgressInterval = ROWCOUNT / 100
 end if
 dim num as n = 0
-ui_modeless_dlg_box("Progress",
+ui_modeless_dlg_box("Progress",<<%dlg%
 {progress=80num};
 {justify=center}
 ;
-'%dlg%,
+'%dlg%,<<%code2%
 if left(a_dlg_button,4) = "set:" then
-    num  = vala_dlg_button,5?
+    num = vala_dlg_button,5?
 end if
 If a_dlg_button ="Cancel" then
     ui_modeless_dlg_close("Progress")
@@ -82,7 +96,7 @@ end if
 ui_yield()
 END FUNCTION
 '-----------------------------------------------------
-FUNCTION UpdateProgress(Context as P, RowsUpdated as N,  RowsExpected as N, BYREF Cancel as L)
+FUNCTION UpdateProgress(Context as P, RowsUpdated as N, RowsExpected as N, BYREF Cancel as L)
 trace.Writeln("" + (rowsupdated/rowcount))
 ui_yield()
 ui_dlg_event("progress","set: " + (rowsupdated/rowcount),"I")
@@ -96,13 +110,24 @@ ui_yield()
 END FUNCTION
 '======================================================
 %code%
-
-The calling script adds the event script and names it "Import".
+]]></example>
+       </section>
+       
+<section>
+<description>The calling script adds the event script and names it "Import".</description>
+<example><![CDATA[
 if EventScript > "" then
-    sqlconn.addeventscript(EventScript,  "Import")
+    sqlconn.addeventscript(EventScript, "Import")
 end if 
 sqlconn.close()
+]]></example>
 
-See Also
-SQL::Connection Object]]></original>
+</section>
+       
+       
+   </sections>
+   <see>
+      <ref>SQL::Connection Object</ref>
+   </see>
+ 
 </page>
