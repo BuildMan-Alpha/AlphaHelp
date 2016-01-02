@@ -139,6 +139,10 @@
 						<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a>							
 					</dd>
 				</xsl:for-each>
+				<xsl:for-each select="methods/methodref">
+                    <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>                    
+					<dd><xsl:value-of select="description" /></dd>						
+				</xsl:for-each>                
 			</dl>
 		</xsl:if>
 		<xsl:if test="classes">
