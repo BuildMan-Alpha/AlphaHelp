@@ -1,0 +1,203 @@
+<page>
+   <topic>AuthorizeNet_Transaction.Process Function</topic>
+   <syntax>Result as P = process( Transaction as AuthorizeNet_Transaction )</syntax>
+   
+<arguments>
+
+<argument>
+<name>Result</name>
+<description>
+Type: "L", Indicates TRUE if the transaction server accepted the request and attempted to process the transaction. This return value does not indicate the success or failure of the actual credit card transaction.
+ </description>
+</argument>
+
+<argument>
+<name>Transaction</name>
+<description>
+AuthorizeNet_Transaction. Contains information required to submit a credit card transaction for approval. Refer to Advanced Integration Method (AIM) Implementation Guide Version 1.0.
+</description>
+</argument>
+
+</arguments>
+   
+   
+    <sections>
+       <section><title>Example</title>
+            <description>The following example uses sample data.</description>
+            <example><![CDATA[
+dim x as AuthorizeNet_transaction
+' Required information
+x.login = "blahblahblah"
+x.tran_key = "aBcDeFgHiJkLmN"
+x.amount = 29.95
+x.card_num = 4111111111111111
+x.exp_date = "12/07"
+x.type = "AUTH_CAPTURE"
+]]></example>
+       </section>
+       
+        <section>
+            <description>Everything from here down are optional properties which do not need to be set in order to create a transaction.</description>
+            <example><![CDATA[
+' Include optional billing information
+x.first_name = "Joe"
+x.last_name = "Customer"
+x.company = "Customer, Inc."
+x.address = "123 Main Street"
+x.city = "Boston"
+x.state = "MA"
+x.zip = "02120"
+x.country = "US"
+x.phone = "(555) 123-4567"
+x.fax = "(555 123-4568"
+'include optional additional customer data
+x.cust_id = "a123aa1" 'can be any string up to 20 characters
+x.customer_ip = "127.0.0.1" 'IP address from which the customer initiated the transaction
+'(typically request.remote_addr in an A5W page)
+x.customer_tax_id = "987654321" 'customer's 9 digit Tax Id or SSN
+'email settings
+x.email = "joe@customer.com" 'customer email address for transaction confirmation
+x.email_customer = .t. 'send email confirmation to customer
+x.merchant_email = "store@store.com" 'merchant email address for transaction confirmation
+'invoice information
+x.invoice_num = "web1234" 'any string up to 20 characters
+x.description = "widgets" 'any string up to 255 characters
+'include optional ship-to info
+x.ship_to_first_name = "Joe"
+x.ship_to_last_name = "Customer"
+x.ship_to_company = "Customer, Inc."
+x.ship_to_address = "123 Main Street"
+x.ship_to_city = "Boston"
+x.ship_to_state = "MA"
+x.ship_to_zip = "02120"
+x.ship_to_country = "US"
+'**** end of setting optional properties
+]]></example>
+       </section>
+       
+       
+   </sections>
+   
+   
+   
+   
+   
+   <sections>
+       <section><title>Process the Transaction</title>
+            <description>The process() method returns true or false to indicate success or failure of the transaction processing.This however does not indicate success or failure of the actual credit card transaction itself.</description>
+            <example><![CDATA[
+if x.process() then
+    'x.process() will return true if the transaction server accepted the request and attempted to process the transaction
+    dim y as p
+    dim result_msg as c
+    dim result_title as c = ""
+    y = x.result
+    result_msg = y.Response_Reason_Text
+    if (y.response_code = "1")
+        ' Authorize.Net defines response code 1 as "Approved"
+        result_title = "Approved"
+        *concat(result_msg,crlf()+ "Approval Code: " + y.Approval_Code)
+    elseif (y.response_code = "2")
+        'Authorize.Net defines response code 2 as "Declined"
+        result_title = "declined"
+    elseif (y.response_code = "3")
+        'Authorize.Net defines response code 3 as "Error"
+        result_title = "error"
+    end if
+    *concat(result_title," " + "Transaction " + y.Transaction_ID)
+    ui_msg_box(result_title,result_msg)
+else
+    'if x.process() is false, the transaction server could not be contacted or did not respond in a timely manner
+    ui_msg_box("", "Transaction NOT processed", UI_ATTENTION_SYMBOL)
+end if
+]]></example>
+       </section>
+   </sections>
+   <see>
+      <ref>AuthorizeNet_Transaction</ref>
+   </see>
+   <original> AuthorizeNet_Transaction.Process()
+Syntax
+Result as P = Process( Transaction as AuthorizeNet_Transaction )
+Functions
+The AuthorizeNet_Transaction object has this function:
+FunctionTypeDescription
+ResultLIndicates TRUE if the transaction server accepted the request and attempted to process the transaction. This return value does not indicate the success or failure of the actual credit card transaction.
+TransactionAuthorizeNet_TransactionContains information required to submit a credit card transaction for approval. Refer to Advanced Integration Method (AIM) Implementation Guide Version 1.0.
+
+Examples
+The following example uses sample data.
+dim x as AuthorizeNet_transaction
+' Required information
+x.login = "blahblahblah"
+x.tran_key = "aBcDeFgHiJkLmN"
+x.amount = 29.95
+x.card_num = 4111111111111111
+x.exp_date = "12/07"
+x.type = "AUTH_CAPTURE"
+
+Everything from here down are optional properties which do not need to be set in order to create a transaction.
+' Include optional billing information
+x.first_name = "Joe"
+x.last_name = "Customer"
+x.company = "Customer, Inc."
+x.address = "123 Main Street"
+x.city = "Boston"
+x.state = "MA"
+x.zip = "02120"
+x.country = "US"
+x.phone = "(555) 123-4567"
+x.fax = "(555 123-4568"
+'include optional additional customer data
+x.cust_id = "a123aa1" 'can be any string up to 20 characters
+x.customer_ip = "127.0.0.1" 'IP address from which the customer initiated the transaction
+'(typically request.remote_addr in an A5W page)
+x.customer_tax_id = "987654321" 'customer's 9 digit Tax Id or SSN
+'email settings
+x.email = "joe@customer.com" 'customer email address for transaction confirmation
+x.email_customer = .t. 'send email confirmation to customer
+x.merchant_email = "store@store.com" 'merchant email address for transaction confirmation
+'invoice information
+x.invoice_num = "web1234" 'any string up to 20 characters
+x.description = "widgets" 'any string up to 255 characters
+'include optional ship-to info
+x.ship_to_first_name = "Joe"
+x.ship_to_last_name = "Customer"
+x.ship_to_company = "Customer, Inc."
+x.ship_to_address = "123 Main Street"
+x.ship_to_city = "Boston"
+x.ship_to_state = "MA"
+x.ship_to_zip = "02120"
+x.ship_to_country = "US"
+'**** end of setting optional properties
+
+Process the Transaction
+The process() method returns true or false to indicate success or failure of the transaction processing.This however does not indicate success or failure of the actual credit card transaction itself.
+if x.process() then
+    'x.process() will return true if the transaction server accepted the request and attempted to process the transaction
+    dim y as p
+    dim result_msg as c
+    dim result_title as c = ""
+    y = x.result
+    result_msg = y.Response_Reason_Text
+    if (y.response_code = "1")
+        ' Authorize.Net defines response code 1 as "Approved"
+        result_title = "Approved"
+        *concat(result_msg,crlf()+ "Approval Code: " + y.Approval_Code)
+    elseif (y.response_code = "2")
+        'Authorize.Net defines response code 2 as "Declined"
+        result_title = "declined"
+    elseif (y.response_code = "3")
+        'Authorize.Net defines response code 3 as "Error"
+        result_title = "error"
+    end if
+    *concat(result_title," " + "Transaction " + y.Transaction_ID)
+    ui_msg_box(result_title,result_msg)
+else
+    'if x.process() is false, the transaction server could not be contacted or did not respond in a timely manner
+    ui_msg_box("", "Transaction NOT processed", UI_ATTENTION_SYMBOL)
+end if
+
+See Also
+AuthorizeNet_Transaction</original>
+</page>
