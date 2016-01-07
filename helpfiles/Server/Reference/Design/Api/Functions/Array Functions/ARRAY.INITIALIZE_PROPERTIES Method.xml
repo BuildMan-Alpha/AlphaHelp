@@ -4,11 +4,79 @@
    <arguments>
      <argument>
          <name>format</name>
-         <description>Character</description>
+         <description>Defines the structure of the Data string and also defines the names of the array properties. The names of the array properties are separated by a delimiter (a non alphanumeric character or string, such as "|", "@", or "~~"). A property name may be followed by an optional type designation in the format Property_Name:Type_Designation. The default type is character. The following type designations are possible.
+</description>
+<list>
+<item>
+<name-title>Format</name-title>
+<description-title>Meaning</description-title>
+</item>
+
+<item>
+<name>C</name>
+<description>Character
+</description>
+</item>
+
+<item>
+<name>N
+</name>
+<description>Numeric
+</description>
+</item>
+
+<item>
+<name>D
+</name>
+<description>Date
+</description>
+</item>
+
+<item>
+<name>L
+</name>
+<description>Logical
+</description>
+</item>
+
+<item>
+<name>B
+</name>
+<description>Blob
+</description>
+</item>
+
+<item>
+<name>F
+</name>
+<description>
+ 
+Function
+ </description>
+</item>
+
+<item>
+<name>*
+
+</name>
+<description>
+Supplied with the data element
+ </description>
+</item>
+
+
+
+
+
+</list>
+
+
+
      </argument>
      <argument>
          <name>data</name>
-         <description>Character</description>
+         <description>A CR-LF delimited string of data values.
+</description>
      </argument>
      <argument>
          <name>append</name>
@@ -16,6 +84,138 @@
      </argument>
    </arguments>
    <description>Initialize property array subfields from a string of newline separated 'rows'.</description>
+  
+  
+<discussion><![CDATA[
+The <ARRAY>.INITIALIZE_PROPERTIES() method loads field values from a data string into a property array. The Format string defines the structure of the data string and also defines the names of the array properties. Data is a CR-LF delimited string of data values. Each format element can be followed by an optional type.
+For example, assume you supplied the following Format string:
+]]></discussion>  
+  
+  <sections><section>
+  
+  <example><![CDATA[
+"Name + Age:N + Occupation"
+  ]]></example>
+  
+  </section>
+  <section>
+  <description>Alpha Anywhere would create an array with three properties: name, age and occupation. It would look in the Data string for values separated by the " + " separator. The Age property is Numeric.
+For example, the following Data string could be used with the above Format string:
+</description>
+  <example><![CDATA[
+"Fred + 23 + Sales
+Tom + 45 + Development
+Joanne + 55 + President"
+  ]]></example>
+  
+  </section>
+  
+  <section>
+   <description>The optional type in the format string can also be '*' (in addition to 'C' 'N' 'D' 'L' 'B' and 'F' (for Function) ). If you use the '*' type, then it is assumed that the data that you are reading in is prefixed with the type (see example below). The array element is initialized with the type specified in the data that is being read in.</description>
+   
+   </section>
+  
+</sections>
+<sections>
+<section>
+<title>Example</title>
+<description>The following script initializes a property array:</description>
+<example><![CDATA[
+Data = <<%string%
+Fred + 23 + Sales
+Tom + 45 + Development
+Joanne + 55 + President
+%string%
+dim name[3] as P
+name.initialize_properties("Name + Age:N + Position",data)
+]]></example>
+</section>
+
+<section>
+<description>This creates the following array:</description>
+<list>
+<item>
+<name>Element-----
+</name>
+<description>
+Name--------
+ 
+Age--------
+ 
+Position
+ </description>
+</item>
+
+<item>
+<name>Name[1]
+</name>
+<description>
+Fred----------
+ 
+23----------
+ 
+Sales
+ </description>
+</item>
+
+<item>
+<name>Name[2]
+</name>
+<description>
+Tom----------
+ 
+45----------
+ 
+Development
+ </description>
+</item>
+
+<item>
+<name>
+Name[3]
+ 
+ </name>
+<description>
+Joanne------
+ 
+55----------
+ 
+President
+</description>
+</item>
+
+</list>
+</section>
+
+<section>
+<description>The following example shows the use of the '*' parameter in the format string.</description>
+<example><![CDATA[dim p3 as P
+p[1].NAME = "name"
+p[1].VALUE = "fred"
+p[2].NAME = "age"
+p[2].VALUE = 47
+p[3].NAME = "dob"
+p[3].VALUE = {12/18/52}
+string = p.dump_properties("name::value:*")
+? string
+= "name::Cfred
+age::N47
+dob::D12/18/1952
+"
+dim s[3] as P
+s.initialize_properties("name::value:*",string)
+? s[1].VALUE -> "fred"
+? s[2].VALUE -> 47.000000
+? s[3].VALUE -> {12/18/1952}
+? typeof(s[3].VALUE) -> "D"]]></example>
+
+</section>
+
+</sections>
+  
+  
+  
+  
   
    <see>
       <ref>Array Functions and  Methods</ref>
