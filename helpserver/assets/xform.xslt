@@ -37,6 +37,7 @@
 			<xsl:call-template name="arguments"/>    
 		</xsl:if>
 		<xsl:if test="description">
+            <meta name="description" content="{description}"/>
 			<p class="A5">Description</p>
 			<p>
 				<xsl:value-of select="description" /> </p>
