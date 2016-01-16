@@ -39,7 +39,7 @@ options.pageIndexer = function (args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var extensionIndex = filename.lastIndexOf(".");
-    if (filename.substring(extensionIndex).toLowerCase() == ".xml" && filename.indexOf("/index.xml") < 0) {
+    if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
         fs.readFile(filename, "utf8", function (err, data) {
             if (err) {
