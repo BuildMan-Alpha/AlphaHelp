@@ -4,8 +4,9 @@ var app = express();
 var options = require("./settingslocal");
 var Help = require('helpserver');
 var replaceAll = function (str, find, replace) {
-    while (str.indexOf(find) >= 0)
-    str = str.replace(find, replace);
+    while (str.indexOf(find) >= 0) {
+        str = str.replace(find, replace);
+    }
     return str;
 };
 
@@ -40,7 +41,10 @@ var outputSnippet = function(args,description) {
 options.pageIndexer = function (args, savePage) {
     // just error out for now...
     var filename = args.filename;
-    var extensionIndex = filename.lastIndexOf(".");
+    var extensionIndex = filename.lastIndexOf(".");    
+    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
+        debugger;
+    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
         fs.readFile(filename, "utf8", function (err, data) {
