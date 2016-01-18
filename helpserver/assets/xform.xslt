@@ -122,7 +122,7 @@
 					<dt><xsl:value-of select="name" /></dt>
 					<dd><xsl:value-of select="description" />
 						<xsl:if test="example"><b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre></xsl:if>							 
-						<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a>							
+						<xsl:if test="ref"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:if>							
 					</dd>
 				</xsl:for-each>
 			</dl>
@@ -136,14 +136,16 @@
 						<xsl:value-of select="description" />
 						<xsl:if test="example">
 							<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
-						</xsl:if>							 
-						<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a>							
+						</xsl:if>
+						<xsl:if test="ref"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:if>							
 					</dd>
 				</xsl:for-each>
 				<xsl:for-each select="methods/methodref">
-                    <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>                    
-					<dd><xsl:value-of select="description" /></dd>						
-				</xsl:for-each>                
+                    <xsl:if test="name">
+                        <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>                    
+                        <dd><xsl:value-of select="description" /></dd>
+                    </xsl:if>    
+				</xsl:for-each>
 			</dl>
 		</xsl:if>
 		<xsl:if test="classes">
