@@ -9,6 +9,114 @@ async.eachSeries(list, function (path, callbackLoop) {
         var extension = path.substring(path.lastIndexOf('.'));
         if (err) {
             console.log("Error " + err + " processing file " + path);
+        } else if( extension == ".xml" ) {
+            // Look for XML links
+            var xmldoc = require('xmldoc');
+            console.log("Process " + path);
+            try {
+                var document = new xmldoc.XmlDocument(data);           
+                var changedRef = false;
+                //<ref>Helper::ExifInfo Class</ref>
+                var expandReferences = function(node) {
+                    var i;
+                    if( node.name == "ref" ) {
+                        var samename = [];
+                        var lowRef = node.val.toLowerCase();
+                        var searchRef = function() {
+                            var i;
+                            var folderMatchs = [];
+                            for( i = 0 ; i < list.length ; ++i ) {
+                                var pos = list[i].toLowerCase().lastIndexOf(lowRef); 
+                                if( pos >= 0 ) {
+                                    var pathEndPos = list[i].lastIndexOf('/');
+                                    if( pos >= pathEndPos ) {
+                                        samename.push(list[i]);
+                                    } else {
+                                         var indexFn = list[i].substring(pathEndPos+1).toLowerCase();
+                                         var parentFolderName = list[i].split('/');
+                                         if( parentFolderName.length > 1 ) {
+                                                parentFolderName = parentFolderName[parentFolderName.length-2];
+                                                if( parentFolderName.toLowerCase().lastIndexOf(lowRef) >= 0 ) {
+                                                    if( indexFn == "index.xml" || indexFn == "index.html" || indexFn == "index.md" ) {
+                                                        samename.push(list[i]);
+                                                     } else {
+                                                        var j;
+                                                        var haveMatch = false;
+                                                        var pathAdd = list[i].split('/');
+                                                        pathAdd = pathAdd[pathAdd.length-1] = "index.xml";
+                                                        pathAdd = pathAdd.join('/');
+                                                        for( j = 0 ; j < folderMatchs.length ;++j ) {
+                                                            if( folderMatchs[j].toLowerCase() == pathAdd.toLowerCase() ) {
+                                                                haveMatch = true;
+                                                                break;                                             
+                                                            }                                                            
+                                                        }
+                                                        if( !haveMatch ) {
+                                                            folderMatchs.push(pathAdd);
+                                                        }
+                                                     }
+                                                }                                         
+                                         }
+                                    }
+                                }
+                            }
+                            if( samename.length == 0 && folderMatchs.length > 0 ) {
+                                samename = folderMatchs;
+                            }                            
+                        };
+                        searchRef();
+                        if( samename.length == 0 ) {
+                            if( lowRef.indexOf('  ') >= 0 ) {
+                                lowRef = lowRef.split(' ');
+                                for( i = lowRef.length-1 ; i >= 0 ; --i ) {
+                                    if( lowRef[i] == "" ) {
+                                        lowRef = lowRef.splice(i,1);
+                                    }
+                                }
+                                lowRef = lowRef.join(' ');
+                                searchRef();
+                                if( samename.length == 0 ) {
+                                    if( lowRef.indexOf(' method') >= 0 || lowRef.indexOf(' function') >= 0 
+                                     || lowRef.indexOf(' class') >= 0 || lowRef.indexOf(' namespace') >= 0 ) {
+                                         lowRef = lowRef.split(' ');
+                                         lowRef = lowRef.splice(lowRef.length-1,1);
+                                         lowRef = lowRef.join(' ');
+                                         searchRef();
+                                    }
+                                    if( lowRef.indexOf("()") > 0 ) {
+                                         lowRef = lowRef.split('()')[0];
+                                         searchRef();                                        
+                                    }
+                                    if( samename.length == 0 ) {
+                                        if( lowRef.indexOf('.') > 0 ) {
+                                            lowRef = lowRef.split('.');
+                                            lowRef[0] = "";
+                                            lowRef = lowRef.join('.');
+                                            searchRef();                                            
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if( samename.length > 0 ) {
+                            if( samename.length == 1 ) {
+                                console.log('~resolved '+node.val+" to "+samename[0]);
+                            } else {
+                                console.log('~Ambiguous '+node.val+" for page "+path);
+                            }                        
+                        } else {
+                            console.log('~Could not find XML reference to '+node.val)
+                        }                  
+                    }
+                    if( node.children && node.children.length ) {
+                        for( i = 0 ; i < node.children.length ; ++i )
+                            expandReferences(node.children[i]);
+                    }
+                }
+                expandReferences(document);
+            } catch(err) {
+                ;
+            }                            
         } else if( extension == ".html" ) {
             console.log("Process " + path);
             var location = path.substring(0,path.lastIndexOf('/'));
@@ -23,6 +131,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                          && attribs.href.substring(0,1) != '#' 
                          && attribs.href != ';'
                          && attribs.href.indexOf("theme.css") < 0
+                         && attribs.href.indexOf("javascript:void(0)") < 0
                          ) {
                             var resolveLink = pathModule.resolve(location,attribs.href);
                             resolveLink = resolveLink.split('#')[0];
