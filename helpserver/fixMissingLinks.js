@@ -403,7 +403,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries( ["/Api/Objects/Request Object.html"] || list , function (path, callbackLoop) {
+async.eachSeries( list , function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
