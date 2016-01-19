@@ -6,6 +6,21 @@ var files = fs.readFileSync("c:/data/files.json", "utf8");
 var list = JSON.parse(files);
 var async = require('async');
 var querystring = require("querystring");
+var currentIssue = [];
+var issuesFilename = "c:\\data\\issues.json";
+var issuesNeedComma = false;
+
+var reportIssue = function (filename) {
+    var problem = JSON.stringify({ filename: filename, issues: currentIssue }, null, " ");
+    if (issuesNeedComma)
+        problem = "\n, " + problem;
+    else
+        problem = "\n  " + problem;
+    fs.appendFileSync(issuesFilename, problem);
+    issuesNeedComma = true;
+}
+
+fs.writeFileSync(issuesFilename, "[");
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
@@ -14,8 +29,8 @@ var ResolveLink = function (href, fromPath) {
         && href != ';'
         && href.indexOf("theme.css") < 0
         && href.indexOf("javascript:void(0)") < 0
-        && href.substring(0, 18) != '/unknown_reference'  
-        && href.substring(0, 20) != '/ambiguous_reference'        
+        && href.substring(0, 18) != '/unknown_reference'
+        && href.substring(0, 20) != '/ambiguous_reference'
         ) {
         var location = fromPath.substring(0, fromPath.lastIndexOf('/'));
         if (location == "") {
@@ -54,9 +69,12 @@ var ResolveLink = function (href, fromPath) {
             lowName[lowName.length - 1] = "";
         }
         lowName = lowName.join('.');
+        var lownameAsPath = lowName.substring(0,lowName.length-1)+"/";
         var rename = null;
         var found = false;
         var samename = [];
+        var samenamePath = [];
+
         for (i = 0; i < list.length; ++i) {
             var test = list[i];
             if (test == resolveLink) {
@@ -70,6 +88,21 @@ var ResolveLink = function (href, fromPath) {
                     break;
                 } else if (test.indexOf(lowName) >= 0) {
                     samename.push(list[i]);
+                } else {
+                    var endingInPath = test.lastIndexOf(lownameAsPath);
+                    if( endingInPath >= 0 ) {
+                        var pathName = test.substring(0,endingInPath+lownameAsPath.length);
+                        var j;
+                        for( j = 0 ; j < samenamePath.length ; ++j ) {
+                            if( samenamePath[j] == pathName ) {
+                                pathName = null;
+                                break;
+                            }
+                        }
+                        if( pathName ) {
+                            samenamePath.push(pathName);
+                        }
+                    }
                 }
             }
         }
@@ -104,11 +137,25 @@ var ResolveLink = function (href, fromPath) {
                     }
                     ++match;
                 }
+            } else if( samenamePath.length == 1 ) {
+                var indexName = (samenamePath[0]+"index.").toLowerCase();
+                var noIndex = true;
+                for (i = 0; i < list.length; ++i) {
+                    if( list[i].toLowerCase().substring(0,indexName.length) == indexName ) {
+                        indexName = list[i];
+                        noIndex = false;
+                        break; 
+                    }
+                }
+                if( noIndex ) {
+                    indexName = samenamePath[0]+"index.xml";
+                }
+                samename = [indexName];
             }
             if (samename.length == 1) {
                 href = samename[0];
             } else if (samename.length > 1) {
-                href = "/ambiguous_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath) + "&count=" + samename.length + "&link1=" + querystring.escape(samename[0]) + "&link2=" + querystring.escape(samename[1]);
+                var isAmbig = true;        
                 // Special case - html -> xml conversion, html version is still around
                 if (samename.length == 2) {
                     var ext0 = samename[0].lastIndexOf('.');
@@ -118,12 +165,23 @@ var ResolveLink = function (href, fromPath) {
                         ext1 = samename[1].substring(ext1);
                         if (ext0 == '.xml' && ext1 == ".html") {
                             href = samename[0];
+                            isAmbig = false;
                         } else if (ext1 == '.xml' && ext0 == ".html") {
                             href = samename[1];
+                            isAmbig = false;
                         }
                     }
                 }
+                if (isAmbig) {
+                    href = "/ambiguous_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath) + "&count=" + samename.length + "&link1=" + querystring.escape(samename[0]) + "&link2=" + querystring.escape(samename[1]);
+                    if (samename.length > 3) {
+                        currentIssue.push({ problem: "ambiguous", href: href, count: samename.length, matches: [samename[0], samename[1], samename[2]] });
+                    } else {
+                        currentIssue.push({ problem: "ambiguous", href: href, matches: samename });
+                    }
+                }
             } else {
+                currentIssue.push({ problem: "unknown", href: href });
                 href = "/unknown_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath);
             }
         }
@@ -217,30 +275,53 @@ var ResolveClosestLink = function (text, fromPath) {
         }
     }
     if (samename.length > 0) {
+        var startsWith = [];
+        if( samename.length > 1 ) {
+            lowRef = "/"+text.toLowerCase()+".";
+            for (i = 0; i < samename.length; ++i) {
+                if( samename[i].toLowerCase().indexOf(lowRef) >= 0 ) {
+                    startsWith.push(samename[i]);
+                }                
+            }
+            if( startsWith.length == 1 ) {
+                samename = startsWith;
+            }
+        }
         if (samename.length != 1 && hasFolderMatch) {
             for (i = 0; i < hasFolderMatch.length; ++i) {
                 if (fromPath.toLowerCase().indexOf(hasFolderMatch[i].replace('index.xml', '').toLowerCase()) == 0) {
                     var newsamename = [];
                     newsamename.push(hasFolderMatch[i]);
                     samename = newsamename;
+                    startsWith = [];
                     break;
                 }
+            }
+            if( startsWith.length > 1 ) {
+                samename = startsWith;
             }
         }
         if (samename.length == 1) {
             href = samename[0];
+        } else {            
+            if (samename.length > 3) {
+                currentIssue.push({ problem: "ambiguous", href: text, count: samename.length, matches: [samename[0], samename[1], samename[2]] });
+            } else {
+                currentIssue.push({ problem: "ambiguous", href: text, matches: samename });
+            }
             // else href = "/ambiguous_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath) + "&count=" + samename.length + "&link1=" + querystring.escape(samename[0]) + "&link2=" + querystring.escape(samename[1]);
         }
+    } else {
+        currentIssue.push({ problem: "unknown", href: text });
     }
     return href;
 };
-
-
 
 async.eachSeries(list, function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
+        currentIssue = [];
         if (err) {
             console.log("Error " + err + " processing file " + path);
             callbackLoop();
@@ -254,6 +335,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                 document = new xmldoc.XmlDocument(data);
             } catch (err) {
                 console.log("+Error:" + err);
+                currentIssue.push({ problem: "bad_xml" });
             }
             if (document) {
                 var expandReferences = function (node) {
@@ -290,6 +372,9 @@ async.eachSeries(list, function (path, callbackLoop) {
                     }
                 }
                 expandReferences(document);
+            }
+            if (currentIssue.length) {
+                reportIssue(filename);
             }
             // Write out fixup files
             if (changedData != data) {
@@ -331,6 +416,10 @@ async.eachSeries(list, function (path, callbackLoop) {
             });
             parser.write(data);
             parser.end();
+
+            if (currentIssue.length) {
+                reportIssue(filename);
+            }
             if (changedData != data) {
                 fs.writeFile(filename + "_fixup", changedData, function (err) {
                     if (err) {
@@ -349,4 +438,5 @@ async.eachSeries(list, function (path, callbackLoop) {
     });
 }, function () {
     console.log('Done!');
+    fs.appendFileSync(issuesFilename, "\n]");
 });
