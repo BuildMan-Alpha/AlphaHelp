@@ -22,6 +22,41 @@ var reportIssue = function (filename) {
 
 fs.writeFileSync(issuesFilename, "[");
 
+// Lookup and index.html / index.xml / index.md for a path...
+var LookupIndexPage = function (parentPath) {
+    var indexName = (parentPath + "index.").toLowerCase();
+    var noIndex = true;
+    for (i = 0; i < list.length; ++i) {
+        if (list[i].toLowerCase().substring(0, indexName.length) == indexName) {
+            indexName = list[i];
+            noIndex = false;
+            break;
+        }
+    }
+    if (noIndex) {
+        indexName = parentPath + "index.xml";
+    }
+    return parentPath;
+};
+
+// Lets resolve to the parent folder for all the matched items...
+var GetCommonFolder = function (paths) {
+    var basePath = paths[0].substring(0, paths[0].lastIndexOf('/') + 1);
+    var commonFolder = basePath.toLowerCase();
+    for (i = 1; i < paths.length; ++i) {
+        if (paths[i].substring(0, paths[i].lastIndexOf('/') + 1).toLowerCase() != commonFolder) {
+            commonFolder = null;
+            break;
+        }
+    }
+    if (!commonFolder) {
+        basePath = null;
+    }
+    return basePath;
+}
+
+
+
 // Look for an href
 var ResolveLink = function (href, fromPath) {
     if (href.indexOf("://") < 0
@@ -48,7 +83,7 @@ var ResolveLink = function (href, fromPath) {
                 var pageArg = pathAndArg[1].split("page=");
                 if (pageArg.length > 1) {
                     resolveLink = pathModule.resolve(location, decodeURI(pageArg[1])) + ".html";
-                    if( resolveLink.indexOf("+") > 0 ) {
+                    if (resolveLink.indexOf("+") > 0) {
                         resolveLink = resolveLink.split("+").join(" ");
                     }
                 }
@@ -72,7 +107,7 @@ var ResolveLink = function (href, fromPath) {
             lowName[lowName.length - 1] = "";
         }
         lowName = lowName.join('.');
-        var lownameAsPath = lowName.substring(0,lowName.length-1)+"/";
+        var lownameAsPath = lowName.substring(0, lowName.length - 1) + "/";
         var rename = null;
         var found = false;
         var samename = [];
@@ -93,16 +128,16 @@ var ResolveLink = function (href, fromPath) {
                     samename.push(list[i]);
                 } else {
                     var endingInPath = test.lastIndexOf(lownameAsPath);
-                    if( endingInPath >= 0 ) {
-                        var pathName = test.substring(0,endingInPath+lownameAsPath.length);
+                    if (endingInPath >= 0) {
+                        var pathName = test.substring(0, endingInPath + lownameAsPath.length);
                         var j;
-                        for( j = 0 ; j < samenamePath.length ; ++j ) {
-                            if( samenamePath[j] == pathName ) {
+                        for (j = 0; j < samenamePath.length; ++j) {
+                            if (samenamePath[j] == pathName) {
                                 pathName = null;
                                 break;
                             }
                         }
-                        if( pathName ) {
+                        if (pathName) {
                             samenamePath.push(pathName);
                         }
                     }
@@ -141,20 +176,17 @@ var ResolveLink = function (href, fromPath) {
                     }
                     ++match;
                 }
-            } else if( samenamePath.length == 1 ) {
-                var indexName = (samenamePath[0]+"index.").toLowerCase();
-                var noIndex = true;
-                for (i = 0; i < list.length; ++i) {
-                    if( list[i].toLowerCase().substring(0,indexName.length) == indexName ) {
-                        indexName = list[i];
-                        noIndex = false;
-                        break; 
+                if (samename.length > 1) {
+                    
+                    // Lets check if the folders are the same...
+                    var commonFolder = GetCommonFolder(samename);
+                    // Lets resolve to the parent folder for all the matched items...
+                    if (commonFolder) {
+                        samename = [LookupIndexPage(commonFolder)];
                     }
                 }
-                if( noIndex ) {
-                    indexName = samenamePath[0]+"index.xml";
-                }
-                samename = [indexName];
+            } else if (samenamePath.length == 1) {
+                samename = [LookupIndexPage(samenamePath[0])];
             }
             if (samename.length == 1) {
                 href = samename[0];
@@ -192,6 +224,7 @@ var ResolveLink = function (href, fromPath) {
     }
     return href;
 };
+
 // Look for closest reference (late lookup for new XML)
 var ResolveClosestLink = function (text, fromPath) {
     var href = null;
@@ -237,8 +270,8 @@ var ResolveClosestLink = function (text, fromPath) {
                 }
             }
         }
-        if( samename.length == 0 && namematch.length > 0 ) { 
-            samename = namematch;        
+        if (samename.length == 0 && namematch.length > 0) {
+            samename = namematch;
         }
         if (namematch.length == 0 && folderMatchs.length > 0) {
             samename = folderMatchs;
@@ -263,7 +296,7 @@ var ResolveClosestLink = function (text, fromPath) {
                 foundResult = true;
             }
         }
-        if( !foundResult )  {
+        if (!foundResult) {
             if (!searchRef()) {
                 if (lowRef.indexOf(' method') >= 0 || lowRef.indexOf(' function') >= 0
                     || lowRef.indexOf(' class') >= 0 || lowRef.indexOf(' namespace') >= 0
@@ -290,14 +323,14 @@ var ResolveClosestLink = function (text, fromPath) {
     }
     if (samename.length > 0) {
         var startsWith = [];
-        if( samename.length > 1 ) {
-            lowRef = "/"+text.toLowerCase()+".";
+        if (samename.length > 1) {
+            lowRef = "/" + text.toLowerCase() + ".";
             for (i = 0; i < samename.length; ++i) {
-                if( samename[i].toLowerCase().indexOf(lowRef) >= 0 ) {
+                if (samename[i].toLowerCase().indexOf(lowRef) >= 0) {
                     startsWith.push(samename[i]);
-                }                
+                }
             }
-            if( startsWith.length == 1 ) {
+            if (startsWith.length == 1) {
                 samename = startsWith;
             }
         }
@@ -311,15 +344,23 @@ var ResolveClosestLink = function (text, fromPath) {
                     break;
                 }
             }
-            if( startsWith.length > 1 ) {
+            if (startsWith.length > 1) {
                 samename = startsWith;
             }
-        } else if( startsWith.length > 1 ) {
+        } else if (startsWith.length > 1) {
             samename = startsWith;
+        }
+        if (samename.length > 1) {
+            // Lets check if the folders are the same...
+            var commonFolder = GetCommonFolder(samename);
+            // Lets resolve to the parent folder for all the matched items...
+            if (commonFolder) {
+                samename = [LookupIndexPage(commonFolder)];
+            }
         }
         if (samename.length == 1) {
             href = samename[0];
-        } else {            
+        } else {
             if (samename.length > 3) {
                 currentIssue.push({ problem: "ambiguous", href: text, count: samename.length, matches: [samename[0], samename[1], samename[2]] });
             } else {
@@ -333,7 +374,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries(list, function (path, callbackLoop) {
+async.eachSeries(["/Index/Xbasic Functions and Methods Listed by Type Title.html"] || list, function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
