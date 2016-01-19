@@ -122,7 +122,12 @@
 					<dt><xsl:value-of select="name" /></dt>
 					<dd><xsl:value-of select="description" />
 						<xsl:if test="example"><b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre></xsl:if>							 
-						<xsl:if test="ref"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:if>							
+						<xsl:if test="ref">
+                            <xsl:choose>
+                                <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:if>							
 					</dd>
 				</xsl:for-each>
 			</dl>
@@ -137,7 +142,12 @@
 						<xsl:if test="example">
 							<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
 						</xsl:if>
-						<xsl:if test="ref"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:if>							
+                        <xsl:if test="ref">
+                            <xsl:choose>
+                                <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:if>													
 					</dd>
 				</xsl:for-each>
 				<xsl:for-each select="methods/methodref">
@@ -251,9 +261,10 @@
 						</xsl:when>
 					</xsl:choose>
 					<xsl:if test="ref">
-						<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)">
-							<xsl:value-of select="ref" />
-						</a>
+                        <xsl:choose>
+                            <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                        </xsl:choose>
 					</xsl:if>
 					<xsl:if test="list">
 						<xsl:call-template name="list"/>
