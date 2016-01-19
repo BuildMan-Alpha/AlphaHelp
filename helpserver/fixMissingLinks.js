@@ -14,6 +14,8 @@ var ResolveLink = function (href, fromPath) {
         && href != ';'
         && href.indexOf("theme.css") < 0
         && href.indexOf("javascript:void(0)") < 0
+        && href.substring(0, 18) != '/unknown_reference'  
+        && href.substring(0, 20) != '/ambiguous_reference'        
         ) {
         var location = fromPath.substring(0, fromPath.lastIndexOf('/'));
         if (location == "") {
