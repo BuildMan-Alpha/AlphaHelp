@@ -257,13 +257,27 @@ async.eachSeries(list, function (path, callbackLoop) {
                 var expandReferences = function (node) {
                     var i;
                     if (node.name == "ref") {
-                        var href = ResolveClosestLink(node.val, path);
-                        if (href) {
-                            var findRefLoc = changedData.indexOf('<ref>' + node.val);
-                            if (findRefLoc > 0) {
-                                changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
-                            } else {
-                                console.log("!Failed to update ref " + node.val);
+                        if (node.attr.href) {
+                            var newHref = ResolveLink(node.attr.href, path);
+                            if (newHref != node.attr.href) {
+                                var hrefPosition = changedData.indexOf("href=\"" + node.attr.href + "\"");
+                                if (hrefPosition < 0)
+                                    hrefPosition = changedData.indexOf("href='" + node.attr.href + "'");
+                                if (hrefPosition > 0) {
+                                    changedData = changedData.substring(0, hrefPosition + 6) + newHref + changedData.substring(hrefPosition + 6 + node.attr.href.length);
+                                } else {
+                                    console.log('!Failed to update href ' + node.attr.href);
+                                }
+                            }
+                        } else {
+                            var href = ResolveClosestLink(node.val, path);
+                            if (href) {
+                                var findRefLoc = changedData.indexOf('<ref>' + node.val);
+                                if (findRefLoc > 0) {
+                                    changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
+                                } else {
+                                    console.log("!Failed to update ref " + node.val);
+                                }
                             }
                         }
                     }
