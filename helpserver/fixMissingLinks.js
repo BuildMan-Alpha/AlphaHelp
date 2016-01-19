@@ -155,7 +155,7 @@ var ResolveClosestLink = function (text, fromPath) {
                                 var j;
                                 var haveMatch = false;
                                 var pathAdd = list[i].split('/');
-                                pathAdd = pathAdd[pathAdd.length - 1] = "index.xml";
+                                pathAdd[pathAdd.length - 1] = "index.xml";
                                 pathAdd = pathAdd.join('/');
                                 for (j = 0; j < folderMatchs.length; ++j) {
                                     if (folderMatchs[j].toLowerCase() == pathAdd.toLowerCase()) {
@@ -237,7 +237,7 @@ var ResolveClosestLink = function (text, fromPath) {
 
 async.eachSeries(list, function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
-    fs.readFile(filename, "utf8" ,function (err, data) {
+    fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
         if (err) {
             console.log("Error " + err + " processing file " + path);
@@ -247,19 +247,23 @@ async.eachSeries(list, function (path, callbackLoop) {
             var changedData = data;
             var xmldoc = require('xmldoc');
             console.log("Process " + path);
+            var document = null;
             try {
-                var document = new xmldoc.XmlDocument(data);
-                //<ref>Helper::ExifInfo Class</ref>
+                document = new xmldoc.XmlDocument(data);
+            } catch (err) {
+                console.log("+Error:" + err);
+            }
+            if (document) {
                 var expandReferences = function (node) {
                     var i;
                     if (node.name == "ref") {
                         var href = ResolveClosestLink(node.val, path);
                         if (href) {
-                            var findRefLoc = changedData.indexOf('<ref>'+node.val);
-                            if( findRefLoc > 0 ) {
-                                changedData = changedData.substring(0,findRefLoc+4) + " href=\""+href+"\">"+ changedData.substring(findRefLoc+5);
+                            var findRefLoc = changedData.indexOf('<ref>' + node.val);
+                            if (findRefLoc > 0) {
+                                changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
                             } else {
-                                console.log("!Failed to update ref "+node.val);    
+                                console.log("!Failed to update ref " + node.val);
                             }
                         }
                     }
@@ -270,23 +274,22 @@ async.eachSeries(list, function (path, callbackLoop) {
                     }
                 }
                 expandReferences(document);
-            } catch (err) {
-               console.log("+Error:"+err);
             }
             // Write out fixup files
-            if( changedData != data ) {
-                fs.writeFile(filename+"_fixup",changedData,function(err) {
-                    if( err ) {
+            if (changedData != data) {
+                fs.writeFile(filename + "_fixup", changedData, function (err) {
+                    if (err) {
                         console.log("Error Saving file");
                     } else {
-                        console.log("Saved " + filename+"_fixup");
+                        console.log("Saved " + filename + "_fixup");
                     }
-                    callbackLoop();    
+                    callbackLoop();
                 });
             } else {
                 callbackLoop();
             }
         } else if (extension == ".html") {
+            var changedData = data;
             console.log("Process " + path);
             var htmlparser = require("htmlparser2");
             var parser = new htmlparser.Parser({
@@ -294,7 +297,14 @@ async.eachSeries(list, function (path, callbackLoop) {
                     if (attribs.href) {
                         var newHref = ResolveLink(attribs.href, path);
                         if (newHref != attribs.href) {
-                            console.log('+Rename ' + attribs.href + " to " + newHref);
+                            var hrefPosition = changedData.indexOf("href=\"" + attribs.href + "\"");
+                            if (hrefPosition < 0)
+                                hrefPosition = changedData.indexOf("href='" + attribs.href + "'");
+                            if (hrefPosition > 0) {
+                                changedData = changedData.substring(0, hrefPosition + 6) + newHref + changedData.substring(hrefPosition + 6 + attribs.href.length);
+                            } else {
+                                console.log('!Failed to update href ' + attribs.href);
+                            }
                         }
                     }
                 },
@@ -305,10 +315,21 @@ async.eachSeries(list, function (path, callbackLoop) {
             });
             parser.write(data);
             parser.end();
-            callbackLoop();
+            if (changedData != data) {
+                fs.writeFile(filename + "_fixup", changedData, function (err) {
+                    if (err) {
+                        console.log("Error Saving file");
+                    } else {
+                        console.log("Saved " + filename + "_fixup");
+                    }
+                    callbackLoop();
+                });
+            } else {
+                callbackLoop();
+            }
         } else {
             callbackLoop();
-        }        
+        }
     });
 }, function () {
     console.log('Done!');
