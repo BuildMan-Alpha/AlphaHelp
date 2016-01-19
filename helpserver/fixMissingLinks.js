@@ -48,6 +48,9 @@ var ResolveLink = function (href, fromPath) {
                 var pageArg = pathAndArg[1].split("page=");
                 if (pageArg.length > 1) {
                     resolveLink = pathModule.resolve(location, decodeURI(pageArg[1])) + ".html";
+                    if( resolveLink.indexOf("+") > 0 ) {
+                        resolveLink = resolveLink.split("+").join(" ");
+                    }
                 }
             } else {
                 resolveLink = resolveLink[0];
@@ -120,7 +123,8 @@ var ResolveLink = function (href, fromPath) {
                         var test = testThisPath.split('/');
                         if (test.length >= match) {
                             if (test.length > match) {
-                                testThisPath = test.splice(0, test.length - match).join('/');
+                                test.splice(0, test.length - match);
+                                testThisPath = test.join('/');
                             }
                             if (testThisPath == endTest) {
                                 newsamename.push(samename[i]);
@@ -242,20 +246,26 @@ var ResolveClosestLink = function (text, fromPath) {
     };
 
     if (!searchRef()) {
+        var foundResult = false;
         if (lowRef.indexOf('  ') >= 0) {
             lowRef = lowRef.split(' ');
             for (i = lowRef.length - 1; i >= 0; --i) {
                 if (lowRef[i] == "") {
-                    lowRef = lowRef.splice(i, 1);
+                    lowRef.splice(i, 1);
                 }
             }
             lowRef = lowRef.join(' ');
+            if (searchRef()) {
+                foundResult = true;
+            }
+        }
+        if( !foundResult )  {
             if (!searchRef()) {
                 if (lowRef.indexOf(' method') >= 0 || lowRef.indexOf(' function') >= 0
                     || lowRef.indexOf(' class') >= 0 || lowRef.indexOf(' namespace') >= 0
                     ) {
                     lowRef = lowRef.split(' ');
-                    lowRef = lowRef.splice(lowRef.length - 1, 1);
+                    lowRef.splice(lowRef.length - 1, 1);
                     lowRef = lowRef.join(' ');
                     searchRef();
                 }
@@ -317,7 +327,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries(list, function (path, callbackLoop) {
+async.eachSeries(["/Desktop_Api/Form/FORM.QUERY_RUN Method.xml"]||list, function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
