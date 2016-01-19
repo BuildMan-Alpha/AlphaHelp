@@ -201,12 +201,13 @@ var ResolveClosestLink = function (text, fromPath) {
     var searchRef = function () {
         var i;
         var folderMatchs = [];
+        var namematch = [];
         for (i = 0; i < list.length; ++i) {
             var pos = list[i].toLowerCase().lastIndexOf(lowRef);
             if (pos >= 0) {
                 var pathEndPos = list[i].lastIndexOf('/');
                 if (pos >= pathEndPos) {
-                    samename.push(list[i]);
+                    namematch.push(list[i]);
                 } else {
                     var indexFn = list[i].substring(pathEndPos + 1).toLowerCase();
                     var parentFolderName = list[i].split('/');
@@ -214,7 +215,7 @@ var ResolveClosestLink = function (text, fromPath) {
                         parentFolderName = parentFolderName[parentFolderName.length - 2];
                         if (parentFolderName.toLowerCase().lastIndexOf(lowRef) >= 0) {
                             if (indexFn == "index.xml" || indexFn == "index.html" || indexFn == "index.md") {
-                                samename.push(list[i]);
+                                namematch.push(list[i]);
                             } else {
                                 var j;
                                 var haveMatch = false;
@@ -236,7 +237,10 @@ var ResolveClosestLink = function (text, fromPath) {
                 }
             }
         }
-        if (samename.length == 0 && folderMatchs.length > 0) {
+        if( samename.length == 0 && namematch.length > 0 ) { 
+            samename = namematch;        
+        }
+        if (namematch.length == 0 && folderMatchs.length > 0) {
             samename = folderMatchs;
             hasFolderMatch = folderMatchs;
         } else if (!hasFolderMatch && folderMatchs.length > 0) {
@@ -310,6 +314,8 @@ var ResolveClosestLink = function (text, fromPath) {
             if( startsWith.length > 1 ) {
                 samename = startsWith;
             }
+        } else if( startsWith.length > 1 ) {
+            samename = startsWith;
         }
         if (samename.length == 1) {
             href = samename[0];
@@ -327,7 +333,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries(["/Desktop_Api/Form/FORM.QUERY_RUN Method.xml"]||list, function (path, callbackLoop) {
+async.eachSeries(list, function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
