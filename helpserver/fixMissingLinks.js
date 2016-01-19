@@ -199,6 +199,19 @@ var ResolveLink = function (href, fromPath) {
                         } else if( noSuffix.length > 1 ) {
                             samename = noSuffix;
                         }
+                        if( samename.length > 1 ) {
+                            // Last test = check for same branch as calling page...
+                            var samePrefix = [];
+                            var prefixMatch = "/"+fromPath.split('/')[1].toLowerCase()+"/";
+                            for( i = 0 ; i < samename.length ; ++i ) {
+                                if( samename[i].toLowerCase().indexOf(prefixMatch) == 0 ) {
+                                    samePrefix.push(samename[i]);
+                                }
+                            }
+                            if( samePrefix.length > 0 ) {
+                                samename = samePrefix;
+                            }
+                        }
                     }
                 }
             } else if (samenamePath.length == 1) {
@@ -390,7 +403,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries( list , function (path, callbackLoop) {
+async.eachSeries( ["/Api/Objects/Request Object.html"] || list , function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
