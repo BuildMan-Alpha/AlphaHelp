@@ -177,12 +177,28 @@ var ResolveLink = function (href, fromPath) {
                     ++match;
                 }
                 if (samename.length > 1) {
-                    
-                    // Lets check if the folders are the same...
-                    var commonFolder = GetCommonFolder(samename);
-                    // Lets resolve to the parent folder for all the matched items...
-                    if (commonFolder) {
-                        samename = [LookupIndexPage(commonFolder)];
+                    var noSuffix = [];
+                    for( i = 0 ; i < samename.length ; ++i ) {
+                        var test = samename[i].toLowerCase();
+                        var testPos = test.indexOf(lowName);
+                        if( testPos >= 0 ) {
+                            test = test.substring(testPos+lowName.length);                            
+                        }
+                        if( test.indexOf('.') < 0 ) {
+                            noSuffix.push(samename[i]);
+                        }
+                    }
+                    if( noSuffix.length == 1 ) {
+                        samename = noSuffix; 
+                    } else {                    
+                        // Lets check if the folders are the same...
+                        var commonFolder = GetCommonFolder(samename);
+                        // Lets resolve to the parent folder for all the matched items...
+                        if (commonFolder) {
+                            samename = [LookupIndexPage(commonFolder)];
+                        } else if( noSuffix.length > 1 ) {
+                            samename = noSuffix;
+                        }
                     }
                 }
             } else if (samenamePath.length == 1) {
@@ -374,7 +390,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries(["/Index/Xbasic Functions and Methods Listed by Type Title.html"] || list, function (path, callbackLoop) {
+async.eachSeries( list , function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
