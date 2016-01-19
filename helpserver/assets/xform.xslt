@@ -117,7 +117,7 @@
 		</xsl:if>
 		<xsl:if test="properties">
 			<p class="A5">Properties</p>
-			<dl class="methodsDL" >
+			<dl class="propertiesDL" >
 				<xsl:for-each select="properties/property">
 					<dt><xsl:value-of select="name" /></dt>
 					<dd><xsl:value-of select="description" />
