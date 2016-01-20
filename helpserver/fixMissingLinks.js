@@ -36,7 +36,7 @@ var LookupIndexPage = function (parentPath) {
     if (noIndex) {
         indexName = parentPath + "index.xml";
     }
-    return parentPath;
+    return indexName;
 };
 
 // Lets resolve to the parent folder for all the matched items...
@@ -132,13 +132,13 @@ var ResolveLink = function (href, fromPath) {
                         var pathName = test.substring(0, endingInPath + lownameAsPath.length);
                         var j;
                         for (j = 0; j < samenamePath.length; ++j) {
-                            if (samenamePath[j] == pathName) {
+                            if (samenamePath[j].toLowerCase() == pathName) {
                                 pathName = null;
                                 break;
                             }
                         }
-                        if (pathName) {
-                            samenamePath.push(pathName);
+                        if (pathName) {                            
+                            samenamePath.push(list[i].substring(0, endingInPath + lownameAsPath.length));
                         }
                     }
                 }
@@ -464,7 +464,7 @@ async.eachSeries( list , function (path, callbackLoop) {
             }
             // Write out fixup files
             if (changedData != data) {
-                fs.writeFile(filename , changedData, function (err) {
+                fs.writeFile(filename + "_fixup" , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
