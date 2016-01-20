@@ -36,7 +36,7 @@ var LookupIndexPage = function (parentPath) {
     if (noIndex) {
         indexName = parentPath + "index.xml";
     }
-    return indexName;
+    return parentPath;
 };
 
 // Lets resolve to the parent folder for all the matched items...
@@ -59,7 +59,12 @@ var GetCommonFolder = function (paths) {
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
-    if (href.indexOf("://") < 0
+    if(  href.indexOf("tiki-print") >= 0
+      || href.indexOf("tiki-editpage.php") < 0 
+      ) { 
+        // tiki print/editpage is a no-op in the new help system...
+        href = "#";
+    } else if (href.indexOf("://") < 0
         && href.substring(0, 1) != '#'
         && href != ';'
         && href.indexOf("theme.css") < 0
@@ -103,11 +108,7 @@ var ResolveLink = function (href, fromPath) {
         var i;
         var lowLink = resolveLink.toLowerCase();
         var lowName = lowLink.substring(lowLink.lastIndexOf('/')).split('.');
-        var isXmlIndex = false;        
         if (lowName.length > 1) {
-            if( lowName[lowName.length - 1] == 'xml' && lowName[lowName.length - 2] == '/index' ) {
-                isXmlIndex = true; 
-            }
             lowName[lowName.length - 1] = "";
         }
         lowName = lowName.join('.');
@@ -116,12 +117,6 @@ var ResolveLink = function (href, fromPath) {
         var found = false;
         var samename = [];
         var samenamePath = [];
-         if( isXmlIndex ) {
-             lowName       = lowLink.split('/');
-             lowName[lowName.length-1] = "";
-             lowName       = lowName.join('/'); 
-             lownameAsPath = lowName;
-         }
 
         for (i = 0; i < list.length; ++i) {
             var test = list[i];
@@ -142,22 +137,20 @@ var ResolveLink = function (href, fromPath) {
                         var pathName = test.substring(0, endingInPath + lownameAsPath.length);
                         var j;
                         for (j = 0; j < samenamePath.length; ++j) {
-                            if (samenamePath[j].toLowerCase() == pathName) {
+                            if (samenamePath[j] == pathName) {
                                 pathName = null;
                                 break;
                             }
                         }
-                        if (pathName) {                            
-                            samenamePath.push(list[i].substring(0, endingInPath + lownameAsPath.length));
+                        if (pathName) {
+                            samenamePath.push(pathName);
                         }
                     }
                 }
             }
         }
         if (!found) {
-            if( isXmlIndex && samename.length > 1 ) {
-                samename = [LookupIndexPage(samename[0].substring(0,lowName.length))];
-            } else if (samename.length > 1) {
+            if (samename.length > 1) {
                 var newsamename = [];
                 var lowParts = lowLink.split('/');
                 var match = 2;
@@ -214,33 +207,14 @@ var ResolveLink = function (href, fromPath) {
                         if( samename.length > 1 ) {
                             // Last test = check for same branch as calling page...
                             var samePrefix = [];
-                            var lastPrefixIndex = 1;
-                            var prefixParts = fromPath.split('/');
-                            var prefixMatch = "/"+prefixParts[1].toLowerCase()+"/";
-                            for( ; ; ) {
-                                for( i = 0 ; i < samename.length ; ++i ) {
-                                    if( samename[i].toLowerCase().indexOf(prefixMatch) == 0 ) {
-                                        samePrefix.push(samename[i]);
-                                    }
-                                }
-                                if( samePrefix.length > 1 && (lastPrefixIndex+1) < prefixParts.length ) {
-                                    samename = samePrefix;
-                                    samePrefix = [];
-                                    lastPrefixIndex += 1;
-                                    prefixMatch += prefixParts[lastPrefixIndex].toLowerCase() + "/";                                    
-                                } else {
-                                    break;
+                            var prefixMatch = "/"+fromPath.split('/')[1].toLowerCase()+"/";
+                            for( i = 0 ; i < samename.length ; ++i ) {
+                                if( samename[i].toLowerCase().indexOf(prefixMatch) == 0 ) {
+                                    samePrefix.push(samename[i]);
                                 }
                             }
                             if( samePrefix.length > 0 ) {
                                 samename = samePrefix;
-                            }
-                            if( samename.length > 1 ) {
-                                var commonFolder = GetCommonFolder(samename);
-                                // Lets resolve to the parent folder for all the matched items...
-                                if (commonFolder) {
-                                    samename = [LookupIndexPage(commonFolder)];
-                                }
                             }
                         }
                     }
@@ -434,7 +408,7 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
-async.eachSeries( list , function (path, callbackLoop) {
+async.eachSeries( ["/Api/Functions/Data Type/Numeric Functions/Mathematical Functions/MATH_PI.html"] || list , function (path, callbackLoop) {
     var filename = "/dev/AlphaHelp/helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
@@ -494,8 +468,8 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             // Write out fixup files
-            if (changedData != data) { 
-                fs.writeFile(filename  , changedData, function (err) {
+            if (changedData != data) {
+                fs.writeFile(filename + "_fixup", changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
@@ -538,11 +512,11 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             if (changedData != data) {
-                fs.writeFile(filename + "_fixup" , changedData, function (err) {
+                fs.writeFile(filename , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
-                        console.log("Saved " + filename );
+                        console.log("Saved " + filename + "_fixup");
                     }
                     callbackLoop();
                 });
