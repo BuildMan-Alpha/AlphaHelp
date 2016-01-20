@@ -103,7 +103,11 @@ var ResolveLink = function (href, fromPath) {
         var i;
         var lowLink = resolveLink.toLowerCase();
         var lowName = lowLink.substring(lowLink.lastIndexOf('/')).split('.');
+        var isXmlIndex = false;        
         if (lowName.length > 1) {
+            if( lowName[lowName.length - 1] == 'xml' && lowName[lowName.length - 2] == '/index' ) {
+                isXmlIndex = true; 
+            }
             lowName[lowName.length - 1] = "";
         }
         lowName = lowName.join('.');
@@ -112,6 +116,12 @@ var ResolveLink = function (href, fromPath) {
         var found = false;
         var samename = [];
         var samenamePath = [];
+         if( isXmlIndex ) {
+             lowName       = lowLink.split('/');
+             lowName[lowName.length-1] = "";
+             lowName       = lowName.join('/'); 
+             lownameAsPath = lowName;
+         }
 
         for (i = 0; i < list.length; ++i) {
             var test = list[i];
@@ -482,8 +492,8 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             // Write out fixup files
-            if (changedData != data) { //+ "_fixup"
-                fs.writeFile(filename  , changedData, function (err) {
+            if (changedData != data) { 
+                fs.writeFile(filename + "_fixup" , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
