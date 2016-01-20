@@ -155,7 +155,9 @@ var ResolveLink = function (href, fromPath) {
             }
         }
         if (!found) {
-            if (samename.length > 1) {
+            if( isXmlIndex && samename.length > 1 ) {
+                samename = [LookupIndexPage(samename[0].substring(0,lowName.length))];
+            } else if (samename.length > 1) {
                 var newsamename = [];
                 var lowParts = lowLink.split('/');
                 var match = 2;
