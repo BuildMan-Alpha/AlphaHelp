@@ -1,22 +1,216 @@
 <page>
-	<topic></topic>
-	<syntax></syntax>
-	<arguments>
-		<argument>
-			<name></name>
-			<description></description>
-		</argument>
-	</arguments>
+	<topic>Office Example: Simple Weekly sales spreadsheet</topic>
+	<sections><section>
 	
-	<description></description>
-	<discussion></discussion>
+	<description>This example creates a simple spreadsheet with summarized sales and expense data for a single week. The spreadsheet is populated with a title, column headings, labels, and formulas to calculate the daily gross profit, summarize the weeks sales and expenses and the week's gross profit.
+
+ After the spreadsheet is populated, it is opened in Microsoft Excel.</description>
 	
-	<example><![CDATA[ ]]></example>
+	
+	<example><![CDATA[
+dim DocumentFile as C = "C:\temp\A5OfficeSample1.xlsx"
+dim Doc as Office::ExcelDocument ' Declare the document variable
+ 
+' Compute the date of the most recent Sunday
+dim StartDate as D = date() - (dow(date()) - 1)
+ 
+CreateWeeklySalesAndExpenses(StartDate, Doc)
+ 
+Path = file.filename_parse(DocumentFile, "P")
+on error resume next
+File.Dir_Create(Path)
+on error goto 0
+if Doc.Save(DocumentFile)
+  ' Release all references to the document because we are 
+        ' about to open it in Excel
+  delete Doc
+  sys_open(DocumentFile)
+else  
+  ui_msg_box("Error Saving Document", "Unable to save document to " \
+          + DocumentFile + ":" + crlf(2) + Doc.ErrorMessage)
+end if  
+ 
+FUNCTION CreateWeeklySalesAndExpenses as V(StartDate as D, Doc as Office::ExcelDocument)
+ 
+dim Sheet as Office::Spreadsheet 'Pointer to the spreadsheet
+ 
+' Layout of the spreadsheet
+dim TitleRow    as N = 1
+dim HeadingRow    as N = 4
+dim DetailRow    as N = 6
+ 
+' Create a new spreadsheet
+Sheet = Doc.AddSheet("Weekly Sales & Expenses") 
+ 
+WritePageHeading (StartDate, Doc, Sheet, TitleRow)
+WriteColumnHeadings (StartDate, Doc, Sheet, HeadingRow)
+WriteData (StartDate, Doc, Sheet, DetailRow)
+ 
+END FUNCTION        
+ 
+ 
+FUNCTION WritePageHeading as L (StartDate as D, Doc as Office::ExcelDocument, \
+                                Sheet as Office::Spreadsheet, StartRow as N)  
+' Add a title formatted with Bold 14 point Tahoma font in Blue
+'     and merge the first 5 columns in the first row
+dim Format as Office::Format 'Pointer to the format for Page headings
+dim Font as Office::Font 'Pointer to the font for Page headings
+Format        = Doc.AddFormat()
+Font        = Doc.AddFont()
+Font.Color      = Office::Color::DarkBlue
+Font.Name      = "Tahoma"
+Font.Size      = 14
+Font.Bold      = .t.
+Format.Font      = Font 'Set the font into the page heading format
+Format.HorizontalAlignment  = Office::HorizontalAlignment::Center
+Sheet.SetMerge(1,1,1,5)
+Sheet.Write(1,1,"Weekly Sales Summary", Format)
+ 
+Sheet.SetMerge(2,2,1,5)
+Sheet.Write(2,1,"Week Beginning " + StartDate, Format)
+ 
+WritePageHeading = .t.
+END FUNCTION
+ 
+ 
+FUNCTION WriteColumnHeadings as L (StartDate as D, Doc as Office::ExcelDocument, \
+                                   Sheet as Office::Spreadsheet, StartRow as N)
+dim ColumnHeadings as C = &lt;&lt;%txt%
+Day
+Date
+Daily Sales
+Daily Expenses
+Gross Daily Profit
+%txt%
+dim ColumnWidth(5( as N
+ColumnWidth(1( = len("Wednesday")
+ColumnWidth(2( = len("00/00/0000")
+ColumnWidth(3( = len("($000,000.00)")
+ColumnWidth(4( = len("($000,000.00)")
+ColumnWidth(5( = len("($000,000.00)")
+dim ColumnHeadingCount as N = w_count(ColumnHeadings, crlf())
+ 
+' Add the column headings (row 3)
+' Add a title formatted with Bold 14 point Tahoma font in Blue 
+'        and merge the first 5 columns in the first row
+dim LeftFormat as Office::Format 'Pointer to the left aligned format for Column headings
+dim RightFormat as Office::Format'Pointer to the right aligned format for Column headings
+dim Font as Office::Font   ' Pointer to the font for Column headings
+ 
+Font        = Doc.AddFont()
+Font.Color      = Office::Color::DarkBlue
+Font.Name      = "Tahoma"
+Font.Size      = 11
+Font.Bold      = .t.
+LeftFormat      = Doc.AddFormat()
+LeftFormat.Wrap      = .t.
+LeftFormat.Font      = Font ' Set the font into the column heading format
+LeftFormat.HorizontalAlignment  = Office::HorizontalAlignment::Left
+RightFormat      = Doc.AddFormat()
+RightFormat.Wrap    = .t.
+RightFormat.Font    = Font ' Set the font into the column heading format
+RightFormat.HorizontalAlignment  = Office::HorizontalAlignment::Right
+ 
+for i = 1 to ColumnHeadingCount
+  CurrentHeading = word(ColumnHeadings, i, crlf())
+  Sheet.SetColumn(i, i, max(ColumnWidth(i( * 1.2, Sheet.ColumnWidth(i)))
+  Sheet.Write(StartRow, i, CurrentHeading, if(i &lt; 2, LeftFormat, RightFormat))
+next  
+ 
+WriteColumnHeadings = .t.
+END FUNCTION
+ 
+ 
+FUNCTION WriteData as L (StartDate as D, Doc as Office::ExcelDocument, \
+                         Sheet as Office::Spreadsheet, StartRow as N)
+' Set the font into the column heading format
+dim NumericFormat as Office::Format  ' Write the detail data and a total line
+dim DateFormat as Office::Format  ' Pointer to the format for numeric columns
+dim CharacterFormat as Office::Format  ' Pointer to the format for the date column
+dim Font as Office::Font    ' Pointer to the format for labels
+dim LabelFont as Office::Font    ' Pointer to the font for column data
+dim Sales as N
+dim Expenses as N
+dim ProfitFormula as C
+ 
+' Pointer to the font for labels 
+Font          = Doc.AddFont()
+Font.Color        = Office::Color::Black
+Font.Name        = "Tahoma"
+Font.Size        = 10
+Font.Bold        = .f.
+ 
+' Create a font for the detail data
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font  ' Set the font into the column heading format
+NumericFormat.HorizontalAlignment   = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
+ 
+' Create a format for numeric columns
+DateFormat        = Doc.AddFormat()
+DateFormat.Font        = Font ' Set the font into the column heading format
+DateFormat.HorizontalAlignment          = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat    = Office::NumericFormat::Date
+ 
+' Create a format for the date column
+LabelFont        = Doc.AddFont()
+LabelFont.Color        = Office::Color::DarkBlue
+LabelFont.Name        = "Tahoma"
+LabelFont.Size        = 10
+LabelFont.Bold        = .t.
+LabelFormat        = Doc.AddFormat()
+LabelFormat.Font      = LabelFont ' Set the font into the column heading format
+LabelFormat.HorizontalAlignment    = Office::HorizontalAlignment::Left
+ 
+'Set the font into the column heading format
+for i = 1 to 7
+  CurrentDate = StartDate + (i - 1) ' Create a format for the character column
+  Row       = StartRow + i - 1    'Set the font into the column heading format
+        ' Loop through the days of the week to create the detail
+  GetSalesAndExpenses(CurrentDate, Sales, Expenses)
+  'Get the date of the current day of the week
+  ProfitFormula = "($000,000.00)" + Row + "($000,000.00)" + Row
+ 
+  Sheet.Write(     Row, 1, CDow(CurrentDate), LabelFormat)'Compute the spreadsheet row
+  Sheet.Write(     Row, 2, CurrentDate,   DateFormat)   'Call a test function that generates random data
+  Sheet.Write(     Row, 3, Sales,        NumericFormat)'Create a formula for profit = sales - expenses
+  Sheet.Write(     Row, 4, Expenses,   NumericFormat)'Day of the week
+  Sheet.WriteFormula(Row, 5, ProfitFormula,NumericFormat)'Date
+next
+ 
+'Sales
+Row = StartRow + 8
+ProfitFormula = "($000,000.00)" + Row + "($000,000.00)" + Row
+Sheet.Write(Row, 1, "Tahoma", LabelFormat)
+ 
+'Expenses
+Sheet.WriteFormula(Row, 3, "Tahoma" + StartRow + "Tahoma" + (StartRow + 6) + "C", NumericFormat)
+ 
+'Profit
+Sheet.WriteFormula(Row, 4, " - D" + StartRow + "C" + (StartRow + 6) + "C", NumericFormat)
+ 
+' Write the total line
+Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat)
+ 
+WriteData = .t.
+END FUNCTION
+ 
+ 
+FUNCTION GetSalesAndExpenses as L (Date as D, BYREF Sales as N, BYREF Expenses as N)
+' Sum of Sales
+ 
+Sales     = 2600 + rand() * 500
+Expenses   = 2500 + rand() * 500  
+GetSalesAndExpenses = .t.  
+END FUNCTION]]></example>
+	</section></sections>
+	
+	
+	
+	
 	
 	<see>
-		<ref></ref>
-		<ref></ref>
-		
+		<ref>Office</ref>
 	</see>
 	
 </page>

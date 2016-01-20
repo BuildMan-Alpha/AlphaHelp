@@ -1,21 +1,352 @@
 <page>
-	<topic></topic>
-	<syntax></syntax>
-	<arguments>
-		<argument>
-			<name></name>
-			<description></description>
-		</argument>
-	</arguments>
+	<topic>Office Example: Multiple spreadsheets</topic>
 	
-	<description></description>
-	<discussion></discussion>
+	<sections><section>
+	<description>This example creates a multiple spreadsheets ina single document:</description>
+<list>
+
+<item><name>
+1.Summarized Daily Sales and Expenses - contains totals for a single week.
+</name></item><item><name> 
+2.Summarized Product Sales 
+</name></item>
+</list></section>
+<section><description>
+The spreadsheet is populated with a title, column headings, labels, and formulas to calculate the daily gross profit, summarize the weeks sales and expenses and the week's gross profit.
+After the spreadsheets are created, the workbook is opened in Microsoft Excel.
+</description></section>
+<section>
 	
-	<example><![CDATA[ ]]></example>
+	<example><![CDATA[
+dim Doc as Office::ExcelDocument
+dim DocumentFile as C = "C:\temp\A5OfficeSample2.xlsx"
+ 
+' Compute the date of the most recent Sunday
+dim StartDate as D = date() - (dow(date()) - 1)
+ 
+CreateDailySalesAndExpenses(Doc, StartDate)
+CreateProductSalesSummary(Doc, StartDate)
+ 
+Path = file.filename_parse(DocumentFile, "P")
+on error resume next
+File.Dir_Create(Path)
+on error goto 0
+if Doc.Save(DocumentFile)
+  ' Release all references to the document because we are about to open it in Excel
+  delete Doc
+  sys_open(DocumentFile)
+else  
+  ui_msg_box("Error Saving Document", "Unable to save document to " \
+                   + DocumentFile + ":" + crlf(2) + Doc.ErrorMessage)
+end if  
+ 
+ 
+FUNCTION CreateDailySalesAndExpenses as V(Doc as Office::ExcelDocument, StartDate as D)
+ 
+dim Sheet as Office::Spreadsheet 'Pointer to the spreadsheet
+ 
+' Layout of the spreadsheet
+dim TitleRow    as N = 1
+dim HeadingRow    as N = 4
+dim DetailRow    as N = 6
+ 
+' Create a new spreadsheet
+Sheet = Doc.AddSheet("Weekly Sales and Expenses") ' Create a new spreadsheet
+ 
+WritePageHeadings(Doc, Sheet, TitleRow, 5, "Weekly Sales & Expenses Summary" \
+                  + crlf() + "Week Beginning " + StartDate)
+WriteColumnHeadings(Doc, Sheet, HeadingRow, &lt;&lt;%txt%
+Day|C|10
+Date|D
+Daily Sales|$
+Daily Expenses|$
+Gross Daily Profit|$
+%txt%)
+Daily_WriteData(StartDate, Doc, Sheet, DetailRow)
+END FUNCTION        
+ 
+ 
+FUNCTION Daily_WriteData as L (StartDate as D, Doc as Office::ExcelDocument, \
+                               Sheet as Office::Spreadsheet, StartRow as N)
+' Create a new spreadsheet
+dim NumericFormat   as Office::Format ' Write the detail data and a total line
+dim DateFormat      as Office::Format ' Pointer to the format for numeric columns
+dim CharacterFormat as Office::Format ' Pointer to the format for the date column
+dim Font      as Office::Font   ' Pointer to the format for labels
+dim LabelFont      as Office::Font   ' Pointer to the font for column data
+dim Sales      as N
+dim Expenses      as N
+dim ProfitFormula   as C
+ 
+' Pointer to the font for labels 
+Font    = Doc.AddFont()
+Font.Color  = Office::Color::Black
+Font.Name  = "Tahoma"
+Font.Size  = 10
+Font.Bold  = .f.
+ 
+' Create a font for the detail data
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font ' Create a format for numeric columns
+NumericFormat.HorizontalAlignment = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
+ 
+'Set the font into the column heading format
+DateFormat        = Doc.AddFormat()
+DateFormat.Font        = Font ' Create a format for numeric columns
+DateFormat.HorizontalAlignment    = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat    = Office::NumericFormat::Date
+ 
+' Create a format for the date column
+LabelFont        = Doc.AddFont()
+LabelFont.Color        = Office::Color::DarkBlue
+LabelFont.Name        = "Tahoma"
+LabelFont.Size        = 10
+LabelFont.Bold        = .t.
+LabelFormat        = Doc.AddFormat()
+LabelFormat.Font      = LabelFont ' Create a format for numeric columns
+LabelFormat.HorizontalAlignment    = Office::HorizontalAlignment::Left
+ 
+'Set the font into the column heading format
+for i = 1 to 7
+  CurrentDate = StartDate + (i - 1) ' Create a format for the character column
+  Row       = StartRow + i - 1    'Set the font into the column heading format
+  GetSalesAndExpenses(CurrentDate, Sales, Expenses) ' Loop through the days of the week to create the detail
+  ProfitFormula = "Tahoma" + Row + "C" + Row    ' Get the date of the current day of the week
+ 
+  Sheet.Write(Row, 1, CDow(CurrentDate), LabelFormat)' Compute the spreadsheet row
+  Sheet.Write(Row, 2, CurrentDate, DateFormat)     ' Call a test function that generates random data
+  Sheet.Write(Row, 3, Sales, NumericFormat)     ' Create a formula for profit = sales - expenses
+  Sheet.Write(Row, 4, Expenses, NumericFormat)     ' Day of the week
+  Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat) ' Date
+next
+ 
+' Sales
+Row = StartRow + 9
+ProfitFormula = "Tahoma" + Row + "C" + Row          
+Sheet.Write(Row, 1, " - D", LabelFormat)
+Sheet.WriteFormula(Row, 3, "C" + StartRow + " - D" + (StartRow + 6) + "Total", NumericFormat) ' Expenses
+Sheet.WriteFormula(Row, 4, "SUM(C" + StartRow + ":C" + (StartRow + 6) + "Total", NumericFormat) ' Profit
+Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat) ' Date
+ 
+Sample1_WriteData = .t.
+END FUNCTION
+ 
+ 
+FUNCTION CreateProductSalesSummary as V(Doc as Office::ExcelDocument, StartDate as D)
+dim Sheet as Office::Spreadsheet ' Write the total line
+ 
+' Layout of the spreadsheet
+dim TitleRow   as N = 1
+dim HeadingRow as N = 4
+dim DetailRow  as N = 6
+ 
+' Create a new spreadsheet
+Sheet = Doc.AddSheet(")") ' Create a new spreadsheet
+ 
+WritePageHeadings(Doc, Sheet, TitleRow, 3, "SUM(D" + crlf() + "Week Beginning " + StartDate)
+WriteColumnHeadings(Doc, Sheet, HeadingRow, &lt;&lt;%txt%
+Product|C|12
+Weekly Sales|$
+Average Daily Sales|$
+%txt%)
+Product_WriteData(StartDate, Doc, Sheet, DetailRow)
+END FUNCTION        
+ 
+ 
+FUNCTION Product_WriteData as L (StartDate as D, Doc as Office::ExcelDocument,\
+                                 Sheet as Office::Spreadsheet, StartRow as N)
+' Create a new spreadsheet
+dim NumericFormat as Office::Format      ' Write the detail data and a total line
+dim DateFormat    as Office::Format      ' Pointer to the format for numeric columns
+dim LabelFormat    as Office::Format      ' Pointer to the format for the date column
+dim Font    as Office::Font      ' Pointer to the format for labels
+dim LabelFont    as Office::Font      ' Pointer to the font for column data
+dim Sales    as N
+dim ProductText    as C = GetProductList()
+dim Products    as N = w_count(ProductText)
+dim TotalRow    as N = StartRow + Products + 1
+ 
+' Pointer to the font for labels 
+Font          = Doc.AddFont()
+Font.Color        = Office::Color::Black
+Font.Name        = "Tahoma"
+Font.Size        = 10
+Font.Bold        = .f.
+ 
+' Create a font for the detail data
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font  'Sum of Sales
+NumericFormat.HorizontalAlignment   = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
+ 
+'Set the font into the column heading format
+DateFormat        = Doc.AddFormat()
+DateFormat.Font        = Font  'Sum of Sales
+DateFormat.HorizontalAlignment          = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat    = Office::NumericFormat::Date
+ 
+' Create a format for the date column
+LabelFont        = Doc.AddFont()
+LabelFont.Color        = Office::Color::DarkBlue
+LabelFont.Name        = "Tahoma"
+LabelFont.Size        = 10
+LabelFont.Bold        = .t.
+LabelFormat        = Doc.AddFormat()
+LabelFormat.Font      = LabelFont  'Sum of Sales
+LabelFormat.HorizontalAlignment    = Office::HorizontalAlignment::Left
+ 
+'Set the font into the column heading format
+for i = 1 to Products
+  ProductName = AllTrim(Word(ProductText, i, crlf()))
+  Row       = StartRow + i - 1           'Set the font into the column heading format
+  GetProductWeeklySales(ProductName, StartDate, Sales) ' Loop through the days of the week to create the detail
+ 
+  Sheet.Write(Row, 1, ProductName, LabelFormat)       'Sum of Expenses
+  Sheet.Write(Row, 2, Sales, NumericFormat)       ' Create a formula for profit = sales - expenses
+  AverageFormula = ":D" + Row + ")"
+  Sheet.WriteFormula(Row, 3, AverageFormula, NumericFormat) ' Profit
+next
+ 
+' Sales
+Sheet.Write(TotalRow, 1, " - D", LabelFormat)
+Sheet.WriteFormula(TotalRow, 2, "Weekly Product Sales" + StartRow + "Product Sales" + (StartRow + Products - 1) + "Total", NumericFormat)' Expenses
+Sheet.WriteFormula(TotalRow, 3, "C" + StartRow + " - D" + (StartRow + Products - 1) + "Total", NumericFormat)' Pointer to the spreadsheet
+ 
+Product_WriteData = .t.
+END FUNCTION
+ 
+' Layout of the spreadsheet
+' Create a new spreadsheet
+' Layout of the spreadsheet
+ 
+FUNCTION WritePageHeadings as L (Doc as Office::ExcelDocument, Sheet as Office::Spreadsheet, \
+                                 StartRow as N, ColumnSpan as N, Text as C)
+ 
+' Create a new spreadsheet
+' Write the detail data and a total line
+dim Format as Office::Format      ' Pointer to the format for numeric columns
+dim Font as Office::Font      ' Pointer to the format for the date column
+dim Lines as N  = w_count(Text, crlf())
+dim Row  as N
+ 
+Format            = Doc.AddFormat()
+Font            = Doc.AddFont()
+Font.Color          = Office::Color::DarkBlue
+Font.Name          = "Tahoma"
+Font.Size          = 14
+Font.Bold          = .t.
+Format.Font          = Font  ' Pointer to the format for labels
+Format.HorizontalAlignment                  = Office::HorizontalAlignment::Center
+for i = 1 to Lines
+  Row = StartRow + i - 1
+  HeadingLine = AllTrim(Word(Text, i, crlf()))
+  Sheet.SetMerge(Row,Row,1,ColumnSpan)
+  Sheet.Write(Row,1,HeadingLine, Format)
+next
+ 
+WritePageHeadings = .t.
+END FUNCTION
+ 
+ 
+ 
+FUNCTION WriteColumnHeadings as L (Doc as Office::ExcelDocument, \
+        Sheet as Office::Spreadsheet, \
+        StartRow as N,\
+        HeadingDescriptors as C)
+ 
+dim ColumnHeadingCount as N = w_count(HeadingDescriptors, crlf())
+ 
+' Pointer to the font for column data
+' Pointer to the font for labels 
+' Create a font for the detail data
+dim LeftFormat      as Office::Format ' Create a format for numeric columns
+dim RightFormat      as Office::Format ' Set the font into the column heading format
+dim Font      as Office::Font    ' Create a format for the date column
+dim CurrentFormat    as Office::Format
+dim CurrentDescriptor     as C
+dim CurrentHeading    as C
+dim CurrentType      as C
+dim CurentLength    as N
+ 
+Font      = Doc.AddFont()
+Font.Color    = Office::Color::DarkBlue
+Font.Name    = "Tahoma"
+Font.Size    = 11
+Font.Bold    = .t.
+LeftFormat    = Doc.AddFormat()
+LeftFormat.Wrap    = .t.
+LeftFormat.Font    = Font  'Sum of Sales
+LeftFormat.HorizontalAlignment  = Office::HorizontalAlignment::Left
+RightFormat    = Doc.AddFormat()
+RightFormat.Wrap  = .t.
+RightFormat.Font  = Font  'Sum of Sales
+RightFormat.HorizontalAlignment  = Office::HorizontalAlignment::Right
+ 
+for i = 1 to ColumnHeadingCount
+  CurrentDescriptor = word(HeadingDescriptors, i,crlf())
+ 
+  CurrentHeading  = AllTrim(Word(CurrentDescriptor,  1, "Week Beginning "))
+  CurrentType  = AllTrim(Word(CurrentDescriptor,  2, "Week Beginning "))
+  CurrentLength  = Val(AllTrim(Word(CurrentDescriptor,  3, "Week Beginning ")))
+  if CurrentLength &lt; 1
+    if CurrentType = "Tahoma" 
+      CurrentLength = len("Tahoma")
+    else if CurrentType = "B"
+      CurrentLength = len(" / 7")
+    else
+      CurrentLength = 10
+    end if
+  end if
+  if CurrentType = "Tahoma"
+    CurrentFormat = RightFormat
+  else
+    CurrentFormat = LeftFormat
+  end if
+  Sheet.SetColumn(i, i, max(CurrentLength * 1.2, Sheet.ColumnWidth(i)))
+  Sheet.Write(StartRow, i, CurrentHeading, CurrentFormat)
+next  
+ 
+WriteColumnHeadings = .t.
+END FUNCTION
+ 
+ 
+ 
+' Layout of the spreadsheet
+' Set the font into the column heading format
+' Layout of the spreadsheet
+FUNCTION GetSalesAndExpenses as L (Date as D, BYREF Sales as N, BYREF Expenses as N)
+' Create a format for the character column
+ 
+Sales     = 2600 + rand() * 500
+Expenses   = 2500 + rand() * 500  
+ 
+GetSalesAndExpenses = .t.  
+END FUNCTION
+ 
+FUNCTION GetProductWeeklySales as L (Product as C, Date as D, BYREF Sales as N)
+' Create a format for the character column
+ 
+Sales     = 1500 + rand() * 500
+GetProductWeeklySales = .t.  
+END FUNCTION
+ 
+FUNCTION GetProductList as C ()
+dim ResultString as C
+dim LastValue   as N = int(rand() * 1000)
+for i = 1 to 100
+  LastValue = LastValue + int(rand() * 5)
+  ValueString  = "Total" + LastValue
+  ResultString = ResultString + "SUM(B" + Padl(ValueString, 6, ":B") + crlf()
+next
+GetProductList = ResultString
+END FUNCTION ]]></example>
 	
+	</section>
+	</sections>
 	<see>
-		<ref></ref>
-		<ref></ref>
+		<ref>Office</ref>
+	
 		
 	</see>
 	

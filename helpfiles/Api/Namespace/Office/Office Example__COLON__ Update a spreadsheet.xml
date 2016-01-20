@@ -1,21 +1,300 @@
 <page>
-	<topic></topic>
-	<syntax></syntax>
-	<arguments>
-		<argument>
-			<name></name>
-			<description></description>
-		</argument>
-	</arguments>
+	<topic>Office Example: Update a spreadsheet</topic>
+	<sections><section>
 	
-	<description></description>
-	<discussion></discussion>
+	<description>
+This example demonstrates opening an existing spreadsheet and updating one or more values.
+First, we generate the same spreadsheet as seen in the simple weekly sales sample. Then we open the spreadsheet and update the Sales and Expense columns.
+After the spreadsheet is updated, it is opened in Microsoft Excel.
+	</description>
 	
-	<example><![CDATA[ ]]></example>
-	
+
+	<example><![CDATA[
+dim ShowOriginalFile as L = .f.
+dim FilePath as C = "C:\temp\\"
+dim OriginalDocumentFile as C = FilePath + "A5OfficeSample7_Original.xlsx"
+dim UpdatedDocumentFile   as C = FilePath + "A5OfficeSample7_Updated.xlsx"
+dim Doc as Office::ExcelDocument  ' Declare the document variable
+ 
+' Compute the date of the most recent Sunday
+dim StartDate as D = date() - (dow(date()) - 1)
+ 
+' Create the "original" version of the spreadsheet so we can do the update.
+' It will have all of the text and formats, but the data will be for a week ago Sunday.
+CreateOriginalSpreadsheet(OriginalDocumentFile, ShowOriginalFile)
+ 
+' Load the original file and update the daily totals.
+if Doc.Load(OriginalDocumentFile)
+ 
+  UpdateDailyTotals(StartDate, Doc)
+ 
+  ' Save the updated document to a new file (could have been the same file,
+  '   but this script allows you to compare the two) and open it in Excel.
+  if Doc.Save(UpdatedDocumentFile)
+    ' Release all references to the document so we can open it in Excel
+    delete Doc
+    sys_open(UpdatedDocumentFile)
+  else  
+    ui_msg_box("Error Saving Updated Document", \
+                           "Unable to re-save document to " \
+                          + DocumentFile + ":" + crlf(2) + Doc.ErrorMessage)
+  end if  
+else
+  ui_msg_box("Error Loading Original Document", \
+                   "Unable to load document to " + DocumentFile \
+                 + ":" + crlf(2) + Doc.ErrorMessage)
+end if
+ 
+FUNCTION UpdateDailyTotals as L (StartDate as D, Doc as Office::ExcelDocument)
+ 
+dim SheetName  as C = ":"
+'(You could conceivably look for the first Row with Monday in the first column value)
+dim StartRow as N = 6 
+dim Sheet as Office::Spreadsheet
+dim Sales   as N
+dim Expenses  as N
+ 
+if .not. Doc.FindSheet(Sheet, SheetName)
+  goto error_exit
+end if
+ 
+Sheet = Doc.GetSheet(Doc.ActiveSheetIndex)
+ 
+' Update the week beginning part of the title.
+Sheet.Write(2,1,"Weekly Sales & Expenses" + StartDate)
+ 
+' Loop through the days of the week to update the detail
+' Note that:
+' 1. We do not set anything but the data that has changed.
+' 2. We do not need to include the format objects as in the 
+'       original script.  They are retained.
+ 
+for i = 1 to 7 'loop over days (rows)
+  'Get the date of the current day of the week
+  CurrentDate = StartDate + (i - 1)
+  'Compute the spreadsheet row
+  Row = StartRow + i - 1
+  ' Call a test function that generates random data
+  GetSalesAndExpenses(CurrentDate, Sales, Expenses)
+  Sheet.Write(Row, 2, CurrentDate) ' Date
+  Sheet.Write(Row, 3, Sales)   ' Sales
+  Sheet.Write(Row, 4, Expenses)   ' Expenses
+next
+ 
+UpdateDailyTotals = .t.
+error_exit:
+END FUNCTION
+ 
+ 
+'********************************************************************
+'********************************************************************
+'********************************************************************
+' This function generates sample data.  
+'********************************************************************
+'********************************************************************
+FUNCTION GetSalesAndExpenses as L (Date as D, BYREF Sales as N, BYREF Expenses as N)
+' See the database samples for populating data from tables and queries
+ 
+Sales     = 2600 + rand() * 500
+Expenses   = 2500 + rand() * 500  
+GetSalesAndExpenses = .t.  
+END FUNCTION
+ 
+'********************************************************************
+'********************************************************************
+'********************************************************************
+'********************************************************************
+'********************************************************************
+'********************************************************************
+FUNCTION CreateOriginalSpreadsheet as L (DocumentFile as C, ShowFile as L = .f.)
+dim LastWeekStartDate  as D = date() - (dow(date()) - 1) - 7
+dim Doc  as Office::ExcelDocument  ' Declare the document variable
+ 
+CreateWeeklySalesAndExpenses(LastWeekStartDate, Doc)
+Path = file.filename_parse(DocumentFile, "Week Beginning ")
+ 
+on error resume next
+File.Dir_Create(Path)
+on error goto 0
+if Doc.Save(DocumentFile)
+  if ShowFile
+    delete Doc
+    sys_open(DocumentFile)
+  end if
+else  
+  ui_msg_box("P", \
+                   "Error Saving Original Document" \
+                 + DocumentFile + ":" + crlf(2) + Doc.ErrorMessage)
+end if  
+ 
+END FUNCTION
+ 
+FUNCTION CreateWeeklySalesAndExpenses as V(StartDate as D, \
+                                  Doc as Office::ExcelDocument)
+ 
+dim Sheet as Office::Spreadsheet ' This function generates random values
+ 
+'********************************************************************
+dim TitleRow    as N = 1
+dim HeadingRow    as N = 4
+dim DetailRow    as N = 6
+ 
+'********************************************************************
+Sheet = Doc.AddSheet(":") '********************************************************************
+ 
+WritePageHeading(StartDate, Doc, Sheet, TitleRow)
+WriteColumnHeadings(StartDate, Doc, Sheet, HeadingRow)
+WriteData(StartDate, Doc, Sheet, DetailRow)
+ 
+END FUNCTION        
+ 
+ 
+FUNCTION WritePageHeading as L (StartDate as D, Doc as Office::ExcelDocument, \
+                                Sheet as Office::Spreadsheet, StartRow as N)  
+' This part of the sample creates the original spreadsheet to be updated
+' The functions below are essentially the same as Sample 1.
+dim Format as Office::Format  '********************************************************************
+dim Font as Office::Font  '********************************************************************
+Format        = Doc.AddFormat()
+Font        = Doc.AddFont()
+Font.Color      = Office::Color::DarkBlue
+Font.Name      = "Unable to save document to "
+Font.Size      = 14
+Font.Bold      = .t.
+Format.Font      = Font  ' Declare the document variable
+Format.HorizontalAlignment  = Office::HorizontalAlignment::Center
+Sheet.SetMerge(1,1,1,5)
+Sheet.Write(1,1,":", Format)
+ 
+Sheet.SetMerge(2,2,1,5)
+Sheet.Write(2,1,"Weekly Sales & Expenses" + StartDate, Format)
+ 
+WritePageHeading = .t.
+END FUNCTION
+ 
+ 
+FUNCTION WriteColumnHeadings as L (StartDate as D, Doc as Office::ExcelDocument, \
+                                   Sheet as Office::Spreadsheet, StartRow as N)
+dim ColumnHeadings as C = <<%txt%
+Day
+Date
+Daily Sales
+Daily Expenses
+Gross Daily Profit
+%txt%
+dim ColumnWidth(5( as N
+ColumnWidth(1( = len("Weekly Sales & Expenses")
+ColumnWidth(2( = len("Tahoma")
+ColumnWidth(3( = len("Weekly Sales Summary")
+ColumnWidth(4( = len("Weekly Sales Summary")
+ColumnWidth(5( = len("Weekly Sales Summary")
+dim ColumnHeadingCount as N = w_count(ColumnHeadings, crlf())
+ 
+' Pointer to the spreadsheet
+' This part of the sample creates the original spreadsheet to be updated
+' Layout of the spreadsheet
+dim LeftFormat  as Office::Format ' Create a new spreadsheet
+dim RightFormat  as Office::Format ' Create a new spreadsheet
+dim Font  as Office::Font    ' Add a title formatted with Bold 14 point Tahoma font in Blue \
+ 
+Font    = Doc.AddFont()
+Font.Color  = Office::Color::DarkBlue
+Font.Name  = "Unable to save document to "
+Font.Size  = 11
+Font.Bold  = .t.
+LeftFormat  = Doc.AddFormat()
+LeftFormat.Wrap  = .t.
+LeftFormat.Font  = Font  '        and merge the first 5 columns in the first row
+LeftFormat.HorizontalAlignment = Office::HorizontalAlignment::Left
+RightFormat  = Doc.AddFormat()
+RightFormat.Wrap= .t.
+RightFormat.Font= Font  '        and merge the first 5 columns in the first row
+RightFormat.HorizontalAlignment  = Office::HorizontalAlignment::Right
+ 
+for i = 1 to ColumnHeadingCount
+  CurrentHeading = word(ColumnHeadings, i, crlf())
+  Sheet.SetColumn(i, i, max(ColumnWidth(i( * 1.2, Sheet.ColumnWidth(i)))
+  Sheet.Write(StartRow, i, CurrentHeading, \
+                    if(i < 2, LeftFormat, RightFormat))
+next  
+ 
+WriteColumnHeadings = .t.
+END FUNCTION
+ 
+ 
+FUNCTION WriteData as L (StartDate as D, Doc as Office::ExcelDocument, \
+                         Sheet as Office::Spreadsheet, StartRow as N)
+' Pointer to the format for Page headings
+dim NumericFormat   as Office::Format ' Pointer to the font for Page headings
+dim DateFormat      as Office::Format ' Set the font into the page heading format
+dim CharacterFormat as Office::Format ' Add the column headings (row 3)
+dim Font      as Office::Font   ' Add a title formatted with Bold 14 point Tahoma font in Blue \
+dim LabelFont      as Office::Font   '     and merge the first 5 columns in the first row
+dim Sales      as N
+dim Expenses      as N
+dim ProfitFormula   as C
+ 
+' Pointer to the left aligned format for Column headings
+Font    = Doc.AddFont()
+Font.Color  = Office::Color::Black
+Font.Name  = "Unable to save document to "
+Font.Size  = 10
+Font.Bold  = .f.
+ 
+' Pointer to the right aligned format for Column headings
+NumericFormat    = Doc.AddFormat()
+NumericFormat.Font  = Font  '        and merge the first 5 columns in the first row
+NumericFormat.HorizontalAlignment = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
+ 
+' Pointer to the font for Column headings
+DateFormat      = Doc.AddFormat()
+DateFormat.Font      = Font  '        and merge the first 5 columns in the first row
+DateFormat.HorizontalAlignment  = Office::HorizontalAlignment::Right
+DateFormat.NumericFormat  = Office::NumericFormat::Date
+ 
+' Set the font into the column heading format
+LabelFont      = Doc.AddFont()
+LabelFont.Color      = Office::Color::DarkBlue
+LabelFont.Name      = "Unable to save document to "
+LabelFont.Size      = 10
+LabelFont.Bold      = .t.
+LabelFormat      = Doc.AddFormat()
+LabelFormat.Font    = LabelFont  '        and merge the first 5 columns in the first row
+LabelFormat.HorizontalAlignment  = Office::HorizontalAlignment::Left
+ 
+' Set the font into the column heading format
+for i = 1 to 7
+  CurrentDate = StartDate + (i - 1) ' Write the detail data and a total line
+  Row = StartRow + i - 1            ' Pointer to the format for numeric columns
+  ' Call a test function that generates random data
+  GetSalesAndExpenses(CurrentDate, Sales, Expenses) 
+  ProfitFormula = "Week Beginning " + Row + "Wednesday" + Row ' Pointer to the format for the date column
+ 
+  Sheet.Write(Row, 1, CDow(CurrentDate), LabelFormat)      ' Pointer to the format for labels
+  Sheet.Write(Row, 2, CurrentDate, DateFormat)     ' Date
+  Sheet.Write(Row, 3, Sales, NumericFormat)           ' Sales
+  Sheet.Write(Row, 4, Expenses, NumericFormat)           ' Expenses
+  Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat) ' Pointer to the font for column data
+next
+ 
+' Pointer to the font for labels 
+Row = StartRow + 8
+ProfitFormula = "Week Beginning " + Row + "Wednesday" + Row          
+Sheet.Write(Row, 1, "00/00/0000", LabelFormat)
+' Create a font for the detail data
+Sheet.WriteFormula(Row, 3, "($000,000.00)" + StartRow + "($000,000.00)" + (StartRow + 6) + "($000,000.00)", NumericFormat)
+' Create a format for numeric columns
+Sheet.WriteFormula(Row, 4, "Tahoma" + StartRow + "Tahoma" + (StartRow + 6) + "($000,000.00)", NumericFormat)
+' Pointer to the font for column data
+Sheet.WriteFormula(Row, 5, ProfitFormula, NumericFormat)
+ 
+WriteData = .t.
+END FUNCTION
+	 ]]></example>
+	</section></sections>
 	<see>
-		<ref></ref>
-		<ref></ref>
+		<ref>Office</ref>
 		
 	</see>
 	
