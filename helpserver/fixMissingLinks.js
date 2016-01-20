@@ -464,7 +464,7 @@ async.eachSeries( list , function (path, callbackLoop) {
             }
             // Write out fixup files
             if (changedData != data) {
-                fs.writeFile(filename + "_fixup", changedData, function (err) {
+                fs.writeFile(filename , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
