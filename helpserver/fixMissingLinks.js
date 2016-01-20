@@ -59,8 +59,8 @@ var GetCommonFolder = function (paths) {
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
-    if (href.indexOf("tiki-print") >= 0
-        || href.indexOf("tiki-editpage.php") < 0
+    if ( href.indexOf("tiki-print") >= 0
+      || href.indexOf("tiki-editpage.php") >= 0
         ) { 
         // tiki print/editpage is a no-op in the new help system...
         href = "#";
@@ -543,7 +543,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                 reportIssue(filename);
             }
             if (changedData != data) {
-                fs.writeFile(filename, changedData, function (err) {
+                fs.writeFile(filename+ "_fixup", changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
