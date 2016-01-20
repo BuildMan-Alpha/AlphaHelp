@@ -202,14 +202,33 @@ var ResolveLink = function (href, fromPath) {
                         if( samename.length > 1 ) {
                             // Last test = check for same branch as calling page...
                             var samePrefix = [];
-                            var prefixMatch = "/"+fromPath.split('/')[1].toLowerCase()+"/";
-                            for( i = 0 ; i < samename.length ; ++i ) {
-                                if( samename[i].toLowerCase().indexOf(prefixMatch) == 0 ) {
-                                    samePrefix.push(samename[i]);
+                            var lastPrefixIndex = 1;
+                            var prefixParts = fromPath.split('/');
+                            var prefixMatch = "/"+prefixParts[1].toLowerCase()+"/";
+                            for( ; ; ) {
+                                for( i = 0 ; i < samename.length ; ++i ) {
+                                    if( samename[i].toLowerCase().indexOf(prefixMatch) == 0 ) {
+                                        samePrefix.push(samename[i]);
+                                    }
+                                }
+                                if( samePrefix.length > 1 && (lastPrefixIndex+1) < prefixParts.length ) {
+                                    samename = samePrefix;
+                                    samePrefix = [];
+                                    lastPrefixIndex += 1;
+                                    prefixMatch += prefixParts[lastPrefixIndex].toLowerCase() + "/";                                    
+                                } else {
+                                    break;
                                 }
                             }
                             if( samePrefix.length > 0 ) {
                                 samename = samePrefix;
+                            }
+                            if( samename.length > 1 ) {
+                                var commonFolder = GetCommonFolder(samename);
+                                // Lets resolve to the parent folder for all the matched items...
+                                if (commonFolder) {
+                                    samename = [LookupIndexPage(commonFolder)];
+                                }
                             }
                         }
                     }
@@ -463,8 +482,8 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             // Write out fixup files
-            if (changedData != data) {
-                fs.writeFile(filename + "_fixup" , changedData, function (err) {
+            if (changedData != data) { //+ "_fixup"
+                fs.writeFile(filename  , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
@@ -507,7 +526,7 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             if (changedData != data) {
-                fs.writeFile(filename , changedData, function (err) {
+                fs.writeFile(filename + "_fixup" , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
