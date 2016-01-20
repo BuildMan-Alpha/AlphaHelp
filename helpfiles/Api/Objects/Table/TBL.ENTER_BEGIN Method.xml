@@ -1,21 +1,188 @@
 <page>
-	<topic></topic>
-	<syntax></syntax>
+	<topic><![CDATA[<TBL>.ENTER_BEGIN()]]></topic>
+	<syntax><![CDATA[<TBL>.ENTER_BEGIN( [ Field_Rules_Flag as L ] )]]></syntax>
 	<arguments>
 		<argument>
-			<name></name>
-			<description></description>
+			<name>Field_Rules_Flag</name>
+			<description>Optional. Default = .F.</description>
+			<list>
+			<item>
+			<name>.T. (TRUE) = Enforce UI Level field rules when the record is entered.</name>
+			</item>
+			
+			<item>
+			<name>.F. (FALSE) = Ignore UI Level field rules when the record is entered.</name>
+			</item>
+			
+			
+			</list>
 		</argument>
 	</arguments>
 	
-	<description></description>
-	<discussion></discussion>
+	<description>Initiates an Enter operation to add a new record.</description>
+	<discussion><![CDATA[The ENTER_BEGIN() method initiates an Enter operation to add a new record to the table referenced by <TBL>. You complete the Enter operation by using the <TBL>.ENTER_END() method.
+Field_Rules_Flag is an optional parameter. If Field_Rules_Flag is .T., or is set to HONOR_FIELD_RULES, then UI Level field rules are enforced when the record is entered (only under special circumstances - see Note below). If the Field_Rules_Flag is .F., then Alpha Five does not enforce these UI Level field rules.
+UI Level field rules are rules such as:
+]]></discussion>
+	<sections>
+	<section>
+	<list>
+	<item>
+	<name>trigger events</name>
+	</item>
 	
-	<example><![CDATA[ ]]></example>
+	<item>
+	<name>capitalization</name>
+	</item>
+	
+	<item>
+	<name>minimum and maximum values</name>
+	</item>
+	
+	<item>
+	<name>masks/templates</name>
+	</item>
+	
+	<item>
+	<name>lookup fill-ins</name>
+	</item>
+	
+	<item>
+	<name>required fields</name>
+	</item>
+	</list>
+	</section>
+	</sections>
+	
+	<sections>
+	<section>
+	<title>Engine Level</title>
+	<description><![CDATA[rules, such as auto-increment values are always enforced.
+Note : The Field_Rules_Flag parameter is only honored if the <TBL> pointer is the same pointer that a layout is using. For example, assume you have a button on a form with the following code:
+]]></description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+tbl.enter_begin(.T.)
+    tbl.LASTNAME = "Simpson"
+    tbl.FIRSTNAME = "Bart"
+tbl.enter_end(.T.)]]></example>
+	
+	</section>
+	
+	<section>
+	<description><![CDATA[In the above example, Alpha Anywhere will honor the Field_Rules_Flag variable because <TBL> references the primary instance of the table on which the Form is based. However, the following code will NOT honor the Field_Rules_Flag variable because <TBL> references a new instance of the "customer" table.]]></description>
+	<example><![CDATA[dim tbl as P
+tbl = table.open("customer")
+tbl.enter_begin(.T.)
+    tbl.LASTNAME = "Simpson"
+    tbl.FIRSTNAME = "Bart"
+tbl.enter_end(.T.)
+tbl.close()]]></example>
+	</section>
+	
+	<section>
+	<description>One or more Enter operations can occur simultaneously, each on a different open table. The number of active Enter operations cannot exceed the number of open tables.
+Once a table is in Enter mode, you can assign values to the table fields in the record buffer. For example, the following operation creates a new record and assigns values to the LAST_NAME and FIRST_NAME fields:
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.open("d:\a5\a_sports\customer")
+tbl.enter_begin()
+    tbl.LASTNAME = "Simpson"
+    tbl.FIRSTNAME = "Bart"
+tbl.enter_end(.T.)
+tbl.close()]]></example>
+	</section>
+	
+	<section>
+	<description><![CDATA[You cannot use the <TBL>.ENTER_BEGIN() method or <TBL>.CHANGE_BEGIN() methods on a table that is already in either Change or Enter mode. To determine the current mode, use the <TBL>.MODE_GET() method.
+You cannot move the record pointer (using any of the fetch methods) in a table that is already in either Change or Enter mode.
+The <TBL>.ENTER_BEGIN() method is for working with tables "behind the scenes". Contrast this method with the form methods.
+Note : The value of the current record number, as returned by <TBL>.RECNO() and the values of auto-increment fields read between the <TBL>.ENTER_BEGIN()and <TBL>.ENTER_END() methods may change in a multi-user environment. The actual values of these numbers can only be determined after the record is written.
+]]></description>
+	<example><![CDATA[dim tbl as P
+tbl = table.open("d:\a5\a_sports\customer")
+tbl.enter_begin()
+    i = tbl.recno()' do not use this approach in a multi-user environment
+    i2 = tbl.invoice_number ' do not use this approach in a multi-user environment
+tbl.enter_end(.T.)
+k = tbl.recno()' use this approach instead
+k2 = tbl.invoice_number ' use this approach instead (i.e. read the value after the record is saved)
+tbl.close()]]></example>
+	</section>
+	
+	<section>
+	<description>Note : The example below uses the a_current_db system variable. This variable contains the name of the current primary table.</description>
+	</section>
+	
+	
+	</sections>
+	
+	<sections>
+	<section>
+	<title>Example</title>
+	<description>This script adds 10 new records.</description>
+	
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+for i = 0 TO 9
+    tbl.enter_begin()
+    tbl.prod_id = "P00" + LTRIM(STR(i))
+    tbl.enter_end(.T.)
+next i]]></example>
+	
+	</section>
+	
+	<section>
+	
+	<description>This script prompts the user for a record number, and then add a new a new record to the table that is a duplicate of the specified record. The script is attached to a button on a form.</description>
+	
+	<example><![CDATA[rec = ui_get_number("Duplicate record","Enter record number:")
+if rec = "" then
+    end
+else
+    tbl_1 = table.current()
+    'Open a second instance of the session primary table
+    tbl_2 = table.open(a_current_db)
+    'Set its index to record order
+    indx_2 = tbl_2.index_primary_put()
+    'Find the specified record
+    tbl_2.fetch_findrec?
+    'Put first instance of table into enter mode and clone record
+    'from second instance
+    tbl_1.enter_begin()
+    tbl_1.record_clone(tbl_2)
+    tbl_1.enter_end(.T.)
+    'Synch up the form to display the new record
+    parent.resynch()
+    tbl_2.close()
+end if]]></example>
+	
+	</section>
+	
+	<section>
+	
+	<description><![CDATA[This script, attached to a button on a form, uses form methods instead of the <TBL>.ENTER_BEGIN() method to enter a new record.]]></description>
+	
+	<example><![CDATA[
+topparent.new_record()
+customer.value = "Alpha Software Corporation"
+customer.address = "168 Middlesex Turnpike"
+customer.city = "Burlington"
+customer.state_prov = "MA"
+customer.postal_code = "01803"
+parent.commit()]]>
+</example>
+	
+	</section>
+	
+	</sections>
+	
+	
+	
 	
 	<see>
-		<ref></ref>
-		<ref></ref>
+		<ref>Table Functions and Methods</ref>
+		<ref><![CDATA[<OBJECT>.NEW_RECORD()]]></ref>
 	</see>
 	
 </page>
