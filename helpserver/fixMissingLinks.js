@@ -238,7 +238,7 @@ var ResolveLink = function (href, fromPath) {
                     }
                 }
                 if (isAmbig) {
-                    href = "/ambiguous_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath) + "&count=" + samename.length + "&link1=" + querystring.escape(samename[0]) + "&link2=" + querystring.escape(samename[1]);
+                    //href = "/ambiguous_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath) + "&count=" + samename.length + "&link1=" + querystring.escape(samename[0]) + "&link2=" + querystring.escape(samename[1]);
                     if (samename.length > 3) {
                         currentIssue.push({ problem: "ambiguous", href: href, count: samename.length, matches: [samename[0], samename[1], samename[2]] });
                     } else {
@@ -247,7 +247,7 @@ var ResolveLink = function (href, fromPath) {
                 }
             } else {
                 currentIssue.push({ problem: "unknown", href: href });
-                href = "/unknown_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath);
+                //href = "/unknown_reference?page=" + querystring.escape(href) + "&from=" + querystring.escape(fromPath);
             }
         }
     }
@@ -507,11 +507,11 @@ async.eachSeries( list , function (path, callbackLoop) {
                 reportIssue(filename);
             }
             if (changedData != data) {
-                fs.writeFile(filename + "_fixup", changedData, function (err) {
+                fs.writeFile(filename , changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
-                        console.log("Saved " + filename + "_fixup");
+                        console.log("Saved " + filename );
                     }
                     callbackLoop();
                 });
