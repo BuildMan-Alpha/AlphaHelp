@@ -71,6 +71,11 @@
         <xsl:if test="groups">
 			<xsl:for-each select="groups/group">
                <div class="pagegroup">
+                    <xsl:if test="title">
+                        <p class="A5">
+                            <a name="group_{title}"><xsl:value-of select="title" /> </a>
+                        </p>
+                    </xsl:if>
                     <xsl:call-template name="section-content"/>
                </div>     
             </xsl:for-each>        
@@ -210,7 +215,7 @@
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
             <p class="A5">
-                <xsl:value-of select="title" />
+                <a name="section_{title}"><xsl:value-of select="title" /> </a>
             </p>
         </xsl:if>
         <xsl:choose>
