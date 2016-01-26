@@ -66,55 +66,15 @@
 			<b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre>
 		</xsl:if>
 		<xsl:if test="sections">
-			<xsl:for-each select="sections/section">
-				<xsl:if test="title">
-					<p class="A5">
-						<xsl:value-of select="title" />
-					</p>
-				</xsl:if>
-				<xsl:choose>
-					<xsl:when test="content">
-						<p>
-							<xsl:value-of select="content" disable-output-escaping="yes" />
-						</p>
-					</xsl:when>
-					<xsl:when test="discussion">
-						<p>
-							<xsl:value-of select="discussion" />
-						</p>
-					</xsl:when>
-					<xsl:when test="description">
-						<p>
-							<xsl:value-of select="description" />
-						</p>
-					</xsl:when>
-                    <xsl:otherwise></xsl:otherwise>
-				</xsl:choose>
-				<xsl:if test="list">
-				    <xsl:call-template name="list"/>
-				</xsl:if>
-				<xsl:if test="example">
-					<pre class="codeTable"><xsl:value-of select="example" /></pre>
-				</xsl:if>
-				<xsl:if test="figure">
-					<xsl:for-each select="figure">
-						<img xsl:use-attribute-sets="src-link" class="sectionFigure" />
-						<xsl:if test="title">
-							<p>
-								<xsl:value-of select="title" />
-							</p>
-						</xsl:if>
-					</xsl:for-each>
-				</xsl:if>
-				<xsl:if test="video">
-					<li>
-						<a xsl:use-attribute-sets="href-link">
-							<xsl:value-of select="name" />
-						</a>
-					</li>
-				</xsl:if>
-			</xsl:for-each>
+            <xsl:call-template name="section-content"/>
 		</xsl:if>
+        <xsl:if test="groups">
+			<xsl:for-each select="groups/group">
+               <div class="pagegroup">
+                    <xsl:call-template name="section-content"/>
+               </div>     
+            </xsl:for-each>        
+        </xsl:if>
 		<xsl:if test="properties">
 			<p class="A5">Properties</p>
 			<dl class="propertiesDL" >
@@ -246,7 +206,70 @@
 				</xsl:choose>
 			</xsl:for-each>
 		</table>
-	</xsl:template>	
+	</xsl:template>
+    <xsl:template match="sectionstep-content" name="sectionstep-content" >
+        <xsl:if test="title">
+            <p class="A5">
+                <xsl:value-of select="title" />
+            </p>
+        </xsl:if>
+        <xsl:choose>
+            <xsl:when test="content">
+                <p>
+                    <xsl:value-of select="content" disable-output-escaping="yes" />
+                </p>
+            </xsl:when>
+            <xsl:when test="discussion">
+                <p>
+                    <xsl:value-of select="discussion" />
+                </p>
+            </xsl:when>
+            <xsl:when test="description">
+                <p>
+                    <xsl:value-of select="description" />
+                </p>
+            </xsl:when>
+            <xsl:otherwise></xsl:otherwise>
+        </xsl:choose>
+        <xsl:if test="list">
+            <xsl:call-template name="list"/>
+        </xsl:if>
+        <xsl:if test="steps">
+             <xsl:call-template name="step-content"/>
+        </xsl:if>
+        <xsl:if test="example">
+            <pre class="codeTable"><xsl:value-of select="example" /></pre>
+        </xsl:if>
+        <xsl:if test="figure">
+            <xsl:for-each select="figure">
+                <img xsl:use-attribute-sets="src-link" class="sectionFigure" />
+                <xsl:if test="title">
+                    <p>
+                        <xsl:value-of select="title" />
+                    </p>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="video">
+            <li>
+                <a xsl:use-attribute-sets="href-link">
+                    <xsl:value-of select="name" />
+                </a>
+            </li>
+        </xsl:if>
+    </xsl:template>    	
+    <xsl:template match="step-content" name="step-content" >
+            <ol>
+                <xsl:for-each select="steps/step">
+                    <li> <xsl:call-template name="sectionstep-content"/> </li>
+                </xsl:for-each>
+            </ol>
+    </xsl:template>
+    <xsl:template match="section-content" name="section-content" >
+			<xsl:for-each select="sections/section">
+                <xsl:call-template name="sectionstep-content"/>
+			</xsl:for-each>
+    </xsl:template>
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">
 			<xsl:for-each select="arguments/argument">
