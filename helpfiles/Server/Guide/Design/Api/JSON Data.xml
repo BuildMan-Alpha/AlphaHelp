@@ -726,8 +726,438 @@ Next we create a javascript response to send back to the client. In dim msg as c
     </group>
   </groups>
   
-  <groups></groups>
+  <groups>
+    <group background="true">
+      <title>Using JSON to send Data from Client to Server</title>
+      <sections>
+        <section>
+          <description><![CDATA[JSON is useful for passing information form the client to the server.  One way to accomplish this is by passing information into an Ajax callback. In this case, you might have a button that is tied to an AJAX callback which turns around and calls up some Xbasic. You could then add some of Alpha Anywhere's JSON functions to that Xbasic code to allow you to go out, get JSON data from an external source, and then return that data to your component in Xbasic.
+
+Xbasic is currently the coding language on the server. Sometimes you need to turn Xbasic code into something the client side browser can recognize, i.e Javascript. The easiest way to get into the client is through Javascript. When someone clicks a button do an Ajax callback, that callback is handled in Xbasic, which does some manipulations and then returns an object to the client browser in the form of a string. The browser, which  is waiting for the response, then takes that object and generates some actual JSON, that it returns to the client. 
+
+When you want to parse a complex set of data, you can parse JSON data back into an ajax callback and, on the Xbasic side, parse that data and extract values from it. For more information on how to do this watch these videos Part 1 and Part 2 or follow the examples below.
+ ]]></description>
+          
+        </section>
+        
+        
+      </sections>
+    </group>
+    
+    <group>
+      <sections>
+        <section>
+          <steps>
+            <step>
+              <description>In the Web Projects control Panel click the New Component or File button. In the New File dialog select Web Component and click Next. Select UX and click Next again. </description>
+            </step>
+            
+             <step>
+              <description>On the Select UX Component template page leave the 'Start with a blank UX Component' radio button selected and click OK.</description>
+            </step>
+            
+             <step>
+              <description>On the Design tab of the UX Builder open the UX Controls page from the menu list. </description>
+            </step>
+            
+             <step>
+              <description>On the Controls page, go to the Data Controls dropdown section in the design menu and double click on the [TextArea] control option. </description>
+            </step>
+            
+             <step>
+              <description>In the New Control dialog that opens select 'Create a single new control'. Give the control the Name jsonIn and the Label Json In. Under Data Type select Character and click OK.</description>
+            </step>
+            
+             <step>
+              <description>Select the [TextArea] control that you labeled Json In. Look to the right. In the Field properties section inside the Control Properties list, find the Default value property.</description>
+            </step>
+            
+             <step>
+              <description>Change the Default value to be this string of JSON.</description>
+              <example><![CDATA[{"Firstname" : "Fred","Lastname" : "Smith","Children" : [{"Name" : "Jackie", "Age" : 10},{"Name" : "Joan", "Age" : 12}]} ]]></example>
+            </step>
+            
+             <step>
+              <description>On the Controls page, open the Other Controls dropdown in the menu and double click on [Button] control to add it to the UX component.</description>
+            </step>
+            
+            <step>
+              <description>With the Button control selected, look in the control Properties list on the right. Under the Button Properties section, find the Button text property.</description>
+            </step>
+            
+            <step>
+              <description>Change the Button text property to read 'Make and Ajax Callback'</description>
+            </step>
+            
+            
+            <step>
+              <description>Scroll down the Properties list until you reach the Javascript (Touch. Mouse. Pointer Events) section. Click the button next to the click property.</description>
+            </step>
+            
+            <step>
+              <description>The Edit onClick Event dialog will open. Select the Action Javascript radio button option at the top and click the Add New Action button.</description>
+            </step>
+            
+            <step>
+              <description>In the Action Javascript Select and Action dialog select Action Callbacks and Javascript from the Categories list on the left.</description>
+            </step>
+            
+             <step>
+              <description>From the Actions: list on the right select Ajax Callback. And click OK.</description>
+              <figure><link>images/ajaxcallback.png</link></figure>
+            </step>
+            
+             <step>
+              <description>An Action Javascript Ajax Callback dialog will open. </description>
+            </step>
+            
+             <step>
+              <description>In the Ajax Callback section of the dialog, leave the Callback type property set to InternalXbasicFunction and type xb next to the Function name property.</description>
+            </step>
+            
+            <step>
+              <description>In the Advanced section of the dialog, find the Additional data to submit property and next to it type additionalAjaxData(). Click OK, OK, and Save.</description>
+                <figure><link>images/ajaxcallback2.png</link></figure>
+         <note>Note: The Additional data to submit property represents the data that is going to be submitted from the client side to the server side. This property allows you to use an Xbasic function to return data. You can specify additional data to submit in the Action Javascript Ajax Callback genie. This data will be available inside your custom event handler, in this case the click event. What is expected from the Additional data to submit property is a Query string, name value pairs delimited with an & sign, type in a Review help text in Action Javascript Ajax Callback Action. This feature is useful when you want to generate arbitrary information on the client side. </note>
+         
+            </step>
+            
+            <step>
+              <description>Click on the Code dropdown and select Javascript functions. In the Javascript workspace add the following code. </description>
+            <example><![CDATA[function additionalAjaxData() {
+    var json = {dialog.object}.getValue('jsonIn');
+    //return '__additionalData=' + json;
+    var data = A5.ajax.buildURLParam('__additionalData',json);
+    return data;
+}
+ ]]></example>
+            <note>Note: Here we are reading the value that is in the text area field and sending back to the server a name value pair. This name value pair is formatted like a query string. The value part of the name value pair needs to be URL encoded. Inside the Alpha JS library there is a buildURL function that takes its first argument as name and its second argument as a value. The buildURL function then encodes that value. </note>
+            
+            </step>
+            
+            <step>
+              <description>From the Code dropdown click on the Xbasic functions option. Add the following Xbasic.</description>
+           <example><![CDATA[function xb as c (e as p)
+
+    dim json as c
+    json = e.__additionalData
+
+    dim p as p 
+    p = json_parse(json)
+    dim msg as c
+    msg = "Message from Xbasic. The name of the second child is: " + p.children[2].name
+
+    dim js as c
+    js = "alert('" + js_escape(msg) + "');"
+
+    xb = js
+end function
+ ]]></example>
+           <note>This code takes the string of JSON data that we defined earlier and sends it back to the server as part of an ajax callback. It then parses this information on the server using the parse function. Afterward, it extracts the name field, from the second array item in the childrens array, and uses this to construct an object that is fed into an alert message and passed to the client. 
+
+Going line by line this is what this looks like. The xb in this case is the actual Xbasic function that will handle the Ajax callback. In the line dim json as c, we create an Xbasic character variable called json. This variable is then set to = e.__additionalData.  The e is a pointer variable that is passed into the xb function. It points to an object that contains a property called additionalData, which is a string that is sent back as part of the Ajax callback. The p in the line dim p as p defines an second Xbasic pointer variable that is set to =json_parse(json). The json_parse() function parses a string, in this case the json string that we defined, in JSON format and returns an Xbasic variable. 
+
+Next we create a javascript response to send back to the client. In dim msg as c we create yet a third Xbasic variable, a character variable called msg, that contains a string and the second element of the children array; the array that was included in the string that we parsed. In Xbasic arrays are 1 based, meaning the first element in the array is [1] and the second element is [2]. This is unlike Javascript which is 0 based. When msg is defined it is then passed into a js object that is tied to a javascript alert. When you return a string, you need to make sure it is Javascript safe. In dim js as c, a js object is created that is set to be an alert message that to be sent back to the client. Xbasic still views this alert message as a string, but javascript will interpret it as javascript. The line xb = js is equivalent to a return statement in javascript. In this case we are returning the js string to the javascript that operates the client side code.
+</note>
+           
+            </step>
+            <step>
+              <description>Now go to Working Preview and click the Make Ajax Callback button. You should see something like this:</description>
+              <figure><link>images/ajaxcallback3.png</link></figure>
+              
+            </step>
+            
+            
+            
+          </steps>
+          
+          
+        </section>
+        
+        
+      </sections>
+      
+      
+      
+    </group>
+  </groups>
   
-	
+	<groups>
+    <group background="title">
+      <title>JSON and sending data from Server to Client</title>
+      <sections>
+        <section>
+          <description>In this example, look at how you can make a callback from the client to the server to retrieve data from the server in JSON format and then work with the data that was sent back from the server and display it on the client. In some nicely formated html on the client side</description>
+          
+          
+        </section>
+        <section>
+          
+          <description>Watch Video - Part 1
+Watch Video - Part 2
+Watch Video - Part 3
+Watch Video - Part 4</description>
+          
+        </section>
+        
+      </sections>
+    </group>
+    <group>
+      <sections>
+        <title>Use JSON to send data from the Server to the Client:</title>
+        <steps>
+          <step>
+            <description>In the Web Projects control Panel click the New Component or File button. In the New File dialog select Web Component and click Next. Select UX and click Next again. </description>
+          </step>
+          
+          <step>
+            <description>On the Select UX Component template page leave the 'Start with a blank UX Component' radio button selected and click OK.</description>
+          </step>
+          
+          <step>
+            <description>On the Design tab of the UX Builder open the UX Controls page from the menu list. </description>
+          </step>
+          
+          <step>
+            <description>Open the Other Controls dropdown and double click on [Button] to add a button to the UX component. </description>
+          </step>
+          
+          <step>
+            <description>Click on the [Static Text] control in the Other Controls dropdown to add a static text control to the UX component.</description>
+          </step>
+          
+          <step>
+            <description>Select the Static test control and look at the Control Properties list. In the Static Text Properties section change the Static text property to this:
+
+</description>
+<example><![CDATA[<div id="msg2"></div>
+ ]]></example>
+          </step>
+          
+          <step>
+            <description>Select the button that you added to you component. Go to the the Properties list on the right. </description>
+          </step>
+          
+           <step>
+            <description>In the Button Properties section change the Button text property to read Fetch data from server.</description>
+          </step>
+          
+           <step>
+            <description>Go to the Javascript (Touch. Mouse. Pointer Events) section of the Properties list and choose the click property.</description>
+          </step>
+          
+           <step>
+            <description>The Edit Click Event dialog will open. Leave the Action Javascript radio button selected.</description>
+          </step>
+          
+           <step>
+            <description>Click the Add New Action button. The Action Javascript - Select an Action dialog will open.</description>
+          </step>
+          
+           <step>
+            <description>In the Categories: list select Ajax Callbacks and Javascript option. In the Actions: list select Ajax Callback. Click OK.</description>
+          </step>
+          
+           <step>
+            <description>The Action Javascript - Ajax Callback Action genie will appear. Set the Function name property to be xb2</description>
+          </step>
+          
+           <step>
+            <description>Click the button  next to the After callback complete Javascript property. </description>
+          </step>
+          
+           <step>
+            <description>The After Callback Complete Javascript dialog will open. Add a function called expandTemplate(); and click OK and OK and OK again. Save.</description>
+       <figure><link>images/ajaxserverclient.png</link></figure>
+   <note>Note: As you probably know Ajax is asynchronos. In creating this Ajax callback this means that you can't have the function, expandTemplate(), be triggered immediately. As a result, in this example you can not add more actions to the Edit Click Event dialog unless you click the Run actions synchronously button at the bottom of the dialog. In this example, we are leaving this unchecked.</note>
+          </step>
+          
+           <step>
+            <description>Open the Code dropdown and click on the Javascript functions page. Enter the following code:</description>
+       <example><![CDATA[function expandTemplate() {
+
+    var ele = $('msg2');
+    //A5.u.element.setContent() is like setting the .innerHTML of ele, but preserves drag scroll behavior
+    A5.u.element.setContent(ele, 'this is the expanded template');
+
+}
+]]></example>
+<note>Note: Instead of setting .innerHTML directly we are using a helper function called A5.u.element.setContent(). This is the preferred way of writing this code if there is a possibility that drag scrolling is enabled. If the element that you are setting the .innerHTML on had grad scrolling enabled, and you set innerHTML directly, it would destroy the drag scrolling capability. Moving on, after the client receives the data we want to format it:</note>
+          </step>
+          
+           <step>
+            <description>Save your Component and go to the Web Projects Control Panel. From the Tools dropdown select the Open Template Tester window.  On JSON tab click Load Example.</description>
+          </step>
+          
+           <step>
+            <description>From the Select Example list choose the Simple object, simple template object. Click OK.</description>
+          </step>
+          
+          <step>
+            <description>Want JSON that is standards compliant. JSON standard required double quotes. Highlight the inserted JSON and hit the Reformat JSON button.</description>
+          </step>
+          
+          <step>
+            <description>Go to the Template page and change the html to read the following:</description>
+            <example><![CDATA[Hello <b>{firstname}</b> <span style="color:blue;">{lastname}</span>]]></example>
+          </step>
+          
+          <step>
+            <description>Click the Show Javascript button. This will show the Javascript that takes data and expands the html. Copy this javascript to the clipboard.</description>
+         <figure><link>images/ajaxserverclient2.png</link></figure>
+          </step>
+          
+          <step>
+            <description>Go to the Code dropdown again and open Javascript functions. Paste the Javascript into the expandTemplate function that you defined.</description>
+          <example><![CDATA[function expandTemplate() {
+
+    var _d = {
+            "firstname" : "Fred",
+            "lastname": "Smith"
+    };
+    var _t = [
+    'Hello <b>{firstname}</b> <span style="color: blue;">{lastname}</span>'
+    ].join('');
+    var settings = {
+    template: _t,
+    partials: ''
+    }
+    var html = A5.u.template.expand(_d,settings);
+    var ele = $('msg2');
+    A5.u.element.setContent(ele, 'this is the expanded template');
+
+}
+ ]]></example>
+          </step>
+          
+          <step>
+            <description>To get data returned by Xbasic callback open the Xbasic function page from the Code dropdown list. Enter the following code:</description>
+      <example><![CDATA[function xb2 as c (e as p)
+        
+        delete p 
+        dim p.firstname as c = "Fred"
+        dim p.lastname as c = "Smith"
+        dim p.date as c = "" + date()
+        dim json as c
+        json = json_generate(p)
+
+        dim js as c
+        js = "{dialog.object}._data = " + json +";"
+
+        xb2 = js
+
+end function
+]]></example>
+<note><![CDATA[In this code dim json as c creates an Xbasic object. This object, json, is then set to be =json_generate(p). The json_generate() function takes a variable, in this case a variable called p, and returns JSON data in this object in the form of a string. Xbasic now has a string in Xbasic that can read and manipulate. Next we create an Xbasic object named js, in the line dim js as c, and set this equal to xb2. This code effectively places the JSON data inside a temporary variable inside the UX component.]]></note>
+          </step>
+          
+            <step>
+            <description>Go to the Working Preview tab. Click the Fetch data from server button.
+
+</description>
+<figure><link>images/ajaxserverclient3.png</link></figure>
+
+          </step>
+          
+            <step>
+            <description><![CDATA[Now back to your Javascript functions page and change the expandTemplate() function to include d = {dialog.object}._data; ]]></description>
+          </step>
+          
+            <step>
+            <description>Now back to your Javascript functions page and change the expandTemplate() function to include d = {dialog.object}._data; </description>
+          </step>
+          
+          <step>
+            <description><![CDATA[Also change A5.u.element.setContent(ele, 'this is the expanded template'); to read  A5.u.element.setContent(ele, html)]]></description>
+            <example><![CDATA[function expandTemplate() {
+
+    var _d = {
+            "firstname" : "Fred",
+            "lastname": "Smith"
+    };
+
+    _d = {dialog.object}._data;
+
+    var _t = [
+    'Hello <b>{firstname}</b> <span style="color: blue;">{lastname}</span>'
+    ].join('');
+    var settings = {
+    template: _t,
+    partials: ''
+    }
+    var html = A5.u.template.expand(_d,settings);
+    var ele = $('msg2');
+    A5.u.element.setContent(ele, html);
+
+}
+]]></example>
+<note>Using A5.u.element.setContent() is like setting the .innerHTML of ele. Unlike .innerHTML, A5.u.element.setContent() preserves the drag scroll behavior. The _d in this code represents the data that the template will expand. Setting _d to {dialog.object}._data; makes _d draw its data from the Xbasic function definition we defined in step 23. When you run the component now you should see that the same data that is defined on the server-side, i.e in Xbasic.</note>
+          </step>
+ <step>
+   <description>Go to Working Preview and click the Fetch data from server button again:</description>
+   <figure><link>images/ajaxserverclient4.png</link></figure>
+ </step>
+ 
+ <step>
+   <description>Go back to the Design tab. To make sure that your code is calling data from the server, reopen your Xbasic functions page in the Code dropdown.</description>
+   
+ </step>
+ 
+ <step>
+   <description>Change the "Fred" and "Smith" in your xb2 function to something different, like "Salmo" and  "trutta" or anything.
+
+</description>
+   <figure><link>images/ajaxserverclient5.png</link></figure>
+ </step>
+ 
+ <step>
+   <description>In the Code dropdown open the Javascript functions page again.</description>
+   
+ </step>
+     <step>
+       <description>Now add something to consume the date. Change this line of code 'Hello <b>{firstname}</b> <span style="color: blue;">{lastname}</span>' by adding 'on {date}.'
+
+</description>
+       <example><![CDATA['Hello <b>{firstname}</b> <span style="color: blue;">{lastname}</span> on {date}.'
+]]></example>
+     </step>     
+          
+<step>
+  <description>Go to Working Preview and click button.</description>
+  <figure><link>images/ajaxserverclient6.png</link></figure>
+  <note>To summarize, the Ajax Callback can be made to the server. The server Xbasic is now free to use any Xbasic code that it wants to compute data to send back to the server. Data that gets sent back is encoded on the server-side into an Xbasic object, in this case a p variable. This variable then gets converted into a JSON string which gets sent back to the client</note>
+</step>          
+   
+        </steps>      
+      </sections>
+  
+    </group>
+  </groups>
+  
+  <groups>
+    <group background="true">
+      <title>JSON from the Server-side and the Template Tester</title>
+      <sections>
+        <section>
+          <description><![CDATA[The client-side template tester window is very useful in laying out JSON data on the client side. The user interface for the Template Tester is resizable and has separate tabs for JSON Data, Template, Javascript and CSS. As you edit in any of these windows the template preview is automatically updated in the right part of the window. 
+
+While the Template Tester does help in presenting JSON data from the server-side on the client, It is still necessary to define some xbasic and javascript in order to use a specific set of JSON data. When editing Xbasic or Javascript code, html, and JSON it is often helpful to be able to see the start and end of different opening and closing 'pair' delimiters. For example in an Xbasic function call, highlighting the opening an closing parentheses. Or in a Javascript function, highlighting the opening and closing curly braces. In some HTML text, the opening and closing tags (e.g. <div>, <body>, <p> , etc.). Once a 'pair' has been identified, keyboard shortcuts (Control  ] and Control-Shift ] )  allow you to quickly move focus from the start of the 'pair' to the end of the 'pair' or to select all of the text inside the 'pair'. For more on this watch this video.
+
+To follow the advanced example below watch the following videos Part 1, Part 2, Part 3, Part 4 or simply download the component.
+]]></description>
+          
+          
+        </section>
+        
+        
+      </sections>
+      
+    </group>
+    
+    
+    
+    
+  </groups>
+  
 	
 </page>
