@@ -69,15 +69,29 @@
             <xsl:call-template name="section-content"/>
 		</xsl:if>
         <xsl:if test="groups">
-			<xsl:for-each select="groups/group">
-               <div class="pagegroup">
-                    <xsl:if test="title">
-                        <p class="A5">
-                            <a name="group_{title}"><xsl:value-of select="title" /> </a>
-                        </p>
-                    </xsl:if>
-                    <xsl:call-template name="section-content"/>
-               </div>     
+			<xsl:for-each select="groups/group">                            
+               <xsl:choose>
+                    <xsl:when test="./@background">
+                        <div class="pagegroupBackground">
+                                <xsl:if test="title">
+                                    <p class="A5">
+                                        <a name="group_{title}"><xsl:value-of select="title" /> </a>
+                                    </p>
+                                </xsl:if>
+                                <xsl:call-template name="section-content"/>
+                        </div>   
+                    </xsl:when>    
+                    <xsl:otherwise>
+                        <div class="pagegroup">
+                            <xsl:if test="title">
+                                <p class="A5">
+                                    <a name="group_{title}"><xsl:value-of select="title" /> </a>
+                                </p>
+                            </xsl:if>
+                            <xsl:call-template name="section-content"/>
+                        </div>   
+                    </xsl:otherwise>
+               </xsl:choose>  
             </xsl:for-each>        
         </xsl:if>
 		<xsl:if test="properties">
