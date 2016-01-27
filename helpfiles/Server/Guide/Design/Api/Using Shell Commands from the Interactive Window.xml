@@ -1,0 +1,277 @@
+<page>
+	<topic>Interactive Shell</topic>
+	<groups>
+		<group background="true">
+			
+			<sections>
+				<section>
+					<description>You can now executed shell commands directly from the Interactive Window in Alpha Anywhere. </description>
+					<videos>
+						<video>
+							<name>Watch Video - Part 1</name>
+							<link>http://www.ajaxvideotutorials.com/V12Videos/interactive_shell_1.swf</link>
+						</video>
+						<video>
+							<name>Watch Video - Part 2</name>
+							<link>http://www.ajaxvideotutorials.com/V12Videos/interactive_shell_2.swf</link>
+						</video>
+					</videos>
+				</section>
+				
+			</sections>
+			
+		</group>
+		
+		<group>
+			<title>The '$' Command</title>
+			<sections>
+				<section>
+					<description>Shelling out to the command line, and executing shell commands can now be done from directly the Alpha Anywhere Interactive window by preceding the shell command with a '$' sign.
+
+
+Run the DIR command:
+</description>
+					<example><![CDATA[$dir c:\data /b
+ApplicationServerConfig.xml
+chome.png
+data.json
+db
+font-awesome
+invtest.rtf
+Northwind.mdb
+test.pdf
+times.txt]]></example>	
+				</section>
+				
+				<section>
+					<description>Show the current date:</description>
+					<example><![CDATA[$date /T
+Sun 07/27/2014]]></example>	
+				</section>
+				
+				<section>
+					<description>Execute a CURL command:
+Note the use of the --silent and --no-buffer CURL options
+</description>
+					<example><![CDATA[$curl http://worldcup.kimonolabs.com/api/players --silent --no-buffer
+{"error":"Unauthorized - Invalid API Key"}]]></example>	
+				</section>
+				
+				<section>
+					<description>Auto-complete help is supported for a many shell commands. For example, when you type the first - after the $curl command note how the CURL command options are shown.
+</description>
+						<figure><link>images/curl_bubbleHelp.jpg</link></figure>
+				
+				<note>NOTE: The auto-complete help is defined in the interactive_shell.json file in the executable folder. You can modify this file to add auto-complete help for other shell commands.</note>
+				</section>
+				
+			</sections>
+			
+		</group>
+		<group>
+			<title>Interactive Commands</title>
+			<sections>
+				<section>
+					<description>Interactive shell commands are supported and they run in the Interactive Window until you exit or hit ^Z (which forces a terminate). 
+Run Node.js from the Interactive Window (this is the standard Node.JS REPL):
+</description>
+					<example><![CDATA[$node
+> 1+1
+2
+> "hello world".split()
+[ 'hello world' ]
+> var fs = require('fs');
+undefined
+> fs.existsSync("c:/program files (x86)/a5v12/alpha5.exe")
+true
+> process.exit()]]></example>
+
+<note>NOTE:  process.exit() is the Node command for closing Node. We could also have simply typed ^Z in the Interactive Window to end the interactive Node session.</note>
+
+				</section>
+			</sections>
+			
+		</group>
+		<group>
+			<title>Redirecting Output and Input</title>
+			<sections>
+				<section>
+					<description>The Interactive Shell commands allows redirecting output to an Xbasic variable.
+
+For example, here we use the DIR command and we redirect the output (using the > directive) to an Xbasic variable called 'files'. We then use the Xbasic function to display the contents of the variable.
+</description>
+					<example><![CDATA[$dir c:\a5v12 > files
+showvar(files)]]></example>
+				</section>
+				<section>
+					<description>When a shell command is expecting input that you would normally type in, you can redirect input to the shell command using the < directive.
+For example here we create an Xbasic variable with a long list of colors using the a5.color_enum() function. Notice that we append a ^Z (chr(26)) character to the end of the string, or else the command window will not know that there is no more input to receive. We then call the SORT command and pipe input to the command from the 'colors' variable, and pipe output from the command to the 'sorted' variable. Then we show the contents of the sorted variable using the showvar() function.
+</description>
+					<example><![CDATA[dim colors as c 
+colors = a5.Color_Enum() + chr(26)
+$sort < colors  > sorted 
+showvar(sorted)]]></example>
+<note>TIP: When using the command window, if the command window appears hung, it is likely that the shell is simply waiting for more input. You can press ^Z as you would in a normal CMD window to end the command. For shell commands that are expecting input, adding a trailing ^Z after the input will let the shell know that the end of the input has been reached.</note>
+				</section>
+				<section>
+					<description></description>
+					
+				</section>
+				
+			</sections>
+		</group>
+		<group>
+			<title>Configuration File Format</title>
+			<sections>
+				<section>
+					<description>The format of the configuration file entries is shown below.
+</description>
+					<example><![CDATA[ {
+        "extend" : (true/false)
+      , "<command>" : {
+           "help" : ""
+		    , "description" : "<description>" 
+		    , "default-arguments" : "<arguments>"
+		    , "require-command" : (true/false)
+		    , "require-console" : (true/false)
+		    , "options" : {
+		       , "<option>" {  
+		   		        "description" : "<description>"
+		   		        "alias" : "<alias>"
+		    }
+		}
+      }
+      ...
+    }]]></example>
+	<list>
+		<item>
+			<name-title>JSON Attribute</name-title>
+			<description-title>Description
+</description-title>
+		</item>
+		<item>
+			<name>"extend"
+</name>
+			<description>If true, load the defaults in addition to this file (we are adding, not overriding completely)</description>
+		</item>
+		<item>
+			<name><![CDATA["<command>"]]>
+</name>
+			<description>Commands are named objects that follow - i.e. "dir"</description>
+		</item>
+		<item>
+			<name>"help"
+</name>
+			<description>Optional help to display when the command has been selected</description>
+		</item>
+		<item>
+			<name>"description"
+</name>
+			<description>Optional description of command</description>
+		</item>
+		<item>
+			<name>"default-arguments"
+</name>
+			<description>Optional default arguments to pass to the command when none are specified.</description>
+		</item>
+		<item>
+			<name>"require-command"
+</name>
+			<description>Optional flag, which when true runs as a shell command, this is required for batch and interpretted commands.</description>
+		</item>
+		<item>
+			<name>"require-console"
+</name>
+			<description>Optional flag, which when true uses a hidden consult window instead of pipes. pipes are preferable because they are not lossy, but applications may require this setting.</description>
+		</item>
+		<item>
+			<name>"options"
+</name>
+			<description>Optional parameter help for command</description>
+		</item>
+		<item>
+			<name><![CDATA["<option>"
+]]></name>
+			<description>A parameter</description>
+		</item>
+		<item>
+			<name>"description"
+</name>
+			<description>Optional description of parameter</description>
+		</item>
+		<item>
+			<name>"alias"</name>
+			<description>Some parameters have short versions of the same parameter, this is stored in the alias</description>
+		</item>
+		
+		
+		
+	</list>
+	
+	
+				</section>
+				
+			</sections>
+		</group>
+		<group>
+			<title>Example Configuration Entry
+</title>
+			<sections>
+				<section>
+					<description>When you type the initial $ in the Interactive Window, the auto-complete help shows all of the shell commands that have been defined in the interactive_shell.json file.</description>
+					<figure><link>images/interactiveshell_autocomplete3.jpg</link></figure>
+				</section>
+				<section>
+					<description>The example below shows the configuration file entry for the DIR shell command. When you type $dir in the Interactive window, auto-complete help is displayed (as shown in the image below).</description>
+					<figure><link>images/interactiveshellbubblehelp1.jpg</link></figure>
+				</section>
+				<section>
+					<description>The help that is displayed is defined by the help property in the JSON string shown below.
+The require-command option is defined as 'true'. This is because the DIR command requires the CMD shell to be running to execute.
+</description>
+					<example><![CDATA["dir" :
+{
+	"help" : "dir [drive:][path][filename] [/A[[:]attributes]] [/B] [/C] [/D] [/L] [/N] [/O[[:]sortorder]] [/P] [/Q] [/R] [/S] [/T[[:]timefield]] [/W] [/X] [/4]",
+	"require-command" : true ,
+	"options" : {
+	"/A" : { "description" : "Displays files with specified attributes." } ,
+	"/B" : { "description" : "Uses bare format (no heading information or summary)." } ,
+	"/C" : { "description" : "Display the thousand separator in file sizes.  This is the default.  Use /-C to disable display of separator." } ,
+	"/D" : { "description" : "Same as wide but files are list sorted by column." } ,
+	"/L" : { "description" : "Uses lowercase." } ,
+	"/N" : { "description" : "New long list format where filenames are on the far right." } ,
+	"/O" : { "description" : "List by files in sorted order (N, S , E , D , G , - ) ." } ,
+	"/P" : { "description" : "Pauses after each screenful of information." } ,
+	"/Q" : { "description" : "Display the owner of the file." } ,
+	"/R" : { "description" : "Display alternate data streams of the file." } ,
+	"/S" : { "description" : "Displays files in specified directory and all subdirectories." } ,
+	"/T" : { "description" : "Controls which time field displayed or used for sorting (C,A,W)" } ,
+	"/W" : { "description" : "Uses wide list format." } ,
+	"/X" : { "description" : "This displays the short names generated for non-8dot3 file names." } ,
+	"/4" : { "description" : "Displays four-digit years" }
+	 }
+
+} ,
+]]></example>
+				</section>
+				<section>
+					<description>When you type the / character, options are shown.
+These options are defined by the options parameter in the interactive_shell.json file. 
+</description>
+					<figure><link>images/interactiveshell_bubblehelp2.jpg</link></figure>
+					
+				</section>
+				
+				
+			</sections>
+			
+		</group>
+		
+		
+		
+	</groups>
+	
+	
+	
+	
+</page>
