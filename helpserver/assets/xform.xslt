@@ -270,7 +270,7 @@
             </xsl:for-each>
         </xsl:if>
         <xsl:if test="note">
-           <div class="sectionNote" > <b>Note:</b> <xsl:value-of select="note" /> </div>
+           <div class="sectionNote" > <xsl:value-of select="note" /> </div>
         </xsl:if>
         <xsl:if test="video">
             <li>
