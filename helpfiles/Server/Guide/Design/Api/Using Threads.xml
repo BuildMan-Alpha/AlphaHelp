@@ -1,0 +1,55 @@
+<page>
+	
+	<topic>Using Threads</topic>
+	
+	<sections>
+		<section>
+			<description>Suppose you start a new thread but put a SLEEP() command in it such as:</description>
+			<example><![CDATA[thread_create("myThread",<<%code%
+dim vFlag as L = .t.
+while vFlag
+    'do some stuff
+    sleep(20)
+end while
+%code%]]></example>
+			
+		</section>
+		<section>
+			<description>Does this thread consume CPU time even though it is "asleep"? Would it be better to terminate the thread and start a new thread 20 seconds later, or 5 minutes later, depending on the processing cycle?
+A sleeping thread consumes no CPU time. If you run THREADMON() from the Interactive window you will see something similar to the Windows Task Manager which shows all of the threads and their CPU usage. You can use this to verify the CPU usage of any of your threads.
+For most applications it will make no difference whether you kill and restart your threads or put them to sleep. It is usually easier to have them sleep so that you don't need another process to periodically restart them.
+However, there are a 2 main points to consider in an application where you will be running many threads and need to optimize performance:
+</description>
+			<list>
+				<item>
+					<name>Whatever memory a thread is using to store variables, etc will stay in use while the thread is asleep. This memory use can be minimized by deleting variables you don't need to keep around before using the SLEEP() function. But if you have a large number of idle or sleeping threads, the resource usage will build up and become noticeable.</name>
+				</item>
+				<item>
+					<name>There is some overhead to creating and exiting threads, which is not significant for a small application. Letting a thread exit cleanly does a cleanup that is desirable (freeing table handles, clearing memory, etc). However, in an application where you really need to maximize performance and responsiveness, it is better to keep your threads around with a short sleep period between "waking up" and checking for work to do.</name>
+				</item>
+				
+			</list>
+			
+		</section>
+		<section>
+			<description>The Application Server is a good example of a multi-threaded application that needs to perform as well as possible. Alpha Five has implemented a technique known as thread pooling to maximize performance. When you start the Application Server, at least two threads are created - a main thread ( httpd_main ) which essentially acts as a traffic director and at least one "worker" thread ( httpd_Client* ).
+
+The main thread does all of the required initialization, opens the port that the server accepts requests on, then waits for an incoming request. When a request comes in from a client, it checks all of the worker threads to see if one is available to handle the request.
+
+If a worker is available, the main thread passes the request along and then waits for the next incoming request. If a worker thread is not available, the main thread creates a new worker thread, up to the maximum number defined in the Application Server Control Panel, and gives the newly created worker the request to process.
+
+When each worker thread finishes processing a request and sends the output back to the client, it notifies the main thread that it is no longer busy. The main thread then checks the number of spare worker threads that should be kept around (also set in the Application Server Control Panel ) and either lets the worker go to sleep until another request comes in or it stops the worker.
+The intent of this technique is to have a worker thread pre-created and available when a request is received, yet not to have more idle workers than necessary. This minimizes the response time of the server by not having to create a new thread as a request is received, minimizes the CPU overhead of starting and stopping threads, and minimizes the memory footprint of idle threads.
+Limitations: Web publishing applications only.
+
+</description>
+			
+		</section>
+	</sections>
+	<see>
+		<ref>Thread Functions and Methods</ref>
+		<ref>THREAD.traceMapping Property</ref>
+	</see>
+	
+	
+</page>
