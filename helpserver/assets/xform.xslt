@@ -279,6 +279,15 @@
                 </a>
             </li>
         </xsl:if>
+		<xsl:if test="videos">
+			<xsl:for-each select="videos/video">
+				<li>
+					<a xsl:use-attribute-sets="href-link">
+						<xsl:value-of select="name" />
+					</a>
+				</li>
+			</xsl:for-each>
+		</xsl:if>
     </xsl:template>    	
     <xsl:template match="step-content" name="step-content" >
             <ol>
