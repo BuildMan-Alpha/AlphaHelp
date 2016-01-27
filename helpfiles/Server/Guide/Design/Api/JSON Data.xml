@@ -1711,24 +1711,365 @@ o.myFunc = "function(){...}"]]></example>
         
         
       </sections>
+      <sections>
+        <section>
+          <title>Getting JSON Back from BSON:</title>
+          <steps>
+            <step>
+              <description>Define a JSON object that lives in the extension namespace inside of Xbasic. Put BSON after extension. Only BSON knows how to deserialize BSON.</description>
+              <example><![CDATA[dim bso2 as extension::BSON]]></example>
+            </step>
+            
+            <step>
+              <description>Now set the JSON object against the BSON data you want to convert to JSON using setBson().
+</description>
+              <example><![CDATA[bso2.setBson(bs)]]></example>
+            </step>
+            
+            <step>
+              <description>Call your JSON object from the BSON data using getJson().</description>
+              <example><![CDATA[? bso2.getJson()]]></example>
+            </step>
+            
+            <step>
+              <description>Result.</description>
+              <example><![CDATA[= [ "one", 2, true, { "firstname" : "john", "lastname" : "public" } ]]]></example>
+            </step>          
+          </steps>     
+        </section>    
+      </sections>     
+    </group>
+  </groups>
+  
+  <groups>
+    <group background="true">
+      <title>Using JSON with Reports</title>
+      <sections>
+        <section>
+          <description>You can create reports from JSON data in Alpha Anywhere. This is useful when you want to use data on a report that comes from a web service off a website or when you want to build data without involving a traditional data source like SQL. </description>
+          
+        </section>
+        
+      </sections>
       
       
     </group>
-    
-    
-    
+    <group>
+      <sections>
+        <section>
+          <title>Create a Custom Report using simple JSON data:</title>
+          <steps>
+            <step>
+              <description> In the Web Projects Control Panel menu click on the Reports(Project) option.</description>       
+            </step>
+            <step>
+              <description>Click the New component or file button. Select Create New Report from the list that appears.</description>
+              <figure><link>images/custom3.png</link></figure>
+            </step>
+            
+             <step>
+              <description><![CDATA[The New Report dialog will open. Specify a <Custom Data Source>.]]></description>
+              <figure><link>images/custom.png</link></figure>
+            </step>
+            
+            <step>
+              <description>The Specify Custom Data Source dialog will open. In the Function name property, specify the name of the Xbasic function that will return the data to be printed by the report. Here the Function name is MyJsonReport.</description>
+              <figure><link>images/custom2.png</link></figure>
+            </step>
+            
+             <step>
+              <description>Under the Data format property dropdown select JSON.</description>
+              <figure><link>images/custom4.png</link></figure>
+            </step>
+            
+            <step>
+              <description>Click the button next to the Local Xbasic definition property. Click the Code Editor tab in the Local Xbasic Function Definition dialog when it opens.</description>
+            </step>
+            
+             <step>
+              <description>Add the following Xbasic function containing a simple JSON array. Make sure the function name defined in the function, in italics, is the same as the Function name you defined in Step 4. When you are done Click OK. 
+
+</description>
+              <example><![CDATA[function MyJsonReport as c(e as p)
+MyJsonReport = <<%json%
+[
+{"Firstname" : "Fred", "Lastname" : "Smith"},
+{"Firstname" : "Harry", "Lastname" : "Jones"}
+]
+%json%
+end function 
+ ]]></example>
+<note><![CDATA[Note: Since no schema is supplied in this function, the data are all considered to be character type of length 1024 characters. While the advantage of this format is that is extremely simple, it does mean that you will need to adjust the size of each field you place on your report because its default size will likely be too large. Notice that the function takes a single input parameter, e.  The e object that is passed into the function includes the value of any Arguments that were passed into the report.
+                
+When you close the Local Xbasic Function Definition dialog you might notice the Arguments property. Arguments are used for when you want to filter the contents of a report. For example, if you wanted a report on such and such a state in the United States, this might involve creating an argument. If you specified that the <Custom Data Source> uses an argument called whatCountry. Your Xbasic function can reference the value in this argument as follows:
+dim country as c 
+country = argVal(e.arguments,"whatCountry")
+             ]]> </note>
+            </step>
+            
+            <step>
+              <description>Click OK to close the Specify Custom Data Source dialog. The Report Workspace will open up with <Custom Data Source> written in its title bar. Save your Report.</description>
+            </step>
+            
+             <step>
+              <description>Open the DragDrop List. From the Toolbar.</description>
+              <figure><link>images/custom7.png</link></figure>
+            </step>
+            
+            <step>
+              <description>In the DragDrop List find the section starting with a5_temp_custom_.... and underneath it the two object properties contained in your JSON array, i.e firstname and lastname.</description>
+              <figure><link>images/custom5.png</link></figure>
+            </step>
+            
+            <step>
+              <description>Add these object properties to you report by dragging an dropping them into the Report Header. </description>
+              
+            </step>
+            
+            <step>
+              <description>The Drop Fields dialog will appear. Click OK. Afterward a checkmark will appear next to each property used.</description>
+              <figure><link>images/custom6.png</link></figure>
+            </step>
+            
+            <step>
+              <description>Drag the second, non-bold, part of the Firstname and Lastname properties down into the Detail section of the Report. Like this:</description>
+              <figure><link>images/custom9.png</link></figure>
+            </step>
+            
+            <step>
+              <description>Click the Print preview the current Report button in the toolbar. </description>
+              <figure><link>images/custom8.png</link></figure>
+            </step>
+            
+            <step>
+              <description>Now you should see the JSON data from the array appear in Report format.</description>
+              <figure><link>images/custom10.png</link></figure>
+            </step>      
+          </steps> 
+        </section>
+      </sections>
+    </group>
   </groups>
   
+  <groups>
+    <group background="true">
+      <sections>
+        <section>
+          <description>You might want the string you return to be an object with two object properties, schema and data. The schema object property defines the schema of the data (for example, field type, size, etc.) and the data property is an array of JSON objects that define the data for the report. For example:
+</description>
+          <example><![CDATA[function myjson as c(e as p)
+myjson = <<%json%
+{
+"schema" : { "firstname" : { "type" : "C" , "width": 30 } 
+, "lastname" : { "type" : "C" , "width": 30} 
+, "company" : { "type" : "C" , "width": 30} 
+, "age" : { "type" : "N" , "width" : 3, "decimal" : 0 }
+},
+"data": 
+[
+{"firstname":"Fred", "lastname":"Smith", "company" : "Alpha Software", "age" : 30},
+{"firstname":"John", "lastname":"Jones", "company" : "Beta Software", "age" : 23}
+]
+}
+%json%
+end function  ]]></example>
+        </section>
+        
+        <section>
+          <description>In this code the size and type of each field in the data array is specified; as is the number of decimal places for the numeric field. The data types supported in the schema are: </description>
+          <list>
+            <item>
+              <name>C</name>
+              <description>Character (you must also specify a "width" property for this type)</description>
+            </item>
+            
+             <item>
+              <name>N</name>
+              <description>Numeric (you must also specify a "width" and "decimal" property for this type)</description>
+            </item>
+            
+             <item>
+              <name>L</name>
+              <description>logical</description>
+            </item>
+            
+             <item>
+              <name>M</name>
+              <description>memo</description>
+            </item>
+            
+             <item>
+              <name>D</name>
+              <description>date</description>
+            </item>
+            
+             <item>
+              <name>T</name>
+              <description>date/time</description>
+            </item>
+            
+             <item>
+              <name>Y</name>
+              <description>short time</description>
+            </item>
+            
+             <item>
+              <name>E</name>
+              <description>exponent numeric</description>
+            </item>
+            
+             <item>
+              <name>K</name>
+              <description>guid</description>
+            </item>
+            
+            <item>
+              <name>JPEG</name>
+              <description>Jpeg field (data in the JSON data property is expected to be base64 encoded)</description>
+            </item>
+            
+             <item>
+              <name>PNG</name>
+              <description>PNG (data in the JSON data property is expected to be base64 encoded)</description>
+            </item>
+            
+             <item>
+              <name>BMP</name>
+              <description>BMP (data in the JSON data property is expected to be base64 encoded)</description>
+            </item>
+            
+             <item>
+              <name>I</name>
+              <description>Image Reference Field (data in the data property is a image file name but the report will treat the data as an image).</description>
+            </item>
+            
+          </list>
+          
+        </section>
+        <section>
+          <description><![CDATA[Note: If a field uses the Date (D), Date/Time (T) or Short time (Y) format in the schema, the data in the data array must be a string in UTC date format. For example: 2014-10-27T23:06:50.361Z. The date part format is yyyy-mm-dd and the time part uses GMT. In the case of a Short time field, the date portion of the UTC date string is ignored.
+
+A schema allows you to extract data from objects within each row, and to map property names in the data array to different names. For example, the address property can be an object with two sub-properties:
+]]></description>
+          
+          <example><![CDATA[{
+   "name": "Fred Smith",
+   "company" : "XYZ Corp",
+   "address": {
+       "street": "Main Street",
+       "number": 23
+    }
+} ]]></example>
+          
+          
+        </section>
+        <section>
+          <description>Shown below is how a function would be defined to return this JSON data:</description>
+          <example><![CDATA[function myjson as c(e as p)
+myjson = <<%json%
+{
+    "schema": {
+        "name": {
+            "type": "c",
+            "width": 30
+        },
+        "companyName": {
+        "source": "company",
+        "type" : "c",
+        "width" : 30
+        },
+        
+        "street": {
+            "source": "address.street",
+            "type": "c",
+            "width": 40
+        },
+        "number": {
+            "source": "address.number",
+            "type": "n",
+            "width": 5,
+            "decimal": 0
+        }
+    },
+    "data": [
+        {
+            "name": "Fred Smith",
+            "company" : "XYZ Corp",
+            "address": {
+                "street": "Main Street",
+                "number": 23
+            }
+        },
+        {
+            "name": "John Jones",
+            "company" : "ABC Corp",
+            "address": {
+                "street": "Corner Road",
+                "number": 3
+            }
+        }
+    ]
+}
+%json%
+end function  ]]></example>
+        </section>
+        <section>
+          <description>Notice that the JSON object has both a schema and a data property. The schema indicates what fields will be available to the report. The list of fields specified by the schema are: name, companyName, street and number. If you enter this code in the Create a Custom Report using simple JSON data:
+example, you would end up with something like this:</description>
+          <figure><link>images/custom11.png</link></figure>
+        </section>
+        <section>
+          <description>Notice that the data array does not have a property called companyname, even though this data appears in the final report. The schema property for the companyname field indicates that the source of this field is the company property in the data array. Similarly, the street field in the schema is mapped to the address.street property in the data array. Similarly, if the definition for a field in the schema omits the source property, then the source is the same as the item name. Here the definition for the name field in the schema does not have a source property, therefore this field is mapped to the name property in the data array.
+</description>
+        </section>
+        
+      </sections>   
+    </group>
+  </groups>
   
+ <groups>
+   <group background="true">
+     <title>Including Image data in a JSON schema object.</title>
+     <sections>
+       <section>
+         <description>JSON objects can include image data.</description>
+         
+       </section>
+       
+     </sections>
+   </group>
+   <group>
+     <sections>
+       <section>
+         <example><![CDATA[function myjson as c(e as p)
+myjson = <<%json%
+{
+   "schema" : {
+      "name" : { "type" : "C" , "width": 30 }, 
+      "image" : { "type" : "Png" }
+},
+"data": 
+       [
+          {"name":"John Smith", "image" : "iVBORw...(data truncated for readability)....AAAElFTkSuQmCC" },
+          {"name":"Jane Smith", "image" : "data:image/bmp;base64,Qk02AwAAA...(data truncated for readability)....AAAADYAAAAAA=="}
+       ]
+}
+%json% 
+end function ]]></example>
+         
+         
+<note>The binary data for the image are encoded as base64 strings.  Notice that the schema indicates that the image field will be stored as a PNG. Notice also that in the first record, the base64 encoded data in the image property does not include the MIME type at the start of the base64 encoded data. This data is therefore presumed to be a PNG image since the schema indicates that the image is a PNG type. Notice however, that the second row of data in the data array has a MIME type prefix on the base64 encoded image data. The data for the image is for a BMP image. The image will therefore be converted from BMP to PNG automatically.</note>         
+         
+       </section>
+       
+     </sections>
+     
+     
+   </group>
+   
+ </groups> 
   
-  
-  
-  
-  
-  
-  
-  
-  
+ 
   
   
   
