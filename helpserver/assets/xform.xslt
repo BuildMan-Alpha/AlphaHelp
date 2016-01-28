@@ -69,7 +69,7 @@
             <xsl:call-template name="section-content"/>
 		</xsl:if>
         <xsl:if test="groups">
-			<xsl:for-each select="groups/group">                            
+			<xsl:for-each select="groups/group">
                <xsl:choose>
                     <xsl:when test="./@background">
                         <div class="pagegroupBackground">
@@ -98,16 +98,26 @@
 			<p class="A5">Properties</p>
 			<dl class="propertiesDL" >
 				<xsl:for-each select="properties/property">
-					<dt><xsl:value-of select="name" /></dt>
-					<dd><xsl:value-of select="description" />
-						<xsl:if test="example"><b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre></xsl:if>							 
-						<xsl:if test="ref">
-                            <xsl:choose>
-                                <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:if>							
-					</dd>
+                <xsl:choose>
+                    <xsl:when test="./@readonly">
+                        <dt class="propertyReadonly" ><xsl:value-of select="name" /></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@writeonly">
+                        <dt class="propertyWriteonly" ><xsl:value-of select="name" /></dt>
+                    </xsl:when> 
+                    <xsl:otherwise>
+                        <dt class="propertyReadwrite" ><xsl:value-of select="name" /></dt>
+                    </xsl:otherwise>
+                </xsl:choose> 
+                <dd><xsl:value-of select="description" />
+                    <xsl:if test="example"><b class="A5">Example</b> <pre class="codeTable"><xsl:value-of select="example" /></pre></xsl:if>							 
+                    <xsl:if test="ref">
+                        <xsl:choose>
+                            <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:if>							
+                </dd>
 				</xsl:for-each>
 			</dl>
 		</xsl:if>
