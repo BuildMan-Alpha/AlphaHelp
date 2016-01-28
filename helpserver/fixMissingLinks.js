@@ -543,7 +543,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                 reportIssue(filename);
             }
             if (changedData != data) {
-                fs.writeFile(filename, changedData, function (err) {
+                fs.writeFile(filename+ "_fixup", changedData, function (err) {
                     if (err) {
                         console.log("Error Saving file");
                     } else {
