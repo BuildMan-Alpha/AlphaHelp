@@ -24,8 +24,15 @@
 			<xsl:value-of select="syntax" />
 		</xsl:if>
 		<xsl:if test="prototype">
-			<p class="A5">Syntax</p>
-			<xsl:value-of select="prototype" />
+			<p class="A5">Syntax</p>            
+               <xsl:choose>
+                    <xsl:when test="prototype/@static">
+                        <span class="methodStatic"><xsl:value-of select="prototype" /></span>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="prototype" />
+                    </xsl:otherwise>
+               </xsl:choose>
 		</xsl:if>
 		<xsl:if test="prototypes">
 			<p class="A5">Syntax</p>
