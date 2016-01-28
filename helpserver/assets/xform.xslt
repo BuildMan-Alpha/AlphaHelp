@@ -141,7 +141,14 @@
 				</xsl:for-each>
 				<xsl:for-each select="methods/methodref">
                     <xsl:if test="name">
-                        <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>                    
+                        <xsl:choose>
+                            <xsl:when test="./@static">
+                            <dt class="methodStatic"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>
+                            </xsl:when>
+                            <xsl:otherwise>
+                            <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>
+                            </xsl:otherwise>
+                        </xsl:choose>                                            
                         <dd><xsl:value-of select="description" /></dd>
                     </xsl:if>    
 				</xsl:for-each>
