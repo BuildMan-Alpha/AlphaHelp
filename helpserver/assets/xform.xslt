@@ -253,11 +253,14 @@
         <xsl:if test="list">
             <xsl:call-template name="list"/>
         </xsl:if>
+        <xsl:if test="example">
+            <pre class="codeTable"><xsl:value-of select="example" /></pre>
+        </xsl:if>
         <xsl:if test="steps">
              <xsl:call-template name="step-content"/>
         </xsl:if>
-        <xsl:if test="example">
-            <pre class="codeTable"><xsl:value-of select="example" /></pre>
+        <xsl:if test="cases">
+             <xsl:call-template name="case-content"/>
         </xsl:if>
         <xsl:if test="figure">
             <xsl:for-each select="figure">
@@ -290,11 +293,18 @@
 		</xsl:if>
     </xsl:template>    	
     <xsl:template match="step-content" name="step-content" >
-            <ol>
+            <ol class="stepsOL">
                 <xsl:for-each select="steps/step">
                     <li> <xsl:call-template name="sectionstep-content"/> </li>
                 </xsl:for-each>
             </ol>
+    </xsl:template>
+    <xsl:template match="case-content" name="case-content" >
+            <ul class="casesUL">
+                <xsl:for-each select="cases/case">
+                    <li> <xsl:call-template name="sectionstep-content"/> </li>
+                </xsl:for-each>
+            </ul>
     </xsl:template>
     <xsl:template match="section-content" name="section-content" >
 			<xsl:for-each select="sections/section">
