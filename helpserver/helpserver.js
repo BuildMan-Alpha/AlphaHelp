@@ -10,7 +10,7 @@ var replaceAll = function (str, find, replace) {
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args,description) {
+var outputSnippet = function(args,description,type) {
     var result = "";
     if( args.isFolder ) {
         if( args.format == ".xml" ) {
@@ -21,13 +21,21 @@ var outputSnippet = function(args,description) {
         if( args.format == ".xml" ) {
             if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
                 description = "<![CDATA["+description+"]]>";
-                result =  "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
+                if( type == "method" ) {
+                    result =  "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+                } else {
+                    result =  "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
+                }
         } else {
                 result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>\n<dd>" + description + "</dd>";
         }
     } else {
         if( args.format == ".xml" ) {
-            result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+            if( type == "method" ) {
+                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
+            } else  {
+                result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+            }
         } else {
             result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>";
         }
@@ -38,13 +46,39 @@ var outputSnippet = function(args,description) {
 options.pageIndexer = function (args, savePage) {
     // just error out for now...
     var filename = args.filename;
-    var extensionIndex = filename.lastIndexOf(".");
+    var type = null;
+    if( args.all ) {
+        var i;
+        var methodFiles = 0;
+        var nonMethodFiles = 0;
+        for( i = 0 ; i < args.all.length ; ++i ) {
+            var testName = args.all[i].path.toLowerCase();
+            var pathEnd = testName.lastIndexOf('/');
+            if( pathEnd > 0 )
+                testName = testName.substring(pathEnd);
+            if( testName != '/index.xml' ) {
+                if( testName.indexOf(' method.') > 0 ) {
+                    ++methodFiles;
+                } else {
+                    ++nonMethodFiles;
+                }
+            }    
+        }
+        if( methodFiles > 0 && nonMethodFiles == 0 ) {
+            type = "method";
+        }
+        
+    }
+    var extensionIndex = filename.lastIndexOf(".");    
+    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
+        debugger;
+    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
         fs.readFile(filename, "utf8", function (err, data) {
             if (err) {
                 console.log(filename + " was not found");
-                savePage(outputSnippet(args,null));
+                savePage(outputSnippet(args,null,type));
             } else {
                 var parseString = require('xml2js').parseString;
                 parseString(data, function (err, result) {
@@ -65,19 +99,23 @@ options.pageIndexer = function (args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args,description));
+                    savePage(outputSnippet(args,description,type));
                 });
             }
         });
     } else {
-        savePage(outputSnippet(args,null));
+        savePage(outputSnippet(args,null,type));
     }
 };
 
 options.wrapIndex = function( args ) {
     var result = "";
     if( args.format == ".xml" ) {
-        result = "<list><item><name-title>Name</name-title></item>"+args.content+"</list>";
+        if( args.content.substring(0,10) == "<methodref" ) {
+            result = "<methods>"+args.content+"</methods>"
+        } else {
+            result = "<list><item><name-title>Name</name-title></item>"+args.content+"</list>";
+        }
     } else {
         result = "<dl id='generatedTopics'>"+args.content+"</dl>";
     }
