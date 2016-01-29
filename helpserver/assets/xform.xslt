@@ -35,9 +35,16 @@
                </xsl:choose>
 		</xsl:if>
 		<xsl:if test="prototypes">
-			<p class="A5">Syntax</p>
+			<p class="A5">Syntax</p>          
 			<xsl:for-each select="prototypes/prototype">
-			<p><xsl:value-of select="." /></p>
+               <xsl:choose>
+                    <xsl:when test="./@static">
+                        <p class="methodStatic"><xsl:value-of select="." /></p>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <p><xsl:value-of select="." /></p>
+                    </xsl:otherwise>
+               </xsl:choose>			
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="arguments">
@@ -132,7 +139,16 @@
 			<p class="A5">Methods</p>
 			<dl class="methodsDL" >
 				<xsl:for-each select="methods/method">
-					<xsl:if test="syntax"><dt><xsl:value-of select="syntax" /></dt></xsl:if>
+				  <xsl:if test="syntax">
+                    <xsl:choose>
+                    <xsl:when test="./@static">
+                        <dt class="methodStatic"><xsl:value-of select="syntax" /></dt>
+                    </xsl:when>
+                    <xsl:otherwise>                        
+                        <dt><xsl:value-of select="syntax" /></dt>
+                    </xsl:otherwise>
+                   </xsl:choose>
+                   </xsl:if>
 					<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>						
 						<xsl:value-of select="description" />
 						<xsl:if test="example">
