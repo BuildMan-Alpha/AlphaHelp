@@ -70,9 +70,6 @@ options.pageIndexer = function (args, savePage) {
         
     }
     var extensionIndex = filename.lastIndexOf(".");    
-    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
-        debugger;
-    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
         fs.readFile(filename, "utf8", function (err, data) {
