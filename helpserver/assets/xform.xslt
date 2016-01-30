@@ -119,6 +119,9 @@
                     <xsl:when test="./@writeonly">
                         <dt class="propertyWriteonly" ><xsl:value-of select="name" /></dt>
                     </xsl:when> 
+                    <xsl:when test="./@pseudo">
+                        <dt class="propertyPseudo"><xsl:value-of select="name" /></dt>
+                    </xsl:when> 
                     <xsl:otherwise>
                         <dt class="propertyReadwrite" ><xsl:value-of select="name" /></dt>
                     </xsl:otherwise>
