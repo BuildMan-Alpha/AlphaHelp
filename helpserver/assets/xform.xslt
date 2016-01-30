@@ -130,7 +130,12 @@
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
                             <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
-                    </xsl:if>							
+                    </xsl:if>
+                    <xsl:if test="section">
+                        <xsl:for-each select="section">
+                            <xsl:call-template name="sectionstep-content"/>
+                        </xsl:for-each>
+                    </xsl:if>
                 </dd>
 				</xsl:for-each>
 			</dl>
