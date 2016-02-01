@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var options = require("./settingslocal");
+var library = require("./assets/library");
 var Help = require('helpserver');
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0) {
@@ -10,6 +11,43 @@ var replaceAll = function (str, find, replace) {
     return str;
 };
 
+var events = {};
+var tocData = { altTocs : [] , defaultPathMetadata : [] };
+options.library = library;
+
+var collectAltToc = function(books) {
+    if( books && books.length > 0 ) {
+        var i;
+        for( i = 0 ; i < books.length ; ++i ) {
+            if( books[i].href ) {
+                var href = books[i].href;
+                if( href.substring(0,7) == "/pages/" ) {
+                    href = href.substring(6);
+                }
+                var pathEnd = href.lastIndexOf('/');
+                if( pathEnd > 0 ) {
+                    href = href.substring(0,pathEnd+1);
+                    tocData.altTocs.push( href );
+                    tocData.defaultPathMetadata.push({
+                            "name": href,
+                            "metadata": {
+                                "tags": "common",
+                                "status": "accept"
+                            }
+                        });
+                }
+            }
+            if( books[i].books ) {
+                collectAltToc( books[i].books );
+            }
+        }
+    }
+};
+
+collectAltToc(library);
+options.tocData = tocData;
+
+// delete require.cache[require.resolve('./assets/library')]
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
@@ -46,7 +84,7 @@ var outputSnippet = function(args,description,type) {
     return result;
 }
 
-options.pageIndexer = function (args, savePage) {
+events.pageIndexer = function (args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var type = null;
@@ -73,9 +111,9 @@ options.pageIndexer = function (args, savePage) {
         
     }
     var extensionIndex = filename.lastIndexOf(".");    
-    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
-        debugger;
-    }
+//    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
+//        debugger;
+//    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
         fs.readFile(filename, "utf8", function (err, data) {
@@ -111,7 +149,7 @@ options.pageIndexer = function (args, savePage) {
     }
 };
 
-options.wrapIndex = function( args ) {
+events.wrapIndex = function( args ) {
     var result = "";
     if( args.format == ".xml" ) {
         if( args.content.substring(0,10) == "<methodref" ) {
@@ -125,7 +163,7 @@ options.wrapIndex = function( args ) {
     return result;
 };
 
-options.getDefaultIndexTemplate = function( args ) {
+events.getDefaultIndexTemplate = function( args ) {
     var result = "";
     if( args.format == ".xml" ) {
         result = "<page><!--list:.--></page>";
@@ -136,7 +174,7 @@ options.getDefaultIndexTemplate = function( args ) {
 };
 //--------------------------------------------------------------------------------------
 var xsltproc = require('xsltproc');
-options.translateXML = function(xmlFile,htmlFile,callback) {
+events.translateXML = function(xmlFile,htmlFile,callback) {
    var xslt = xsltproc.transform(options.assetpath+'assets/xform.xslt', xmlFile);
    var err = null;
    var dataOut = '';
@@ -157,6 +195,12 @@ options.translateXML = function(xmlFile,htmlFile,callback) {
       }
    });
 };
+events.beforeRefresh = function() {
+    
+};
+options.events = events;
+//--------------------------------------------------------------------------------------------
+
 var help = Help(options);
 
 app.use(bodyParser.json()); 
