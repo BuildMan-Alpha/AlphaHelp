@@ -1,0 +1,91 @@
+<page>
+	<topic>DotNet Example: Image metadata function</topic>
+	<sections>
+		<description>This sample demonstrates implementing an Xbasic function using several .NET classes that are pre-loaded by Alpha Anywhere. It also demonstrates calling static .NET classes, using static .NET enumerations with and without the use of a DIM statement in Xbasic, and calling the .NET garbage collector GC::Collect() to cause the .NET CLR to release unused memory from the managed heap.
+
+ The problem this function solves is extracting metadata from a photo or screen shot. Currently it only supports the JPEG format. The fields returned correspond to the capabilities of the .NET 4.0 System::Windows::Media::Imaging::JpegBitmapDecoder class.
+</description>
+		<example><![CDATA[FUNCTION GetImageMetadata as P ( filename as C)
+ 
+'Make sure the file passed really exists
+IF .not. file.exists(filename)
+  ui_msg_box("File not found",filename)
+  end
+END IF
+ 
+'To do: 
+'  handle other potential errors better, e.g. file not a supported format
+ 
+'Dim these .NET classes to make using them easier and less verbose
+dim BCrOpt as System::Windows::Media::Imaging::BitmapCreateOptions
+dim BCaOpt as System::Windows::Media::Imaging::BitmapCacheOption
+ 
+'Open the file using .NET and create a FileStream
+Dim imageStreamSource As System::IO::FileStream = \
+  New System::IO::FileStream(filename, \
+    System::IO::FileMode::Open, \
+    System::IO::FileAccess::Read, \
+    System::IO::FileShare::Read)
+ 
+'Pipe the FileStream into a JPEG bitmap decoder
+'To do (Optional): 
+' add logic to use the right kind of decoder based on the type of image, 
+' if we want to support other file formats besides JPEG
+dim decoder as System::Windows::Media::Imaging::JpegBitmapDecoder = \
+  new System::Windows::Media::Imaging::JpegBitmapDecoder(imageStreamSource,\
+  BCrOpt.PreservePixelFormat, BCaOpt.Default)
+ 
+'extract the metadata from the first frame of the image
+md = decoder.Frames(1).metadata
+GetImageMetadata.ApplicationName = md.ApplicationName
+GetImageMetadata.Author = md.Author
+GetImageMetadata.CameraManufacturer = md.CameraManufacturer
+GetImageMetadata.CameraModel = md.CameraModel
+GetImageMetadata.Comment = md.Comment
+GetImageMetadata.Copyright = md.Copyright
+GetImageMetadata.DateTaken = md.DateTaken
+GetImageMetadata.Format = md.Format
+GetImageMetadata.Keywords = md.Keywords
+GetImageMetadata.Location = md.Location
+GetImageMetadata.Rating = md.Rating
+GetImageMetadata.Subject = md.Subject
+GetImageMetadata.Title = md.Title
+ 
+'clean up
+md = null_value()
+decoder = null_value()
+BCaOpt = null_value()
+BCrOpt  = null_value()
+imageStreamSource.Close()
+imageStreamSource = null_value()
+System::GC::Collect()
+ 
+END FUNCTION]]></example>
+		
+	</sections>
+<see>
+	
+<ref>.NET System.Windows.Media.Imaging Namespace(external link)</ref>
+<ref> .NET Framework Support in Alpha Anywhere </ref>
+<ref>DotNet::AssemblyReference</ref>
+<ref>DotNet::Services</ref>
+<ref>reateObject Method</ref>
+<ref>CallStaticFunction Method</ref>
+<ref>ConstructGenericTypeName Method</ref>
+<ref>GetStaticProperty Method</ref>
+<ref>SetStaticProperty Method</ref>
+<ref>RegisterClass Method</ref>
+<ref>RegisterAssembly Method</ref>
+<ref>RegisterNamespace Method</ref>
+<ref>GenerateWebServiceClientFromURL Method</ref>
+<ref>GenerateWebServiceClientFromWSDL Method</ref>
+<ref>Preloaded .NET Classes </ref>
+<ref>Writing Xbasic wrapper classes for .NET classes </ref>
+<ref>DotNetPath Function</ref>
+<ref>DotNet Examples</ref>
+<ref>DotNet Example: Image metadata class	</ref>
+	
+	
+</see>
+	
+</page>

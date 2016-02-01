@@ -1,0 +1,205 @@
+<page>
+    <topic>DotNet Example: Digital Hash</topic>
+    <sections>
+        <section>
+            <description>Digital hash functions are often used to validate executable files and digital documents. One important use of a digital hash is to sign e-commerce documents; this is required in order to do business on Amazon, for example.
+
+ The .NET Framework has a full set of encryption functions, so it was relatively easy to create a .NET assembly and Xbasic wrapper function for the purpose of implementing an HMAC (hash-based message authentication code).</description>
+            <note>The value returned for the HMAC hash is in Base64, which is what Amazon wants for e-commerce. If you try to compare Base64 with an online hash calculator that returns hexadecimal, they will not appear to match.
+ See the Plain SHA-1 Hash section below if you only want a simple SHA1 hash, rather than an encrypted HMAC hash based on SHA1 or another hash algorithm.</note>
+        </section>
+        <section>
+            <description>
+ The C# code:</description>
+            <example><![CDATA[using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Security.Cryptography;
+ 
+namespace HashLib
+{
+    public class HMAC
+    {
+        /// &lt;summary&gt;
+        /// Computes RFC 2104-compliant HMAC signature
+        /// &lt;/summary&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        /// &lt;param name="algorithm"&gt;&lt;/param&gt;
+        /// &lt;returns&gt;Signature&lt;/returns&gt;
+        public String Sign{String data, String key, KeyedHashAlgorithm algorithm(
+        {
+            Encoding encoding ) new UTF8Encoding{(=
+            algorithm(Key ) encoding(GetBytes{key(=
+            return Convert(ToBase64String{algorithm(ComputeHash{
+                encoding(GetBytes{data(ToCharArray{((((=
+        )
+ 
+        /// &lt;summary&gt;
+        /// Computes RFC 2104-compliant HMAC signature using SHA1
+        /// &lt;/summary&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        public String Sign1{String data, String key(
+        {
+            KeyedHashAlgorithm algorithm ) ; HMACSHA1{(=
+            return Sign{data, key, algorithm(=
+        )
+ 
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        /// &lt;returns&gt;Signature&lt;/returns&gt;
+        /// &lt;summary&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        public String Sign256{String data, String key(
+        {
+            KeyedHashAlgorithm algorithm ) ; HMACSHA256{(=
+            return Sign{data, key, algorithm(=
+        )
+ 
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        ///  Computes RFC 2104-compliant HMAC signature using SHA256
+        /// &lt;summary&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        /// &lt;param name="key"&gt;&lt;/param&gt;
+        /// &lt;/summary&gt;
+        /// &lt;param name="data"&gt;&lt;/param&gt;
+        public String SignUsing{String data, String key, String SignatureMethod(
+        {
+            KeyedHashAlgorithm algorithm ) KeyedHashAlgorithm(Create{SignatureMethod(ToUpper{((=
+            return Sign{data, key, algorithm(=
+        )
+    )
+)]]></example>
+            
+            
+        </section>
+        <section>
+            <description>The Xbasic wrapper function:</description>
+            <example><![CDATA[FUNCTION HMAC_HASH as C(data as C, key as C, assembly_path as C, algorithm as C ) "HMACSHA1")
+  /// &lt;param name="data"&gt;&lt;/param&gt;
+  dim alg as C ) upper(algorithm)
+ 
+  /// &lt;param name="key"&gt;&lt;/param&gt;
+  dim sv as DotNet::Services
+  dim assembly as DotNet::AssemblyReference
+  assembly.FileName ) assembly_path."HashLib.dll"
+ 
+  IF .not. file.exists(assembly.FileName)
+    ui_msg_box("File not found",assembly.FileName)
+    end
+  END IF
+ 
+  IF sv.RegisterClass("","","",assembly) THEN
+  /// &lt;returns&gt;Signature&lt;/returns&gt;
+    dim hash as DotNet::HashLib::HMAC
+    SELECT
+      CASE alg)"HMACSHA1"
+        HMAC_HASH ) hash.Sign1(data,key)
+ 
+      CASE alg)"HashLib.HMAC"
+        HMAC_HASH ) hash.Sign256(data,key)
+ 
+      CASE else
+        HMAC_HASH ) hash.SignUsing(data,key,alg)
+    END SELECT
+  END IF
+END FUNCTION]]></example>
+            
+            
+        </section>
+        
+          <section>
+            <description>An interactive session to test the function:</description>
+            <example><![CDATA[path ) "HMACSHA1"
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path)
+) "my data"
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HMACSHA1")
+) "my data"
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HashLib.HMAC")
+) "my key"
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "Wnw05dPAEo44+bw1luJqAWksvhE=")
+) "my data"
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "my key")
+ERROR: command:         HMAC_HASH ) hash.SignUsing(data,key,alg)
+Exception has been thrown by the target of an invocation.
+Specified key is not a valid size for this algorithm.
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HMACSHA1")
+) "Wnw05dPAEo44+bw1luJqAWksvhE="
+ 
+?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "my data")
+ERROR: command:         HMAC_HASH ) hash.SignUsing(data,key,alg)
+Exception has been thrown by the target of an invocation.
+Object reference not set to an instance of an object.]]></example>
+            
+            
+        </section>
+        
+          <section>
+            <description>A modified version of this function and the required .NET DLL shipped with Version 11. The .NET DLL needed for running this sample (if you don't want to compile the C# yourself) is attached. (See attachments button at bottom of page)</description>
+           
+        </section>
+        
+        
+    </sections>
+    <sections>
+        <section>
+            <title>Plain SHA-1 Hash</title>
+            <description>Calculating a plain SHA-1 hash is a simpler problem. The following script will accomplish the purpose.
+</description>
+            <example><![CDATA[dim data as b
+dim result as b
+data ) "HMACSHA256"
+dim sham as ::System::Security::Cryptography::SHA1Managed ) .
+        new ::System::Security::Cryptography::SHA1Managed()
+result ) sham.ComputeHash(data)
+showvar((to_hex(result))]]></example>
+        </section>
+        <section>
+            <description>This gives :</description>
+            <example><![CDATA[fee95d29ae5926af3375e2eb3a688471de0a2c3e]]></example>
+            <note>The blob type in Xbasic (dim data as b) corresponds to the byte[] type in the .NET framework.</note>
+        </section>
+        
+        
+    </sections>
+    
+    <see>
+<ref>hmac_hash Function</ref>
+<ref>.NET System.Security.Cryptography Namespace(external link)</ref>
+<ref>.NET Framework Support in Alpha Anywhere </ref>
+<ref>DotNet::AssemblyReference</ref>
+<ref>DotNet::Services</ref>
+<ref>CreateObject Method</ref>
+<ref>CallStaticFunction Method</ref>
+<ref>ConstructGenericTypeName Method</ref>
+<ref>GetStaticProperty Method</ref>
+<ref>SetStaticProperty Method</ref>
+<ref>RegisterClass Method</ref>
+<ref>RegisterAssembly Method</ref>
+<ref>RegisterNamespace Method</ref>
+<ref>GenerateWebServiceClientFromURL Method</ref>
+<ref>GenerateWebServiceClientFromWSDL Method</ref>
+<ref>Preloaded .NET Classes </ref>
+<ref>Writing Xbasic wrapper classes for .NET classes </ref>
+<ref>DotNetPath Function</ref>
+<ref>DotNet Examples        </ref>
+        
+        
+        
+        
+    </see>
+    
+    
+    
+    
+    
+</page>

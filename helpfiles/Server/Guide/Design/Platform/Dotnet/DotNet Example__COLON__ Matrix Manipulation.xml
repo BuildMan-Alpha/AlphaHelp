@@ -1,0 +1,227 @@
+<page>
+	<topic>DotNet Example: Matrix Manipulation</topic>
+	<sections>
+		<section>
+			<description>Mapack is a C# class library for basic linear algebra. It computes Norm, Determinant, Cholesky, LU, QR, SVD, least squares and eigenproblems. See Lutz Roeder's site(external link), and download the source from here(external link). You can compile it yourself from source, or download the compiled DLL and example program attached to this page.
+ The following sample is an Xbasic script based closely on the C# example provided with Mapack. Read the code and the comments to understand, among other things, how to use .NET indexers(external link) from Xbasic.
+ Copy the sample into a new script in Alpha Anywhere, edit the path to the Mapack dll, and run it. Compare the results you get to running the compiled C# example.
+</description>
+<example><![CDATA['Register Mapack
+ 
+dim sv as dotnet::services
+dim assy as dotnet::assemblyreference
+assy.FileName = "&lt;your path here&gt;\Mapack.dll" 
+if .not. sv.RegisterAssembly("Mapack",assy)
+    ui_msg_box("RegisterAssembly","Mapack not found at "+assy.FileName)
+    end 
+end if
+ 
+dim p as p 'for display
+ 
+'Exercise Mapack
+ 
+'Create and populate matrix A
+dim A as Mapack::Mapack::Matrix = new Mapack::Mapack::Matrix(3,3)
+'Note: Alpha Anywhere automatically translates Xbasic 1-based indexing to 
+'  .NET 0-based indexers (class looks like an array)
+A(1,1) = 2.0; A(1,2) = 1.0; A(1,3) = 2.0;
+A(2,1) = 1.0; A(2,2) = 4.0; A(2,3) = 0.0;
+A(3,1) = 2.0; A(3,2) = 0.0; A(3,3) = 8.0;
+ 
+'Calculate and store determinant, trace, and norms of A
+dim p.A as C = A.ToString()
+dim p.Det as N = A.Determinant
+dim p.Trace as N = A.Trace
+dim p.Norm1 as N = A.Norm1
+dim p.InfinityNorm as N = A.InfinityNorm
+dim p.FrobeniusNorm as N = A.FrobeniusNorm
+ 
+'Calculate the Singular Value Decomposition of A and store norm, 
+'   condition, and rank
+dim svg as Mapack::Mapack::SingularValueDecomposition = \
+        new Mapack::Mapack::SingularValueDecomposition(A)
+dim p.Norm2 as N = svg.Norm2
+dim p.Condition as N = svg.Condition
+dim p.Rank as N = svg.Rank
+ 
+'Calculate and store transpose and inverse of A
+dim p.Transpose as C = A.Transpose().ToString()
+dim p.Inverse as C = A.Inverse.ToString()
+ 
+'A * A.Inverse should be the identity matrix, within epsilon
+'Note that the matrix multiplication * operator is not supported,
+'  so we use the (static) Matrix.Multiply method
+dim I as Mapack::Mapack::Matrix = \
+           Mapack::Mapack::Matrix.Multiply(A,A.Inverse)
+dim p.AAinv as C = I.ToString()
+ 
+'Note we could also have said:
+'   dim p.AAinv as C = A.Multiply(A,A.Inverse).ToString()
+ 
+'Create and populate matrix B and solve the linear equation A*X=B
+dim B as Mapack::Mapack::Matrix = new Mapack::Mapack::Matrix(3,3)
+B(1, 1) = 2.0; B(1, 2) = 0.0; B(1, 3) = 0.0;
+B(2, 1) = 1.0; B(2, 2) = 0.0; B(2, 3) = 0.0;
+B(3, 1) = 2.0; B(3, 2) = 0.0; B(3, 3) = 0.0;
+dim p.B as C = B.ToString()
+ 
+dim X as Mapack::Mapack::Matrix = A.Solve(B)
+dim p.X as C = X.ToString()
+ 
+'Check the result: T = A*X should be equal to B
+dim T as Mapack::Mapack::Matrix = A.Multiply(A,X)
+dim p.T as C = T.ToString()
+ 
+'Calculate the Eigenvalue Decomposition of A and store the 
+'   Eigenvalues and Eigenvector matrix
+dim eigen as Mapack::Mapack::EigenvalueDecomposition = \
+           new Mapack::Mapack::EigenvalueDecomposition(A)
+dim p.DiagMatrix as C = eigen.DiagonalMatrix.ToString()
+ 
+dim p.RealEigenvalues as C
+ 
+for each eigenvalue in eigen.RealEigenvalues
+  p.RealEigenvalues = p.RealEigenvalues + eigenvalue + crlf()
+next
+ 
+p.EigenvectorMatrix = eigen.EigenvectorMatrix.ToString()
+ 
+'Note: If we used a for loop as below, we would have to use 
+' 0-based indexing  because Alpha Anywhere does not automatically 
+' correct the offset function calls
+ 
+'dim index as n
+'for index = 0 to eigen.RealEigenvalues.Length-1
+'  p.RealEigenvalues = p.RealEigenvalues + \
+'         eigen.RealEigenvalues.GetValue(index) + crlf()
+'next
+ 
+'There are a few more lines to the Mapack C# example but they are 
+'  just multiplication and are left as an exercise for the student
+ 
+'Show the results: you can compare these to the output of the C# example
+showvar(p)]]></example>
+		</section>
+<section>
+	<description>
+ Running the above script will give you a pop-up window showing all the saved variables:</description>
+	<figure><link>images/mapack_showvar.png</link></figure>
+</section>
+<section>
+	
+	<description>Running the C# Example program gives:</description>
+	<example><![CDATA[A = 
+2 1 2 
+1 4 0 
+2 0 8 
+
+A.Determinant = 40
+A.Trace = 14
+A.Norm1 = 10
+A.NormInfinite = 10
+A.NormFrobenius = 9.69535971483266
+A.Norm2 = 8.62422264025397
+A.Condition = 7.98847395632229
+A.Rank = 3
+
+A.Transpose = 
+2 1 2 
+1 4 0 
+2 0 8 
+
+A.Inverse = 
+0.8 -0.2 -0.2 
+-0.2 0.3 0.05 
+-0.2 0.05 0.175 
+
+I = A * A.Inverse = 
+1 1.38777878078145E-17 0 
+0 1 0 
+0 0 1 
+
+B = 
+2 0 0 
+1 0 0 
+2 0 0 
+
+A.Solve(B)
+1 0 0 
+0 0 0 
+0 0 0 
+
+A * A.Solve(B) = B = 
+2 0 0 
+1 0 0 
+2 0 0 
+
+A = V * D * V
+D = 
+1.0795832454869 0 0 
+0 4.29619411425913 0 
+0 0 8.62422264025397 
+
+lambda = 
+1.0795832454869
+4.29619411425913
+8.62422264025397
+
+V = 
+-0.912578082576527 0.280716539220287 0.297320479969233 
+0.312482141860836 0.947745163412308 0.0642963159647745 
+0.263735007572021 -0.151582749139746 0.952610369429297 
+
+V * D * V' = 
+2 1 2 
+1 4 -1.11022302462516E-16 
+2 -1.11022302462516E-16 8 
+
+A * V = 
+-0.985204008148176 1.20601274357339 2.56415801476184 
+0.337350484866818 4.07169719286952 0.554505743828331 
+0.284723895423112 -0.651228914677396 8.21552391537285 
+
+V * D = 
+-0.985204008148176 1.20601274357339 2.56415801476183 
+0.337350484866819 4.07169719286952 0.554505743828331 
+0.284723895423113 -0.651228914677396 8.21552391537284]]></example>
+	
+</section>
+
+
+
+	</sections>
+	
+<see>
+<ref>.NET indexers on MSDN</ref>
+<ref>.NET Framework Support in Alpha Anywhere </ref>
+<ref>DotNet::AssemblyReference</ref>
+<ref>DotNet::Services</ref>
+<ref>CreateObject Method</ref>
+<ref>CallStaticFunction Method</ref>
+<ref>ConstructGenericTypeName Method</ref>
+<ref>GetStaticProperty Method</ref>
+<ref>SetStaticProperty Method</ref>
+<ref>RegisterClass Method</ref>
+<ref>RegisterAssembly Method</ref>
+<ref>RegisterNamespace Method</ref>
+<ref>GenerateWebServiceClientFromURL Method</ref>
+<ref>GenerateWebServiceClientFromWSDL Method</ref>
+<ref>Preloaded .NET Classes </ref>
+<ref>Writing Xbasic wrapper classes for .NET classes </ref>
+<ref>DotNetPath Function</ref>
+<ref>DotNet Examples 	</ref>
+	
+	
+</see>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</page>
