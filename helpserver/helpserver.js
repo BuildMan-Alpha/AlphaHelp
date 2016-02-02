@@ -198,7 +198,7 @@ events.beforeRefresh = function() {
 };
 options.events = events;
 //--------------------------------------------------------------------------------------------
-\var help = Help(options);
+var help = Help(options);
 
 app.use("/", function (req, res) {
     if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
