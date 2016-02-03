@@ -1,0 +1,467 @@
+<page>
+	<topic>Overview of Regular Expressions</topic>
+	<sections>
+		<section>
+			<description>Copyright (c) 1998-2001, Dr John Maddock
+For a comprehensive review of Regular Expressions see http://www.cs.utah.edu/dept/old/texinfo/regex/regex_toc.html.
+</description>
+<note>Portions of this page are obsolete.</note>
+		</section>
+		
+<section>
+	<title>Literals</title>
+	<description><![CDATA[All characters are literals except: ., |, *, ?, +, (, ), {, }, [, ], ^, $ and \. These characters are literals when preceded by a "\". A literal is a character that matches itself, or matches the result of traits_type::translate(), where traits_type is the traits template parameter to class reg_expression.]]></description>
+</section>	
+
+
+<section>
+	<title>Wildcard</title>
+	<description>The dot character "." matches any single character except when:</description>
+	<cases>
+		<case>
+			<description>match_not_dot_NULL is passed to the matching algorithms, the dot does not match a NULL character;</description>
+		</case>
+		<case>
+			<description>match_not_dot_newline is passed to the matching algorithms, then the dot does not match a newline character.</description>
+		</case>
+		
+	</cases>
+</section>	
+
+
+<section>
+	<title>Repeats</title>
+	<description>A repeat is an expression that is repeated an arbitrary number of times.</description>
+	<cases>
+		<case>
+			<description>An expression followed by * can be repeated any number of times including zero.</description>
+		</case>
+		<case>
+			<description>An expression followed by + can be repeated any number of times, but at least once, if the expression is compiled with the flag regbase::bk_plus_qm then + is an ordinary character and \+ represents a repeat of once or more.</description>
+		</case>
+		<case>
+			<description>An expression followed by ? may be repeated zero or one times only, if the expression is compiled with the flag regbase::bk_plus_qm then "?" is an ordinary character and \? represents the repeat zero or once operator.</description>
+		</case>
+		<case>
+			<description><![CDATA[When it is necessary to specify the minimum and maximum number of repeats explicitly, the bounds operator {} may be used, thus a{2} is the letter a repeated exactly twice, a{2,4} represents the letter a repeated between 2 and 4 times, and a{2,} represents the letter a repeated at least twice with no upper limit. Note that there must be no white-space inside the {}, and there is no upper limit on the values of the lower and upper bounds. When the expression is compiled with the flag regbase::bk_braces then { and } are ordinary characters and \{ and \} are used to delimit bounds instead. All repeat expressions refer to the shortest possible previous sub-expression: a single character; a character set, or a sub-expression grouped with () for example.]]></description>
+		</case>
+		
+		
+	</cases>
+</section>	
+
+
+<section>
+	<title>Examples</title>
+	<cases>
+		<case>
+			<description>ba * will match all of b, ba, baaa etc.</description>
+		</case>
+		<case>
+			<description>ba+ will match ba or baaaa for example but not b.</description>
+		</case>
+		<case>
+			<description>ba? will match b or ba.</description>
+		</case>
+		<case>
+			<description>ba{2,4} will match baa, baaa and baaaa.</description>
+		</case>
+		
+	</cases>
+</section>	
+
+<section>
+	<title>Non-greedy repeats</title>
+	<description><![CDATA[Whenever the "extended" regular expression syntax (the default) is in use then non-greedy repeats are possible by appending a '?' after the repeat; a non-greedy repeat is one which will match the shortest possible string.
+For example to match html tag pairs one could use something like: <\s*tagname[^>]*>(.*?)<\s*/tagname\s*>
+In this case $1 will contain the text between the tag pairs, and will be the shortest possible matching string. ]]></description>
+</section>	
+
+
+<section>
+	<title>Parenthesis</title>
+	<description>Parentheses serve two purposes, to group items together into a sub-expression, and to mark what generated the match. For example the expression (ab)* would match all of the string ababab.</description>
+</section>	
+
+<section>
+	<title>Non-Marking Parenthesis</title>
+	<description>Sometimes you need to group sub-expressions with parenthesis, but do not want the parenthesis to spit out another marked sub-expression, in this case a non-marking parenthesis (?:expression) can be used. For example the following expression creates no sub-expressions: ( ?:abc) *</description>
+</section>	
+
+<section>
+	<title>Forward Lookahead Asserts</title>
+	<description>There are two forms of these; one for positive forward look-ahead asserts, and one for negative look-ahead asserts:</description>
+<cases>
+	<case>
+		<description>(?=abc) matches zero characters only if they are followed by the expression abc.</description>
+	</case>
+	<case>
+		<description>(?!abc) matches zero characters only if they are not followed by the expression abc.</description>
+	</case>
+</cases>
+
+
+</section>	
+
+<section>
+	<title>Alternatives</title>
+	<description>Alternatives occur when the expression can match either one sub-expression or another, each alternative is separated by a "|", or a "\|" if the flag regbase::bk_vbar is set, or by a newline character if the flag regbase::newline_alt is set. Each alternative is the largest possible previous sub-expression; this is the opposite behaviour from repetition operators.</description>
+</section>	
+
+<section>
+	<title>Examples</title>
+	<cases>
+		<case>
+			<description>a(b|c) could match ab or ac.</description>
+		</case>
+		<case>
+			<description>abc|def could match abc or def.</description>
+		</case>
+		
+	</cases>
+</section>	
+
+<section>
+	<title>Sets</title>
+	<description>A set is a set of characters that can match any single character that is a member of the set. Sets are delimited by "[" and "]" and can contain literals, character ranges, character classes, collating elements and equivalence classes. Set declarations that start with "^" contain the compliment of the elements that follow.</description>
+</section>	
+		
+<section>
+	<title>Examples</title>
+	<description>Character literals:</description>
+<cases>
+	<case>
+		<description>[abc] will match either of a, b, or c.</description>
+	</case>
+	<case>
+		<description>[^abc] will match any character other than a, b, or c.</description>
+	</case>
+</cases>
+
+
+</section>
+<section>
+
+	<description>Character ranges:</description>
+	<cases>
+	<case>
+		<description>[a-z] will match any character in the range a to z.</description>
+	</case>
+	<case>
+		<description>[^A-Z] will match any character other than those in the range A to Z.</description>
+	</case>
+</cases>
+</section>
+		<section>
+	
+	<description>Character classes are denoted using the syntax [:classname:] within a set declaration, for example [:space:]] is the set of all white-space characters. Character classes are only available if the flag regbase::char_classes is set. The available character classes are:</description>
+	<cases>
+	<case>
+		<description>alnum : Any alpha numeric character.</description>
+	</case>
+	<case>
+		<description>alpha : Any alphabetical character a-z and A-Z. Other characters may also be included depending upon the locale.</description>
+	</case>
+	<case>
+		<description>blank : Any blank character, either a space or a tab.</description>
+	</case>
+	<case>
+		<description>cntrl : Any control character.</description>
+	</case>
+	<case>
+		<description>digit : Any digit 0-9.</description>
+	</case>
+	<case>
+		<description>graph : Any graphical character.</description>
+	</case>
+	<case>
+		<description>lower : Any lower case character a-z. Other characters may also be included depending upon the locale.</description>
+	</case>
+	<case>
+		<description>print : Any printable character.</description>
+	</case>
+	<case>
+		<description>punct : Any punctuation character.</description>
+	</case>
+	<case>
+		<description>space : Any white space character.</description>
+	</case>
+	<case>
+		<description>upper : Any upper case character A-Z. Other characters may also be included depending upon the locale.</description>
+	</case>
+	<case>
+		<description>xdigit : Any hexadecimal digit character, 0-9, a-f and A-F.</description>
+	</case>
+	<case>
+		<description>word : Any word character - all alphanumeric characters plus the underscore.</description>
+	</case>
+	
+</cases>
+</section>
+<section>
+	<description></description>
+	<cases>
+		<case>
+			<description>\w in place of [:word:]</description>
+		</case>
+		<case>
+			<description>\s in place of [:space:]</description>
+		</case>
+		<case>
+			<description>\d in place of [:digit:]</description>
+		</case>
+		<case>
+			<description>\l in place of [:lower:]</description>
+		</case>
+		<case>
+			<description>\u in place of [:upper:]</description>
+		</case>
+		
+	</cases>
+</section>
+<section>
+	<description><![CDATA[Collating elements take the general form [.tagname.] inside a set declaration, where tagname is either a single character, or a name of a collating element, for example [.a.]] is equivalent to [a], and [.comma.]] is equivalent to [,]. The library supports all the standard POSIX collating element names, and in addition the following digraphs: "ae", "ch", "ll", "ss", "nj", "dz", "lj", each in lower, upper and title case variations. Multi-character collating elements can result in the set matching more than one character, for example [.ae.]] would match two characters, but note that [^[.ae.]] would only match one character.
+
+Equivalence classes take the general form [=tagname=] inside a set declaration, where tagname is either a single character, or a name of a collating element, and matches any character that is a member of the same primary equivalence class as the collating element [.tagname.]. An equivalence class is a set of characters that collate the same, a primary equivalence class is a set of characters whose primary sort key are all the same (for example strings are typically collated by character, then by accent, and then by case; the primary sort key then relates to the character, the secondary to the accentation, and the tertiary to the case). If there is no equivalence class corresponding to tagname, then [=tagname=] is exactly the same as  [.tagname.]. Unfortunately there is no locale independent method of obtaining the primary sort key for a character, except under Win32. For other operating systems the library will "guess" the primary sort key from the full sort key (obtained from strxfrm ), so equivalence classes are probably best considered broken under any operating system other than Win32.
+
+To include a literal "-" in a set declaration then: make it the first character after the opening "[" or "[^", the endpoint of a range, a collating element, or if the flag regbase::escape_in_lists is set then precede with an escape character as in "[\-]". To include a literal "[" or "]" or "^" in a set then make them the endpoint of a range, a collating element, or precede with an escape character if the flag regbase::escape_in_lists is set.
+ ]]></description>
+</section>
+
+	</sections>
+	<sections>
+		<section>
+			<title>Line anchors</title>
+			<description>An anchor is something that matches the NULL string at the start or end of a line: "^" matches the NULL string at the start of a line, "$" matches the NULL string at the end of a line.</description>
+		</section>
+			<section>
+			<title>Back references</title>
+			<description><![CDATA[A back reference is a reference to a previous sub-expression that has already been matched, the reference is to what the sub-expression matched, not to the expression itself. A back reference consists of the escape character "\" followed by a digit "1" to "9", "\1" refers to the first sub-expression, "\2" to the second etc. For example the expression (.*)\1 matches any string that is repeated about its mid-point for example abcabc or xyzxyz. A back reference to a sub-expression that did not participate in any match, matches the NULL string: NB this is different to some other regular expression matchers. Back references are only available if the expression is compiled with the flag regbase::bk_refs set.]]></description>
+		</section>
+			<section>
+			<title>Characters by code</title>
+			<description><![CDATA[This is an extension to the algorithm that is not available in other libraries, it consists of the escape character followed by the digit "0" followed by the octal character code. For example "\023" represents the character whose octal code is 23. Where ambiguity could occur use parentheses to break the expression up: "\0103" represents the character whose code is 103, "(\010)3 represents the character 10 followed by "3". To match characters by their hexadecimal code, use \x followed by a string of hexadecimal digits, optionally enclosed inside {}, for example \xf0 or \x{aff}, notice the latter example is a Unicode character. ]]></description>
+		</section>
+			<section>
+			<title>Word operators</title>
+			<description>The following operators are provided for compatibility with the GNU regular expression library.</description>
+		<cases>
+			<case>
+				<description><![CDATA[\w matches any single character that is a member of the "word" character class, this is identical to the expression [:word:]].]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\W matches any single character that is not a member of the "word" character class, this is identical to the expression [^[:word:]].]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\< matches the NULL string at the start of a word.]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\> matches the NULL string at the end of the word.]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\b matches the NULL string at either the start or the end of a word.]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\B matches a NULL string within a word.]]></description>
+			</case>
+			
+			
+		</cases>
+		
+		
+		</section>
+		<section>
+			<description>The start of the sequence passed to the matching algorithms is considered to be a potential start of a word unless the flag match_not_bow is set. The end of the sequence passed to the matching algorithms is considered to be a potential end of a word unless the flag match_not_eow is set.</description>
+		</section>
+		
+		
+	
+	<section>
+		<title>Buffer operators</title>
+		<description>The following operators are provide for compatibility with the GNU regular expression library, and Perl regular expressions:</description>
+		<cases>
+			<case>
+				<description>\` matches the start of a buffer.</description>
+			</case>
+			<case>
+				<description>\A matches the start of the buffer.</description>
+			</case>
+			<case>
+				<description>\' matches the end of a buffer.</description>
+			</case>
+			<case>
+				<description>\z matches the end of a buffer.</description>
+			</case>
+			<case>
+				<description>\Z matches the end of a buffer, or possibly one or more new line characters followed by the end of the buffer.</description>
+			</case>
+			
+		</cases>
+		
+		
+	</section>
+	<section>
+		<description>A buffer is considered to consist of the whole sequence passed to the matching algorithms, unless the flags match_not_bob or match_not_eob are set.</description>
+	</section>
+	
+	<section>
+		<title>Escape operator</title>
+		<description>The escape character "\" has several meanings.</description>
+<cases>
+	<case>
+		<description>Inside a set declaration the escape character is a normal character unless the flag regbase::escape_in_lists is set in which case whatever follows the escape is a literal character regardless of its normal meaning.</description>
+	</case>
+	<case>
+		<description>The escape operator may introduce an operator for example: back references, or a word operator.</description>
+	</case>
+	<case>
+		<description>The escape operator may make the following character normal, for example "\*" represents a literal "*" rather than the repeat operator.</description>
+	</case>
+	
+</cases>		
+		
+		
+	</section>
+<section>
+	<title>Single character escape sequences</title>
+<description>The following escape sequences are aliases for single characters:</description>
+	
+	<cases>
+		<case>
+			<title>\a</title>
+			<description>Character code: 0x07 Bell character </description>
+		</case>
+		
+		<case>
+			<title>\f</title>
+			<description>Character code: 0x0C Form feed </description>
+		</case>
+		
+		<case>
+			<title>\n</title>
+			<description>Character code: 0x0A Newline character </description>
+		</case>
+
+
+<case>
+			<title>\r</title>
+			<description>Character code:  0x0D Carriage return </description>
+		</case>
+
+
+<case>
+			<title>\t</title>
+			<description>Character code: 0x09 Tab character </description>
+		</case>
+
+
+<case>
+			<title>\v</title>
+			<description>Character code: 0x0B Vertical tab </description>
+		</case>
+
+
+<case>
+			<title>\e</title>
+			<description>Character code:  0x1B ASCII Escape character </description>
+		</case>
+
+
+<case>
+			<title>\0dd</title>
+			<description>Character code:  0dd An octal character code, where dd is one or more octal digits. </description>
+		</case>
+
+
+<case>
+			<title>\xXX</title>
+			<description>Character code:  0xXX A hexadecimal character code, where XX is one or more hexadecimal digits. </description>
+		</case>
+
+<case>
+			<title>\x{XX}</title>
+			<description>Character code: 0xXX A hexadecimal character code, where XX is one or more hexadecimal digits, optionally a unicode character. </description>
+		</case>
+		
+		<case>
+			<title>\cZ</title>
+			<description>Character code: z-@ An ASCII escape sequence control-Z, where Z is any ASCII character greater than or equal to the character code for '@'. </description>
+		</case>
+
+		
+		
+	</cases>
+	
+	
+	
+</section>
+	<section>
+		<title>Miscellaneous escape sequences:</title>
+		<description>The following are provided mostly for Perl compatibility, but note that there are some differences in the meanings of \l \L \u and \U :</description>
+		<cases>
+			<case>
+				<description><![CDATA[\w Equivalent to [:word:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\W Equivalent to [^[:word:]]]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\s Equivalent to [:space:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\S Equivalent to [^[:space:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\d Equivalent to [:digit:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\D Equivalent to [^[:digit:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\l Equivalent to [:lower:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\L Equivalent to [^[:lower:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\u Equivalent to [:upper:]] ]]></description>
+			</case>
+			
+			<case>
+				<description><![CDATA[\U Equivalent to [^[:upper:]] ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\C Any single character, equivalent to ' . ' ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\X Match any Unicode combining character sequence, for example a\x 0301 (a letter a with an acute) ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\Q The begin quote operator, everything that follows is treated as a literal character until a \E end quote operator is found ]]></description>
+			</case>
+			<case>
+				<description><![CDATA[\E The end quote operator, terminates a sequence begun with \Q ]]></description>
+			</case>
+			
+		</cases>
+		
+	</section>
+<section>
+	<title>What gets matched?</title>
+	<description>The regular expression library will match the first possible matching string, if more than one string starting at a given location can match then it matches the longest possible string, unless the flag match_any is set, in which case the first match encountered is returned. Use of the match_any option can reduce the time taken to find the match - but is only useful if the user is less concerned about what matched - for example it would not be suitable for search and replace operations. In cases where their are multiple possible matches all starting at the same location, and all of the same length, then the match chosen is the one with the longest first sub-expression, if that is the same for two or more matches, then the second sub-expression will be examined and so on.</description>
+	
+</section>	
+	
+	
+	
+	
+	</sections>
+	<see>
+		<ref>REGEX_MATCH()</ref>
+		<ref>REGEX_MERGE()</ref>
+		<ref>REGEX_SPLIT()</ref>
+		<ref>Text, Numbers, and Punctuation in Regular Expressions</ref>
+		
+	</see>
+	
+</page>
