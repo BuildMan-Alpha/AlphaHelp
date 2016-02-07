@@ -114,7 +114,16 @@ var generateXMLHelp = function(content) {
     }
         
     xml += "</page>\r\n";
-    return { context : context , xml : xml };
+    var pagename = method;
+    if( pagename ) {
+        var methodArgsPos = pagename.indexOf('(');
+        if( methodArgsPos > 0 ) {
+            pagename  = pagename.substring(0,methodArgsPos);
+        }
+        pagename = pagename.trim();
+        pagename += " Method";
+    }    
+    return { context : context , pagename : pagename , xml : xml };
 };
 
 var extractJsHelp = function() {
@@ -126,20 +135,46 @@ var extractJsHelp = function() {
                 var options = { loc : true , range : false , comment : true }
                 var syntax = esprima.tokenize(code,options);
                 var i;
+                var contexts = {};
+                var fileOps = [];
                 for( i = 0 ; i < syntax.length ; ++i ) {
                     if( syntax[i].type == "BlockComment" ) {
                         var  content = syntax[i].value.trim();
                         if( content.substring(0,5) == "[DOC:" && content.substring(content.length-1) == ']' ) {
                             content = content.substring(5,content.length-1).trim();
                             var helpPage = generateXMLHelp(content);
-                            console.log("Context:"+helpPage.context);
-                            console.log(helpPage.xml);                            
+                            if( !contexts[helpPage.context] )
+                                contexts[helpPage.context] = {  files : [] };
+                            contexts[helpPage.context].files.push({ pagename : helpPage.pagename , xml : helpPage.xml });
                         }              
                     }
                 }
-                //console.log(syntax);                
+                for (context in contexts) {
+                    var map = build.context[context];
+                    if( map ) {
+                        var ctx = contexts[context];
+                        var j;
+                        for( j = 0 ; j < ctx.files.length ; ++j ) {
+                            var fn = map + '/' + ctx.files[j].pagename + ".xml";
+                            fileOps.push({ filename : fn , xml : ctx.files[j].xml });
+                        }                
+                    }
+                }                
             }
-            callbackLoop();
+            if( fileOps.length > 0 ) {
+                async.eachSeries(fileOps, function (fileOp, callbackLoopNested) {
+                    fs.writeFile(fileOp.filename,fileOp.xml,function(err) {
+                         if( err ) {
+                             console.log('Error writing '+fileOp.filename+" error "+err);
+                         }
+                         callbackLoopNested();
+                    });
+                },function() {
+                    callbackLoop();    
+                });                
+            } else {
+                callbackLoop();
+            }
         });
     });
 };
