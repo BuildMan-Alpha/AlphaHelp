@@ -87,7 +87,25 @@ var generateXMLHelp = function(content) {
             }
         }        
     }
+    var pagename = method;
+    if( pagename ) {
+        var methodArgsPos = pagename.indexOf('(');
+        if( methodArgsPos > 0 ) {
+            pagename  = pagename.substring(0,methodArgsPos);
+        }
+        pagename = pagename.trim();
+        pagename += " Method";
+    }    
     var xml = "<page>\r\n";
+    
+    if( pagename ) {
+        var map = build.context[context];
+        if( map && map.classname ) {
+            xml += "\t<topic>"+protectXml(map.classname+"."+pagename)+"</topic>\r\n";
+        } else {        
+            xml += "\t<topic>"+protectXml(pagename)+"</topic>\r\n";
+        }
+    }    
     
     if( method ) {
         xml += "\t<prototype>"+protectXml(method)+"</prototype>\r\n";
@@ -114,15 +132,6 @@ var generateXMLHelp = function(content) {
     }
         
     xml += "</page>\r\n";
-    var pagename = method;
-    if( pagename ) {
-        var methodArgsPos = pagename.indexOf('(');
-        if( methodArgsPos > 0 ) {
-            pagename  = pagename.substring(0,methodArgsPos);
-        }
-        pagename = pagename.trim();
-        pagename += " Method";
-    }    
     return { context : context , pagename : pagename , xml : xml };
 };
 
@@ -155,7 +164,7 @@ var extractJsHelp = function() {
                         var ctx = contexts[context];
                         var j;
                         for( j = 0 ; j < ctx.files.length ; ++j ) {
-                            var fn = map + '/' + ctx.files[j].pagename + ".xml";
+                            var fn = map.path + '/' + ctx.files[j].pagename + ".xml";
                             fileOps.push({ filename : fn , xml : ctx.files[j].xml });
                         }                
                     }
