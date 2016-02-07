@@ -71,14 +71,14 @@ var generateXMLHelp = function(content) {
                 if( dashPos > 0 ) {
                     // argument...
                     var argName = line.substring(0,dashPos).trim();
-                    var description = line.substring(splitPos+1).trim();
+                    var description = line.substring(dashPos+1).trim();
                     var typeIndex = argName.indexOf('(');
                     var argType = "string";
                     if( typeIndex > 0 ) {
                         argType = argName.substring(typeIndex+1).trim();
                         var endArgType = argType.lastIndexOf(')');
                         if( endArgType > 0 ) {
-                            argType = argType.substring(0,argType);
+                            argType = argType.substring(0,endArgType);
                         }                        
                         argName = argName.substring(0,typeIndex).trim();
                     }
@@ -114,12 +114,12 @@ var generateXMLHelp = function(content) {
     }
         
     xml += "</page>\r\n";
-    return xml;
+    return { context : context , xml : xml };
 };
 
 var extractJsHelp = function() {
     async.eachSeries(sourceFiles, function (path, callbackLoop) {
-        fs.readFile(path,"utf8",function(err,code) {            
+        fs.readFile(path,"utf8",function(err,code) {
             if( err ) {
                 ;
             } else {
@@ -131,8 +131,9 @@ var extractJsHelp = function() {
                         var  content = syntax[i].value.trim();
                         if( content.substring(0,5) == "[DOC:" && content.substring(content.length-1) == ']' ) {
                             content = content.substring(5,content.length-1).trim();
-                            content = generateXMLHelp(content);
-                            console.log(content);                            
+                            var helpPage = generateXMLHelp(content);
+                            console.log("Context:"+helpPage.context);
+                            console.log(helpPage.xml);                            
                         }              
                     }
                 }
