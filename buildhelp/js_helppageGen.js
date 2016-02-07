@@ -33,7 +33,7 @@ var generateXMLHelp = function(content) {
         if( endTag && line.indexOf(endTag) >= 0 ) {
             lastType = null;
             endTag = null;
-        } else {
+        } else if( !endTag ) {
             var splitPos = line.indexOf(":");
             var dashPos = line.indexOf("-");
             var type = null; 
@@ -62,11 +62,11 @@ var generateXMLHelp = function(content) {
                 }
                 lastType = type;
             } else if( lastType == "description" ) {
-                description += description + "\r\n" + line;
+                description += "\r\n" + line;
             } else if( lastType == "discussion" ) {
-                discussion += discussion + "\r\n" + line;
+                discussion += "\r\n" + line;
             } else if( lastType == "example" ) {
-                examples += examples + "\r\n" + line;
+                examples += "\r\n" + line;
             } else if( lastType == "arguments" ) {
                 if( dashPos > 0 ) {
                     // argument...
@@ -85,6 +85,8 @@ var generateXMLHelp = function(content) {
                     arguments.push( { name : argName , type : argType , description : description } );                    
                 }
             }
+        } else if( lastType == "example" ) {
+            examples += "\r\n" + line;
         }        
     }
     var pagename = method;
