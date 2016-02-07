@@ -6,6 +6,7 @@ var fs = require("fs");
 var async = require('async');
 var esprima = require('esprima');
 var sourceFiles = [];
+var lastContext = null;
 
 var protectXml = function(content) {
     if( content.indexOf("&") >= 0 
@@ -20,7 +21,7 @@ var protectXml = function(content) {
 var generateXMLHelp = function(content) {
     var lines = content.split('\n');
     var i;
-    var context = null;
+    var context = lastContext;
     var method = null;
     var lastType = null;
     var description = null;
@@ -28,6 +29,7 @@ var generateXMLHelp = function(content) {
     var examples = null;
     var endTag = null;
     var arguments = [];
+    var isConstructor = false;
     for(i = 0 ; i < lines.length ; ++i ) {
         var line = lines[i].trim();
         if( endTag && line.indexOf(endTag) >= 0 ) {
@@ -36,16 +38,22 @@ var generateXMLHelp = function(content) {
         } else if( !endTag ) {
             var splitPos = line.indexOf(":");
             var dashPos = line.indexOf("-");
+            var typePos = line.indexOf("(");
             var type = null; 
             if( splitPos > 0 ) {
                 if( dashPos < 0 || splitPos < dashPos ) {
-                    type = line.substring(0,splitPos).toLowerCase();
+                    if( typePos < 0 || splitPos < typePos ) {
+                        type = line.substring(0,splitPos).toLowerCase();
+                    }
                 }
             }
             if( type ) {
                 if( type == "context") {
                     context = line.substring(splitPos+1);
                 } else if( type == "method") {
+                    method = line.substring(splitPos+1);
+                } else if( type == "constructor") {
+                    isConstructor = true;
                     method = line.substring(splitPos+1);
                 } else if( type == "description") {
                     description = line.substring(splitPos+1);
@@ -96,13 +104,19 @@ var generateXMLHelp = function(content) {
             pagename  = pagename.substring(0,methodArgsPos);
         }
         pagename = pagename.trim();
-        pagename += " Method";
+        if( isConstructor ) {
+            pagename += " Constructor";
+        } else {
+            pagename += " Method";
+        }
     }    
     var xml = "<page>\r\n";
     
     if( pagename ) {
         var map = build.context[context];
-        if( map && map.classname ) {
+        if( isConstructor ) {
+            xml += "\t<topic>"+protectXml(pagename)+"</topic>\r\n";
+        } else if( map && map.classname ) {
             xml += "\t<topic>"+protectXml(map.classname+"."+pagename)+"</topic>\r\n";
         } else {        
             xml += "\t<topic>"+protectXml(pagename)+"</topic>\r\n";
@@ -134,6 +148,7 @@ var generateXMLHelp = function(content) {
     }
         
     xml += "</page>\r\n";
+    lastContext = context;
     return { context : context , pagename : pagename , xml : xml };
 };
 
@@ -148,6 +163,7 @@ var extractJsHelp = function() {
                 var i;
                 var contexts = {};
                 var fileOps = [];
+                lastContext = null;
                 for( i = 0 ; i < syntax.length ; ++i ) {
                     if( syntax[i].type == "BlockComment" ) {
                         var  content = syntax[i].value.trim();
