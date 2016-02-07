@@ -29,6 +29,7 @@ var generateXMLHelp = function(content) {
     var examples = null;
     var endTag = null;
     var arguments = [];
+    var isFunction = false;
     var isConstructor = false;
     for(i = 0 ; i < lines.length ; ++i ) {
         var line = lines[i].trim();
@@ -51,10 +52,13 @@ var generateXMLHelp = function(content) {
                 if( type == "context") {
                     context = line.substring(splitPos+1);
                 } else if( type == "method") {
-                    method = line.substring(splitPos+1);
+                    method = line.substring(splitPos+1).trim();
+                } else if( type == "function") {
+                    isFunction = true;
+                    method = line.substring(splitPos+1).trim();
                 } else if( type == "constructor") {
                     isConstructor = true;
-                    method = line.substring(splitPos+1);
+                    method = line.substring(splitPos+1).trim();
                 } else if( type == "description") {
                     description = line.substring(splitPos+1);
                 } else if( type == "discussion") {
@@ -106,6 +110,8 @@ var generateXMLHelp = function(content) {
         pagename = pagename.trim();
         if( isConstructor ) {
             pagename += " Constructor";
+        } else if( isFunction ) {
+            pagename += " Function";
         } else {
             pagename += " Method";
         }
