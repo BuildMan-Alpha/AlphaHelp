@@ -28,6 +28,7 @@ var generateXMLHelp = function(content) {
     var discussion = null;
     var examples = null;
     var endTag = null;
+    var properties = [];
     var arguments = [];
     var isFunction = false;
     var isConstructor = false;
@@ -49,21 +50,23 @@ var generateXMLHelp = function(content) {
                 }
             }
             if( type ) {
-                if( type == "context") {
+                if( type == "context" ) {
                     context = line.substring(splitPos+1);
                 } else if( type == "method") {
                     method = line.substring(splitPos+1).trim();
-                } else if( type == "function") {
+                } else if( type == "function" || type == "funct" || type == "func" || type == "fun" )  {
                     isFunction = true;
                     method = line.substring(splitPos+1).trim();
-                } else if( type == "constructor") {
+                } else if( type == "constructor" || type == "cons" ) {
                     isConstructor = true;
                     method = line.substring(splitPos+1).trim();
-                } else if( type == "description") {
+                } else if( type == "description" || type == "desc") {
                     description = line.substring(splitPos+1);
-                } else if( type == "discussion") {
+                } else if( type == "discussion" || type == "disc") {
                     discussion = line.substring(splitPos+1);
-                } else if( type == "arguments") {
+                } else if( type == "arguments" || type == "args") {
+                    ;                    
+                } else if( type == "properties" || type == "props") {
                     ;                    
                 } else if( type == "example") {
                     endTag = line.substring(splitPos+1).trim();
@@ -73,13 +76,17 @@ var generateXMLHelp = function(content) {
                     examples = "";
                 }
                 lastType = type;
-            } else if( lastType == "description" ) {
+            } else if( lastType == "description" || lastType == "desc" ) {
                 description += "\r\n" + line;
-            } else if( lastType == "discussion" ) {
+            } else if( lastType == "discussion" || lastType == "disc" ) {
                 discussion += "\r\n" + line;
             } else if( lastType == "example" ) {
                 examples += "\r\n" + line;
-            } else if( lastType == "arguments" ) {
+            } else if( lastType == "arguments" 
+                    || lastType == "args"
+                    || lastType == "properties" 
+                    || lastType == "props" 
+                    ) {
                 if( dashPos > 0 ) {
                     // argument...
                     var argName = line.substring(0,dashPos).trim();
@@ -94,7 +101,11 @@ var generateXMLHelp = function(content) {
                         }                        
                         argName = argName.substring(0,typeIndex).trim();
                     }
-                    arguments.push( { name : argName , type : argType , description : description } );                    
+                    if( lastType == "properties" || lastType == "props" ) {
+                        properties.push( { name : argName , type : argType , description : description } );                        
+                    } else {
+                        arguments.push( { name : argName , type : argType , description : description } );
+                    }                    
                 }
             }
         } else if( lastType == "example" ) {
@@ -145,12 +156,27 @@ var generateXMLHelp = function(content) {
     }
     if( description ) {
         xml += "\t<description>"+protectXml(description)+"</description>\r\n";
-    }
+    }    
     if( discussion ) {
         xml += "\t<discussion>"+protectXml(discussion)+"</discussion>\r\n";
     }
+    if( properties.length > 0 ) {        
+        xml += "\t<properties>\r\n";
+        for(i = 0 ; i < properties.length ; ++i ) {
+            xml += "\t\t<property>\r\n";
+            xml += "\t\t\t<name>"+properties[i].name+"</name>\r\n";
+            xml += "\t\t\t<type>"+properties[i].type+"</type>\r\n";
+            xml += "\t\t\t<description>"+properties[i].description+"</description>\r\n";
+            xml += "\t\t</property>\r\n";
+        }
+        xml += "\t</properties>\r\n";
+    }
     if( examples ) {
         xml += "\t<example>"+protectXml(examples)+"</example>\r\n";
+    }
+    if( isConstructor ) {
+        pagename = "index";
+        xml += "\t<!--list:.-->\r\n";
     }
         
     xml += "</page>\r\n";
