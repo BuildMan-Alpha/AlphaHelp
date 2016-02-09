@@ -1,0 +1,232 @@
+<page>
+	<topic>Working with Microsoft Excel</topic>
+	<sections>
+		<section>
+			<title>Things to be aware of when using Excel</title>
+			<steps>
+				<step>
+					<description>The JET (MS) driver wraps table names that contain spaces with single quotes.  These single quotes MUST be preserved throughout because some functions (such as SQL::Connection::GetTableInfo()) require that they be present.</description>
+				</step>
+				<step>
+					<description>Worksheets are always referenced with a $ at the end.</description>
+				</step>
+				<step>
+					<description>Named ranges are always referenced without the $ at the end.</description>
+				</step>
+				<step>
+					<description>The name in SQL::Connection::CreateTable() refers to a named range, not a worksheet (hence the absence of a $). If no worksheet exists with the same name as the new range, the method creates a new worksheet to contain the new range. If the name exists for a worksheet, the method changes the name slightly. You can create a named range (and hosting worksheet) using CreateTable(). You cannot create "just" a worksheet.</description>
+				</step>
+				
+			</steps>
+			
+		</section>
+		<section>
+		<description>This script adds a new name ( NewRange ) defined as  =NewRange!$A$1, a worksheet (named NewRange ) to hold it, and places "Column1" into NewRange. Note that you must set the SQL::TableInfo .name and the SQL::DataTypeInfo .name, .alphatype, and .intermediatetype properties before using SQL::TableInfo.AddColumn().</description>	
+			<example><![CDATA[dim cn as SQL::Connection
+dim connstring as C
+dim ti as SQL::TableInfo
+dim dti as SQL::DataTypeInfo 
+connstring = "{A5API='Excel',A5Syntax='Excel',FileName='C:\Customer.xls'}"
+If .not. cn.open(connstring) then
+    end
+end if
+ti.name = "NewRange"
+dti.name = "Column1"
+dti.alphatype = "C"
+dti.intermediatetype = "Character"
+ti.AddColumn(dti)
+If .not. cn.CreateTable(ti) then
+    ui_msg_box("Error", cn.CallResult)
+end if
+cn.close()]]></example>
+		</section>
+		
+		<section>
+			<title>General Issues with Excel</title>
+			<steps>
+				<step>
+					<description>Portable SQL syntax.</description>
+					<cases>
+						<case>
+							<description>String Literals are any strings enclosed in single (') or double (") quotes.</description>
+						</case>
+						<case>
+							<description>Identifiers are any strings not enclosed, or strings enclosed in square brackets [].</description>
+						</case>
+						
+						
+					</cases>
+					<note>It is important to be clear which context you are in. Excel sometimes uses single quotes to wrap table names.</note>
+				</step>
+				<step>
+					<description>Usage of SQL::TableInfo::UpdateStatistics() and SizeToFit :</description>
+					<cases>
+						<case>
+							<description>UpdateStatistics executes SQL to retrieve state information like the LastKnownRowCount (for the table) and MaximumActualLength for each column.</description>
+						</case>
+						<case>
+							<description>SizeToFit is a property of SQL::TableInfo and on SQL::DataTypeInfo that determines how the DBFRowSyntax (and related properties) report the column length.</description>
+						</case>
+						<case>
+							<description>Setting the SizeToFit property does not have any effect on the retrieval of statistical information.</description>
+						</case>
+						<case>
+							<description>You must always call SQL::TableInfo::UpdateStatistics() explicitly after calling SQL::Connection::GetTableInfo().</description>
+						</case>
+					</cases>
+				</step>
+			</steps>
+			
+			
+		</section>
+		
+		
+		<section>
+			<title>Examples</title>
+	
+			<example><![CDATA[dim Connection as SQL::connection
+dim TableInfo as SQL::TableInfo
+Connection.open("{A5API=Excel,FileName='X:\alpha names.xls'}")]]></example>
+		</section>
+		<section>
+		
+		<description>If you will be counting on current values, it is best to call SQL::TableInfo::UpdateStatistics() immediately after SQL::Connection::GetTableInfo().</description>	
+			<example><![CDATA[Connection.GetTableInfo(TableInfo,"sheet2$")
+TableInfo.UpdateStatistics(Connection) ]]></example>
+		</section>
+			<section>
+		
+		<description>Setting the SizeToFit property to true causes DBFRowSyntax to be based on the maximum actual column lengths in the table, provided you have called SQL::TableInfo::UpdateStatistics(). Set the table level SizeToFit property to true if you want all columns to be sized to fit. Set the column level SizeToFit if you only want some columns to be sized to fit.</description>	
+			<example><![CDATA[TableInfo.SizeToFit = .t. ]]></example>
+		</section>
+			<section>
+		
+		<description>An Interactive Window session.</description>	
+			<example><![CDATA[dim c as SQL::connection
+? c.open("{A5API='Excel',A5Syntax='Excel',FileName='X:\alpha names.xls'}")
+= .T.
+? c.listtables(.t., .t., .t., .t.)
+= Sheet2$
+Sheet3$
+'alpha names$'
+mydb
+dim ti as SQL::tableinfo
+? c.gettableinfo(ti, "mydb")
+= .T.
+? c.execute("select count(*) from alpha names$")
+= .T. ]]></example>
+		</section>
+			<section>
+		
+		<description>SQL::Connection::GetTableInfo() MUST include the single quote when using Excel.</description>	
+			<example><![CDATA[? c.gettableinfo(ti, "'alpha names$'")
+= .T.
+c.PortableSQLEnabled = .t.
+? c.Execute("select * from mydb")
+= .T.
+? c.CallResult.text
+= "Success"
+c.PortableSQLEnabled = .f.
+? c.Execute("select * from mydb")
+= .T.
+c.PortableSQLEnabled = .t. ]]></example>
+		</section>
+			<section>
+		
+		<description>Excel doesn't like this. In Portable SQL 'mydb' is a literal, not an identifier.</description>	
+			<example><![CDATA[? c.Execute("select * from 'mydb'")
+= .F. ]]></example>
+		</section>
+			<section>
+		
+		<description>Excel doesn't like this.  There is no table named 'mydb'.</description>	
+			<example><![CDATA[? c.Execute("select * from 'mydb'") ?
+= .F. ]]></example>
+		</section>
+			<section>
+		
+		<description>This works.</description>	
+			<example><![CDATA[? c.Execute("select * from mydb")
+= .T. ]]></example>
+		</section>
+			<section>
+		
+		<description>Calling SQL::Connection::GetTableInfo() with SizeToFit = .t. does not do much. You need to call SQL::TableInfo::UpdateStatistics() to get current data.</description>	
+			<example><![CDATA[delete ti4
+dim ti4 as SQL::tableinfo
+ti4.SizeToFit = .t.
+? c.GetTableInfo(ti4,"sheet2$")
+= .T.
+? ti4.DBFRowSyntax
+= COMPANY,C,255,0
+LOCATION,C,255,0
+ti4.SizeToFit = .f.
+? ti4.UpdateStatistics(c)
+= .T.
+? ti4.DBFRowSyntax
+= COMPANY,C,255,0
+LOCATION,C,255,0
+ti4.SizeToFit = .t.
+? ti4.DBFRowSyntax
+= COMPANY,C,5,0
+LOCATION,C,10,0
+ti4.Clear()
+? ti4.DBFRowSyntax
+c.GetTableInfo(ti4,"sheet2$")
+? ti.DBFRowSyntax
+= NAME,C,255,0
+CITY,C,255,0 ]]></example>
+		</section>
+			<section>
+		
+		<description>It isn't strictly necessary, but Portable SQL syntax now wraps all identifiers that contain non-alphanumerics.</description>	
+			<example><![CDATA[dim q as SQL::query
+dim tr as SQL::query::selecttablereference
+? c.ListTables(.t.,.t.,.t.,.t.)
+= Sheet2$
+Sheet3$
+'alpha names$'
+mydb
+tr.name = "'alpha names$'"
+q.Table.Add(tr)
+? q.SQLStatement
+= "SELECT  FROM 'alpha names$'"
+q.table.Remove(1)
+tr.name = "sheet2$"
+q.table.add(tr)
+? q.SQLStatement
+= "SELECT  FROM sheet2$"
+dim ti5 as SQL::tableinfo
+ti5.SizeToFit = .t.
+? c.GetTableInfo(ti5,"'alpha names$'")
+= .T.
+? ti5.DBFRowSyntax
+= NAME,C,255,0
+CITY,C,255,0
+? ti5.UpdateStatistics(c)
+= .T.
+ti5.SizeToFit = .t.
+? ti5.DBFRowSyntax
+= NAME,C,6,0
+CITY,C,6,0
+dim ti6 as SQL::tableinfo
+? c.GetTableInfo(ti6,"'alpha names$'")
+? ti6.DBFRowSyntax
+= NAME,C,255,0
+CITY,C,255,0
+? ti6.UpdateStatistics(c)
+= .T.
+ti6.SizeToFit = .t.
+? ti5.DBFRowSyntax
+= NAME,C,6,0
+CITY,C,6,0. PicturePicture ]]></example>
+		</section>
+			
+	</sections>
+	<see>
+		<ref>Working with SQL Databases</ref>
+		<ref>SQL::Connection::GetTableInfo()</ref>
+		<ref>SQL::TableInfo::UpdateStatistics()</ref>
+	</see>
+	
+</page>

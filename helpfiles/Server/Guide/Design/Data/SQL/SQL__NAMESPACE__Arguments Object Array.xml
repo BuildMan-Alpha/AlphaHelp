@@ -1,0 +1,91 @@
+<page>
+	<topic>SQL::Arguments Object - Array</topic>
+	<sections>
+		<section>
+			<description>The SQL::Arguments object now supports arrays. This is a very powerful addition because it makes support for parameterized SQL queries that contain the IN keyword possible. See example below.
+ To set a SQL::Argument value to an array, you simply create an Xbasic array and then set the argument value to the array, as shown in the following interactive window session.
+</description>
+			<example><![CDATA['create an Xbasic array with 3 elements
+dim a[3] as c
+a[1] = "Boston"
+a[2] = "London"
+a[3] = "Berlin"
+
+dim args as sql::arguments 
+args.add("whatcity",a)
+ 
+'View the XML property of the SQL::arguments object
+?args.xml 
+= <SQLArguments>
+    <SQLArgument>
+        <Name>whatcity</Name>
+        <Data Type="C[]">
+            <Item Type="C">Boston</Item>
+            <Item Type="C">London</Item>
+            <Item Type="C">Berlin</Item>
+        </Data>
+        <IsNull Type="L">0</IsNull>
+        <Usage>Input</Usage>
+    </SQLArgument>
+</SQLArguments>
+
+ 
+'read the first argument into an Xbasic array
+dim aa as p
+aa = args[1].data
+?aa[1]
+= "Boston"
+ 
+'find the data type of the first argument. a type of 'P' indicates that the argument is an array
+?typeof(args[1].data)
+= "P"
+ 
+ 
+'find the data type of the array
+?typeof(args[1].data[1])
+= "C"
+ 
+ 
+'add a new element to the array.
+dim myarr as p
+myarr = args[1].data
+myarr[] = "Santiago"
+args[1].data = myarr]]></example>
+		</section>
+		<section>
+			<description>In this next example, we show how you can use array arguments in a SQL statement that uses the IN keyword.
+</description>
+			<example><![CDATA[dim cities[0] as c
+cities[] = "London"
+cities[] = "Madrid"
+cities[] = "Paris"
+ 
+dim cn as sql::connection
+cn.open("::Name::Northwind")
+dim sql as c
+sql = "select customerId,city from customers where city in (:cities)"
+ 
+dim args as sql::arguments
+args.add("cities",cities)
+ 
+?cn.execute(sql,args)
+= .t.
+?cn.resultset.toString()
+= AROUT London
+BSBEV London
+CONSH London
+EASTC London
+NORTS London
+SEVES London
+BOLID Madrid
+FISSA Madrid
+ROMEY Madrid
+PARIS Paris
+SPECD Paris]]></example>
+		</section>
+		
+	</sections>
+	<see>
+		<ref>SQL Arguments Object</ref>
+	</see>
+</page>

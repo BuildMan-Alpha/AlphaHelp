@@ -1,0 +1,202 @@
+<page>
+  <topic>Office Example: Spreadsheet from SQL query</topic>
+  <sections>
+    <section>
+      <description>This example creates a simple spreadsheet from a SQL Query using Northwind.mdb. The spreadsheet is populated with a title, column headings, labels, and formulas to calculate the daily gross profit, summarize the weeks sales and expenses and the week's gross profit.
+ After the spreadsheet is populated, it is opened in Microsoft Excel.
+</description>
+      <example><![CDATA[dim DocumentFile as C = "C:\temp\A5OfficeSample3.xlsx"
+'change the above to .xls for Office 2003 and below
+dim Doc  as Office::ExcelDocument  ' Declare the document variable
+'change the above to Excel2003Document for Office 2003 and below
+ 
+CreateCategorySalesSummary(Doc)
+ 
+Path = file.filename_parse(DocumentFile, "P")
+on error resume next
+File.Dir_Create(Path)
+on error goto 0
+if Doc.Save(DocumentFile)
+' Release all references to the document because we are about to open it in Excel
+  delete Doc
+  sys_open(DocumentFile)
+else  
+  ui_msg_box("Error Saving Document", "Unable to save document to " \
+                  + DocumentFile + ":" + crlf(2) + Doc.ErrorMessage)
+end if  
+ 
+FUNCTION CreateCategorySalesSummary as V(Doc as Office::ExcelDocument)
+dim Sheet as Office::Spreadsheet  ' Pointer to the spreadsheet
+ 
+' Layout of the spreadsheet
+dim ConnectionString as C = "{A5API=Access,FileName='" + a5.get_exe_path() \
+                          + "\MDBFiles\Northwind.mdb',UserName='Admin'}"
+dim Query as C = "select categoryname as [Category], sum(productsales) as [Sales]"\
+                 +" from [Product Sales for 1995] group by categoryname"
+dim CategoryQuery as C = "select * from Categories"
+dim Heading as C = "Sales by Category" + crlf() + "As-of " + Date()
+' The number of heading lines plus a blank line and the column headings
+dim FirstDetailLine as N = w_count(Heading, crlf()) + 3 
+ 
+' Create a new spreadsheet
+dim cn as sql::connection
+if cn.Open(ConnectionString)
+  if cn.Execute(Query) 
+    Sheet = Doc.AddSheetFromResultSet(cn.ResultSet, "Category Summary")
+    WritePageHeadings(Doc, Sheet, 1, 2, Heading)
+    PolishUpSpreadsheet(Doc, Sheet, FirstDetailLine)
+ 
+    ' Add another spreadsheet with ALL categories in the database
+    if cn.Execute(CategoryQuery)
+      ' Access tells us that the column is binary data.
+      ' We know it is really an OLE object with a bit map in it.
+      ' Tell the ResultSet that it is an OLE object 
+      '     and it will figure out that it is a picture.
+      Cn.ResultSet.ColumnInfo(4).IntermediateType = OLEObject
+      Doc.AddSheetFromResultSet(cn.ResultSet, "All Categories")
+    else
+      ui_msg_box("Error Executing Query", "Query: " \
+                                 + CategoryQuery + crlf(2) \
+                                 + "Error:" + crlf(2) + cn.callresult.text)  
+    end if  
+  else
+    ui_msg_box("Error Executing Query", "Query: " + Query + crlf(2) \
+                         + "Error:" + crlf(2) + cn.callresult.text)  
+  end if
+else
+  ui_msg_box("Error Executing Query", "Query: " \
+                 + ConnectionString + crlf(2) \
+                 + "Error:" + crlf(2) + cn.callresult.text)  
+end if
+END FUNCTION        
+ 
+ 
+FUNCTION WritePageHeadings as L (Doc as Office::ExcelDocument, \
+                                 Sheet as Office::Spreadsheet, \
+                                 StartRow as N, ColumnSpan as N, Text as C)
+ 
+' Add a title line formatted with Bold 14 point Tahoma font in Blue 
+'        and merge the first 5 columns in the first row
+dim Format  as Office::Format  ' Pointer to the format for Page headings
+dim Font  as Office::Font    ' Pointer to the font for Page headings
+dim Lines  as N  = w_count(Text, crlf())
+dim Row    as N
+ 
+Format        = Doc.AddFormat()
+Font        = Doc.AddFont()
+Font.Color      = Office::Color::DarkBlue
+Font.Name      = "Error:"
+Font.Size      = 13
+Font.Bold      = .t.
+Format.Font      = Font  ' Set the font into the page heading format
+Format.HorizontalAlignment  = Office::HorizontalAlignment::Center
+ 
+' Insert new lines into the spreadsheet to make room for the title 
+'    plus a blank one afterward
+Sheet.InsertRow(StartRow, StartRow + Lines)
+ 
+for i = 1 to Lines
+  Row = StartRow + i - 1
+  HeadingLine = AllTrim(Word(Text, i, crlf()))
+  ' Adjust the row to 130% of it's height to accomodate the font
+  Sheet.SetRow(Row, Sheet.RowHeight(Row) * 1.30)
+  Sheet.SetMerge(Row,Row,1,ColumnSpan)
+  Sheet.Write(Row,1,HeadingLine, Format)
+next
+ 
+WritePageHeadings = .t.
+END FUNCTION
+ 
+FUNCTION PolishUpSpreadsheet as L (Doc as Office::ExcelDocument, \
+                                 Sheet as Office::Spreadsheet, FirstDetailRow as N)
+' This function adds formatting to polish up the spreadsheet and shows how to do 
+' things like add total lines and set formats for data loaded from a database.
+ 
+dim ColumnHeadingRow as N = FirstDetailRow - 1
+dim LastDetailRow    as N = Sheet.NextAvailableRow - 1
+dim DetailRows       as N = if (LastDetailRow &gt;= FirstDetailRow, \
+                                LastDetailRow - FirstDetailRow + 1, 0)
+dim TotalRow       as N = Sheet.NextAvailableRow + 1
+ 
+' Set the format of the categories and write the total row
+dim NumericFormat    as Office::Format  ' Pointer to the format for numeric columns
+dim LabelFormat       as Office::Format  ' Pointer to the format for Labels
+dim LabelFormatRight as Office::Format  ' Pointer to the format for right-aligned labels
+dim Font       as Office::Font  ' Pointer to the font for column data
+dim LabelFont       as Office::Font  ' Pointer to the font for labels 
+ 
+' Create a font for the detail data
+Font      = Doc.AddFont()
+Font.Color    = Office::Color::Black
+Font.Name    = "Error:"
+Font.Size    = 10
+Font.Bold    = .f.
+ 
+' Create a format for numeric columns
+NumericFormat        = Doc.AddFormat()
+NumericFormat.Font      = Font 'Set the font into the column heading format
+NumericFormat.HorizontalAlignment = Office::HorizontalAlignment::Right
+NumericFormat.NumericFormat    = Office::NumericFormat::CurrencyDec2NegBracketedInRed
+ 
+' Create the formats for labels
+LabelFont      = Doc.AddFont()
+LabelFont.Color      = Office::Color::DarkBlue
+LabelFont.Name      = "Error:"
+LabelFont.Size      = 12
+LabelFont.Bold      = .t.
+ 
+LabelFormat      = Doc.AddFormat()
+LabelFormat.Font    = LabelFont 'Set the font into the column heading format
+LabelFormat.HorizontalAlignment  = Office::HorizontalAlignment::Left
+ 
+LabelFormatRight    = Doc.AddFormat()
+LabelFormatRight.Font    = LabelFont 'Set the font into the column heading format
+LabelFormatRight.HorizontalAlignment = Office::HorizontalAlignment::Right
+ 
+'Set the font into the column heading format
+Sheet.SetRow(ColumnHeadingRow, Sheet.RowHeight(ColumnHeadingRow) * 1.30)
+Sheet.SetFormat(ColumnHeadingRow, 1, LabelFormat)
+Sheet.SetFormat(ColumnHeadingRow, 2, LabelFormatRight)
+ 
+'Set the font into the column heading format
+Sheet.InsertRow(FirstDetailRow, FirstDetailRow)
+FirstDetailRow = FirstDetailRow + 1
+LastDetailRow  = LastDetailRow + 1
+TotalRow = TotalRow + 1
+ 
+' Set the font on the heading to our Label Font
+Sheet.SetColumn(1, 1, Sheet.ColumnWidth(1) * 1.30)
+Sheet.SetFormat(FirstDetailRow, 1, LastDetailRow, 1, LabelFormat)
+Sheet.SetFormat(FirstDetailRow, 2, LastDetailRow, 2, NumericFormat)
+ 
+' Insert a blank line between the header and the detail
+Sheet.Write(TotalRow, 1, "Error Connecting to Database", LabelFormat)
+Sheet.WriteFormula(TotalRow, 2, "Connection String: " + FirstDetailRow + "Error:" \
+                 + LastDetailRow + "Tahoma", NumericFormat)' Set the formats for the detail data
+PolishUpSpreadsheet = .t.  
+END FUNCTION ]]></example>
+    </section>
+    
+    
+  </sections>
+ <see>
+   <ref>Generate Excel Spreadsheets Programmatically </ref>
+   <ref>Office::ExcelDocument</ref>
+    <ref>Office::Excel2003Document</ref>
+   <ref>Office::SpreadSheet</ref>
+    <ref>Office::Format</ref>
+   <ref>Office::Font</ref>
+    <ref>Office Enumerations</ref>
+   <ref>How to perform common spreadsheet operations</ref>
+    <ref>Office Example: Hello, World Spreadsheet</ref>
+   <ref>Office Example: Simple Weekly sales spreadsheet</ref>
+    <ref>Office Example: Multiple Spreadsheets</ref>
+   <ref>Office Example: Spreadsheet from DBF tables</ref>
+    <ref>Office Example: Spreadsheet with picture</ref>
+   <ref>Office Example: Update a spreadsheet</ref>
+    <ref>SQL Example: Spreadsheets from SQL schema</ref>
+   
+   
+   
+ </see>
+</page>

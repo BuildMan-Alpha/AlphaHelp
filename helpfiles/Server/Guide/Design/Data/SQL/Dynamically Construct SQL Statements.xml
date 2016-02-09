@@ -1,0 +1,81 @@
+<page>
+	<topic>How to Dynamically Construct SQL Statements</topic>
+	<sections>
+		<section>
+			<description>This interactive session demonstrates how you can programmatically modify SQL statements from Xbasic.
+</description>
+			<example><![CDATA[sql = "select firstname, lastname, city from customers where lastame = 'smith' order by lastname"
+ 
+dim q as sql::Query
+?q.parse(sql)
+= .T.
+ 
+?q.SQLStatement
+= "SELECT firstname, lastname, city FROM customers  WHERE lastame = 'smith'  ORDER BY lastname"
+ 
+dim si as sql::query::SelectItem
+?si.parse( "concatenate(firstname,', ',lastname) as fullname")
+= .T.
+q.Column.Add(si)
+?q.SQLStatement
+= "SELECT firstname, lastname, city,  concatenate(firstname, ', ', lastname)  AS fullname FROM customers  WHERE lastame = 'smith'  ORDER BY lastname"
+ 
+ 
+dim le as sql::query::LogicalExpression
+'remove the where clause by setting to a blank logical expression
+q.Where = le
+?q.SQLStatement
+= "SELECT firstname, lastname, city,  concatenate(firstname, ', ', lastname)  AS fullname FROM customers   ORDER BY lastname"
+ 
+'add a new where clause
+?le.parse("lastname = 'smith' and firstname = 'john'")
+= .T.
+q.Where = le 
+?q.SQLStatement
+= "SELECT firstname, lastname, city,  concatenate(firstname, ', ', lastname)  AS fullname FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'  ORDER BY lastname"
+ 
+'remove all columns from the sql
+?q.Column.Count
+= 4
+'execute the remove 4 times
+q.Column.Remove(1)
+q.Column.Remove(1)
+q.Column.Remove(1)
+q.Column.Remove(1)
+?q.SQLStatement
+= "SELECT  FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'  ORDER BY lastname"
+ 
+si.parse("firstname")
+'now add back 1 column
+q.Column.Add(si)
+?q.SQLStatement
+= "SELECT firstname FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'  ORDER BY lastname"
+ 
+'count the number of levels in the order by
+?q.NestedOrderBy.Count
+= 1
+ 
+'remove the order by clause
+q.NestedOrderBy.Reset()
+?q.SQLStatement
+= "SELECT firstname FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'"
+ 
+'add in a new order by clause
+Dim co as SQL::Query::ColumnOrder
+?co.parse("city DESC")
+= .T.
+ 
+q.NestedOrderBy.Add(co)
+ 
+?q.SQLStatement
+= "SELECT firstname FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'  ORDER BY city DESC"
+ 
+'now add in another order by clause
+co.parse("lastname")
+q.NestedOrderBy.add(co)
+?q.SQLStatement
+= "SELECT firstname FROM customers  WHERE lastname = 'smith'  AND  firstname = 'john'  ORDER BY city DESC, lastname" ]]></example>
+		</section>
+	</sections>
+	
+</page>

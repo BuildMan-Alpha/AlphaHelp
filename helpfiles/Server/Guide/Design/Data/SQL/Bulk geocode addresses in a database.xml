@@ -1,0 +1,72 @@
+<page>
+	<topic>How to bulk geocode addresses in a database</topic>
+	<sections>
+		<section>
+			<description>The Xbasic function called geocode_address()  that allows you to convert addresses to latitude and longitude. See geocode_address Function for a full description. The function does a web service call to accomplish the conversion, which can take a good fraction of a second.
+ To bulk geocode a table, you could write an Xbasic script that looped over all of the data and updated fields.
+ Here is an Xbasic loop for .DBF tables:
+</description>
+			<example><![CDATA[dim t as p
+t = table.open("addresses")
+dim pa as p
+while .not. t.fetch_eof()
+    pa = geocode_address(t.address,"Google")
+    t.change_begin()
+    t.latitude = pa.lat
+    t.longitude = pa.lon
+    t.change_end(.t.)
+    t.fetch_next()
+end while
+t.close() ]]></example>
+			
+		</section>
+		<section>
+			<description>For a SQL table, the code is similar in spirit.</description>
+			<example><![CDATA[dim cn as sql::Connection
+flag = cn.open("::Name::&lt;MyConnectionString&gt;")
+dim sql as c 
+'execute a query to get the primary key of each record you want to update
+sql = "select id from table1"
+cn.Execute(sql)
+rs = cn.ResultSet
+ 
+dim flag as l 
+ 
+'check to see if any rows in resultset
+flag = rs.nextRow()
+ 
+delete args 
+dim args as sql::Arguments
+dim sql1 as c 
+'this assumes that the address field has the full address -- 
+'if not, modify the sql query appropriately
+sql1 = "select address from table1 where id = :primaryKey" 
+sql2 = "update table1 set latitude = :lat, longitude = :lon where id = :primaryKey"
+dim pa as p
+dim rs2 as sql::ResultSet
+while flag 
+	args.add("primaryKey",rs.data(1))
+	flag = cn.Execute(sql1,args)
+	rs2 = cn.ResultSet
+	pa = geocode_address(rs2.data("address"),"Google")
+	args.add("Google",pa.lat)
+	args.add("lat",pa.lon)
+	flag = cn.execute(sql2,args)
+	flag = rs.nextRow()
+end flag ]]></example>
+			
+		</section>
+		
+		<section>
+			<description>If you also want to update a Geography field named Location, the sql2 query would change to:</description>
+			<example><![CDATA[UPDATE table1 SET latitude = :lat, longitude = :lon, 
+location = GeogCreateLocation(:lon, :lat) WHERE id = :primaryKey ]]></example>
+<note>GeogCreateLocation is a Portable SQL function. To make it work in code, you may have to set your connection to use Portable SQL, e.g. cn.PortableSQLEnabled = .t.</note>			
+		</section>
+		<section>
+			<description>
+ Another way to geocode addresses would be to use http://geocoder.us/.(external link)</description>
+		</section>
+	</sections>
+	
+</page>

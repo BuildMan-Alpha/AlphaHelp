@@ -1,0 +1,69 @@
+<page>
+	<topic>SQL Example: Spreadsheets from SQL schema</topic>
+	
+	
+	<sections>
+		<section>
+			<description>This example creates a multiple spreadsheets from the tables in a SQL::Schema. After the spreadsheet is populated, it is opened in Microsoft Excel.
+</description>
+			<example><![CDATA[dim DocumentFile as C = "C:\temp\A5OfficeSample6.xls"
+dim ConnectionString as C = "{A5API=Access,FileName='" + a5.get_exe_path() \
+                          + "\MDBFiles\Northwind.mdb',UserName='Admin'}"
+dim Schema	as SQL::Schema
+dim Connection 	as SQL::Connection
+ 
+'We can manipulate the schema any way we need to prior to saving
+'Here we are changing the type of the data column for the 
+' Category Picture Column and the Employee Photo Column to
+' OLEObject (Access doesn't tell us, but we know...)
+'ToExcel automatically checks to see if an OLEObject is a 
+' bitmap and converts it if it is. If you have binary objects
+' that are actually JPG, PNG, DIB, or BMP data, set the value
+' accordingly.
+if Connection.Open(ConnectionString)
+	if Connection.GetSchema(Schema) 
+	  SetColumnToOLEObject(Schema, "Categories", "Picture")
+	  SetColumnToOLEObject(Schema, "Employees", "Photo")
+	  if .not. Schema.ToExcel(DocumentFile,Connection)
+		ui_msg_box("Error Saving Schema Tables", \
+                   "Error:" + crlf(2) + Schema.callresult.text)	
+	  else
+		sys_open(DocumentFile)
+	  end if
+	else
+	  ui_msg_box("Error Loading Database Schema", \
+                     "Error:" + crlf(2) \
+                    + Connection.callresult.text)	
+	end if
+else
+	ui_msg_box("Error:", \
+                   "Error Connecting To Database" \
+             + ConnectionString + crlf(2) + "Error:" \
+             + crlf(2) + Connection.callresult.text)	
+end if
+ 
+FUNCTION SetColumnToOLEObject as L (Schema as SQL::Schema, \
+                                    Table as C, Column as C)
+dim Dummy as SQL::IntermediateType 
+ 
+dim TableIndex as N = Schema.TableNumber(Table)
+if (TableIndex &gt; 0)
+  dim TableInfo as SQL::TableInfo = Schema.Table(TableIndex)
+  dim ColumnIndex as N = TableInfo.ColumnNumber(Column)
+  if (ColumnIndex &gt; 0)
+    TableInfo.Column(ColumnIndex).IntermediateType = OLEObject
+    SetColumnToOLEObject = .t.
+  end if
+end if
+END FUNCTION ]]></example>
+			
+		</section>
+		
+		
+	</sections>
+	<see>
+		<ref>Generate Excel Spreadsheets Programmatically </ref>
+		<ref>Office Example: Spreadsheet from SQL query</ref>
+	</see>
+	
+</page>
