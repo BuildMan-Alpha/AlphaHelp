@@ -1,0 +1,459 @@
+<page>
+	<topic>Perform Common Spreadsheet Operations</topic>
+	<sections>
+		<section>
+			<title>Basics</title>
+			<cases>
+				<case>
+					<title>Creating and Managing Workbooks and Spreadsheets</title>
+					<case>
+						<description>Create a new in-memory document (work book), for an Excel 2007 spreadsheet.</description>
+						<example>
+							<![CDATA[dim Doc as Office::ExcelDocument ]]>
+						</example>
+					</case>
+					<case>
+						<description>or for an Excel 2003 spreadsheet</description>
+						<example>
+							<![CDATA[dim Doc as Office::Excel2003Document ]]>
+						</example>
+					</case>
+					<case>
+						<description>Create a new spreadsheet</description>
+						<example>
+							<![CDATA[dim Sheet as Office::Spreadsheet ]]>
+						</example>
+					</case>
+					<case>
+						<description>Attach a sheet to a document (work book)</description>
+						<example>
+							<![CDATA[Sheet=Doc.AddSheet("My sheet name") ]]>
+						</example>
+					</case>
+					<case>
+						<description>Add a string to a spreadsheet cell</description>
+						<example>
+							<![CDATA[dim row as N=1 dim column as N=1 dim message as C=" Hello, World!" Sheet.Write(row, column, message) ]]>
+						</example>
+					</case>
+					<case>
+						<description>or</description>
+						<example>
+							<![CDATA[Sheet.Write(row, column, message, Format) ]]>
+						</example>
+					</case>
+				</case>
+				<case>
+					<title>Understanding spreadsheet addressing and formulas</title>
+					<description>The APIs in the Office class address cells by row and then column number. Excel and compatible sheets call the columns A, B, C, ... (up to 16,384 columns) and the rows 1, 2, 3, ... (up to 1,048,576 rows) and give the column before the row. When you are writing
+						(row, column) in an API call, both row and column must be integer numbers. When you are writing a cell reference in a formula, use numbers for the row and letters for the column, e.g. B3 for column 2, row 3. Use '$' to indicate that a row or column in a reference
+						is relative rather than absolute, e.g. $B$3 for the cell 2 columns to the right and 3 columns down. Formulas start with '=' and may include operators between cells and sheet designations followed by a '!'. So "=Sheet2!C6-Sheet3!E15" means to subtract the value
+						of row 15 column 5 in Sheet3 from the value of row 6 column 3 in Sheet2.</description>
+				</case>
+				<case>
+					<title>Getting and setting values</title>
+					<cases>
+						<case>
+							<description>Add a number to a spreadsheet cell</description>
+							<example>
+								<![CDATA[dim number as N=3 .1415926 Sheet.Write(row, column, number) ]]>
+							</example>
+						</case>
+						<case>
+							<description>or</description>
+							<example>
+								<![CDATA[Sheet.Write(row, column, number, Format) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get cell type</description>
+							<example>
+								<![CDATA[dim ct as Office::CellType=S heet.CellType(row, column) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Read cell format</description>
+							<example>
+								<![CDATA[dim cf as Office::CellFormat=S heet.CellFormat(row, column) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Read cell contents. Note that Sheet.Read returns an A (Any) type variable</description>
+							<example>
+								<![CDATA[if ct <>Office::CellType::Error contents = Sheet.Read(row, column) end if ]]></example>
+						</case>
+						<case>
+							<description>Read cell contents and format</description>
+							<example>
+								<![CDATA[if ct <>Office::CellType::Error Contents = Sheet.Read(row, column, ct) end if ]]></example>
+						</case>
+						<case>
+							<description>Read cell comment</description>
+							<example>
+								<![CDATA[dim comment as C comment=S heet.ReadComment(row, column) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Read cell formula</description>
+							<example>
+								<![CDATA[dim formula as C if Sheet.IsFormula(row, column) formula=S heet.ReadFormula(row, column) end if ]]>
+							</example>
+						</case>
+						<case>
+							<description>Check cell for specific attributes</description>
+							<example>
+								<![CDATA[dim answer as L answer=S heet.IsBlank(row, column) answer=S heet.IsBlank(row, column, cf) answer=S heet.IsFormula(row, column) answer=S heet.CellIsDateValue(row, column) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Copy a cell</description>
+							<example>
+								<![CDATA[Sheet.CopyCell(sourceRow, sourceColumn, destinationRow, destinationColumn) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Blank a cell without changing the format</description>
+							<example>
+								<![CDATA[Sheet.SetBlank(row, column) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Blank a cell and change the format</description>
+							<example>
+								<![CDATA[Sheet.SetBlank(row, column, cf) ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+				<case>
+					<title>Clear all or part of a spreadsheet</title>
+					<cases>
+						<case>
+							<example>
+								<![CDATA[Sheet.Clear() Sheet.Clear(FirstRow, FirstColumn, LastRow, LastColumn) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Save a document (work book)</description>
+							<example>
+								<![CDATA[Doc.Save(filename) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Reinitialize an in-memory document (work book)</description>
+							<example>
+								<![CDATA[Doc.Clear() ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+				<case>
+					<title>Free a document from memory</title>
+					<example>
+						<![CDATA[delete Doc ]]>
+					</example>
+				</case>
+				<case>
+					<title>Run Excel on a saved document</title>
+					<example>
+						<![CDATA[sys_open(filename) ]]>
+					</example>
+				</case>
+				<case>
+					<title>Database operations</title>
+					<cases>
+						<case>
+							<description>Create a spreadsheet from a DBF</description>
+							<example>
+								<![CDATA[on error goto noload myTable=t able.open(Path + TableName + ".DBF") Sheet=D oc.AddSheetFromDBF(myTable, TableName) 'more processing of sheet... '... noload: ' continue... ]]>
+							</example>
+						</case>
+						<case>
+							<description>Create a spreadsheet from a SQL Query</description>
+							<example>
+								<![CDATA[dim cn as sql::connection if cn.Open(ConnectionString) if cn.Execute(Query) Sheet=D oc.AddSheetFromResultSet(cn.ResultSet, mySheetName) 'More processing... '... end if end if ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+			</cases>
+		</section>
+		<section>
+			<title>Intermediate Tasks</title>
+			<cases>
+				<case>
+					<title>Add a formula to a spreadsheet cell</title>
+					<cases>
+						<case>
+							<example>
+								<![CDATA[dim formula as C="=B2+C3" Sheet.WriteFormula(row, column, formula)]]>
+							</example>
+						</case>
+						<case>
+							<description>or</description>
+							<example>
+								<![CDATA[Sheet.WriteFormula(row, column, formula, Format) ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+				<case>
+					<title>Working with Pictures</title>
+					<cases>
+						<case>
+							<description>Add a picture to a spreadsheet cell</description>
+							<example>
+								<![CDATA[dim picfile as C=" Daffodils.jpg" dim picBlob as B dim Id as N Id=D oc.AddPicture(picfile) ]]>
+							</example>
+						</case>
+						<case>
+							<description>or</description>
+							<example>
+								<![CDATA[picBlob=F ile.To_Blob(picfile) Id=D oc.AddPicture(picBlob) ]]>
+							</example>
+						</case>
+						<case>
+							<description>then</description>
+							<example>
+								<![CDATA[Sheet=D oc.AddSheet("Picture") Sheet.SetPicture(row, column,Id) ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+				<case>
+					<title>Working with sheets</title>
+					<cases>
+						<case>
+							<description>Copy a sheet</description>
+							<example>
+								<![CDATA[Doc.CopySheet(newSheetName, oldSheetIndex) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Delete a sheet</description>
+							<example>
+								<![CDATA[Doc.DeleteSheet(Index) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Count sheets in a workbook</description>
+							<example>
+								<![CDATA[nSheets=D oc.SheetCount ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get a spreadsheet by name</description>
+							<example>
+								<![CDATA[Doc.FindSheet(Sheet,sheetName) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get a spreadsheet at an index number</description>
+							<example>
+								<![CDATA[Sheet=D oc.GetSheet(Index) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Split a sheet</description>
+							<example>
+								<![CDATA[Sheet.Split(row, column) ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+				<case>
+					<title>Formats and Fonts</title>
+					<cases>
+						<case>
+							<description>Basics</description>
+							<example>
+								<![CDATA[dim Format as Office::Format dim Font as Office::Font Format=D oc.AddFormat() Font=D oc.AddFont() Font.Color=O ffice::Color::DarkBlue Font.Name=" Tahoma" Font.Size=1 4 Font.Bold=. t. Format.Font=F ont Format.HorizontalAlignment=O ffice::HorizontalAlignment::Center
+								]]>
+							</example>
+						</case>
+						<case>
+							<description>Count Fonts</description>
+							<example>
+								<![CDATA[nFonts=D oc.FontCount ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get a Font</description>
+							<example>
+								<![CDATA[font1=doc.GetFont(Index) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Count Formats</description>
+							<example>
+								<![CDATA[nFonts=D oc.FormatCount ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get a Format</description>
+							<example>
+								<![CDATA[format1=doc.GetFormat(Index) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Apply a Format to a spreadsheet cell or region</description>
+							<example>
+								<![CDATA[Sheet.SetFormat(row, column, format) Sheet.SetFormat(startRow, startColumn, endRow, endColumn, format) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Get/set the height/width of a row/column</description>
+							<example>
+								<![CDATA[Width=S heet.ColumnWidth(column) Height=S heet.RowHeight(row) Sheet.SetColumn(FirstColumn, LastColumn, Width [, Format [, Hidden]]) Sheet.SetColumn(row, Height [, Format [, Hidden]]) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Add an entry in the next available row of a sheet</description>
+							<example>
+								<![CDATA[nextRow=S heet.NextAvailableRow Sheet.Write(nextRow, 1, "More text") ]]>
+							</example>
+						</case>
+					</cases>
+				</case>
+			</cases>
+		</section>
+		<section>
+			<title>Advanced Topics</title>
+			<cases>
+				<case>
+					<title>Working with existing spreadsheets</title>
+					<cases>
+						<case>
+							<description>Load the contents of an existing Excel file</description>
+							<example>
+								<![CDATA[dim filename as C=" myworkbook.xlsx" dim result as L=D oc.Load(filename) ]]>
+							</example>
+						</case>
+						<case>
+							<description>Open a spreadsheet file, select a sheet, write to a location, and save</description>
+							<example>
+								<![CDATA[dim filename as C=" myworkbook.xlsx" if Doc.Load(filename) if Doc.FindSheet(Sheet,sheetName) Sheet.Write(row, column, contents) Doc.Save(filename) end if end if ]]>
+							</example>
+						</case>
+						<case>
+							<title>Working with ranges and groups</title>
+							<cases>
+								<case>
+									<description>Merge a cell range (erasing the cell boundary lines)</description>
+									<example>
+										<![CDATA[Sheet.SetMerge(FirstRow, LastRow, FirstColumn, LastColumn) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Get merged cell range to which a cell belongs</description>
+									<example>
+										<![CDATA[Sheet.GetMerge(row, column, FirstRow, LastRow, FirstColumn, LastColumn) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Delete (unmerge) a merged cell range</description>
+									<example>
+										<![CDATA[Sheet.DeleteMerge(row, column) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Group rows and collapse the group</description>
+									<example>
+										<![CDATA[Sheet.GroupRows(FirstRow, LastRow, .T.) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Group columns and collapse the group</description>
+									<example>
+										<![CDATA[Sheet.GroupColumns(FirstColumn, LastColumn, .T.) ]]>
+									</example>
+								</case>
+							</cases>
+						</case>
+						<case>
+							<title>Insert or remove rows or columns</title>
+							<example>
+								<![CDATA[Sheet.InsertRow(FirstRow, LastRow) Sheet.InsertColumn(FirstColum, LastColum) Sheet.RemoveRow(FirstRow, LastRow) Sheet.RemoveColumn(FirstColum, LastColum) ]]>
+							</example>
+						</case>
+						<case>
+							<title>Load or save a work book from a memory image (blob)</title>
+							<example>
+								<![CDATA[dim Data as B Doc.SaveToBlob(Data) Doc.LoadFromBlob(Data) ]]>
+							</example>
+						</case>
+						<case>
+							<title>Adjust printing properties</title>
+							<cases>
+								<case>
+									<description>Adjust spreadsheet margins</description>
+									<example>
+										<![CDATA[Sheet.HeaderMargin=1 0 Sheet.FooterMargin=1 0 Sheet.MarginLeft=1 0 Sheet.MarginRight=1 0 Sheet.MarginTop=1 0 Sheet.MarginBottom=1 0 ]]>
+									</example>
+								</case>
+								<case>
+									<description>Set spreadsheet orientation and centering</description>
+									<example>
+										<![CDATA[Sheet.Landscape=. T. Sheet.CenterHorizontally=. T. Sheet.CenterVertically=. F. ]]>
+									</example>
+								</case>
+								<case>
+									<description>Set paper size</description>
+									<example>
+										<![CDATA[Sheet.Paper=O ffice::Paper::Legal ]]>
+									</example>
+								</case>
+								<case>
+									<description>Create page break at a row</description>
+									<example>
+										<![CDATA[Sheet.SetHorizontalPageBreak(row, .T.) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Remove page break at a row</description>
+									<example>
+										<![CDATA[Sheet.SetHorizontalPageBreak(row, .F.) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Create page break at a column</description>
+									<example>
+										<![CDATA[Sheet.SetVerticalPageBreak(column, .T.) ]]>
+									</example>
+								</case>
+								<case>
+									<description>Remove page break at a column</description>
+									<example>
+										<![CDATA[Sheet.SetVerticalPageBreak(column, .F.) ]]>
+									</example>
+								</case>
+							</cases>
+						</case>
+					</cases>
+				</case>
+			</cases>
+		</section>
+	</sections>
+	
+	
+<see>
+<ref>Generate Excel Spreadsheets Programmatically </ref>
+<ref>Office::ExcelDocument</ref>
+<ref>Office::Excel2003Document</ref>
+<ref>Office::SpreadSheet</ref>
+<ref>Office::Format</ref>
+<ref>Office::Font</ref>
+<ref>Office Enumerations</ref>
+<ref>Office Example: Hello, World Spreadsheet</ref>
+<ref>Office Example: Simple Weekly sales spreadsheet</ref>
+<ref>Office Example: Multiple Spreadsheets</ref>
+<ref>Office Example: Spreadsheet from SQL query</ref>
+<ref>Office Example: Spreadsheet from DBF tables</ref>
+<ref>Office Example: Spreadsheet with picture</ref>
+<ref>Office Example: Update a spreadsheet</ref>
+<ref>SQL Example: Spreadsheets from SQL schema</ref>
+	
+</see>	
+	
+	
+</page>

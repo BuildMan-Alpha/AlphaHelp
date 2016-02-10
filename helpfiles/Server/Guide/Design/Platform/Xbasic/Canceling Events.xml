@@ -1,0 +1,171 @@
+<page>
+	<topic>Canceling Events</topic>
+	<sections>
+		<section>
+			<description>All of the events whose names are prefixed with "Can" can be canceled, thus preventing the event from occurring. The CANCEL()command is used to cancel an event.</description>
+			<note>The CANCEL() command actually sets the Alpha Anywhere system variable, A_CAN_DO to "NO".</note>
+			
+		</section>
+		<section>
+			<description>The CANCEL()command can take an optional flag which can be .T. or .F. If the flag is set to .t. then Alpha Anywhere error messages are suppressed. When you cancel an event, if your Xbasic code provides the appropriate feedback to the end-user as to why the event is being canceled (for example, by including a UI_MSG_BOX() in the code), then you would not want additional error reporting from Alpha Anywhere itself. In this case, you would use CANCEL(.t.) in your code to cancel the event.
+
+For example, assume that you have a control on a form and that you define a script for that control's CanDepart event. Assume that the control has focus and that the user tries to give focus to another control on the form. This will cause the control's CanDepart event to fire. If this script executes the CANCEL()command, the event will be canceled and the user will not be able to move focus away from this control.
+
+The following example shows how a script could be attached to a table's CanDeleteRecord event. When the user deletes a record, the script is executed. It displays a dialog box asking the user for the password. If he enters the correct password, the record is deleted. Otherwise, the Delete event is canceled and the record is retained.
+
+This script prompts the user for a password before deleting a record.
+</description>
+<example><![CDATA[password = "Alpha5"
+user = UI_GET_text("Password", "Enter the password", "******", "&&&&&&")
+if (user = "") then
+    end
+end if
+if (.not.(user == password)) then
+    cancel()
+    ui_msg_box("Password", "Password invalid.")
+end if]]></example>
+		</section>
+<section>
+	<description>The following example could be attached to the CanWriteField event for the FAX field of the Vendor table. If the area code prefix of the PHONE field does not match the FAX field's area code, the script prompts you with a warning dialog box. If you choose to heed the warning (by clicking 'Retry'), the CANCEL()command is executed, and the cursor is prevented from leaving the FAX field. If you choose to abort the fax number entry (by clicking 'Abort'), the A_FIELD_VALUE is set back to the original value as stored in the record buffer, and the cursor is allowed to leave the FAX field.
+
+Obtain the area code from this field and the PHONE field. It is presumed that phone numbers are stored like (xxx) xxx-xxxx
+</description>
+	<example><![CDATA[prefix1 = left(A_FIELD_VALUE,5)
+prefix2 = left(Vendor->PHONE, 5)
+if (prefix1 <> prefix2) then
+    'Compute the Message Type code
+    code = UI_ATTENTION_SYMBOL + UI_ABORT_RETRY_IGNORE
+    response = ui_msg_box("Warning","The area codes of the Phone and Fax numbers should be the same.", code)
+    'RETRY selected
+    if (response = UI_RETRY_SELECTED) then      
+        'prevent field exit
+        cancel()     
+        'ABORT selected
+    elseif response = UI_ABORT_SELECTED then
+        'undo field change
+        A_FIELD_VALUE = Vendor->FAX
+    end if
+end if ]]></example>
+</section>		
+<section>
+	<description>The list of events below summarizes what happens when an event is canceled with the CANCEL()command.</description>
+	<cases>
+		<case>
+			<title>CanEditField</title>
+			<description>Prevents this field from getting focus. Alpha Anywhere will automatically advance to the next field.
+</description>
+		</case>
+		
+		<case>
+			<title>CanWriteField</title>
+			<description>Prevents focus from leaving the field.
+</description>
+		</case>
+		
+		<case>
+			<title>CanChangeRecord</title>
+			<description>Prevents the record from being changed. Contrast this with the CanChange form event.
+</description>
+		</case>
+		
+		<case>
+			<title>CanDeleteRecord</title>
+			<description>Prevents the record from being deleted.</description>
+		</case>
+		
+		<case>
+			<title>CanEnterRecord</title>
+			<description>Prevents entry of a new record.</description>
+		</case>
+		
+		<case>
+			<title>CanMarkRecord</title>
+			<description>Prevents the record from being marked.</description>
+		</case>
+		
+		<case>
+			<title>CanUnMarkRecord</title>
+			<description>Prevents the record from being unmarked.</description>
+		</case>
+		
+		<case>
+			<title>CanSaveRecord</title>
+			<description>Abandons the edited record, without saving it. Contrast with the CanSave event, which cancels the save, but does not discard the record being edited.
+</description>
+		</case>
+		
+		<case>
+			<title>CanArrive</title>
+			<description>Prevents a control from getting focus.</description>
+		</case>
+		
+		<case>
+			<title>CanChange</title>
+			<description>Prevents the user from changing a record. Contrast this with the CanChangeRecord event. Both events allow you to prevent a user from changing a record. However, the CanChangeRecord event cannot prevent the user from typing a new value into a control on the form even though it can prevent Alpha Anywhere from saving the value the user typed. The CanChange event is cleaner because it can actually prevent the user from tying a value into a control on a form.
+</description>
+		</case>
+		
+		<case>
+			<title>CanDepart</title>
+			<description>Prevents focus from leaving a control.</description>
+		</case>
+		
+		<case>
+			<title>CanExit</title>
+			<description>Prevents a form from being closed. If you want to prevent a user from exiting from Alpha Anywhere until a certain condition has been met, you can use this event on a hidden form.
+</description>
+		</case>
+		
+		<case>
+			<title>CanSave</title>
+			<description>Prevents a record from being saved. Contrast this with the field rule level, CanSaveRecord event which also prevents a record from being saved, but discards the record being edited.
+</description>
+		</case>
+		
+		<case>
+			<title>CanTabChange</title>
+			<description>Prevents the user from changing focus to a different page on a tab object.
+</description>
+		</case>
+		
+	</cases>
+	
+</section>
+
+<section>
+	<title>What to Do if Your "Can" Event Scripts Don't Work</title>
+	<description>Including user interface code, such as UI_MSG_BOX()etc. in the scripts executed by "Can" events can sometimes cause the script to fail (i.e. even though the CANCEL()command is executed, the event still takes place). This is because the user interface code takes focus away from the current object in Alpha Anywhere when it executes.
+
+If this happens, you can try to include the CANCEL()command in your script before any user interface code.
+Here is another way in which you could get unexpected results when you try to cancel an event. Assume that you have a form with a Tab object on the form. You would like to prevent the user from changing focus from the current tab page to another tab page if a certain condition is true. Also, you would like to give focus to a particular field on the tab page if the condition to change pages has not yet been met. The following code is attached to the Tab object's CanTabChange event:
+</description>
+	<example><![CDATA[condition = logical text that sets value of condition
+If (.not. condition) then
+    'user does not have permission to change tab pages
+    cancel()
+    company.activate()
+End if ]]></example>
+	
+</section>
+
+<section>
+	<description>This does not work! However, the following does work:</description>
+	<example><![CDATA[condition = logical text that sets value of condition
+If (.not. condition) then
+    'user does not have permission to change tab pages
+    company.activate()
+    cancel()
+End if ]]></example>
+	
+</section>
+<section>
+	<description>The reason that the first script fails is that when company.activate() executes, it resets the value of the system variable A_CAN_DO to "Yes" (because the command succeeded) - thus undoing the effect of the CANCEL()command. When the script ends, the value of A_CAN_DO is "Yes", and so the event is not cancelled.</description>
+	
+</section>
+	</sections>
+	<see>
+		<ref>Attaching Scripts to Events</ref>
+		<ref>Object Events</ref>
+	</see>
+	
+</page>

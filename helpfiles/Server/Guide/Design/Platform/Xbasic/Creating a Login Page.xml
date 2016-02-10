@@ -1,0 +1,139 @@
+<page>
+	<topic>Creating a Login Page</topic>
+	<sections>
+		<section>
+			<note>With the support of Login components and page security, this topic describes a technique that is no longer required.</note>
+			
+		</section>
+		<section>
+			<title>How the Login Feature Works</title>
+			<description><![CDATA[All of the pages (except the Main Menu page) in the sample application shipped with the Web Component Builder require that you be logged in before you can view the page. This is done by putting the following Xbasic in the page at the first command in the header (i.e. after the opening <head> tag) of each page:]]></description>
+			<example><![CDATA[<%A5
+a5w_include("logintest.a5w")
+%>
+ ]]></example>
+			
+		</section>
+		<section>
+			
+			<description>The Logintest.A5W file contains the following Xbasic code:</description>
+			<example><![CDATA[<%A5
+if eval_valid("session.protectedFlagIsLoggedIn") = .f. then
+    session.targetURL = request.request_uri
+    response.redirect("login.a5w")
+    end
+end if
+%> ]]></example>
+			
+		</section>
+		<section>
+			<note><![CDATA[This file does not contain any HTML tags such as  <html>, <head>, or <body>. In order to create an .A5W page without any tags, you must edit the file in the Source view of the HTML Editor or use a program like Notepad.]]></note>
+		</section>
+		
+		
+	<section>
+		<description>The A5W_INCLUDE() function merges the text in the include file into the page being processed. It is just as if the text in the include file was in the page, rather than in the Logintest.A5W file.
+
+The login test does this:
+</description>
+		<steps>
+			<step>
+				<description>Checks to see if a protected session variable called protectedFlagIsLoggedIn is valid.</description>
+			</step>
+			<step>
+				<description>If it is not valid, then the user has not logged in, so it redirects the browser to display the page called login.a5w. However, before redirecting to the login.a5w page, it stores the URL of the page that the user was attempting to visit in a session variable. We do this so that we can take them back to that page after they have logged in.</description>
+			</step>
+			
+		</steps>
+		
+	</section>	
+		
+	<section>
+			<title>Notes about the Logintest.a5w script</title>
+			<description>Every page that runs in a session can see session variables. The Application Server creates a session when you access your first page, and end it after a set period of no activity, or if you stop the Application Server. You can think of a session variable as being similar to a global variable in a traditional Alpha Five application.
+
+If the user has not yet logged in, the protectedFlagIsLoggedIn variable will not exist, and so eval_valid("session.protectedFlagIsLoggedIn") will return .F. .
+
+Request.request_uri is the URL that the user originally called. It is one of several variables that the Alpha Five Application Server automatically maintains when pages are run. For example, if you entered this in the address bar of your browser:
+</description>
+			<example><![CDATA[http://<MyMachineName>/DemoApp/Page1.a5w?page=3
+ ]]></example>
+			
+		</section>
+		<section>
+			
+			<description>then, Request.request_uri would contain:</description>
+			<example><![CDATA[/DemoApp/Page1.a5w?page=3
+]]></example>
+			
+		</section>	
+		
+<section>
+	<title>Inside the Login.a5w Page</title>
+	<description>The login.a5w page is nothing more than a container for the LoginDialog dialog component. The LoginDialog displays a dialog box that prompts for the user name and password. This component has code in the Validate and AfterValidate events.</description>
+</section>
+		
+		<section>
+	<title>The Validate Event</title>
+	<description>The LoginDialog component has the following Xbasic in its Validate event:</description>
+	<example><![CDATA[if (user_name = "") .or. (password = "") then
+    currentform.has_error = .t.
+    currentform.error_message = "User name or password cannot be blank."
+else
+    dim correct_password as C
+    correct_password = lookup("<ADB_Path>\user_names", "user_name="+quote(user_name), "password")
+    if (correct_password <> password) then
+        currentform.has_error = .t.
+        currentform.error_message = "Invalid user name or password."
+    end if
+end if]]></example>
+</section>
+		
+		
+		<section>
+	<title>Understanding the Code in the Validate Event</title>
+	<description><![CDATA[The first part of the Validate event checks to see if either the user_name or the password variable is blank.
+
+If either of these variables is blank, the code sets the currentform.has_error and currentform.error_message properties of the dialog component. These are special properties of the dialog component. If the currentform.has_error property is set to .T., then the software re-displays the page containing the dialog component to the user. The error message set in the currentform.error_message property appears on the page.
+
+If both user_name and password are not blank, the script uses the Xbasic LOOKUP() function to retrieve the correct password for the specified user_name. The script then looks up the password in the user_names table. If the correct_password does not match the value entered by the user into the password field, the software reports an error. However, if the passwords do match, then nothing further is done is this script, and the AfterValidate event will execute (see below for explanation).
+
+It is very important to note that the table name is prefixed with <ADB_Path>\. <ADB_Path>\ is a special placeholder that the software replaces with the path to the database at the time that a Web Project is published (i.e. copied to a folder in the Web Root). By default, when you publish the project, the software replaces <ADB_Path> with the value returned by A5.GET_PATH(), which is the path of the currently open .ADB database file.
+ ]]></description>
+	<note><![CDATA[The Xbasic command: lookup("user_names","user_name = 'ed' ", "password") only works if user_names is a table that is a member of the currently open database (i.e. .adb file). However, when a Application Server application is running, there may be no open .adb file, or there may be a different .adb file that is open. So, we must use fully qualified table names in all of our Xbasic code. The <ADB_Path> placeholder is a way to fully qualify the table name with the correct drive and path prefix at the time that the project is published. ]]></note>
+</section>
+		
+		<section>
+	<title>The AfterValidate Event</title>
+	<description>The LoginDialog component has the following Xbasic in its AfterValidate event:</description>
+	<example><![CDATA[if eval_valid("session.targetUrl") then
+    if session.targetURL <> "" then
+        Currentform.RedirectTarget = session.targetURL
+    else
+        currentform.redirectTarget = "Mainmenu.a5w"
+    end if
+else
+    currentform.redirectTarget = "Mainmenu.a5w"
+end if
+session.FlagIsLoggedIn = .t.
+]]></example>
+</section>
+
+<section>
+	<title>Understanding the Code in the 'AfterValidate' Event</title>
+	<description>The AfterValidate event will only fire if the user entered a valid user_name and password combination.
+
+The code checks to see if the targetUrl session variable is valid. You make a reference to a session variable by simply prefixing the variable name with "session.". Recall that the code in logintest.a5w set the value in session.targetURL '. It contains the address of the page that the user was attempting to visit before we "hijacked" his request, and took him to the login page. Now that the user has successfully logged in, we can take him to the page that he originally intended to visit.
+
+This is done by setting the currentform.redirectTarget property of the dialog component. If the session.TargetUrl property has not been set, or is blank, then we redirect to the MainMenu.a5w page. Finally, we set the protectedFlagIsLoggedIn session variable to .T. . This means that the user will not be asked to log in on all subsequent pages.
+</description>
+	
+</section>
+
+	</sections>
+	<see>
+		<ref>Sessions</ref>
+		<ref>Protected Variables</ref>
+	</see>
+	
+</page>
