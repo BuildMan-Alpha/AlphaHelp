@@ -45,6 +45,13 @@ var collectAltToc = function(books) {
 };
 
 collectAltToc(library);
+tocData.defaultPathMetadata.push({
+                            "name": "/Miscellaneous/",
+                            "metadata": {
+                                "tags": "common",
+                                "status": "accept"
+                            }
+                        });
 options.tocData = tocData;
 
 // delete require.cache[require.resolve('./assets/library')]
