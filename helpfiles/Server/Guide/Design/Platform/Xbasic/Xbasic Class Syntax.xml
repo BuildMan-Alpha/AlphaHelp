@@ -1,0 +1,251 @@
+<page>
+    <topic>Xbasic Class Syntax</topic>
+<sections>
+<section>
+    <description>The syntax in this article describes Xbasic classes in Backus-Naur Form (BNF).
+
+</description>
+    
+    
+</section>    
+<section>
+    <title>Notes on Syntax</title>
+    <steps>
+        <step>
+            <description>Keywords are in uppercase and bolded.</description>
+        </step>
+         <step>
+            <description>Substitutable values (rules) are in angle brackets "<>". The rule for replacement is listed below.</description>
+        </step>
+         <step>
+            <description><![CDATA[Rules are expressed as <rule> : option | option | option; where the vertical bar "|" means "OR".]]></description>
+        </step>
+         <step>
+            <description>Values in square brackets "[]" are optional.</description>
+        </step>
+         <step>
+            <description>Underlined elements are the default for optional items.</description>
+        </step>
+         <step>
+            <description>The symbol "*" means that the element that precedes it can occur zero or more times. For simplicity sake, we have omitted commas in argument lists.</description>
+        </step>
+        
+    </steps>
+    
+</section>    
+<section>
+    <title>Syntax Diagram</title>
+   <example><![CDATA[DEFINE CLASS [ GLOBAL| SHARED | LOCAL | SYSTEM ] <name> [ INHERITS <classname> ]
+     <classelement>*
+END CLASS
+
+ <classelement> : <constructor>
+             | <dimStatement>
+             | <functionStatement>
+             | <constantStatement>
+
+ <constructor> : FUNCTION [<simpleaccess>] <classname> (<functionargument>)
+          function body
+         END FUNCTION ]]></example> 
+<cases>
+    <case>
+        <title>Notes:</title>
+        <description>A class name may include a namespace prefix separated from the name by two colons (::). </description>
+    </case>
+    <case>
+        <description>A namespace may have multiple parts separated by periods. </description>
+    </case>
+    <case>
+        <description>A constructor function has the same name as the class. </description>
+    </case>
+    <case>
+        <description>There can be multiple constructors per class. The constructor that executes depends on the arguments provided when the class is created. The new keyword is used to invoke a specific constructor. </description>
+    </case>
+    <case>
+        <description>A constructor may have limited access to control how a class is created from outside. </description>
+    </case>
+    
+    
+</cases>   
+   
+   
+</section>
+<section>
+    <example><![CDATA[<dimStatement> : DIM [<simpleaccess> | <mixedaccess> ] [ STATIC | VIRTUAL ] <name> [<arraydefinition>] AS <typename> [= <expression>]
+
+ <functionStatement> : FUNCTION [<simpleaccess>] [ STATIC | VIRTUAL ] <name> [AS <typename> ](<functionargument>)
+          function body
+         END FUNCTION
+
+ <constantStatement> : CONSTANT [<simpleaccess>] <name> = <literal value> ]]></example>
+    <note>A constant is static by definition.
+</note>
+</section>
+<section>
+    <example><![CDATA[<simpleaccess> : PUBLIC 
+         | PROTECTED
+         | PRIVATE
+
+
+ <mixedaccess> : <simpleaccess> READ
+         | <simpleaccess> WRITE
+         | <simpleaccess> READ <simpleaccess> WRITE
+
+
+ <functionargument> : [BYREF | BYVAL  ] [OPTIONAL | PARAMS ] AS <typename> [ = <expression>] ]]></example>
+ 
+ 
+    
+</section>
+<section>
+    <cases>
+        <case>
+            <title>Notes:</title>
+            <description>OPTIONAL indicates that the parameter may be omitted. </description>
+        </case>
+         <case>
+            
+            <description>The effect is the same as overloading the function. </description>
+        </case>
+         <case>
+            
+            <description>At run time, the initialization expression is executed if the argument is missing. </description>
+        </case>
+        
+    </cases>
+    
+    
+</section>    
+<section>
+     <description>PARAMS can be used at most once in an argument list.</description>
+    <cases>
+       
+        <case>
+            
+            <description>It must be used on the last argument in the overload. </description>
+        </case>
+         <case>
+            
+            <description>At run time, all parameters in this position and those that follow must either match or be inherited from the type specified. </description>
+        </case>
+         <case>
+            
+            <description>The interpreter converts the arguments into an array of the same type as the declared type of the arguments collection </description>
+        </case>
+        
+    </cases>
+    
+    
+</section>    
+<section>
+    <title>Substitutable Value Definitions</title>
+    <cases>
+        <case>
+            <title><![CDATA[<classname>:  ]]></title>
+            <description>The name of the class being defined</description>
+        </case>
+          <case>
+            <title><![CDATA[<arraydefinition>:]]></title>
+            <description>The valid XBasic syntax for defining an array</description>
+        </case>
+          <case>
+            <title><![CDATA[<typename>:  ]]></title>
+            <description>A valid single letter type or class name</description>
+        </case>
+          <case>
+            <title><![CDATA[<name>:  ]]></title>
+            <description>A valid XBasic identifier</description>
+        </case>
+          <case>
+            <title><![CDATA[<literal value>:  ]]></title>
+            <description>A valid XBasic literal value (the type is implied)</description>
+        </case>
+          <case>
+            <title><![CDATA[<expression>: ]]></title>
+            <description>A valid XBasic expression (constant, new operator, and so on)</description>
+        </case>
+        
+        
+    </cases>
+    
+</section>
+<section>
+    <title>Class Example</title>
+    <description>In the example below, note that the member variable InstanceCount is static. That means there is only one InstanceCount, no matter how many copies of TestClass have been DIMmed. On the other hand, each instance of TestClass has its own copy of the member variable Data.
+ Also note that the member method TestClass() is the constructor for class TestClass. Therefore it is called immediately after an instance of TestClass is DIMmed. Similarly, the member method ~TestClass() is the destructor for class TestClass. Therefore it is called immediately before an instance of TestClass is destroyed.
+</description>
+    <example><![CDATA[DEFINE CLASS TestClass
+ 
+            dim public read protected write Name as C
+            dim public Data as A
+            dim public read protected write static InstanceCount as N
+ 
+            FUNCTION PUBLIC TestClass()
+                        Initialize()
+            END FUNCTION
+ 
+            FUNCTION ~TestClass()
+                        InstanceCount = InstanceCount - 1
+            END FUNCTION
+ 
+            FUNCTION protected Initialize as V()
+                        Data = ""
+                        InstanceCount = InstanceCount + 1
+            END FUNCTION
+ 
+            FUNCTION public static DefaultDataType as C ()
+                        DefaultDataType = "C"
+            END FUNCTION
+ 
+            FUNCTION public AddToData as V ( PARAMS NewValue as C)
+                        for i = 1 to NewValue.Size()
+                                    *concat(Data, NewValue(i))
+                        next
+            END FUNCTION
+ 
+            FUNCTION public AddToData as V ( PARAMS NewValue as N)
+                        for i = 1 to NewValue.Size()
+                                    Data = Data + NewValue(i)
+                        next
+            END FUNCTION
+ 
+            FUNCTION public Clear as V ()
+                        Initialize()
+            END FUNCTION
+            
+END CLASS ]]></example>
+</section>
+<section>
+    <title>Exercises</title>
+    <steps>
+        <step>
+            <description>How does this class keep track of its instance count? </description>
+        </step>
+          <step>
+            <description>How do the two AddToData overloads work? </description>
+        </step>
+          <step>
+            <description>There are at least two potential bugs in the class above. Can you find them? </description>
+        </step>
+        
+    </steps>
+    
+</section>
+
+
+
+</sections>    
+    
+<see>
+<ref>Xbasic with Classes </ref>
+<ref>Xbasic Class Syntax </ref>
+<ref>Designing an Xbasic Class</ref> 
+<ref>Implementing an Xbasic Class </ref>
+<ref>Testing and Using an Xbasic Class </ref>
+<ref>Subclasses and Inheritance </ref>
+<ref>Classes in Namespaces </ref>
+</see>    
+    
+    
+    
+</page>
