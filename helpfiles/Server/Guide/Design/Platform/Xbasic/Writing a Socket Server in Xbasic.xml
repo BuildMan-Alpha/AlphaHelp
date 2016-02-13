@@ -1,0 +1,43 @@
+<page>
+    <topic>How to write a socket server in Xbasic</topic>
+    <sections>
+        <section>
+            <description>Below is a very basic server that you could expand to use multiple sockets and threads as required. It should give you a good starting point on how to use sockets in Xbasic. It does not implement any specific protocol on top of the sockets: that is left to you.
+</description>
+            <example><![CDATA[dim Running            as l            = .t.    'Set this to .f. from elsewhere to stop the server.
+dim ListeningPort    as n            = 1234    'The correct port should be defined in the protocol specification.
+dim ServerSocket    as INET::Socket
+if ServerSocket.Listen(ListeningPort)
+    while Running
+        dim WorkerSocket    as INET::Socket
+        dim AcceptTimeout    as n            = 10000    '10 seconds
+        if ServerSocket.Accept(WorkerSocket,AcceptTimeout)
+            'This section could go into a spawned worker thread for maximum scalability
+            dim RawRequest    as c            = ""
+            if WorkerSocket.Read(RawRequest)
+                'RawRequest now contains at least part of a request from a client. Next:
+                ' 1) Verify that the request is complete, and read more from the WorkerSocket if necessary.
+                ' 2) Parse RawRequest based on the protocol specification to determine what must be done.
+                ' 3) Take some appropriate action based on the parsed request.
+                ' 4) Send a response using WorkerSocket.Write() or WorkerSocket.WriteBinary().
+                ' 5) Close the socket or loop back to reading, depending on the protocol specification.
+            else
+                'WorkerSocket.CallResult.Text will have a description of why the Read() failed.
+            end if
+            'end of section that could go into a worker thread
+        else
+            'No new client connected within the timeout period.
+            'Most servers should just do nothing and loop back around to wait again.
+        end if
+    end while
+else
+    msgbox("Server could not be started: " + ServerSocket.CallResult.Text)
+end if ]]></example>
+            <note>
+Since Xbasic does not have block-level scoping of variables, Dim WorkerSocket as INET::Socket inside the while loop does not guarantee a new unique socket for each pass. Therefore, spawning threads with unique sockets is non-trivial.
+ Ultimately, this task is better handled by C# or a C++ DLL.</note>
+            
+        </section>
+    </sections>
+    
+</page>

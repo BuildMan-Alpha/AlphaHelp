@@ -1,0 +1,428 @@
+<page>
+	<topic>Xbasic Features</topic>
+<sections>
+	<section>
+		<title>GUID Data Type</title>
+		<description>Alpha Anywhere now supports GUIDs as an intrinsic Xbasic data type (designated as type 'K'), just as Character, Numeric, Logical, Time, etc. are intrinsic Xbasic data types. Support for GUID data types is important for Active-Link tables as some SQL databases use GUIDS for primary keys. 
+You can DIM a variable as a GUID, (e.g. DIM varname as K), or you can use the curly bracket notation to specify a value of type 'K' (just as curly bracket notation is used to specify a Date value).
+The following Interactive window session shows examples:
+</description>
+<example><![CDATA['DIM a variable as a GUID
+ dim g as k 
+
+'Use the built-in Function to create a GUID value
+ g = api_uuidcreate()
+ ?typeof(g)
+ = "K"
+  
+
+'Use curly bracket notation to create a GUID value
+ g2 = {f5ab3018-496a-419f-af71-6c19fec1252b}
+ ?typeof(g2)
+ = "K"
+  
+
+g2 = {clearly-not-a-valid-guid}
+
+ERROR: Constant operator is not recognized
+ ]]></example>
+	</section>
+<section>
+	<title>Dependency Mapper</title>
+	<description>The dependency mapper allows you to keep track of a collection of variables and easily determine which, if any, of the watched variables have changed.
+
+You create a dependency mapper from a CR-LF delimited list of variables or expressions to watch. At any time, you can call the dependency mapper's .Changes() function to get a list of variables that have changed since the last call to .Changes(). You can control what is returned when a variable has changed by defining a string of text (which can be code to execute).
+
+The following Interactive window session shows an example:
+</description>
+	<example><![CDATA[
+dim lastname as c 
+lastname = "smith"
+dim firstname as c 
+firstname = "john"
+dim dependencyList as c 
+
+'The format of the dependency list is a crlf delimited list of variables or expressions to watch, 
+'followed by an exclamation character and then an expression that is executed.
+
+dependencyList = "lastname!'lastname_changed'" + crlf() + "firstname!'firstname_changed'"
+dm = dependency.create(dependencyList)
+
+'Create a client based on the dependency mapper that has been instantiated
+dc = dm.client_create()
+?dc.changes()
+= lastname_changed
+firstname_changed
+
+'Now call dc.changes() a second time
+'Note that this time nothing is returned because the variables have not been
+'changed since we last called the .changes() method.
+?dc.changes() 
+= ""
+
+'Now change lastname
+lastname = "jones"
+?dc.changes()
+= lastname_changed
+
+'In the above example, the .changes() method is returning either 'lastname_changed', or 'firstname_changed' or both strings. 
+'In this case, a string is being returned. However, it could just as easily be defined to be Xbasic code that could then be
+'evaluated (using evaluate_template()).
+'For example, the dependencyList could be defined as:
+
+list = <<%txt%
+lastname!ui_msg_box("Change","Lastname changed. New value is: " +lastname)
+firstname!ui_msg_box("Change","Firstname changed. New value is: " + firstname)
+%txt%
+ ]]></example>
+</section>
+
+<section>
+	<title>Printer and Screen Capabilities</title>
+	<description>You can now get information about the capabilities of the screen or printer using the new devicecapabilites object. One of the most useful features of this object is that it allows you to get the dimensions of the  printable region of a page. This information is important if you are writing to the printer directly using the ui_printer_draw() command. 
+
+The following Interactive window session shows how this object is used:
+</description>
+	<example><![CDATA[dim pi as gdi::devicecapabilities
+ ?pi
+ = P Clone() 'Create a copy of an object instance.
+ P NewInstance() 'Create a new object instance of the same type.
+ l printer_load(C printer_name) 'Get device capabilities for the printer.
+ aspect_x = 36
+ aspect_xy = 51
+ aspect_y = 36
+ bitspixel = 32
+ clipping_capabilities = "Rectangle"
+ color_planes = 1
+ color_resolution = 24
+ curve_capabilities = ",Chord,Circles,Ellipses,Interiors,Pie,Round-Rect,Styled,Wide,Wide-Styled"
+ driver_version = 16384
+ line_capabilities = ",Interiors,Marker,Polyline,Polymarker,Styled,Wide,Wide-Styled"
+ number_brushes = 4294967295
+ number_colors = 4294967295
+ number_fonts = 0
+ number_pens = 4294967295
+ number_reserved_system_palette = 20
+ page_height = 0
+ page_offset_x = 0
+ page_offset_y = 0
+ page_width = 0
+ pixels_x_per_inch = 96
+ pixels_y_per_inch = 96
+ polygon_capabilities = ",Interiors,Polygon,Rectangle,Scanline,Styled,Wide,Wide-Styled,Wind-Polygon"
+ raster_capabilities = ",BitBLT,Bitmap64,DI-Bitmap,DIBtoDEV,GDI20-Output,StretchBlt,StretchDib"
+ screen_height_mm = 310
+ screen_height_pixels = 1024
+ screen_width_mm = 387
+ screen_width_pixels = 1280
+ shade_blend_capabilities = ",Const-Alpha,Pixel-Alpha-Blend"
+ size_system_palette = 0
+ technology = "Raster-Display"
+ text_capabilities = ",Stroke-Clip-Precision,character-output-precision,stroke-output-precision,raster-fonts,scrolling,strikeout,underline,vector-fonts"
+
+  
+
+'get a list of printers
+ ?ui_printers_get()
+ = Text Driver on RTF:
+ SagePDFPrinter on LPT1:
+ RTF Driver on RTF:
+ Ricoh LASER AP2100 PCL on LPT1:
+ QuickBooks PDF Converter on LPT1:
+ PDF Driver on PDF:
+ Microsoft XPS Document Writer on Ne00:
+ Microsoft Office Document Image Writer on Ne01:
+ HTML Driver on HTM:
+ Generic / Text Only on LPT1:
+ \\THUNDER\Compaq Laser Printer LNM40 (PCL) on Ne02:
+ Alpha Anywhere Printer on RTF:
+
+
+ printerName = "\\THUNDER\Compaq Laser Printer LNM40 (PCL) on Ne02:"
+  
+
+'Now get the capabilities of a specific printer by calling the .printer_load() method of
+
+'the printercapabilities object
+
+
+ pi.printer_load(printername)
+
+ ?pi 
+ = P Clone() 'Create a copy of an object instance.
+ P NewInstance() 'Create a new object instance of the same type.
+ l printer_load(C printer_name) 'Get device capabilities for the printer.
+ aspect_x = 600
+ aspect_xy = 849
+ aspect_y = 600
+ bitspixel = 1
+ clipping_capabilities = "Rectangle"
+ color_planes = 1
+ color_resolution = 0
+ curve_capabilities = ",Chord,Circles,Ellipses,Interiors,Pie,Round-Rect,Styled,Wide,Wide-Styled"
+ driver_version = 256
+ line_capabilities = ",Interiors,Marker,Polyline,Polymarker,Styled,Wide,Wide-Styled"
+ number_brushes = 4294967295
+ number_colors = 2
+ number_fonts = 47
+ number_pens = 10
+ number_reserved_system_palette = 20
+ page_height = 6600
+ page_offset_x = 150
+ page_offset_y = 150
+ page_width = 5100
+ pixels_x_per_inch = 600
+ pixels_y_per_inch = 600
+ polygon_capabilities = ",Interiors,Polygon,Rectangle,Scanline,Styled,Wide,Wide-Styled,Wind-Polygon"
+ raster_capabilities = ",BitBLT,Bitmap64,DI-Bitmap,DIBtoDEV,GDI20-Output,StretchBlt,StretchDib"
+ screen_height_mm = 268
+ screen_height_pixels = 6324
+ screen_width_mm = 203
+ screen_width_pixels = 4800
+ shade_blend_capabilities = ""
+ size_system_palette = 2
+ technology = "Raster-Printer"
+ text_capabilities = ",Stroke-Clip-Precision,character-output-precision,stroke-output-precision,scrolling,strikeout,underline,vector-fonts"
+  
+
+ 
+
+'find out what the printer's left margin is (in inches)
+ printer_leftMargin_inInches = pi.page_offset_x/pi.pixels_x_per_inch
+ ?printer_leftMargin_inInches
+ = 0.25
+ ]]></example>
+</section>
+<section>
+	<title>Determine the Version Number of an EXE or DLL</title>
+	<description>UTIL::ExecutableVersion is a new class that an be used to extract the version information from an executable or DLL.  Version information is actually a collection (keyed on language and codepage). Typically there will be a single entry, but you will need to use a subscript to get at the values. </description>
+	<cases>
+		<case>
+			<title>Usage</title>
+			<example><![CDATA[Dim XV as Util::ExecutableVersion
+ Dim FileName as C = ï¿½ï¿½
+ If .NOT. XV.Load(FileName) then
+     ui_msg_box(ï¿½Error loading version data for file ï¿½ + FileName, XV.CallResult.Text + crlf() + XV.CallResult.NativeText)
+ else
+     showvar(XV)
+ End if ]]></example>
+		</case>
+		<case>
+			<title>Example Interactive Window Session</title>
+			<example><![CDATA[dim x as util::executableversion
+ ?x.load("c:\foo.dll")
+ = .F.
+  
+ ?x.callresult.text 
+ = "DOS error"
+  
+ ?x.callresult 
+ = Canceled = .F.
+ Code = 2000
+ Error = .T.
+ NativeCode = 1812
+ NativeText = The specified image file did not contain a resource section.
+  
+ Success = .F.
+ Text = "DOS error"
+  
+ ?x.load("c:\windows\system32\fqqb32.dll")
+ = .T.
+  
+ ?x
+ = P Clone() 'Create a copy of an object instance.
+ N EntryNumber(Name as C) 'Get the index of a Entry from the name.
+ L Load(C FileName) 'Retrieve version information for the file requested.
+ P NewInstance() 'Create a new object instance of the same type.
+ +CallResult.
+ +Entry.
+ FileName = "c:\windows\system32\fqqb32.dll"
+  
+  
+ ?x.entry[1] 
+ = P Clone() 'Create a copy of an object instance.
+ P NewInstance() 'Create a new object instance of the same type.
+ CodePage = 1252
+ Comments = ""
+ CompanyName = "FLEXquarters.com LLC"
+ FileDescription = "FLEXquarters.com LLC QuickBooks ODBC Driver"
+ FileVersion = " 5.00.00.077"
+ InternalName = "FQQB32"
+ Language = 1033
+ LegalCopyright = "Copyright ï¿½ FLEXquarters.com LLC 1998-2004"
+ LegalTrademarks = "QODBC(TM) is a trademark of FLEXquarters.com LLC"
+ Name = "040904e4"
+ OriginalFileName = "FQQB32.dll"
+ PrivateBuild = ""
+ ProductName = "FLEXquarters.com LLC QODBC"
+ ProductVersion = " 5.00.00.077"
+ SpecialBuild = "" ]]></example>
+		</case>
+		
+	</cases>
+	
+	
+</section>
+<section>
+	<title>Layouts Implement .Eval() Method</title>
+	<description>Layouts (e.g. Forms, Reports, etc.) now implement an .Eval() method to evaluate an expression in the context of the layout.
+For example, assume that you had this expression: lastname.text and you wanted to evaluate it in the context of a form. Previously, you would have to do this:
+</description>
+	<example><![CDATA[f = form.view("Edit_Customer_Info")
+         ?eval("lastname.text",f.name() + ".this")
+         = "Graham" ]]></example>
+</section>
+<section>
+	
+	<description>Now, you can simply do this:</description>
+	<example><![CDATA[   f = form.view("Edit_Customer_Info")
+         ?f.eval("lastname.text"),
+
+        = "Graham"
+ ]]></example>
+</section>
+
+<section>
+	<title>CSS Class</title>
+	<description>The CSS class makes it easy to manipulate CSS stylesheets using Xbasic. The following Interactive Window session demonstrates the functionality.
+Assume that you have a file on disk with the following trivial CSS:
+</description>
+	<example><![CDATA[a  {font-family: Alba; }
+ abbr { font-family: Arial Narrow; }
+ ]]></example>
+</section>
+
+<section>
+	
+	<description>Now, from the Interactive window:</description>
+	<example><![CDATA[DIM txt as c 
+
+txt = get_from_file("c:\mycsstxt.txt")
+
+DIM ss as css::stylesheet
+
+ss.FromString(txt)
+ ? ss.toString()
+ = a {
+ font-family: : Alba;
+ }
+ abbr {
+ font-family: : Arial Narrow;
+ }
+
+ ? ss.item[1].name
+ = "a"
+ ? ss.item[2].name
+ = "abbr"
+ ? ss.item[2].css.tostring()
+ = font-family: : Arial Narrow;
+ ? ss.Selectors()
+ = a
+ abbr
+
+ 
+
+ss.item[1].css.border_color = "Red"
+
+ ?ss.ToString()
+ = a {
+ font-family: Alba;
+ border-color: Red;
+ }
+ abbr {
+ font-family: Arial Narrow;
+ }
+
+ ]]></example>
+</section>
+
+<section>
+	<title>Table Cursors</title>
+	<description>.get_cursor() Method - Allows you to get a 'cursor' for an open table. A 'cursor' is just a pointer to an open table that can be navigated independently of the base table. When you move the pointer in a cursor, you do not change the record that the base table pointer is pointing to. 
+Syntax:
+tCursor = .get_cursor()
+Example:
+</description>
+	<example><![CDATA[dim t as p 
+dim tc1 as p 
+dim tc2 as p 
+t = table.open("customer")
+tc1 = t.get_cursor()
+tc2 = t.get_cursor()
+
+'The cursors can each have their own order. Has no impact on the base table
+tc1.order("Firstname")
+tc2.order("Lastname")
+?t.recno()
+=1
+?tc1.recno()
+=23
+?tc2.recno()
+=34
+tc1.fetch_next()
+?tc1.recno()
+= 56
+'Notice how we have moved the record pointer in the first cursor, but
+'it has had no effect on the base table (which still points to record 1)
+?t.recno()
+= 1 ]]></example>
+</section>
+
+<section>
+	
+	<description>The primary motivation for this method is to allow you to use Xbasic to get a pointer to the table that an Embedded Browse is based on, and then to safely loop over the records in that table and manipulate the data in that table. If your Xbasic loop used the table pointer itself, rather than a cursor, your script may not work reliably. This is because you have no control over events that cause the Browse to repaint, and when the Browse repaints, it might move the record pointer.
+Example. The 'Invoice' Form in AlphaSports is based on the Invoice.set. This Form has an embedded browse that is based on the 'invoice_items' table. You want to write a script that will loop through all of the records for the current invoice, increasing the quantity by one.
+Here is code that could be inserted in a button on the Invoice form:
+</description>
+	<example><![CDATA[dim tbl as p 
+ dim t as p 
+
+'get a pointer to the SAME table instance that the embedded browse is based on.
+
+'Note: Could also have done: tbl = Browse1.table_get()
+ tbl = table.get("invoice_items")
+
+'Get a cursor on the table instance
+ t = tbl.get_cursor()
+
+ 
+
+t.fetch_first()
+ while .not. t.fetch_eof()
+     t.change_begin()
+     t.quantity = t.quantity + 1 
+     t.change_end(.t.)
+     t.fetch_next()
+ end while
+ ]]></example>
+</section>
+<section>
+	
+	<description>You might ask, "Why do I have to go to the trouble of getting a cursor? Why can't I just write code that uses the same table pointer that the Embedded Browse uses?". The reason is that the script shown below will not work reliably.
+
+The reason is this: You have no control over when the Browse will repaint. When the Browse repaints it affects the record that the table pointer is positioned on. So, if your script is using the same table pointer that the Embedded Browse is using, then the code in your loop that positions the record pointer will be impacted every time the Browse repaints during the course of your loop. The Browse will be repainted every time the message box is dismissed.
+</description>
+	<example><![CDATA['This code is NOT safe (could result in Browse repaint errors)
+
+dim tbl as p 
+ tbl = table.get("invoice_items")
+
+ 
+
+tbl.fetch_first()
+ dim count as n = 0 
+ while .not. tbl.fetch_eof()
+
+    count = count + 1 
+
+    ui_msg_box("Notice","Editing item number: " + count)
+     tbl.change_begin()
+     tbl.quantity = t.quantity + 1 
+     tbl.change_end(.t.)
+     tbl.fetch_next()
+ end while
+ ]]></example>
+</section>
+
+</sections>
+</page>

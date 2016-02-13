@@ -1,0 +1,704 @@
+<page>
+	<topic>Parsing XML Documents with Xbasic</topic>
+<sections>
+	<section>
+		<title>Parsing XML Documents</title>
+		<description>Alpha Anywhere has a powerful XML parser built-in that can be used as an alternative to the Microsoft XML parser. The advantage of the Xbasic XML parser is that it can use all of the powerful string functions in Xbasic. The Microsoft XML parsers are more complex to use because you have to use OLE Automation. 
+With the Alpha Anywhere XML parser you can:
+</description>
+		<cases>
+			<case>
+				<description>Extract information from XML data</description>
+			</case>
+			<case>
+				<description>Transform XML data (much like an XSLT)</description>
+			</case>
+			<case>
+				<description>Add elements and attributes to XML data</description>
+			</case>
+			<case>
+				<description>Remove elements and attributes from XML data</description>
+			</case>
+			<case>
+				<description>Change attribute values in XML data</description>
+			</case>
+			<case>
+				<description>Reorder elements in XML data</description>
+			</case>
+			
+		</cases>
+	</section>
+	<section>
+		<title>Using the Xbasic XML Parser - A Tutorial</title>
+		<description>Assume that you have an XML file with the following data in it:</description>
+		<example><![CDATA[<employee>
+    <name city="Boston">
+        <firstname>Frank</firstname>
+        <lastname>Smith</lastname>
+    </name>
+    <name city="Ithaca">
+        <firstname>Milton</firstname>
+        <lastname>Jones</lastname>
+    </name>
+</employee> ]]></example>
+		
+	</section>
+	<section>
+		<description>The following sample Interactive window session shows some of the features of the XML parser:</description>
+		<example><![CDATA['Get a new instance of the XML parser
+sm = xmlSchemaManager.Get()
+'Load the XML file into a variable
+ xml = get_from_file("c:\data\testxml.xml")
+'Load the XML data into the XML parser.
+'The .LoadXML() method or the .LoadUnBalancedXML() method can be used.
+'If you want to parse HTML (where unbalanced tags are allowed), then the .LoadUnBalancedXML() method
+'should be used
+ dom = sm.LoadXML(xml) ]]></example>
+	</section>
+	
+	<section>
+		<description>TIP: Xbasic also provides a simple high level function to get a parsed XML document in a single step (without having to first instantiate the xmlSchemaManager object). The *XML_Document() function can also be used.
+The following single Xbasic command is equivalent to the commands above parse the XML document:
+</description>
+		<example><![CDATA[dom = *XML_Document(xml) ]]></example>
+	</section>
+	
+	<section>
+		<description>Once you have loaded the XML data into the schema manager (i.e. you have parsed the XML - it is loaded into a 'parse tree'), you can start examining the properties and working with the methods of the schema manager. For example:</description>
+		<example><![CDATA['The .top property references the outermost element.
+
+'All elements have an .OuterXML property (among many other properties)
+
+'Notice that the bubble help in the Interactive window will show you all of the properties.
+
+ 
+
+?dom.top.OuterXML
+
+= <employee>
+     <name city="Boston">
+         <firstname>Frank</firstname>
+         <lastname>Smith</lastname>
+     </name>
+     <name city="Ithaca">
+         <firstname>Milton</firstname>
+         <lastname>Jones</lastname>
+     </name>
+    </employee>
+ ]]></example>
+	</section>
+	
+	<section>
+		<description>When the XML is parsed an array of all of the elements is automatically created. </description>
+		<example><![CDATA['The XML data has 7 elements
+
+?dom.all.size()
+
+= 7
+
+ 
+
+'The .Output() method can be used to dump information from the XML parse tree.
+
+'The .Output() method can use specially named symbols in the output expression. 
+
+'For example, *elementId is the index into the 'all' array (seen above), and
+
+'*tag is the name of the element. The output expression is a standard Xbasic expression.
+
+ 
+
+?dom.Output("*elementId +' ' +*tag +crlf()")
+ = 1 employee
+ 2 name
+ 3 firstname
+ 4 lastname
+ 5 name
+ 6 firstname
+ 7 lastname
+
+ 
+
+ 
+
+ 
+
+'Note that in this output expression, 'city' is an attribute value (we can tell because it does not start with *)
+
+'Any 'fields' in the output expression that don't start with * are attribute names.
+
+'Notice that only elements 2 and 5 have values for the 'city' attribute because the 'city'
+
+'attribute is only defined for the 'name' element.
+
+?dom.Output("*elementId +' ' +*tag + ' - ' + city + crlf()")
+ = 1 employee - 
+ 2 name - Boston
+ 3 firstname - 
+ 4 lastname - 
+ 5 name - Ithaca
+ 6 firstname - 
+ 7 lastname - 
+  
+
+'The 'all' array contains all of the XML elements
+
+'The outerXML property is the entire XML string for that element
+
+?dom.all[5].outerxml
+ = <name city="Ithaca">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name>
+  
+
+ 
+
+'The innerXML property is the XML that is contained by that element.
+ ?dom.all[5].innerxml
+ = 
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ ]]></example>
+	</section>
+	
+	<section>
+		<description>Once you have parsed the XML, it is easy to modify it. For example, here is how we can delete elements in the XML data. This section shows how nodes in the XML tree can be 'marked' and then deleted.</description>
+		<example><![CDATA['Make sure all elements are initially unmarked
+
+'If .T. is returned, then there were some marked elements.
+
+'If .F. is returned, then there were no marked elements.
+
+'In this case since we have not previously marked any elements, .F. is returned.
+
+?dom.UnmarkAllElements()
+ = .F.
+  
+
+'Now mark all elements that have a 'city' attribute equal to 'Boston'
+
+'Note that the query expression is a standard Xbasic filter expression
+
+'No need for cryptic XPath syntax!!
+
+'The second argument is set to .T.. This causes the child elements of each found
+
+'element to also be marked.
+
+'The method returns .T. in this case, indicating that at least one match was found.
+
+?dom.MarkElements("city='boston'",.t.)
+ = .T.
+
+ 
+
+'Now delete the marked elements
+ dom.DeleteMarked()
+
+  
+
+'Examine the resulting XML
+
+'It looks as expected, but it contains blank rows where the deleted elements were.
+ ?dom.top.OuterXML
+ = <employee>
+
+     <name city="Ithaca">
+         <firstname>Milton</firstname>
+         <lastname>Jones</lastname>
+     </name>
+ </employee>
+
+  
+
+'Call the .reformat() method and examine the XML again
+ dom.Reformat()
+ ?dom.top.OuterXML
+ = <employee>
+     <name city="Ithaca">
+         <firstname>Milton</firstname>
+         <lastname>Jones</lastname>
+     </name>
+  </employee> ]]></example>
+	</section>
+	
+	<section>
+		<description>Xbasic has several ways in which you can navigate the XML DOM after it has been parsed.
+First, lets find out how many nodes exist at the top level of the XML tree.</description>
+		<example><![CDATA[?dom.top.children.size()
+ = 2 ]]></example>
+	</section>
+	
+	<section>
+		<description>There are two nodes. Let's get a pointer to the first node.</description>
+		<example><![CDATA[c1 = dom.top.children[1] ]]></example>
+	</section>
+	
+	<section>
+		<description>This object now has several properties, one of which is 'OuterXML'. This property can be read, and set.
+ Let's first examine it:</description>
+		<example><![CDATA[?c1.OuterXML
+ = <name city="Boston">
+ <firstname>Frank</firstname>
+ <lastname>Smith</lastname>
+ </name> ]]></example>
+	</section>
+	
+	<section>
+		<description>Now, let's set it to a new value:</description>
+		<example><![CDATA[c1.OuterXML = "<name city=\"Atlanta\"></name>"]]></example>
+	</section>
+	
+	<section>
+		<description>And now let's examine the entire XML tree to see our change:</description>
+		<example><![CDATA[?dom.top.OuterXML
+ = <employee>
+ <name city="Atlanta"/>
+ <name city="Ithaca">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name>
+ </employee> ]]></example>
+	</section>
+	
+	<section>
+		<description>Note that the 'InnerXML' property is similar to the 'OuterXML' property, but it does not include the enclosing tags:</description>
+		<example><![CDATA[?dom.top.children[2].innerXML
+ = 
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ ]]></example>
+	</section>
+	
+	<section>
+		<description>Each element in the XML tree can have an arbitrary number of attributes. You can read and set these attributes, and  you can create new attributes. In our example, 'city' is an attribute of the 'Name' element.
+To find out how many attributes a particular element has, get a pointer to the element and then use the .attribute.size() method. For example, let's examing the second element in our XML tree.
+First, get a pointer to the element:
+</description>
+		<example><![CDATA[c2 = dom.top.children[2] ]]></example>
+	</section>
+	
+	<section>
+		<description>See how many attributes this element has:</description>
+		<example><![CDATA[?c2.attribute.size()
+ = 1 ]]></example>
+	</section>
+	
+	<section>
+		<description>Check to see if a particular attribute of this element exists:</description>
+		<example><![CDATA[?c2.AttributeExists("city")
+ = .T. ]]></example>
+	</section>
+	
+	<section>
+		<description>Now, get the attribute's value:</description>
+		<example><![CDATA[?c2.AttributeGet("city")
+ = "Ithaca"]]></example>
+	</section>
+	
+	<section>
+		<description>Now, set the attribute to a new value:</description>
+		<example><![CDATA[c2.AttributeSet("city","Binghamton")]]></example>
+	</section>
+	
+	
+	<section>
+		<description>Inspect the element's 'OuterXML' to confirm that the change was made:</description>
+		<example><![CDATA[?c2.OuterXML
+ = <name city="Binghamton">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name> ]]></example>
+	</section>
+	
+	
+	<section>
+		<description>Now create a new attribute for the element:</description>
+		<example><![CDATA[c2.AttributeSet("population","123000") ]]></example>
+	</section>
+	
+	
+	<section>
+		<description>And again, inspect the element's 'OuterXML':</description>
+		<example><![CDATA[?c2.OuterXML
+ = <name city="Binghamton" Population="123000">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name> ]]></example>
+	</section>
+	
+	<section>
+		<description>If we check the size of the 'attribute' array, we see that it now has two entries:</description>
+		<example><![CDATA[?c2.attribute.size()
+ = 2 ]]></example>
+	</section>
+	
+	
+	<section>
+		<description>We can read the name of the value of any entry in the 'attribute' array:</description>
+		<example><![CDATA[?c2.attribute[1].name 
+ = "city"
+ ?c2.attribute[1].value 
+ = "Binghamton" ]]></example>
+	</section>
+	
+	<section>
+		<description>Attributes can be dropped:</description>
+		<example><![CDATA[c2.AttributeDrop("population")
+ ?c2.OuterXML
+ = <name city="Binghamton">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name>
+ ]]></example>
+	</section>
+	
+	
+	
+</sections>	
+<sections>
+	<section>
+		<title>
+Running Queries against the XML Data</title>
+		
+		<cases>
+			<case>
+				<title>Element Queries</title>
+		<description>The Xbasic XML parser lets you run queries against your XML file using familiar Xbasic query syntax. There is no need to learn complicated QPath syntax, which is normally used to query XML files.
+
+In the following example, we run element queries. You can also run attribute queries, which we show later. The .queryElement() method is used to run element queries. This method creates an 'element array' - an array of all elements that match the query expression. (You can think of an element query as returning a 'pruned' version of the DOM - without a top node.)
+
+In this example, we find all elements that have a tag name of 'firstname':
+</description>
+		<example><![CDATA[q2 = dom.QueryElement("*tag = 'firstname'") ]]></example>
+				
+			</case>
+			<case>
+				<description>We can find out how many elements were found by calling the .size() method of the 'all' object:</description>
+				<example><![CDATA[?q2.all.size()
+ = 2]]></example>
+				
+			</case>
+			<case>
+				<description>We can dump the values of the elements:</description>
+				<example><![CDATA[?q2.Output("*value+crlf()")
+ = Frank
+ Milton ]]></example>
+				
+			</case>
+			
+			<case>
+				<description>Now, let's do a more complex search. Notice that we are using familiar Xbasic filter syntax:</description>
+				<example><![CDATA[q3 = dom.QueryElement("*tag = 'name' .and. city = 'boston'")
+ ?q3.all.size()
+ = 1
+
+ ?q3.all[1].outerXML
+ = <name city="Boston">
+ <firstname>Frank</firstname>
+ <lastname>Smith</lastname>
+ </name> ]]></example>
+				
+			</case>
+			<case>
+				<description>Note that the query object is still linked to the XML parser. Any changes made to the XML when working with the results of a query will be reflected in the full XML tree (i.e. the XML shown by dom.top.OuterXML in these examples).
+  </description>
+
+			</case>
+			
+			<case>
+				<title>Attribute Queries</title>
+				<description>Attribute queries are typically less useful. An attribute query returns an 'attribute array' - an array of all attributes that match the 'filter' expression. (In the case of an attribute query, you do not enter a logical filter expression. Instead, you specify a CR-LF delimited list of attribute names).
+Let's add a new attribute to our XML and then do an attribute query:
+</description>
+				<example><![CDATA[c1 = dom.top.children[1]
+c1.AttributeSet("state","MA")
+qa1 = dom.queryAttributes("state")
+?qa1.all.size()
+=1
+?qa1.all[1].value
+= "MA" ]]></example>
+			</case>
+			
+			<case>
+				<description>Now, let's search for multiple attributes:</description>
+				<example><![CDATA[qa1 = dom.queryAttributes("state" + crlf() + "name")
+?qa1.all.size()
+=3
+?qa1.all[1].value
+= "MA"
+?qa1.all[1].name 
+= "state"]]></example>
+			</case>
+			
+			<case>
+				<description>The .DumpFormat(), .GetValues() and .SetValues() methods can be used with the result of an Attribute query, as shown below:
+Here we dump out the element name, attribute name and value of each item in the array returned by the attribute query:
+</description>
+				<example><![CDATA[?qa1.DumpFormat("E.N=V" + crlf() )
+ = name.state=MA
+ name.city=Boston
+ name.city=Ithaca]]></example>
+			</case>
+			
+			<case>
+				<description>Here we get a CR-LF delimited list of attribute values:</description>
+				<example><![CDATA[?qa1.GetValues()
+ = MA
+ Boston
+ Ithaca]]></example>
+			</case>
+			
+			<case>
+				<description>Now, lets do some transformation on these values:</description>
+				<example><![CDATA[list = qa1.GetValues()
+ list = alltrim( upper(list) )
+ qa1.SetValues(list)
+
+ ?dom.top.OuterXML
+ = <employee>
+ <name city="BOSTON" state="MA">
+ <firstname>Frank</firstname>
+ <lastname>Smith</lastname>
+ </name>
+ <name city="ITHACA">
+ <firstname>Milton</firstname>
+ <lastname>Jones</lastname>
+ </name>
+ </employee>
+]]></example>
+			</case>
+			
+			<case>
+				<description>Important: If your XML tree does not have a top element, the XML parser will automatically insert one.</description>
+
+			</case>	
+		</cases>	
+	</section>
+</sections>
+
+<sections>
+	<section>
+		<title>XML Parser Expression Reserved Words</title>
+		<description>The following table show a list of reserved words that can be used where expressions can be used (i.e. with the .Output(), .QueryElement()  .MarkElements(), UnmarkElements(), .Resolve(), and .FindElement() methods)</description>
+		<cases>
+			<case>
+				<title>*elementId</title>
+				<description>Index into the all[] array. This is the order in which the elements appear in the XML data.</description>
+			</case>
+			<case>
+				<title>*value</title>
+				<description>Contents of the XML element as raw text</description>
+			</case>
+			<case>
+				<title>*xml</title>
+				<description>Inner XML of an element</description>
+			</case>
+			<case>
+				<title>*istop</title>
+				<description>Returns .T. if the element is the top most element</description>
+			</case>
+			<case>
+				<title>*tagnumber</title>
+				<description>child number of the element within the current parent element</description>
+			</case>
+			<case>
+				<title>*tagcount</title>
+				<description>number of siblings for this element</description>
+			</case>
+			<case>
+				<title>*isleaf</title>
+				<description>Returns .T. if an element has no children</description>
+			</case>
+			<case>
+				<title>*depth</title>
+				<description> How many nodes deep is the current element (if *istop is .T., then *depth is 1) </description>
+			</case>
+			<case>
+				<title>*marked</title>
+				<description>Returns .T. if the current element has been marked. Tags are marked by setting the element's .Marked property, or by called the .MarkElements() method.</description>
+			</case>
+			<case>
+				<title>*fullname</title>
+				<description><![CDATA[The fully qualified tag name. A dot separated list of this tag name and all of the parents. Assume you have an <employees> tag with a child <name> tag, with a child <firstname> tag. The *fullname of the 'firstname' tag is 'employees.name.firstname'.]]></description>
+			</case>
+			<case>
+				<title>*tag</title>
+				<description>The current element name. The *tag reserved words can be used with the following 'navigation' directives. Navigation directives are delimited with periods:</description>
+				
+				<cases>
+					<case>
+					<cases>
+						<case>
+							
+							<description>*parent - the parent tag</description>
+						</case>
+							<case>
+							<description>*prev - the previous sibling</description>
+						</case>
+							<case>
+							<description>*next - the next sibling</description>
+						</case>
+							<case>
+							<description>*first - the fist sibling on the current branch</description>
+						</case>
+							<case>
+							<description>*last - the last sibling on the current branch.</description>
+						</case>
+						
+					</cases>
+					</case>
+					
+					<case>
+						<description>Navigation directives can be nested to an arbitrary depth. For example:</description>
+						<cases>
+							<case>*tag.*parent.*parent.*next - the  next sibling of the current tag's grandparent tag.</case>
+						</cases>
+					</case>
+					<case>
+						<description>This sytax can also be used to get attribute values. For example, the following syntax will get the value of the 'city' attribute from the current element's parent element.</description>
+						<cases>
+							<case>
+								<description>*tag.*parent.city</description>
+							</case>
+						</cases>
+					</case>
+				</cases>
+			</case>
+			
+			
+			
+		</cases>
+	</section>
+	<section>
+		<description>The following example shows how the navigation directives can be used to create complex output:</description>
+		<example><![CDATA[q1 = dom.QueryElement("*tag = 'firstname'")
+ ?q1.Output("*value + ' ' + *tag.*next.*value + ' from ' + *tag.*parent.city + crlf()")
+ = Frank Smith from BOSTON
+ Milton Jones from ITHACA ]]></example>
+	</section>
+	
+</sections>
+<sections>
+	<section>
+		<title>Marking Elements in the XML Tree</title>
+		<description>Marking elements is useful because it allows you to move and delete elements from the XML tree. You can use an Xbasic filter expression to select the elements that you want to mark. Having marked elements, you can then methods to move and delete the marked elements.
+For example:
+</description>
+		<example><![CDATA[?dom.top.OuterXML
+ = <employee>
+     <name city="BOSTON" state="MA">
+         <firstname>Frank</firstname>
+         <lastname>Smith</lastname>
+     </name>
+     <name city="ITHACA">
+         <firstname>Milton</firstname>
+         <lastname>Jones</lastname>
+     </name>
+ </employee>
+
+
+
+]]></example>
+	</section>
+	<section>
+		<description>Now, let's mark the element that has a city attribute equal to 'Boston':</description>
+		<example><![CDATA[?dom.MarkElements("city='boston'")
+ = .T.]]></example>
+	</section>
+	
+	<section>
+		<description>Note that .t. indicates that at least one element was selected and marked.
+This shows that the first element of the top parent was marked, and the second was not marked.
+</description>
+		<example><![CDATA[?dom.top.children[1].marked 
+ = .T.
+ ?dom.top.children[2].marked 
+ = .F.]]></example>
+	</section>
+	
+	<section>
+		<description>Get a pointer to the second element of the top parent</description>
+		<example><![CDATA[c2 = dom.top.children[2]]]></example>
+	</section>
+	
+	<section>
+		<description>Now move all of the marked elements after this element:</description>
+		<example><![CDATA[c2.MoveMarkedAfter()
+]]></example>
+	</section>
+	
+	<section>
+		<description>And here is how the XML tree has been transformed:</description>
+		<example><![CDATA[?dom.top.OuterXML
+ = <employee>
+
+<name city="ITHACA">
+     <firstname>Milton</firstname>
+     <lastname>Jones</lastname>
+ </name>
+ <name city="BOSTON" state="MA">
+     <firstname>Frank</firstname>
+     <lastname>Smith</lastname>
+ </name></employee>
+
+]]></example>
+	</section>
+	
+	<section>
+		<description>The following methods are useful for working with marked elements:</description>
+		<cases>
+			<case>
+				<title><![CDATA[<document>.MarkElements() ]]></title>
+				<description>Marks elements that satisfy a query expression. NOTE: Remember to unmark all elements before doing a new query to mark elements!</description>
+			</case>
+			<case>
+				<title><![CDATA[<document>.UnmarkAllElements() ]]></title>
+				<description>Unmark all elements.</description>
+			</case>
+			<case>
+				<title><![CDATA[<document>.UnmarkElements() ]]></title>
+				<description>Unmark elements selected by a query expression.</description>
+			</case>
+			<case>
+				<title><![CDATA[<document>.DeleteMarked() ]]></title>
+				<description>Remove marked elements from the XML tree.</description>
+			</case>
+			<case>
+				<title><![CDATA[<element>.MoveMarkedAfter() ]]></title>
+				<description>Move all marked elements after this element.</description>
+			</case>
+			<case>
+				<title><![CDATA[<element>.MoveMarkedBefore() ]]></title>
+				<description>Move all marked elements before this element.</description>
+			</case>
+			<case>
+				<title><![CDATA[<element>.MoveMarkedInside() ]]></title>
+				<description>Move all marked elements to be children of the current element.</description>
+			</case>
+			
+		</cases>
+	</section>
+	
+</sections>
+<sections>
+	<section>
+		<title>XML Helper Functions</title>
+		<description>A common requirement with working with XML data is to quickly extract some attribute values from an XML element. Xbasic provides a function to do this. The *XML_PEEK_ATTRIBUTE() function can be used to extract attribute values from a top level element in a XML element. The following examples demonstrate the function.</description>
+		<example><![CDATA[xml = "<data city='Boston' firstname='Fred' lastname='Smith'/>"
+
+ ?*XML_PEEK_ATTRIBUTE(xml,"city")
+ = "Boston"
+
+?*XML_PEEK_ATTRIBUTE(xml,"firstname")
+ = "Fred" ]]></example>
+	</section>
+	
+	
+</sections>
+
+
+
+	
+</page>

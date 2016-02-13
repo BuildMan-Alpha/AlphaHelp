@@ -1,0 +1,58 @@
+<page>
+	<topic>Using a Session Variable in a Component</topic>
+<sections>
+	<section>
+		<description>Web publishing applications only. A session variable will not evaluate directly in a component. However, you can add code on a A5W page that uses the component to use a session variable. If you look at the Xbasic tab when editing the page in the Web Component Builder, you will see a line like this if you have set a filter in the component.</description>
+		<example><![CDATA[tmpl.DBF.filter = "Customer_Id=\"\""
+]]></example>
+		
+	</section>
+	<section>
+		<description>In this case, the filter was to find all records with a blank customer_id using the Alpha Sports Invoice_header table.
+Now build a page and insert the component. Assuming the component is named TestInvoice, you will see this.
+</description>
+		<example><![CDATA['============== compute the HTML for the Component==========
+delete x_TestInvoice
+dim x_TestInvoice as P
+tmpl_TestInvoice.request = request
+tmpl_TestInvoice.session = session
+tmpl_TestInvoice.response = response
+tmpl_TestInvoice.serversetting = serversetting
+' ... more code]]></example>
+	</section>
+	
+	<section>
+		<description>Add this after that section to override the filter set in the component.</description>
+		<example><![CDATA['============== Add Filter =================================
+session.user_id = "00000005"
+tmpl.DBF.filter = "Customer_Id=\"\"" ' optional to set filter to a default
+if eval_valid("session.user_id") ' session.user_id exists
+    if (session.user_id <> "") ' value exists
+        tmpl.DBF.filter = "Customer_Id=\""+session.user_id+"\""
+    end if
+end if]]></example>
+	</section>
+	
+	<section>
+		<description>When evaluated in the Interactive Window, the above code would be:</description>
+		<example><![CDATA[session.user_id = "00000005"
+tmpl.DBF.filter = "Customer_Id=\""+session.user_id+"\""
+? tmpl.dbf.filter
+= Customer_Id="00000005"]]></example>
+	</section>
+	<section>
+		<description>In this example, the page code set the session variable, but it may have been set elsewhere. That is the reason to test for both the existence of the variable and test if it has a value.</description>
+
+	</section>
+	<section>
+		<title>Thanks To</title>
+		<description>Jerry Brightbill</description>
+	</section>
+</sections>	
+	
+	<see>
+		<ref>Session Variables</ref>
+	</see>
+	
+	
+</page>

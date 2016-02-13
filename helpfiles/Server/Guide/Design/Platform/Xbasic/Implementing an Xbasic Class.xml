@@ -1,0 +1,126 @@
+<page>
+  <topic>Implementing an Xbasic Class</topic>
+  <sections>
+    <section>
+      <description>Following the design logic discussed in Designing an Xbasic Class, we can implement the beginning of an Xbasic class to call a stored procedure as follows. Note that not all the desired features have been implemented, as discussed in the "to do" comments.
+ In the first section, we define the class with global scope, and the two member properties. Notice that one property is completely protected, and the other has mixed visibility.
+ We could have omitted the global scope modifier, as it is the default.
+</description>
+      <example><![CDATA[define class global StoredProc
+dim protected m_Connection as SQL::Connection
+dim public read protected write SPKeyword as C = ""
+ ]]></example>
+    </section>
+    
+     <section>
+      <description>Now we define the constructors. In addition to being able to simply DIM a class instance, we want to be able to use the new keyword to create an instance with a specific connection or connection string. Therefore, we create two constructors, one for each argument type. Constructors in Xbasic V11 have the name of the class, like C#.
+ Unlike C#, however, defining one or more explicit constructors in Xbasic V11 does not suppress the automatic definition of a default constructor. If you want to forbid the use of a default constructor in Xbasic, explicitly create a private constructor with no arguments.
+</description>
+      <example><![CDATA['constructors
+FUNCTION StoredProc(ConnectionArg as SQL::Connection)
+  m_Connection = ConnectionArg
+END FUNCTION
+ 
+FUNCTION StoredProc(ConnectionString as C)
+  dim ConnectionArg as SQL::Connection
+  ConnectionArg.SetConnectionString(ConnectionString)
+  m_Connection = ConnectionArg
+END FUNCTION ]]></example>
+    </section>
+    
+     <section>
+      <description>Since we are not allowing outsiders to modify the instance's connection indiscriminately, we want to have controlled ways to set the connection and connection string of the class instance after it exists. Our two setter methods are SetConnection and SetConnectionString. In each case, we reset the cached SPKeyword to a blank string so that it will be recalculated later if needed.
+</description>
+      <example><![CDATA['Set or reset connection
+FUNCTION SetConnection(ConnectionArg as SQL::Connection)
+  m_Connection = ConnectionArg
+  SPKeyword = ""
+END FUNCTION
+ 
+'Set or reset connection string
+FUNCTION SetConnectionString(ConnectionString as C)
+  m_Connection.SetConnectionString(ConnectionString)
+  SPKeyword = ""
+END FUNCTION ]]></example>
+<note>There is a potential bug in one of the setter methods above. Can you see what it is? How would you fix it?</note>
+    </section>
+    
+     <section>
+      <description>The workhorse method of this class actually runs the stored procedure. First it figures out what keyword to use. The keyword is cached for future use in a member property.
+</description>
+      <example><![CDATA['Run a stored procedure
+FUNCTION Run as P(SQLString as C, args as SQL::Arguments = null_value())
+  'debug(1)
+  IF len(SPKeyword)&lt;4
+    dim DBSyntax as C = m_Connection.CurrentSyntax
+ 
+    'to classify:
+    'Cache
+    'ElevateDB
+    'QuickBooks
+ 
+    'set Exec or Run keyword based on database syntax
+    'to do: set other SP syntax, generate string from args
+    'to do: set return values in the optional final SQL argument in args
+    SELECT
+      CASE DBSyntax="" .or. DBSyntax="" \
+      .or. DBSyntax="SQLServer".or. DBSyntax="SQLAzure"
+        SPKeyword = "Sybase"
+ 
+      CASE DBSyntax="SQLAnywhere" .or. DBSyntax="Exec" \
+      .or. DBSyntax="Oracle" .or. DBSyntax="DB2" \
+      .or. DBSyntax="DB2i" .or. DBSyntax="MySQL" \
+      .or. DBSyntax="Generic" .or. DBSyntax="OracleCaseSensitive"
+        SPKeyword = "OracleLite"
+ 
+      CASE DBSyntax="ODBC" .or. DBSyntax="Call" \
+      .or. DBSyntax="Access" .or. DBSyntax="Excel" \
+      .or. DBSyntax="Paradox"
+        SPKeyword = ""
+ 
+      CASE else
+        SPKeyword = ""
+ 
+    END SELECT
+  END IF
+  IF len(SQLString)&lt;4 .or. len(SPKeyword)&lt;4
+    end
+  END IF
+  dim state as L = m_Connection.isOpen
+  IF .not. state
+    state = m_Connection.Open()
+    IF .not. state
+      end
+    END IF
+  END IF
+  IF m_Connection.execute(SPKeyword+"PostgreSQL"+SQLString,args)
+    Run=m_Connection.ResultSet
+  END IF
+END FUNCTION
+ 
+END class ]]></example>
+    </section>
+    
+     <section>
+      <description>Before actually running the stored procedure, the Run method does some sanity checking. If the connection is not already open, the method tries to open it for you.
+
+ In this version of the class, the burden of constructing a correct SQL string for most of the stored procedure call is placed on the user. A more sophisticated implementation would encapsulate that functionality and automatically construct the correct string based on what arguments are provided and what database is used by the connection. The class currently only encapsulates a small part of that knowledge, the choice of the Call or Exec keyword for each database and the knowledge of which databases have no stored procedures as such.</description>
+      
+    </section>
+  
+    
+  </sections>
+  <see>
+    
+<ref>Xbasic with Classes </ref>
+<ref>Xbasic Class Syntax </ref>
+<ref>Designing an Xbasic Class </ref>
+<ref>Implementing an Xbasic Class </ref>
+<ref>Testing and Using an Xbasic Class </ref>
+<ref>Subclasses and Inheritance </ref>
+<ref>Classes in Namespaces    </ref>
+    
+    
+    
+  </see>
+</page>

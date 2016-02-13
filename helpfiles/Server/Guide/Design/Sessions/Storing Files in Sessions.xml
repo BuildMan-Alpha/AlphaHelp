@@ -1,0 +1,98 @@
+<page>
+	<topic>Storing Files in Sessions</topic>
+<sections>
+	<section>
+		<description>Session storage is able to deliver robust and scalable server solutions. In order to enable this feature, data intended to be stored on disk at the session level should use Session.SaveDataAsFile(). This stored file can then be linked to using Session.FormatFileDataURL().
+
+Session.SaveDataToFile() is a method that takes a key and data, then saves that data somewhere using the key you supplied. The key is typically a filename without a path but with an extension, for instance as MyFile.txt. The storage location is not significant to the application developer because you will not be directly coding to the physical location.
+
+ When you want to link to a file that has been stored using Session.SaveDataToFile(), you use Session.FormatFileDataURL() to create the URL by passing in the key you used when storing the data.
+</description>
+		<example><![CDATA[<%a5
+dim FileKey as c = "MyFile.txt"
+Session.SaveDataAsFile(FileKey,"Hello World, this is a session file")
+Response.Redirect(Session.FormatFileDataURL(FileKey))
+%> ]]></example>
+			<note>The file extension of the filename used as a key in Session.SaveDataAsFile(Key, data) and Session.FormatFileDataURL(Key) matters, because the extension is used for MIME type parsing. For example, in order to have Excel data treated as such when it is sent to the browser, use an extension of .XLS. The above example uses a file extension of .TXT.</note>
+	</section>
+	
+	<section>
+		<title>Legacy Compatibility</title>
+		<description>Prior to Version 11, developers often used the Session.Session_Folder property as a location in which to save session files and Session.Session_URL as a base URL to then link to the session file. Both of these properties were removed in Version 11, which means legacy code which uses them must be updated.</description>
+		
+		<cases>
+			<case>
+				<title>Session.SaveDataToFile() </title>
+				<description>saves data directly to the session storage as opposed to being a string value like Session.Session_Folder which could be used as part of a file path.
+</description>
+			</case>	
+			<case>
+				<title>Session.FormatFileDataURL()</title>
+				<description>is similar to using Session.Session_URL.
+</description>
+			</case>	
+		</cases>
+		
+		
+		
+		
+	<section>
+		<description>Typically, these two properties have been used in a pattern such as that shown below. This legacy code can be directly replaced by the example code above.</description>
+		<example><![CDATA[<%a5
+dim Filename as c = "MyFile.txt"
+save_to_file("Hello World, this is a session file",Session.Session_Folder + Filename)
+Response.Redirect(Session.Session_Url + Filename)
+%> ]]></example>
+			<note>This is a Legacy Example</note>
+	</section>
+	
+	<section>
+		<description>Another common usage of these properties prior to Version 11 is for generation of reports as a session file:</description>
+		<example><![CDATA[<%a5
+dim filter as c = "MyFile.txt"
+dim order as c = "MyFile.txt"
+Dim filename as c = Session.Session_Folder + "Hello World, this is a session file"
+filename = report.saveas("","",filter,order,filename,.f.)
+if file.exists(filename)
+    Response.Redirect(Session.Session_URL + "Hello World, this is a session file")
+end if
+%> ]]></example>
+			<note>This is Legacy Code</note>
+	</section>
+	
+	<section>
+		<description>This example is a bit more involved to replace because there is no direct replacement for the Session.Session_Folder property in order to build a file name to be used by Report.SaveAs(). Because of this, Request.GetRequestTempFileName() should be used to provide a temporary file location for the report generation, and then the file's contents can be moved into session storage.</description>
+		<example><![CDATA[<%a5
+dim filter as c = "MyFile.txt"
+dim order as c = "MyFile.txt"
+Dim filename as c = Request.GetRequestTempFileName()
+filename = report.saveas("","",filter,order,filename,.f.)
+if file.exists(filename)
+    Session.SaveDataAsFile("Hello World, this is a session file",file.to_blob(filename))
+    Response.Redirect( Session.FormatFileDataURL("Hello World, this is a session file") )
+end if
+%> ]]></example>
+			<note>Replacement Code. The code above uses Session.SaveDataAsFile() and Response.Redirect() in order to demonstrate the usage of those methods. However, this is NOT the most efficient way of sending the PDF contents back to the browser. Using Response.SendFile() is a Best Practice and is strongly recommended instead. 
+</note>
+	</section>
+	
+	<section>
+		
+		<example><![CDATA[<%a5
+	dim filter as c = "MyFile.txt"
+	dim order as c = "MyFile.txt"
+	Dim filename as c = Request.GetRequestTempFileName()
+	filename = report.saveas("","",filter,order,filename,.f.)
+	if file.exists(filename)
+		Response.SendFile(
+	end if
+	%> ]]></example>
+			<note>Replacement Code.</note>
+	</section>
+	
+	</sections>
+<see>
+<ref>Request.GetRequestTempFileName()</ref>
+<ref>Response.SendFile()</ref>
+</see>	
+</page>	

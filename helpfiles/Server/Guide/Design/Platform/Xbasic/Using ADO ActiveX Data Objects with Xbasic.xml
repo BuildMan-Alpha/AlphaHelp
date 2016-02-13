@@ -1,0 +1,658 @@
+<page>
+	<title>Using ADO (ActiveX Data Objects) with Xbasic</title>
+<sections>
+	<section>
+		<title>What is ADO</title>
+		<description>ADO ( ActiveX Data Objects ) is a Microsoft technology for accessing data from databases.</description>
+	</section>
+	
+	<section>
+		<title>Goal of this Document</title>
+		<description>There are numerous books and Web articles on ADO. This document does not attempt to duplicate the extensive existing documentation on ADO. Rather, it is intended to give a few short examples showing how you can use ADO in your Xbasic scripts. ADO can be hard to learn because there is often more than one way to do things. In the examples that follow we will often show more than one way to achieve the desired goal.</description>
+	</section>
+	
+	<section>
+		<title>Following the Examples</title>
+		<description>All of the examples in this document can be followed from Alpha Anywhere's Interactive window, or by creating Xbasic scripts. The examples all use the Alphasports.MDB Microsoft Access database. This database ships with Alpha Anywhere and is located in the MDBFiles folder under Program Files. If you want to work with data in a different database, the concepts learned from the example here will still apply to your database. Keep in mind however that not all ADO data sources work identically. It is not uncommon to find that  one set of ADO command works against one database, but not another. This is definitely one of the frustrations of working with ADO. Generally, a work around can usually be found. In this document, the code that you should type in the Interactive window, or into your scripts, is shown in blue like this:</description>
+	<example><![CDATA[conn.close() ]]></example>
+	</section>
+	
+	<section>
+		<title>The ADO Objects</title>
+		<description>ADO comprises several objects. These objects all have a set of properties and methods. In this document we will be discussing the Connection, Recordset, and Command objects. The are many other ADO objects, but we won't cover them here.</description>
+	</section>
+	
+	<section>
+		<title>Connection Object</title>
+		<description>The first object you will need when using ADO is the connection object. The first method of the connection object hat you will need to use is its .Open() method. The connection object allows you to connect to your database. When you connect to a database, you provide a connection string. The connection string tells ADO how to find your database. For example, the following code creates a connection object and then connects to alphasports.mdb.
+Type this in the Interactive window:
+</description>
+<example><![CDATA[dim connString as C
+dim conn as ole::adodb.connection
+connString = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb; Persist Security Info=False"
+conn.open(connString)]]></example>
+<note>To help you construct connection strings, you can use the A5_CONNECTIONSTRING() function. For example, type this in the Interactive window:</note>
+	</section>
+	<section>
+		<example><![CDATA[? a5_connectionstring()]]></example>
+	</section>
+	
+	
+	<section>
+		
+		<description>It is very important that you close your connections at your end of your scripts, or else, if your script repeatedly opens connections, you will run out of resources. To close an open connection, you use the connection object's . Close() method.
+Let's close the open connection now. Type this in the Interactive window:
+</description>
+<example><![CDATA[conn.close()]]></example>
+	</section>
+	
+	<section>
+		<title>SQL Commands</title>
+		<description>The language that you use to talk to an ADO database is SQL. The two most common types of SQL commands that you will want to send to your database are commands that returns a set of records (don't confuse the use of the word "set" here with Alpha Anywhere's Set object), or commands that update, delete, or insert records into the database. There are many other types of SQL commands that you could send to the database (such as commands to create new tables and indexes), but we are not going to cover these in this document.
+
+SQL commands that return a set of records start with the SELECT keyword. For example:
+</description>
+<example><![CDATA[SELECT * FROM customer
+SELECT customer_id, firstname, lastname FROM customer WHERE bill_state_region = 'ma' ORDER BY lastname]]></example>
+	<note>Notice that in SQL statements string values are single quoted (not double quoted).</note>
+	</section>
+	
+	<section>
+		
+		<description>SQL commands that update records in a database start with the UPDATE keyword. For example:</description>
+		<example><![CDATA[UPDATE customer SET bill_state_region = 'CA' WHERE customer_id = '0000001'
+UPDATE customer SET bill_state_region = 'CA'
+]]></example>
+	</section>
+	<section>
+		
+		<description>This second example will set the bill_state_region to "CA" in every record in the table because its scope has not been limited by a WHERE clause.
+SQL commands that insert records into a database start with the INSERT keyword. For example:
+</description>
+		<example><![CDATA[INSERT INTO customer (firstname, lastname) VALUES ('Gregory', 'Timmermansky')
+]]></example>
+<note>On the surface, SQL is a standardized language, but unfortunately, each database uses slightly different syntax and conventions. For example, in Microsoft Access and SQL Server, field and table names containing spaces are enclosed in square brackets ( first name ). In Oracle, they are double quoted ( "first name" ), and in MySQL they are quoted using a special character ( 'first name' ).</note>
+	</section>
+	
+	
+	
+	<section>
+		<title>Recordset Object</title>
+		<description>When you retrieve records from a table, the records are "placed" into a Recordset object. The recordset object has methods to navigate within the recordset and to read field values from the recordset.
+
+There are several different kinds of recordsets that you can create. The simplest type of recordset is one that allows you to navigate forwards through the recordset, but not backwards. This is a "forward only" record set. Other types of recordsets allow you to move both backwards and forwards. Generally, a recordset does not reflect changes made to the data by other users after the recordset is created, however, there are some types of recordsets that will immediately reflect changes made to the database by other users. Some databases allow you to create updateable recordsets (i.e. changes made directly to the recordset can be applied to the database).
+
+The type of recordset that you create is governed by the properties of the recordset. The recordset's properties are set after the recordset has been declared, but before it is opened. Once a recordset has been opened (i.e. populated with records), you can't change its properties.
+
+In this next example, we will demonstrate how two recordsets, each created with different properties, have different behaviors. The example also shows two different ways in which a recordset can be populated. In the first case we will execute a connection object's .Execute() method to create a recordset, and in the second case, we will use the connection object's .Open() method.
+
+Enter this code in the Interactive window:
+</description>
+<example><![CDATA[dim connString as C
+dim conn as ole::adodb.connection
+connString = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb; Persist Security Info=False"
+conn.open(connString) ]]></example>
+	</section>
+	
+<section>
+	<description>Using the connection's .Execute() method we create the most basic of recordsets.</description>
+	<example><![CDATA[rs = conn.Execute("select * from customer")
+rs.MoveNext()]]></example>
+</section>
+
+<section>
+	<description>Note that this recordset is a forward-only recordset; it does not support the .MovePrevious() method.</description>
+	<example><![CDATA[rs.MovePrevious() 
+ ERROR: OLE Automation Error. Source is ADODB.Recordset." 
+ Operation is not allowed in this context."
+ ]]></example>
+</section>
+
+<section>
+	<description>Note also that this recordset does not support the .RecordCount property (it returns -1).</description>
+	<example><![CDATA[? rs.RecordCount 
+ -1 
+ rs.close() 
+ delete rs
+ ]]></example>
+</section>
+
+<section>
+	<description>Now let's create a "static" recordset. First, declare a recordset object.</description>
+	<example><![CDATA[dim rs as ole::adodb.recordset
+]]></example>
+</section>
+
+<section>
+	<description>Set its CursorType property to 3 (which is a "static" recordset).</description>
+	<example><![CDATA[rs.CursorType = 3
+]]></example>
+</section>
+
+<section>
+	<description>Open the recordset using the recordset's .Open() method.</description>
+	<example><![CDATA[rs.open("select * from customer",conn) 
+ rs.MoveNext()
+]]></example>
+</section>
+
+<section>
+	<description>Note that we can move backwards in this recordset.</description>
+	<example><![CDATA[rs.MovePrevious()
+]]></example>
+</section>
+
+<section>
+	<description>Note that this recordset supports the RecordCount property.</description>
+	<example><![CDATA[? rs.RecordCount 
+ 61.000000 
+ rs.close()
+]]></example>
+</section>
+
+<section>
+	<title>Retrieving Records from a Database</title>
+	<description>In the next examples, we will retrieve records from a table in a database. as we stated earlier, there is generally more than one way to do things when using ADO. For example, you can get a recordset by using the connection object's .Execute() method, or you can declare a recordset object and then use its .Open() method.
+In this example, we will create a list of Massachusetts lastname values in the customer table. Since this example does not require that we move backwards in the recordset, a simple forward only recordset will do.
+Create a new script and enter the following code:</description>
+	<example><![CDATA[dim connString as C
+dim conn as ole::adodb.connection
+connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb;Persist Security Info=False"
+conn.open(connString)
+dim sqlTxt as C
+sqlTxt = "select Lastname from customer where bill_state_region = 'ma'"
+delete rs ]]></example>
+</section>
+
+<section>
+	<description>Use the connection object's .Execute() method to execute the SQL Select statement and return a recordset.</description>
+	<example><![CDATA[rs = conn.Execute(sqlTxt)
+dim LastnameList as c = ""
+while .not. rs.Eof()
+    LastnameList = LastnameList + rs.fields.item(0).value + crlf()
+    rs.MoveNext()
+end while
+ui_msg_box("Lastnames",LastnameList)
+rs.close()
+conn.close()
+ ]]></example>
+</section>
+<section>
+	<description>When you run the script, Alpha Anywhere will produce a message box showing the names of all lastname values selected. Things of note in this script are:</description>
+<cases>
+	<case>
+		<description>The recordset has a method called .Eof() that returns .T. when you have reached the end of the recordset.</description>
+	</case>
+	<case>
+		<description>The recordset has a method called .MoveNext() to move to the next row in the recordset.</description>
+	</case>
+	<case>
+		<description>To read a field value from the recordset we reference the recordset's "Fields" collection.</description>
+	</case>
+	<case>
+		<description>To read a value from the fields collection, we use the .Item() method to get a reference to a field in the fields collection and then we reference the field object's .value property. This method can either take an index number (which is zero based), or a field name. For example </description>
+		
+		<cases>
+			<case>
+				<example><![CDATA[rs.fields.item("lastname").value ]]></example>
+			</case>
+			<case>
+				<description> is the same as  </description>
+				<example>rs.fields.item(0).value </example>
+			</case>
+			<case>
+				<description>...because lastname is the first field in the recordset.</description>
+			</case>
+			
+		</cases>
+	</case>
+	<case>
+		<description>The .value property does not have to be specified. If you omit it, ADO will understand that you mean to reference the field's .value property. So you could have shortened you code by writing ...
+				</description>
+				<cases>
+					<case>
+						<example><![CDATA[rs.fields.item(0). ]]></example>
+					</case>
+				</cases>
+				
+	</case>
+	<case>
+		<description>Since this recordset was returned as the result of the connection object's .Execute() method, ADO has set the properties of the recordset object. ADO has created the most basic of recordsets, and as a result many of the methods that are theoretically supported by the Recordset object are not available for this recordset. Also many of the property values that a recordset theoretically supports have not been set. For example, this recordset is a "forward only" recordset. You can call its .MoveNext() method, but not its .MoveFirst() or .MovePrev() method. Also, if you were to examine its .recordcount property (which should tell you how may rows there are in the recordset), you would see that the value for this property is -1, indicating the property value has not been set.</description>
+	</case>
+	<case>
+		<description>Notice that the recordset was returned by the connection object's .Execute() method. We did not have to dim rs as a recordset object before calling the connection object's .Execute() method, and in fact, had we done so (with dim rs as ole::adodb.recordset ), the script would have generated an error when we called the connection object's .Execute() method.</description>
+	</case>
+	
+</cases>
+</section>
+
+<section>
+	<title>Updating Records</title>
+	<description>To update records, you use the SQL Update command. The general syntax of the command is:</description>
+	<example><![CDATA[UPDATE tablename SET fieldname1 = value1, fieldname2 = value2 .... WHERE fieldname3 = value3 ...
+]]></example>
+</section>
+
+<section>
+	<description>Let's update the city, state, and zip fields in the customer table. First, we will check to see what their current values are, then we will update them, then we will check to see if the updates worked. From the Interactive window:</description>
+	<example><![CDATA[dim connString as C
+dim conn as ole::adodb.connection
+connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb;Persist Security Info=False"
+conn.open(connString)
+delete rs
+dim sqlSelect as C
+sqlSelect = "SELECT customer_id, bill_city, bill_state_region, bill_postal_code FROM customer" ]]></example>
+</section>
+
+<section>
+	<description>Execute the SQL SELECT statement and return a recordset.</description>
+	<example><![CDATA[rs = conn.execute(sqlSelect)
+]]></example>
+</section>
+
+<section>
+	<description>Display the values in the first record of the recordset for the customer_id, bill_city, bill_postal_code, etc. fields.</description>
+	<example><![CDATA[? rs.fields.item("customer_id")
+1.0000000
+? rs.fields.item("bill_city") 
+ Boston
+? rs.fields.item("bill_postal_code") 
+ 01760
+? rs.fields.item("bill_state_region") 
+ indicating
+? rs.fields.item("customer_id") 
+ 1.000000 ]]></example>
+</section>
+
+<section>
+	<description>Define the SQL update statement. Note that the fields to update and the corresponding value are specified in a comma delimited list of name/value pairs.</description>
+	<example><![CDATA[sqlupdate = "update customer set bill_city = 'New York', bill_state_region = 'NY', bill_postal_code = '01000' where customer_id = 1"
+]]></example>
+</section>
+
+<section>
+	<description>Define a variable that will be updated to show the number of records affected by the SQL statement.</description>
+	<example><![CDATA[dim ra as N = 0]]></example>
+</section>
+
+<section>
+	<description>Call the Connection object's .Execute() method.</description>
+	<example><![CDATA[conn.Execute(sqlupdate, ra)
+]]></example>
+</section>
+
+<section>
+	<description>Check the ra variable. It shows 1, indicating that one record was affected by the UPDATE statement.</description>
+	<example><![CDATA[? ra 
+ = 1]]></example>
+</section>
+
+<section>
+	<description>Now let's check if the update worked by looking at the values of the fields that we updated.</description>
+	<example><![CDATA[sqlselect = "select bill_city, bill_state_region, bill_postal_code from customer where customer_id = 1" 
+ rs = conn.Execute(sqlselect)
+  
+? rs.fields.item("bill_city") 
+ New York
+
+conn.close()
+]]></example>
+</section>
+
+<section>
+	<description>Items of note in this code:</description>
+	<cases>
+		<case>
+			<description>The UPDATE statement can be executed by calling the Connection object's .Execute() method. This is the same method that we called earlier to execute a SQL SELECT statement. When the .Execute() method is executing a SELECT statement, then it returns a recordset. But, when it executes an UPDATE statement, it does not return anything. It does, however, update the value in the ra variable which was passed in by reference. Note that in this case the .Execute() method was invoked by passing in two arguments: the SQL text and the variable to update.</description>
+		</case>
+		<case>
+			<description>Had the UPDATE statement failed, (for example, because we entered a customer_id that did not exist in the WHERE clause), then the ra variable would be 0 (because no records were affected by the command).</description>
+		</case>
+		<case>
+			<description>If we had executed an UPDATE statement without a WHERE clause, then the update would have been applied to all of the records in the table, and the ra variable would have been set to the number of records that were updated (which would equal all of the records in the table.</description>
+		</case>
+		<case>
+			<description>If the WHERE clause had matched multiple records, then all matching records would have been UPDATED.</description>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>Inserting Records</title>
+	<description>To insert records, you use the SQL Insert statement. The general syntax of the Insert statement is:</description>
+	<example><![CDATA[INSERT INTO tablename (field1, field2, field3....) VALUES (value1, value2, value3....)
+]]></example>
+</section>
+
+<section>
+	<description>Let's insert a new record into the customer table. First, we will get a count of the number of records in the table. From the Interactive window:</description>
+
+	<example><![CDATA[dim connString as C 
+ dim conn as ole::adodb.connection
+  
+connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb;Persist Security Info=False" 
+ conn.open(connString)
+ ]]></example>
+</section>
+
+<section>
+	<description>Execute a query to get the number of records in the customer table.</description>
+	<example><![CDATA[rs = conn.Execute("select count(*) from customer")
+ ]]></example>
+</section>
+
+<section>
+	<description>The recordset contains one row with one field, which contains the answer. Remember that the fields collection is 0 based, so the first field is item(0).</description>
+	<example><![CDATA[? rs.fields.item(0) 
+ 61.000000
+ ]]></example>
+</section>
+
+<section>
+	<description>In case we do not remember what the field names are in the customer table, this code snippet will print out all of the field names. Note that you won't have to type the # character in the sample code below. The Interactive window automatically inserts it when it recognizes that you are in the middle of an un-terminated looping construct.</description>
+	<example><![CDATA[rs = conn.Execute("select * from customer")
+
+?rs.fields.count 
+ 20.000000 
+ for i = 1 to 20 
+ #?rs.fields.item(i-1).name 
+ #next i 
+ CUSTOMER_ID 
+ FIRSTNAME 
+ LASTNAME 
+ COMPANY 
+ PHONE 
+ FAX 
+ BILL_ADDRESS1 
+ BILL_ADDRESS2 
+ BILL_CITY 
+ BILL_STATE_REGION 
+ BILL_POSTAL_CODE 
+ BILL_COUNTRY 
+ SHIP_ADDRESS1 
+ SHIP_ADDRESS2 
+ SHIP_CITY 
+ SHIP_STATE_REGION 
+ SHIP_POSTAL_CODE 
+ SHIP_COUNTRY 
+ SHIP_SAME 
+ EMAIL
+]]></example>
+</section>
+
+<section>
+	<description>Construct the SQL INSERT statement.</description>
+	<example><![CDATA[dim sqlinsert as C
+sqlinsert = "INSERT INTO customer (firstname, lastname, company, bill_address1, bill_city, bill_state_region, bill_postal_code) VALUES ('Tom', 'Turner' , 'Alpha', '1 Main St', 'Burlington', 'MA', '01803')"
+ ]]></example>
+</section>
+
+<section>
+	<description>Execute the INSERT statement.</description>
+	<example><![CDATA[ra = 0 
+ conn.Execute(sqlinsert,ra)
+]]></example>
+</section>
+
+<section>
+	<description>Check on the number of records affected.</description>
+	<example><![CDATA[? ra 
+ = 1
+ ]]></example>
+</section>
+
+<section>
+	<description>1 indicates that the 1 record was added - our Insert was successful.
+Things of note about this code are:
+</description>
+	<cases>
+		<case>
+			<description>Note that we did not insert a value into the customer_id field. The reason is that this field was defined as an auto-increment field, which means you can't assign it at value. Its value is automatically assigned by the database engine.</description>
+		</case>
+		<case>
+			<description>We did not assign values to all of the fields in the table. In this case, this worked because the fields were not defined as required fields. Had any of the omitted fields been required, the insert would have failed.</description>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>Getting the Value of the Auto-Increment Fields</title>
+	<description>In the previous example where we inserted a new record, we did not assign a value to the customer_id field because this field is an auto-increment field. After the record is inserted, in many applications, it will be important to know what value the database engine assigned to the auto-increment field (note that a table can only have a single auto-increment field). The technique used to find the value of the auto-increment field varies depending on the type of database that you are using. In the following example, we use a technique that works with SQL Server, Access, and MySQL. It may also work with some other databases, but certainly will not work will all databases. You will need to refer to the documentation for your database to see what method they use.
+
+To get the value of auto-increment field, we execute a special query:
+</description>
+	<example><![CDATA[select @@identity
+]]></example>
+</section>
+
+<section>
+	<description>Continuing with the previous example, from the Interactive window:</description>
+	<example><![CDATA[rs = conn.Execute("select @@identity") 
+ ? rs.fields.item(0) 
+ 62.000000 
+
+ rs = conn.execute("select count(*) from customer") 
+ ? rs.fields.item(0) 
+ 62.000000
+
+conn.close()
+]]></example>
+</section>
+
+<section>
+	<description>Things of note about this code are:</description>
+	<cases>
+		<case>
+			<description><![CDATA[Executing the query select @@identity returns a recordset with one row and one column containing the value of the auto-increment field. In this case the value is 62, indicating that the customer_id for the new record that we added is 62.]]></description>
+		</case>
+		<case>
+			<description>Our count query shows that the table now has 62 records. You will recall that previously it had 61 records.</description>
+		</case>
+	</cases>
+</section>
+
+</sections>	
+<sections>
+	<section>
+		<title>Using Parameters</title>
+		<description>In the previous examples you have seen that the INSERT and UPDATE statements that we have executed have specified the field values in the SQL statement. ADO also allows you to use parameters in the SQL statement, and then provide values for the parameters before the SQL is executed. To do this, we will use another of the ADO objects - the Command object.
+
+If we wanted to update the city for customer 2, we could have written the following SQL UPDATE statement:
+</description>
+		<example><![CDATA[UPDATE customer set bill_city = 'London' where customer_id = 2
+ ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Using parameters, this statement could be expressed as:</description>
+		<example><![CDATA[UPDATE  customer set bill_city = ? where customer_id = ?
+]]></example>
+		
+	</section>
+	<section>
+		
+		<description>The question marks are place holder for the parameters. The advantage of parameters is ease of use and speed when you are executing multiple SQL statements of the same basic form. Say you need to update 100 records. If you construct 100 different UPDATE statements, and then execute them, the SQL parser in the database engine will have to parse 100 different SQL statements. However, if you use parameters, the parser will only have to parse a single statement.
+
+The following example, which you can run from the Interactive window, shows how you can update records in a table using parameters. You will remember that in the past, we have called the connection object's .Execute() method to execute the SQL. This time we will call the Command object's .Execute() method to execute the SQL.
+</description>
+		<example><![CDATA[dim connString as C
+dim conn as ole::adodb.connection
+connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\A5V6\MDBFiles\Alphasports.mdb;Persist Security Info=False"
+conn.open(connString)]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Define the SQL UPDATE command using ? as the placeholder for the parameters.</description>
+		<example><![CDATA[sqlupdate = "update customer set bill_city = ? where customer_id = ?"
+]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Create a command object.</description>
+		<example><![CDATA[dim cmd as ole::adodb.command]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Set the command object's .ActiveConnection property to conn. This associates the command object with our open connection to the AlphaSports database.</description>
+		<example><![CDATA[cmd.ActiveConnection = conn]]></example>
+		
+	</section>
+	<section>
+		
+		<description>The command object has a "parameters" collection. Check how many parameters there are in the collection now.</description>
+		<example><![CDATA[? cmd.Parameters.count 0.000000]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Tell the command object what SQL you want to execute by setting its .CommandText property.</description>
+		<example><![CDATA[cmd.CommandText = sqlupdate
+ ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Now check to see how many parameters there are in the collection. There are now 2 parameters: one for bill_city and cone for customer_id.</description>
+		<example><![CDATA[? cmd.Parameters.count
+2.000000 ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Set the values for each of the parameters.</description>
+		<example><![CDATA[cmd.Parameters1.value = "London" 
+ cmd.Parameters2.value = 2
+]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Set the records affected ( ra ) variable to 0.</description>
+		<example><![CDATA[ra = 0]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Call the command object's .Execute() method.</description>
+		<example><![CDATA[cmd.Execute(ra)
+ ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Check the records affected variable.</description>
+		<example><![CDATA[? ra 
+ = 1
+]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Now check to see if the field was updated.</description>
+		<example><![CDATA[rs = conn.Execute("select bill_city from customer where customer_id = 2") 
+ ? rs.fields.item(0).value 
+ London
+ ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Now, let's say we want to update customer 3 to "Paris". All that we have to do is this:</description>
+		<example><![CDATA[cmd.Parameters1.value = "Paris"
+cmd.Parameters2.value = 3
+ra = 0
+cmd.Execute(ra)
+conn.close() ]]></example>
+		
+	</section>
+	<section>
+		
+		<description>Items of note about the above code:</description>
+		<cases>
+			<case>
+				<description>When you set the command object's .CommandText property to the SQL that you want to update (having already set the .ActiveConnection property), ADO automatically parsed the SQL and determined how many parameters were included in the SQL statement. That's why when we checked cmd.Parameters.count a second time, it went from 0 to 2. ADO also automatically created two empty parameters of the correct type.</description>
+			</case>
+			<case>
+				<description>Not all ADO providers automatically parse the .CommandText property to determine how many parameters are needed. In this case you will have to manually create the necessary parameters and add them to the parameters collection. You can refer to a book on ADO for more information on how to do this.</description>
+			</case>
+		</cases>
+	</section>
+	
+	
+	<section>
+		<title>Converting ASP and VB Code to Xbasic</title>
+		<description>When reading about ADO in books and Web articles, you are likely to come across many examples that are written for Visual Basic or VB Script. While these examples cannot be plugged into Xbasic directly, translating them to work with Xbasic is generally very easy. When translating from VB to Xbasic, here are some things to keep in mind:</description>
+		<cases>
+			<case>
+				<description>Logical values in Xbasic are expressed as  .T. and .F. In VB they are TRUE and FALSE.</description>
+			</case>
+			<case>
+				<description>Method calls in VB are not always enclosed in parentheses. In Xbasic they must always be enclosed in parentheses.</description>
+			</case>
+			<case>
+				<description>VB sometimes uses syntax shorthand that Xbasic does not support.</description>
+			</case>
+			
+		</cases>
+	</section>
+	<section>
+		<description>Consider the following short VB Script code from an ASP page:</description>
+		
+		<cases>
+			<case>
+				<title>Server.CreateObject</title>
+				<example><![CDATA[Conn = Server.CreateObject("ADODB.Connection")
+ ]]></example>
+			</case>
+			<case>
+				<description>The Xbasic equivalent is the OLE.CREATE() method, or DIM Conn as OLE::Adodb.connection.
+</description>
+			</case>
+			
+			<case>
+				<title>Conn.Open</title>
+				<example><![CDATA[Conn.Open "dsn=MyConnectionName"
+]]></example>
+			</case>
+			<case>
+				<description>The Xbasic equivalent is Conn.Open("dsn=MyConnectionName") because methods must be enclosed in parentheses.
+</description>
+			</case>
+			
+			<case>
+				<title>Conn.Execute</title>
+				<example><![CDATA[RS = Conn.Execute("SELECT userName, password from AuthUsers")
+ ]]></example>
+			</case>
+			<case>
+				<description>The same command will work in Xbasic.
+</description>
+			</case>
+			
+			<case>
+				<title>RS</title>
+				<example><![CDATA[myvar = RS("Password") ]]></example>
+			</case>
+			<case>
+				<description>This is a shortcut for myvar = RS.fields.item("Password"). Xbasic requires the expanded form of the syntax.
+</description>
+			</case>
+			
+			
+		</cases>
+		
+		
+	</section>
+	
+	
+</sections>
+	<see>
+		<ref>OLE.CREATE()</ref>
+		<ref>Browse Through ADO Databases</ref>
+	</see>
+	
+</page>

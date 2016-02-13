@@ -1,0 +1,218 @@
+<page>
+	<topic>Dynamic Column Headings</topic>
+	<sections>
+<section>
+	<description><![CDATA[The following technique shows how to display dynamic column headings in a grid component. The key to doing this is realizing that any property of a component can be overwritten before the component is executed. For example, the following is the code in the <head> section of a .a5w page that contains a component. All of the code shown in blue is code that is automatically inserted by the Web Component Builder when you insert a component on a page. (This is just a portion of the code.) ]]></description>
+	<example><![CDATA[<%a5 
+ Delete Tmpl 
+ DIM Tmpl as P 
+ tmpl = a5w_load_component("dv") 
+ 'Following code allows you to override settings in the saved component, and specify the component alias (componentName property). 
+ 'Tip: Keep the componentName property short because this name is used in page URLs, and it will help keep the URLs short. 
+ 'Each component on a page must have a unique alias (componentName property). 
+ with tmpl 
+ componentName = "dv" 
+ field_info1.column.heading = "wow, this works"
+
+end with
+ ]]></example>
+</section>		
+<section>
+	<description>Note that the second to last line overwrites the column.heading property for column 1 in the grid. When the grid displays, it will show "wow, this works" and not the standard field label.
+
+Using this concept, it is easy to write a function that takes two arguments:
+</description>
+	<cases>
+		<case>
+			<description>the name of an array (in this case the field_info array)</description>
+		</case>
+		<case>
+			<description>a dot variable that contains information about the field labels you want to override</description>
+		</case>
+	</cases>
+</section>	
+<section>
+	<description>One of the problems with this technique is that you override settings in the field_info[] array directly. If you change the order of the fields in the grid, the code to override settings will fail. Below is a generalized technique that you can you to override settings by "fieldname" rather than by field index. 
+
+ First, you would have to put this helper function on your page. you could use an A5W_INCLUDE() to include the helper function.</description>
+	<example>function override_array_setting as V ( input_a as P, override as C )
+
+dim count as N
+
+dim i as N
+
+dim type as C
+ 
+count = line_count(override) 
+ delete override_a 
+ dim override_acount as P
+ 
+override_a.initialize_properties("fieldname|property|value", override) 
+ count = override_a.first_empty()- 1 
+ if (count > 0) then 
+ for i = 1 to count 
+ indx = input_a.find(ut(override_ai.fieldname), "ut(fieldname)") 
+ if (indx > 0) then 
+ type = typeof( eval("input_a" + indx + "." + override_ai.property 
+ eval("input_a"+indx+"." + override_ai.property) = convert_type(override_ai.value,type) 
+ end if 
+ next i 
+ end if
+ 
+end function
+</example>
+</section>
+<section>
+	<description>In the place where you override settings, you would use the following example Xbasic.</description>
+	<example>dim override as C
+ 
+override = <<%txt% 
+ lastname|column.heading|LAST NAME 
+ lastname|column.hide|.t. 
+ customer_id|column.heading|Cust# 
+ %txt% 
+
+ override_array_setting(field_info, override)
+</example>
+</section>
+<section>
+	<description>In the string, override you are specifying the properties that you want to override using the syntax: fieldname|propertyname|newpropertyvalue . You can test this out by running the following script. First, the code created by the Web Component Builder.</description>
+	<example>
+dim tmpl as P
+ 
+tmpl.ComponentName = "Component1" 
+ tmpl.ComponentType = "Grid" 
+ tmpl.DataSourceType = "DBF" 
+ tmpl.DBF.type = "Table" 
+ tmpl.DBF.table_name = "c:\program files\a5v6\samples\alphasports\Customer.Dbf" 
+ tmpl.DBF.filter = "" 
+ tmpl.DBF.order = "" 
+ tmpl.DBF.flags = "" 
+ tmpl.DBF.fieldmap = <<%str% 
+ CUSTOMER_ID,C,8,0=Customer_id 
+ FIRSTNAME,C,20,0=Firstname 
+ LASTNAME,C,20,0=Lastname 
+ COMPANY,C,32,0=Company 
+ PHONE,C,20,0=Phone 
+ FAX,C,20,0=Fax 
+ BILL_ADDRESS_1,C,40,0=Bill_address_1 
+ BILL_ADDRESS_2,C,40,0=Bill_address_2 
+ BILL_CITY,C,20,0=Bill_city 
+ BILL_STATE_REGION,C,20,0=Bill_state_region 
+ BILL_POSTAL_CODE,C,10,0=Bill_postal_code 
+ BILL_COUNTRY,C,20,0=Bill_country 
+ SHIP_ADDRESS_1,C,40,0=Ship_address_1 
+ SHIP_ADDRESS_2,C,40,0=Ship_address_2 
+ SHIP_CITY,C,20,0=Ship_city 
+ SHIP_STATE_REGION,C,20,0=Ship_state_region 
+ SHIP_POSTAL_CODE,C,10,0=Ship_postal_code 
+ SHIP_COUNTRY,C,20,0=Ship_country 
+ SHIP_SAME,L,1,0=Ship_same 
+ EMAIL,C,60,0=Email 
+ %str% 
+
+ tmpl.EditRegion.Grid.Top = <<%txt% 
+ %txt% 
+ tmpl.EditRegion.Grid.Bottom = <<%txt% 
+ %txt% 
+ tmpl.EditRegion.Grid.Left = <<%txt% 
+ %txt% 
+ tmpl.EditRegion.Grid.Right = <<%txt% 
+ %txt% 
+
+ tmpl.fields = 3 
+ dim tmpl.field_infotmpl.fields as P
+ 
+with tmpl.field_info1 
+ fieldname = "Customer_Id" 
+ Scope = "Local" 
+ DisplayFormat = "" 
+ DisplayUnFormat = "" 
+ Type = "C" 
+ controltype = "Label" 
+ Label.InLineStyle = "" 
+ Column.Hide = .f. 
+ Column.Heading = "Customer id" 
+ Column.Sort = "Customer_id" 
+ end with
+ 
+with tmpl.field_info2 
+ fieldname = "Firstname" 
+ Scope = "Local" 
+ DisplayFormat = "" 
+ DisplayUnFormat = "" 
+ Type = "C" 
+ controltype = "Label" 
+ Label.InLineStyle = "" 
+ Column.Hide = .f. 
+ Column.Heading = "Firstname" 
+ Column.Sort = "Firstname" 
+ end with
+ 
+with tmpl.field_info3 
+ fieldname = "Lastname" 
+ Scope = "Local" 
+ DisplayFormat = "" 
+ DisplayUnFormat = "" 
+ Type = "C" 
+ controltype = "Label" 
+ Label.InLineStyle = "" 
+ Column.Hide = .f. 
+ Column.Heading = "Lastname" 
+ Column.Sort = "Lastname" 
+ end with
+ 
+tmpl.style_name = "Barbie" 
+
+ dim override as C
+ 
+override = <<%txt% 
+ lastname|column.heading|LAST NAME 
+ lastname|column.hide|.t. 
+ customer_id|column.heading|Cust# 
+ %txt% 
+
+ with tmpl 
+ override_array_setting(field_info, override) 
+ end with 
+
+ ui_msg_box("", tmpl.field_info3.column.heading) 
+ ui_msg_box("", "" + tmpl.field_info3.column.hide) 
+ ui_msg_box("", tmpl.field_info1.column.heading)
+ 
+
+
+
+
+function override_array_setting as V (input_a as P, override as C)
+
+dim count as N
+
+dim i as N
+
+dim type as C
+ 
+count = line_count(override) 
+ delete override_a 
+ dim override_acount as P
+ 
+override_a.initialize_properties("fieldname|property|value", override) 
+ count = override_a.first_empty()- 1
+ 
+if (count > 0) then 
+ for i = 1 to count 
+ indx = input_a.find(ut(override_ai.fieldname), "ut(fieldname)") 
+ if (indx > 0) then 
+ type = typeof(eval("input_a" + indx + "." + override_ai.property) ) 
+ eval("input_a"+indx+"." + override_ai.property) = convert_type(override_ai.value,type) 
+ end if 
+ next i 
+ end if
+ 
+end function
+ 
+</example>
+</section>
+		
+	</sections>
+</page>
