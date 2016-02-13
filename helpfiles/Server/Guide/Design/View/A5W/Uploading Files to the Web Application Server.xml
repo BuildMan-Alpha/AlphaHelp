@@ -1,0 +1,74 @@
+<page>
+	<topic>Uploading Files to the Web Application Server</topic>
+	<sections>
+<section>
+	<description><![CDATA[Web publishing applications only. To upload a file, your <form> tag must use the POST method and set the enctype to multipart/form-data as follows: ]]></description>
+	
+	<example><![CDATA[<form method="POST" action="upload.a5w" enctype="multipart/form-data" > ]]></example>
+</section>		
+<section>
+	<description><![CDATA[This enables the user's browser to correctly encode the data in your file so it can be sent across the Internet.
+Next you need a form field to specify the file to be uploaded. This is done with a File input type, as in:
+ ]]></description>
+	
+	<example><![CDATA[<input type="file" name="FileToUpload" value=""> ]]></example>
+</section>
+		<section>
+<description>This creates what appears to be a textbox with a Browse button directly next to it.
+When the form is then submitted, the browser will encode the specified file and upload it as part of the HTTP request being sent to the server. The server decodes the file and then makes an object available to your A5W environment. In the example here, that object will be named FileToUpload because that was the name that was specified in the file input field.
+</description>			
+			<cases>
+				<case>
+					<title>FileToUpload</title>
+					<description>will have two properties - filename and data.</description>
+				</case>
+				<case>
+					<title>FileToUpload.filename </title>
+					<description>is a character string and it contains the name of the file as it had existed on the user's system. This will be just the bare filename with no path information.</description>
+				</case>
+				<case>
+					<title>FileToUpload.data </title>
+					<description>contains the contents of the uploaded file.</description>
+				</case>
+			</cases>
+			
+			
+		</section>
+<section>
+	<description>The type of FileToUpload.data is blob, even if the file that has been uploaded is plain ASCII.
+
+To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at FileToUpload.data.size().
+
+If the file meets your criteria, you can then save FileToUpload.data to a file, put it into a field in your table, etc. If it does not meet your criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading. Tip: To save the data in blob variable to a file, use File.From_blob()
+
+The following example shows how to implement file uploading to the Web Application Server. Place this code into a page named "fileupload.a5w". The uploaded file will be placed in the document root as defined on the  General tab of the Web Application Server Control Panel. 
+</description>
+	<example><![CDATA[<html>
+<%a5
+dim msg as c = ""
+if eval_valid("cmd")
+    file.from_blob(ServerSetting.Document_Root + "\\" + FileToUpload.filename, FileToUpload.data)
+    msg = "<a href=\"/" + FileToUpload.filename + "\" target=\"_blank\">" + FileToUpload.filename + "</a> was uploaded<br /><br />"
+end if
+%>
+<head>
+<title>File Upload example</title>
+</head>
+<body bgcolor="#ffffff">
+<%a5 ? msg %>
+<form action=" <%a5 ? request.script_name %> " method="POST" enctype="multipart/form-data">
+<input type="file" name="FileToUpload" value=""><br />
+<input type="submit" name="cmd" value="Upload File">
+</form>
+</body>
+</html> ]]></example>
+	
+</section>		
+		
+		
+		
+	</sections>
+	<see>
+		<ref>A5W Page HTML FORM Syntax</ref>
+	</see>
+</page>
