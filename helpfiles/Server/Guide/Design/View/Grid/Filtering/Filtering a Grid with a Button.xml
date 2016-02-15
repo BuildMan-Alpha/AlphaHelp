@@ -1,0 +1,282 @@
+<page>
+	<topic>Filtering a Grid with a Button</topic>
+<sections>
+	<section>
+		<description>The following example shows how to filter a grid on a page with button click. The button has a pre-defined filter value associated with it. The page before using the filter button looks like this. The example is based on the customer table of the AlphaSports database.
+</description>
+		
+	</section>
+	<section>
+		<title>Method One: Using JavaScript to Set the Filter Variable
+</title>
+		<description>The virtue of this method is that it separates the value of the button (its label) from the value submitted to the filter expression. It requires some JavaScript coding but less Xbasic coding. as the picture suggests, when the user clicks the NY Only button, the grid will show only those records where the State column ( bill_state_region field) value is "NY". 
+</description>
+		<figure><link>images/WPT_Unfiltered_Grid.gif</link></figure>
+	</section>
+	<section>
+		<steps>
+			<step>
+				<description>Create a grid and place it on an A5W page.
+</description>
+			</step>
+			<step>
+				<description>While in the HTML Editor, click the '-' icon to place a push button on the page. Label the button "NY Only".
+</description><figure><link>images/Button_tool_button.gif</link></figure>
+			</step>
+			<step>
+				<description>Switch to the Source tab and modify the button code as follows.
+</description>
+<cases>
+	<case>
+		<description><![CDATA[The &ltinput type=hidden name=btnClicked> code creates a variable named btnClicked that holds the filter value.]]>
+</description>
+	</case>
+	<case>
+		<description>The onclick="btnClick('NY')" phrase causes the button click to run the btnClick()JavaScript function, which assigns the value "NY" to btnClicked.
+</description>
+	</case>
+	<case>
+		<description>The script attached to the action property of the &ltform> tag causes the page to reload after it is submitted.
+</description>
+<example><![CDATA[&ltform name="form1" action=" <%a5 ? request.script_name %> ">
+     &ltinput type=button value="NY Only" onclick="btnClick('NY')"> 
+     &ltinput type=hidden name=btnClicked> 
+</form> 
+ ]]></example>
+	</case>
+	
+</cases>
+			</step>
+			<step>
+				<description>At the top of the page after the &lthead> tag add the following code. This function receives the value "NY" and sets btnClicked equal to this value.
+</description>
+<example><![CDATA[&ltscript>
+function btnClick(btnVal) {
+     form1.btnClicked.value = btnVal; 
+     form1.submit(); 
+} 
+</script> 
+ ]]></example>
+			</step>
+			<step>
+				<description>Near the top of the page you will see the following code. In this case the alias of the component is "Customers". Your grid component's alias may be different.
+</description>
+				<example><![CDATA[with tmpl_Customers
+componentName = "Customers"
+end with ]]></example>
+			</step>
+			<step>
+				<description>Change this code so it reads as follows. This code does the following:
+</description>
+<cases>
+	<case>
+		<description>It checks whether the btnClicked variable exists using the EVAL_VALID() function.
+</description>
+	</case>
+	<case>
+		<description>If the variable exists, it resets the tmpl.dbf.filter property of the grid to require that the bill_state_region field equal the value of btnClicked.
+</description>
+	</case>
+	<case>
+		<example><![CDATA[with tmpl_Customers
+    componentName = "Customers"
+    if eval_valid("btnClicked") then
+  
+.dbf.filter = "bill_state_region =" + quote(btnClicked)
+    end if
+end with
+ ]]></example>
+	</case>
+	<case>
+		<description>The result of clicking the button should look like the following. </description>
+		<figure><link>images/WPT_Filtered_Grid.gif</link></figure>
+	</case>
+	
+	
+</cases>
+			</step>
+			
+		</steps>
+		
+	</section>
+	
+	
+<section>
+	<title>Method Two: Using the Button Label to Set the Filter Variable
+</title>
+	<description>This method requires simpler button coding, but may require more Xbasic coding. as the picture suggests, when the user clicks the NY Only button, the grid will show only those records where the State column ( bill_state_region field) value is "NY". </description>
+	<figure><link>images/WPT_Unfiltered_Grid.gif</link></figure>
+	
+	
+</section>	
+<section>
+	<steps>
+		<step>
+			<description>Create a grid and place it on an A5W page.
+</description>
+		</step>
+		<step>
+			<description>While in the HTML Editor, click  to place a submit button on the page. Label the button "NY Only".
+</description>
+		</step>
+		
+		<step>
+			<description>Switch to the Source tab and modify the button code as follows.
+</description>
+<cases>
+	<case>
+		<description><![CDATA[The &ltinput type=submit value="NY Only" name=btnClicked> code creates a variable named btnClicked that holds the filter value. Simultaneously, it sets btnClicked to "NY Only".
+]]></description>
+	</case>
+	<case>
+		<description><![CDATA[The script attached to the action property of the &ltform> tag causes the page to reload after it is submitted.
+]]></description>
+<example><![CDATA[&ltform name="form1" action=" <%a5 ? request.script_name %> ">
+     &ltinput type=submit value="NY Only" name=btnClicked> 
+</form> 
+ ]]></example>
+	</case>
+</cases>
+		</step>
+		
+		<step>
+			<description>Near the top of the page you will see the following code. In this case the alias of the component is "Customers". Your grid component's alias may be different.
+</description>
+<example><![CDATA[with tmpl_Customers
+    componentName = "Customers"
+end with
+ ]]></example>
+		</step>
+		
+		<step>
+			<description>Change this code so it reads as follows. This code does the following:
+</description>
+<cases>
+	<case>
+		<description>It checks whether the btnClicked variable exists using the EVAL_VALID() function.
+</description>
+	</case>
+	<case>
+		<description>If the variable exists, it trims off the first word of the button label and places it into the variable var. Of course, this step would not be necessary if the button label was simply "NY" instead of "NY Only".
+</description>
+	</case>
+	<case>
+		<description>It resets the tmpl.dbf.filter property of the grid to require that the bill_state_region field equal the value of var.
+</description>
+<example><![CDATA[with tmpl_Customers
+    componentName = "Customers"
+    if eval_valid("btnClicked") then
+        var = word(btnClicked,1," ")
+  
+.dbf.filter = "bill_state_region =" + quote(var)
+    end if
+end with
+ ]]></example>
+	</case>
+	
+</cases>
+		</step>
+		
+	</steps>
+	
+	
+</section>	
+	<section>
+		<description>The result of clicking the button should look like the following. </description>
+		<figure><link>images/WPT_Filtered_Grid.gif</link></figure>
+	</section>
+	
+<section>
+	<title>Method Three: Using Text Input to Set the Filter Variable</title>
+	<description>Method three allows the user, instead of the developer, to set the filter value. as the picture suggests, when the user enters a value and clicks Select First Name, the grid will show only those records where the First Name column ( firstname field) value matches the user's input. </description>
+	<figure><link>images/WPT_Unfiltered_Grid_2.gif</link></figure>
+</section>	
+<section>
+	<steps>
+	<step>
+		<description><![CDATA[Create a grid and place it on an A5W page.
+ ]]></description>
+		
+	</step>
+	<step>
+		<description><![CDATA[While in the HTML Editor, click  to place a submit button on the page. Label the button "Select First Name".
+ ]]></description>
+		
+	</step>
+	<step>
+		<description><![CDATA[Switch to the Source tab and modify the button code as follows.
+ ]]></description>
+ <cases>
+	 <case>
+		 <description><![CDATA[The first &ltinput> tag assigns the user's input to the Xbasic variable var1.
+ ]]></description>
+	 </case>
+	  <case>
+		 <description><![CDATA[The second &ltinput> submits the page to the server.
+ ]]></description>
+	 </case>
+	  <case>
+		 <description><![CDATA[The script attached to the action property of the &ltform> tag causes the page to reload after it is submitted.
+ ]]></description>
+ <example><![CDATA[&ltform method="post" action=" <%a5 ?request.script_name%> " >
+     &ltinput name="var1" value=" <%a5 ? var1 %> "> 
+     &ltinput id=submit1 type=submit value="Select First Name" name="submit1"> 
+</form> 
+ ]]></example>
+	 </case>
+	 
+ </cases>
+		
+	</step>
+	<step>
+		<description><![CDATA[Near the top of the page you will see the first <%a5 tag. Change it so it appears as follows. This defines the var1 variable.
+ ]]></description>
+		<example><![CDATA[<%a5
+dim var1 as c = default ""
+ ]]></example>
+	</step>
+	<step>
+		<description><![CDATA[Below this section you will see the following code. In this case the alias of the component is "Customers". Your grid component's alias may be different.
+ ]]></description>
+		<example><![CDATA[with tmpl_Customers
+    componentName = "Customers"
+end with
+ ]]></example>
+	</step>
+	<step>
+		<description>Change this code so it reads as follows. This code does the following:
+</description>
+		<cases>
+			<case>
+				<description>1. It checks whether the var1 variable is NULL. If not, it allows the filter to be applied.
+</description>
+			</case>
+			<case>
+				<description>2. If the variable exists, it resets the tmpl.dbf.filter property of the grid to require that the firstname field equal the value of var1.
+</description>
+			</case>
+		</cases>
+		<example><![CDATA[with tmpl_Customers
+    componentName = "Customers"
+    if alltrim(var1) <> "" then
+        .dbf.filter = "firstname = " + quote( alltrim(var1) )
+    end if
+end with
+ ]]></example>
+	</step>
+	
+	<step>
+		<description>The result of entering "michael" into the tex tbox and clicking the button should look like the following. 
+</description>
+		<figure><link>images/WPT_Filtered_Grid_2.gif</link></figure>
+		
+	</step>
+	
+	
+</steps>	
+</section>
+	
+	
+</sections>	
+	
+</page>

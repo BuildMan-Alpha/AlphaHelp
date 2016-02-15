@@ -1,0 +1,91 @@
+<page>
+	<topic>Using Arguments in a Record Update</topic>
+<sections>
+	<section>
+		<description>This example uses an argument to select records from the AlphaSports.mdb customer table. We will filter the selected records using an argument for the bill_state_region field. In the Interactive window create the AlphaDAO objects that you will need.</description>
+		<example><![CDATA[dim conn as SQL::Connection
+dim rs as SQL::ResultSet
+dim args as SQL::Arguments
+ ]]></example>
+	</section>
+	<section>
+		<description>DIM other variables.
+</description>
+		<example><![CDATA[dim states_qry as C
+dim state_list as C
+dim state_choice as C
+dim update_qry as C
+dim review_qry as C
+ ]]></example>
+	</section>
+	<section>
+		<description>Open the connection.
+</description>
+		<example><![CDATA[? conn.open("{A5API=Access,FileName='C:\Program Files\a5v8\MDBFiles\Alphasports.mdb',UserName='Admin'}")
+= .T.
+ ]]></example>
+	</section>
+	<section>
+		<description>Get a list of states.
+</description>
+		<example><![CDATA[states_qry = "SELECT DISTINCT bill_state_region FROM customer ORDER BY bill_state_region"
+? conn.execute(states_qry)
+= .T.
+ ]]></example>
+	</section>
+	<section>
+		<description>Convert the ResultSet into a CR-LF delimited string with the .ToString(?) method and present it to the user. 
+</description>
+		<example><![CDATA[state_list = conn.resultset.tostring()
+state_choice = ui_get_list2("Select State", "", state_list, 1)
+]]></example>
+<figure><link>images/CST_Update_Arguments_1.gif</link></figure>
+	</section>
+	<section>
+		<description>Create an argument to hold the state_choice value using the .ADD(?) method.
+</description>
+		<example><![CDATA[? args.add("state", state_choice)
+= .T.
+ ]]></example>
+	</section>
+	<section>
+		<description>The email values will be calculated using the CONCATENATE() portability function, which will combine the firstname field, "@" symbol, and lastname field. To use a Portable SQL function, you must first set the .PortableSQLEnabled? property to TRUE.</description>
+		<example><![CDATA[conn.PortableSQLEnabled = .t.
+update_qry = "update customer set email = Concatenate(firstname, \"@\", lastname) where bill_state_region = :state"
+conn.execute(update_qry, args)
+= .T.
+ ]]></example>
+	</section>
+	<section>
+		<description>To view the results, execute a new query and preview the ResultSet. 
+</description>
+		<example><![CDATA[review_qry = "select firstname, lastname, bill_state_region, email from customer where bill_state_region = :state"
+? conn.execute(review_qry, args)
+= .T.
+rs = conn.resultset
+SQL_ResultSet_Preview(rs)
+ ]]></example>
+ <figure><link>images/CST_Update_Arguments_2.gif</link></figure>
+	</section>
+	
+	<section>
+		<description>Note that these two sets of statements are equivalent.
+</description>
+		<example><![CDATA[rs = conn.resultset
+SQL_ResultSet_Preview(rs)
+SQL_ResultSet_Preview(conn.resultset)
+ ]]></example>
+	</section>
+	<section>
+		<description>Close the connection.
+</description>
+		<example><![CDATA[conn.close() ]]></example>
+	</section>
+	
+</sections>	
+	<see>
+		<ref>Working with SQL Databases</ref>
+		<ref>SQL::Arguments Object?</ref>
+	</see>
+	
+</page>

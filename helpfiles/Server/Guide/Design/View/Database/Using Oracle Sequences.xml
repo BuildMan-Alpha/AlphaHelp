@@ -1,0 +1,204 @@
+<page>
+	<topic>How to use Oracle Sequences</topic>
+<sections>
+	<section>
+		<title>Auto-Increment Columns</title>
+		<description>Some databases implement a column property called auto-increment (typically a number) to automatically generate unique key values for newly inserted table rows.  You may omit the value from the SQL INSERT statement VALUES list or set it to NULL.  In some cases, the database may allow you to insert a specific value provided that it is unique for the table.</description>
+		
+	</section>
+	
+	<section>
+		<title>Oracle Sequences</title>
+		<description>Oracle uses a different approach to generating unique keys.  The objects that generate unique keys are called SEQUENCES.  A sequence is a database object that provides a unique number and keeps track of the current value. 
+Let's say that we want to create a new sequence called MySequence with an initial value of 1.  New values should be created by adding 10 to the original value.  The maximum value generated is limited only by the size of the maximum possible number.
+</description>
+		<example>CREATE SEQUENCE  MySequence 
+START WITH 1
+INCREMENT BY 10
+NOMAXVALUE
+</example>
+	</section>
+	
+	<section>
+
+		<description>To see the current value of the sequence we would execute the following query:</description>
+		<example>SELECT MySequence .currval from dual</example>
+
+<cases>
+	<case>
+		<title>Some notes:</title>
+		<description>We reference the  currval property of MySequence to find the current value.</description>
+	</case>	
+	<case>
+		<description> dual is a pseudo table used in Oracle when you want to select a single value or evaluate an expression. 
+To generate a new value for the sequence we would include the expression below:
+MySequence .nextval 
+</description>
+	</case>	
+</cases>
+
+<note>The  nextval property returns the next value for the sequence and handles incrementing the value at the same time.</note>
+	</section>
+	
+	<section>
+		<title>Manually Specifying a Sequence Value on Insert</title>
+		<description>There are a couple of ways to insert a new row in a table using a sequence.  The first way, and most direct, is to include MySequence.nextval as the column value to be inserted.  This approach, however, depends on the table's users knowing the correct sequence to use and being consistent about usage.  In the example below, we are inserting a unique sequence value for the key column.</description>
+		<example><![CDATA[INSERT INTO MyTable (MyKeyColumn, MyValueColumn)VALUES ( MySequence.nextval, 'Test1')]]></example>
+	</section>
+	
+	<section>
+		<title>Relying on a Trigger to Create a Unique Value</title>
+		<description>A more reliable alternative is to create a trigger for the table that will make sure the sequence is used to generate new values.  In the example below, we will create a trigger that checks for a NULL initial value and, if a NULL value is found, creates one using the sequence.  In order to get the behavior, you either omit the value or explicitly specify a NULL value (both have the same effect).
+Creating a PL/SQL trigger to manage the sequence for a table:
+</description>
+		<example><![CDATA[CREATE OR REPLACE TRIGGER  A5TI_MYTABLE 
+BEFORE INSERT ON MYTABLE
+REFERENCING NEW AS new
+FOR EACH ROW
+WHEN (new.KeyValue IS NULL)
+BEGIN
+SELECT  A5AI_MYTABLE.nextval into  :new.KeyValue from dual;
+END A5TI_MYTABLE; ]]></example>
+<note>Triggers can also be implemented in Java.  An example of this trigger generated in Java and the required scripts to install it and associate it with the table are shown further on.</note>
+	</section>
+	
+<section>
+	<description>Omitting the key column:</description>
+		<example><![CDATA[INSERT INTO MyTable (MyValueColumn) VALUES ( 'Test1') ]]></example>
+</section>	
+
+<section>
+	<description>Explicitly specifying NULL for the key column:</description>
+		<example><![CDATA[INSERT INTO MyTable (MyKeyColumn, MyValueColumn)
+VALUES ( NULL, 'Test1')]]></example>
+</section>	
+	
+	<section>
+		<title>How Alpha Anywhere Makes Sequences Easier</title>
+		<description><![CDATA[Obviously, if you are hand coding SQL statements, you have complete control over the syntax.  You need only make sure that the trigger exists or to hand code the  <sequence>.nextval expression as the newly inserted value.  But what if Alpha Anywhere is automatically generating the SQL for you?
+Unfortunately, there is no schema information in Oracle that tells you that a sequence is explicitly tied to a table.  There is no way to infer this information with 100% accuracy.  What Alpha Anywhere does do however is make sure that any table you export will work as expected. 
+Here's the way it works.  If a table has a single numeric primary key column that is defined as auto-increment or identity (depending on the original database the table is defined in):
+ ]]></description>
+		<cases>
+			<case>
+				<description><![CDATA[A new sequence is generated along with the newly created table.  The name of the sequence is always  A5AI_<table name>.  For example if the table name is  ' Customers ', the associated sequence name will be  A5AI_CUSTOMERS. ]]></description>
+				</case>
+				<case>
+				<description>An Oracle trigger is generated for the table that automatically invokes the sequence when the primary key value is NULL during inserts.  This trigger can be  PLSQL or  Java depending on the value of the  A 5ProcedureLanguage keyword in the connection string.   Note that PLSQL is the default for Oracle. </description>
+				</case>
+				<case>
+				<description>When Alpha Anywhere retrieves schema information for a table, it looks for a sequence named  A5AI_<table_name>.  If it finds this sequence, it stores the name in the key column of the SQL::TableInfo object that describes the table.</description>
+				</case>
+				<case>
+				<description>When SQL statements are created using a SQL::TableInfo with the sequence name in the key column, Alpha Anywhere generates the correct SQL to insert new rows and to retrieve the last inserted identity after a successful insert.</description>
+				</case>
+			
+			</cases>
+	</section>
+	
+	<section>
+		
+		<description><![CDATA[If you have an existing table and you want Alpha Anywhere to handle inserting new rows automatically, you need to either create and use a sequence named  A5AI_<table_name> or set the sequence name used into the SQL::TableInfo object prior to generating SQL statements. ]]></description>
+		<example><![CDATA[dim ti as SQL::TableInfo
+myconnection.GetTableInfo(ti, "MyTable")
+ti.col [1].IdentitySequenceName = "MyActualSequence"]]></example>
+	</section>
+	
+	<section>
+		<title>How to Create a Table with a Sequence in XBasic</title>
+		<description><![CDATA[The script below demonstrates how Alpha Anywhere (and you can use the same techniques if you wish) creates and populates a SQL::TableInfo defining the table we want to create to demonstrate the export behavior.  ]]></description>
+		<example><![CDATA[' Create and manually populate a SQL::TableInfo
+dim ti as sql::tableinfo
+ti.name = "MyTable"
+' Add the key column
+dim tc as sql::datatypeinfo
+tc.name = "KeyValue"
+tc.alphatype = "N"
+tc.autoincrement = .t.
+ti.addcolumn(tc)
+' Add a data column
+dim tc2 as sql::datatypeinfo
+tc2.name = "DataValue"
+tc2.alphatype = "C"
+tc2.length = 25
+ti.addcolumn(tc2)
+' Add the Primary Key
+dim ii as sql::indexinfo
+ii.name = "PrimaryKey"
+ii.primarykey = .t.
+dim ic as sql::indexcolumninfo
+ic.name = "KeyValue"
+ii.addcolumn(ic)
+ti.addIndex(ii) ]]></example>
+	</section>
+	
+	<section>
+		
+		<description>Alpha Anywhere uses the connection object to generate syntax to create a table, triggers and procedures as shown in the script below.  Note the use of the SQL::Connection function GenerateCreateTableStatement to create the sequence and the trigger.</description>
+		<example><![CDATA[dim c as sql::connection
+c.setconnectionstring("{a5syntax=Oracle}")
+?c.generatecreatetablestatement(ti)
+= CREATE TABLE MyTable
+(
+KeyValue number NOT NULL,
+DataValue varchar2(25) NULL,
+PRIMARY KEY (KeyValue))\
+CREATE SEQUENCE A5AI_MYTABLE START WITH 1 INCREMENT BY 1 NOMAXVALUE\
+CREATE OR REPLACE TRIGGER A5TI_MYTABLE BEFORE INSERT ON MYTABLE REFERENCING NEW AS new FOR EACH ROW WHEN (new.KeyValue IS NULL) BEGIN SELECT A5AI_MYTABLE.nextval into :new.KeyValue from dual; END A5TI_MYTABLE;
+ ]]></example>
+	</section>
+	
+	<section>
+		<title>Generating A Java Trigger for Oracle</title>
+		<description>You can also generate a Java trigger using the code above by adding the keyword A5ProcedureLanguage to the connection string and setting its value to Java (Note that the default value is PLSQL, but you can code it explicitly if you like.</description>
+		<example><![CDATA[c.setconnectionstring("{a5syntax=Oracle, A5ProcedureLanguage=Java}")
+CREATE OR REPLACE AND COMPILE JAVA SOURCE NAMED A5JV_MYTABLE AS
+/* Generated by Alpha Anywhere */
+import java.sql.*;
+public class A5CL_MYTABLE
+{
+public static void BeforeInsert(double[] KeyValue)
+throws SQLException
+{
+Connection conn = null;
+Statement stmt = null;
+ResultSet rset = null;
+try {
+conn = DriverManager.getConnection("jdbc:default:connection:");
+stmt = conn.createStatement();
+rset = stmt.executeQuery("select A5AI_MYTABLE.nextval from dual");
+if (rset.next())
+KeyValue [0] >= (double)rset.getDouble(1);
+}
+catch(SQLException e)
+{
+throw(e);
+}
+finally
+{
+if (rset != null)
+rset.close();
+if (stmt != null)
+stmt.close();
+}
+}
+};
+CREATE OR REPLACE PROCEDURE A5SP_MYTABLE(new_key IN OUT NUMBER)
+AS LANGUAGE JAVA
+NAME 'A5CL_MYTABLE.BeforeInsert(double[])';
+CREATE OR REPLACE TRIGGER A5TI_MYTABLE BEFORE INSERT ON MYTABLE
+FOR EACH ROW
+WHEN (new.KeyValue is null)
+CALL A5SP_MYTABLE(:new.KeyValue) ]]></example>
+	</section>
+	
+	<section>
+		<title>Conclusion</title>
+		<description>It is probably best to use the newer identity options on most databases, but for Oracle, sequences are a fact of life. </description>
+<note>In Alpha Anywhere, you can associate Oracle sequences with the primary key of a table in a Grid.</note>
+	</section>
+	
+	
+</sections>	
+	
+</page>	
