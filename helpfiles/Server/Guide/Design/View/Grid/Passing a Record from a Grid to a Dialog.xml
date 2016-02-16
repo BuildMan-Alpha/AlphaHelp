@@ -1,0 +1,61 @@
+<page>
+	<topic>Passing a Record from a Grid to a Dialog</topic>
+<sections>
+<section>
+	<description>Web publishing applications only. The problem is the following. You have selected a record in a grid and now want to display it in a separate page containing dialog component. The solution to the problem lies in the fact that you can set default values for a dialog component's variables in the URL of the page that loads the dialog. 
+
+For example say that you have a dialog called OrderInfo which has these variables: customerName, customerAddress, customerCity, etc. 
+ The .A5W page that contains this dialog component is called OrderInfoPage.a5w. Suppose that you want to call this page and set default values for the customerName, customerAddress, and customerCity fields. Here is what your URL might look like:
+</description>
+	<example><![CDATA[http://localhost/OrderInfoPage.a5w?customerName=Alpha&customerAddress=1 Main St&customerCity=Boston
+ ]]></example>
+	
+</section>	
+<section>
+	<description>Now that you know how to set the default values for the variables on a Grid using a URL, the next step is to have your grid component link to a "transition" page that will construct the URL and then use response.redirect() to display the computed URL. Let's call this page transition.a5w. 
+ So, in your Grid, you might have a column that has a Link control in it. Assuming that the grid has a field called CustomerID (the primary key to the table), the Link control might be defined as:</description>
+	<example><![CDATA[transition.a5w?customerId={customerID}
+ ]]></example>
+	
+</section>	
+<section>
+	<description>The transition.a5w has only one thing on it, an Xbasic code block with the following code in it:
+First test to see that the page received a CustomerID value. If not, end the script.
+</description>
+	<example><![CDATA[<%a5w
+if (eval_valid("customerID") = .F.) then 
+     response.redirect("OrderInfoPage.a5w") 
+     end 
+ end if
+]]></example>
+	
+</section>	
+<section>
+	<description>If the test was passed, open the table, using CustomerID to find the appropriate record.</description>
+	<example><![CDATA[dim t as P
+
+dim url as C
+  
+t = table.open("customer") 
+ t.order("customerID")  'order the table on the customerID field 
+ t.fetch_find(customerID)
+ ]]></example>
+	
+</section>	
+<section>
+	<description>Construct a URL that passes the field values to OrderInfoPage.a5w and display the page.</description>
+	<example><![CDATA[url = "OrderInfoPage.a5w?customerName="+alltrim(t.customerName)+"&customerAddress="+alltrim(t.customerAddress)+"&customerCity="+alltrim(t.customerCity) 
+ t.close() 
+ response.redirect(url)
+
+%>
+ ]]></example>
+	
+</section>	
+
+	
+</sections>
+	<see>
+		<ref>RESPONSE.REDIRECT()</ref>
+	</see>
+</page>
