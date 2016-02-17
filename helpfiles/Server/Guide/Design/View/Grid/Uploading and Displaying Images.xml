@@ -1,0 +1,237 @@
+<page>
+	<topic>Uploading and Displaying Images</topic>
+<sections>
+<section>
+	<description>A common web application requirement is to allow users to upload and view images. This example provides a simple model that you can start with.
+</description>
+	
+	
+</section>	
+<section>
+<title>
+The Database Design
+</title>
+<description>The ImageDB database has 4 fields.
+</description>	
+	<cases>
+		<case>
+			<title>ID</title>
+			<cases>
+				<case>
+					<title>Type</title>
+					<description>Character,8 auto-increment</description>
+				</case>
+				<case>
+					<title>Purpose</title>
+					<description>Provides a unique ID for each record</description>
+				</case>
+				
+			</cases>
+			
+		</case>
+		
+		<case>
+			<title>Name</title>
+			<cases>
+				<case>
+					<title>Type</title>
+					<description>Character,50</description>
+				</case>
+				<case>
+					<title>Purpose</title>
+					<description>Saves the image name</description>
+				</case>
+				
+			</cases>
+			
+		</case>
+		
+		<case>
+			<title>Image</title>
+			<cases>
+				<case>
+					<title>Type</title>
+					<description>Image File Reference
+</description>
+				</case>
+				<case>
+					<title>Purpose</title>
+					<description>Saves the path and filename of the image.</description>
+				</case>
+				
+			</cases>
+			
+		</case>
+		
+		<case>
+			<title>Uploaddate</title>
+			<cases>
+				<case>
+					<title>Type</title>
+					<description>Time field</description>
+				</case>
+				<case>
+					<title>Purpose</title>
+					<description>Saves the date and time the image was uploaded.</description>
+				</case>
+				
+			</cases>
+			
+		</case>
+		
+		
+	</cases>
+	
+</section>
+<section>
+	<description>The image files are stored in a folder named "Images" under the folder containing the database files.
+</description>
+</section>
+<section>
+	<title>Publishing Profiles</title>
+	<description>The Local Webroot profile contains the following information.
+</description>
+	<cases>
+		<case>
+			<title>General > Aliases</title>
+			<description>[PathAlias.ADB_Path] = a5.get_path()</description>
+		</case>
+		<case>
+			<title>Folder in Webroot > Target folder</title>
+			<description>ImageDB</description>
+		</case>
+	</cases>
+	
+	
+	
+</section>
+
+
+<section>
+
+	<description>The Server profile contains the following information.
+</description>
+	<cases>
+		<case>
+			<title>General > Publishing Type</title>
+			<description>Publish on LAN</description>
+		</case>
+		<case>
+			<title>General > Aliases</title>
+			<description>[PathAlias.ADB_Path] = c:\data\imagedb</description>
+		</case>
+		<case>
+			<title>Publish to LAN > Webroot</title>
+			<description>\\doc\c\a5webroot
+</description>
+		</case>
+		<case>
+			<title>Publish to LAN > Target folder</title>
+			<description>ImageDB (which means that the pages will be stored in \\doc\c\a5webroot\ImageDB )
+</description>
+		</case>
+		<case>
+			<title>Publish Database Files > Publish data files</title>
+			<description>TRUE (checked)</description>
+		</case>
+		<case>
+			<title>Publish Database Files > Files to publish</title>
+			<description>ImageDB.dbf in the database folder and junk.jpg in the Images sub-folder</description>
+		</case>
+		<case>
+			<title>Publish Database Files > Folder</title>
+			<description>\\Doc\C\Data\ImageDB</description>
+		</case>
+		<case>
+			<title>Open Page after Publish > Base URL</title>
+			<description>http://doc
+</description>
+		</case>
+		<case>
+			<title>Open Page after Publish > Server Port</title>
+			<description>80</description>
+		</case>
+		<case>
+			<title>Open Page after Publish > Default Page</title>
+			<description>Main.a5w</description>
+		</case>
+	</cases>
+	
+	
+	
+</section>
+<section>
+	<title>The Grid Component</title>
+	<description>The grid (named Main ) is based on the ImageDB table. The Order expression is invertUploaddate?, which causes the newest images to be shown first.
+The grid component displays all 4 fields in the database. The Name field is displayed in a TextBox. The ID and Uploaddate fields are displayed in labels. the Name column contains a free form template that displays the values of the Name and Uploaddate fields. The Uploaddate column is hidden.
+The Image field is displayed in an Image control, which has the following Image Properties > Image path property: [PathAlias.ADB_Path]\images, which evaluates to \\Doc\C\Data\ImageDB\Images on the server.
+</description>
+	
+</section>
+<section>
+<title>The A5W Page</title>	
+	<description>The A5W page (named Main ) contains the Main grid component, HTML text, a standard HTML form with a textbox and 2 buttons, and an Xbasic script.
+The form appears just above the grid on the body of the page and looks like this. 
+</description>
+<figure><link>images/WPT_Image_Upload_Form.gif</link></figure>	
+	
+</section>
+
+<section>
+	<description><![CDATA[The code that generates this form is below. The <%a5 ? request.script_name %> action causes the page to reload when the user clicks either of the buttons. The <input type="file" name="FileToUpload" > code generates the Browse... button and allows the user to navigate to and select a file. The <input type="submit" name="cmd" value="Upload File"> code creates a variable named cmd when the user clicks the Upload File button. ]]></description>
+	<example><![CDATA[<form action=" <%a5 ? request.script_name %> " method="post" enctype="multipart/form-data">
+<input type="file" name="FileToUpload" >
+<input type="submit" name="cmd" value="Upload File">
+</form>
+ ]]></example>
+</section>
+
+<section>
+	<description><![CDATA[The Xbasic script is located inside the <head> ... </head> tags of the page. The first thing the script does is test to see if the cmd variable exists, which is doesn't until the user clicks the Upload File button.
+ ]]></description>
+	<example><![CDATA[<%a5
+dim msg as c = ""
+if eval_valid("cmd")
+ ]]></example>
+</section>
+<section>
+	<description><![CDATA[After the user clicks Upload File, the if eval_valid("cmd") statement returns TRUE, and the rest of the code executes. The script gets the filename selected by the user from FileToUpload.filename, prefixes the appropriate path information ( [PathAlias.ADB_Path]\images\\ ), and saves the result in fn.
+ ]]></description>
+	<example><![CDATA[
+dim fn as C
+
+fn = "[PathAlias.ADB_Path]\images\\" + FileToUpload.filename
+ ]]></example>
+</section>
+
+<section>
+	<description><![CDATA[Next, the script loads the file's contents into the variable FileToUpload.data and generates a message indicating that the file was successfully uploaded. (A more rigorous script would include error handling to deal with the possibility that the user selected a non-JPEG file.) The code to display the message ( <%a5 ? msg %> ) is just below the <body> tag.
+ ]]></description>
+	<example><![CDATA[file.from_blob(fn, FileToUpload.data)
+msg = "<a href=\"/" + FileToUpload.filename + "\" target=\"_blank\">" + FileToUpload.filename + "</a> was uploaded<br /><br />"
+ ]]></example>
+</section>
+
+<section>
+	<description><![CDATA[Finally, the script opens the ImageDB table and writes a new record.
+ ]]></description>
+	<example><![CDATA[tbl = table.open("[PathAlias.ADB_Path]\ImageDB.dbf")
+tbl.enter_begin()
+tbl.Image = fn
+tbl.Name = FileToUpload.filename
+tbl.Uploaddate = now()
+tbl.enter_end(.t.)
+tbl.close()
+end if
+%>]]></example>
+</section>
+
+<section>
+	<description>The page looks like the following. </description>
+	<figure><link>images/WPT_Uploading_Images.gif</link></figure>
+	
+</section>
+
+</sections>	
+	
+</page>

@@ -1,0 +1,405 @@
+<page>
+    <topic>User Defined Ajax Callbacks</topic>
+    <prototypes>
+        <prototype>.ajaxCallback(part, rowNumber, XbasicFunctionName)</prototype>
+        <prototype>.ajaxCallback(part, rowNumber, XbasicFunctionName,'',OtherData)</prototype>
+          <prototype>.ajaxCallback(part, rowNumber, ActionName, URL, OtherData)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>part</name>
+            <description>'g' - if you want to submit data from the current row in the Grid part, or 'd' - if you want to submit data from the currently open DetailView record</description>
+        </argument>
+          <argument>
+            <name>rowNumber</name>
+            <description> If part is 'g', the row number whose data you want to submit. If part is 'd' then must be 1. In the case where part is 'g', and the rowNumber is set to 'all', data from all of the rows in the grid is submitted. If rowNumber is set to 'none', no data will be submitted. </description>
+        </argument>
+          <argument>
+            <name>XbasicFunction</name>
+            <description>The name of the Xbasic function that will handle the callback, as a string. This function is defined in the 'Xbasic function declarations' section. IMPORTANT: The 4th parameter (URL) must NOT be specified.</description>
+        </argument>
+          <argument>
+            <name>ActionName</name>
+            <description>Applies only if the URL parameter is specified. See definition of URL.</description>
+        </argument>
+          <argument>
+            <name>URL</name>
+            <description>The URL of the page that will handle the callback. A variable called '_action' is passed to the URL. The value of _action is set to ActionName.</description>
+        </argument>
+          <argument>
+            <name>OtherData</name>
+            <description>Name value pairs of any other data you want to submit as part of the callback.</description>
+        </argument>
+        
+    </arguments>
+    
+    
+    <sections>
+ <section>
+     <description>You can define Javascript event handlers at many levels in the Grid component (e.g. at the control level, at the row level). Your Javascript event handlers can make Ajax callbacks. The callbacks can submit data from the current row in the Grid. If you have turned on the 'checkbox' column, then data from the checkbox column is also returned. The callbacks can be handled by an Xbasic function that is defined in the Grid component, or by a separate page (could be an .a5w page, a PHP page, .ASP page, or any other type of page).
+To have your Javascript function make an Ajax callback, you use the '.ajaxCallback()' method of the Grid object.
+The syntax for this method is:
+</description>
+<cases>
+    <case>
+        <description>Handling the callback with a function defined in the Grid component:</description>
+        <example><![CDATA[.ajaxCallback(part, rowNumber, XbasicFunctionName) ]]></example>
+    </case>
+    
+</cases>
+     
+ </section>       
+  <section>
+      <description>If you want to pass back some data in the callback, you can do so using this syntax:</description>
+      <cases>
+           <case>
+        <description></description>
+        <example><![CDATA[.ajaxCallback(part, rowNumber, XbasicFunctionName,'',OtherData) ]]></example>
+    </case>
+       <case>
+        <description>Handling the callback with a separate page:</description>
+        <example><![CDATA[.ajaxCallback(part, rowNumber, ActionName, URL, OtherData)]]></example>
+    </case>
+      </cases>
+      
+  </section>      
+   <section>
+       <description>For example, assume that you have placed a button in a Grid column. When the user clicks the button, you want to make an Ajax callback, passing back the data in the current Grid row. Here is the Javascript that you would define for the button's onclick event:</description>
+       <example><![CDATA[{grid.object}.ajaxCallback('g',{grid.rowNumber},'function1');   ]]></example>
+       
+   </section>     
+    <section>
+       <description>When the Grid is rendered, the {grid.object} placeholder will get replaced with the actual Grid object name (based on the Alias assigned to the Grid at run-time) and {gird.rowNumber} will be replaced with the row number. So, for example, if the Grid alias was set to 'Grid1' then the Javascript in the button on row 1 would be:</description>
+       <example><![CDATA[GRID1_GridObj.ajaxCallback('g',1,'function1'); ]]></example>
+       
+   </section>     
+    <section>
+       <description>If you wanted the callback to be handled by a separate .a5w page (called 'callbackpage.a5w'), you could use this Javascript in the button's onclick event:</description>
+       <example><![CDATA[{grid.object}.ajaxCallback('g',{grid.rowNumber},'myActionName','callbackpage.a5w');   ]]></example>
+       
+   </section>     
+    <section>
+       <description>If you wanted the callback to be handled by a PHP page on a totally different server:</description>
+       <example><![CDATA[{grid.object}.ajaxCallback('g',{grid.rowNumber},'myActionName','http://www.mydomain.com/callbackpage.php');   ]]></example>
+       
+   </section>     
+   <section>
+       <title>Specifying the Callback Function</title>
+       <description>In the case where the callback is handled by a function that is defined as part of the Grid, you must use the following prototype for the function:</description>
+       <example><![CDATA[function callbackfunctionName as c (e as p)
+end function]]></example>
+   </section>     
+          <section>
+       
+       <description>The 'e' argument contains all of the data that is submitted on the callback. To see what's in 'e', use the Firebug addin for Firefox and examine the contents of the 'Post' tab in the Firebug window after a callback has occurred.
+In addition to the data that was submitted on the callback, 'e' also contains:
+</description>
+<cases>
+    <case>
+        <description>e.rtc = A dot variable containing all runtime calculations performed as the Grid executes.</description>
+    </case>
+      <case>
+        <description>e.tmpl = The Grid definition</description>
+    </case>
+      <case>
+        <description>e.__si = State information</description>
+    </case>
+    
+</cases>
+   </section> 
+   
+  <section>
+      <description>In addition to the above, the 'e' object also has some additional data that are computed on the server before the Xbasic callback function is called:</description>
+      <cases>
+          <case>
+              <title>e._currentRowDataOld</title>
+              <description>A 'dot' variable that contains the data in the fields in the row before any edits were made to them. For example, if the Grid contains fields, 'firstname', and 'lastname', then you can reference the data in these fields using e._curentRowDataOld.firstname, and e._currentRowDataOld.lastname. 
+If the Grid is not editable then this variable does not have any sub properties.
+</description>
+              <note>If the rowNumber parameter is set to 'None' this variable will not contain any sub-properties.</note>
+          </case>
+           <case>
+              <title>e._currentRowDataNew</title>
+              <description>A 'dot' variable that contains the current data (i.e. edited data) in the fields in the row. For example, if the Grid contains fields, 'firstname', and 'lastname', then you can reference the data in these fields using e._curentRowDataNew.firstname, and e._currentRowDataNew.lastname. 
+ 
+
+If the Grid is not editable then this variable does not have any sub properties.
+</description>
+              <note>If the rowNumber parameter is set to 'None' this variable will not contain any sub-properties.</note>
+          </case>
+           <case>
+              <title>e._currentRowKeys</title>
+              <description>An array that contains the values for the primary key fields for the current row. In the case of a .dbf table this is usually the record number. 
+For example, in the case of a SQL table which has a primary key of 'lastname' and 'firstname', e._currentRowKeys[1 will contain the value of the 'firstname' field in the current row and e._currentRowKeys2] will contain the vaue of the 'lastname' field in the current row.
+</description>
+              
+          </case>
+          
+          
+      </cases>
+      
+     <note>If the handler for your Ajax callback is a URL (as opposed to an Xbasic function), then the 'e' object will not be available to your code.</note> 
+  </section> 
+   <section>
+       <description> The function must return the Javascript that you want to execute on the client. For example:
+ Assume that each row in a Grid has a Div. (You would make a column in the Grid into a freeform edit region to insert the div). The Divs have ids that use the {grid.rownumber} placeholder, which ensures that each div has a unique id. For example:
+So, the div on row 1 would be:
+Assume that your callback function is called setContent() and it sets the value of the div on the row. Assume also, that the callback function is invoked from a button or event in the Grid row.
+In this case, the row number of the row from which the event was invoked will be in e._currentRow (which you could determine by examining the 'Post' tab in Firebug). So the Xbasic function would be:
+</description>
+       <example><![CDATA[function setContent as c (e as p)
+     setContent = "$('R"+e._currentRow+"A').innerHTML = '"+rand_string(10)+"';"
+ end function ]]></example>
+       
+   </section>
+    <section>
+       <description>The 'e' object converts the property assignments to Javascript using the a5GridHelper_generateAutoAjaxResponse() function. If you want to write the Javascript yourself, you can use this function as a great starting point. For example:</description>
+       <example><![CDATA[e._set.lastname.value = "smith"
+ e._set.lastname.style = "color: red;"
+ e._set.lastname.className = "foo"
+ e._set.firstname.value = "edward"
+ e._set.firstname.style.color = "red"
+ e._set.firstname.style.fontSize = "20"
+ e._setElement.div1.value = "this is a div"
+ e._setElement.div1.style = "color: red; font-size: 20pt;"
+ e._setElement.div1.className = "foo"
+ e._setGridElement.div2.value = "this s a grid element"
+ e._setRow1.lastname.value = "smith"
+ e._setRow2.lastname.value = "smith"
+ e._setRow_1.firstname.style.color = "blue"
+ e._set.city.style.color = "red"
+ txt = a5GridHelper_generateAutoAjaxResponse(e,"G","3")
+ showvar(txt) ]]></example>
+       
+   </section>
+    <section>
+       <description>The a5GridHelper_generateAutoAjaxResponse() takes 3 arguments: the 'e' object, the Grid Part ('G', 'D' or 'S' - for Grid, Detail View or Search part) and a row number.
+  The popup window will show this javascript:</description>
+       <example><![CDATA[{grid.object}._setValue('G','LASTNAME',3,'' + 'smith',true);
+ $ss('{grid.componentname}.V.R' + 3 + '.LASTNAME','color: red;');
+ $('{grid.componentname}.V.R' + 3 + '.LASTNAME').className = 'foo';
+ {grid.object}._setValue('G','FIRSTNAME',3,'' + 'edward',true);
+ $ss('{grid.componentname}.V.R' + 3 + '.FIRSTNAME',{color: 'red', fontSize: '20'});
+ $ss('{grid.componentname}.V.R' + 3 + '.CITY',{color: 'red'});
+
+ {grid.object}._setValue('G','LASTNAME',1,'' + 'smith',true);
+
+ {grid.object}._setValue('G','LASTNAME',2,'' + 'smith',true);
+
+ $ss('{grid.componentname}.V.R' + -1 + '.FIRSTNAME',{color: 'blue'});
+
+ $svs('{grid.componentname}.DIV2','thisi s a grid element');;
+
+ $svs('DIV1','this is a div');;
+ $ss('DIV1','color: red; font-size: 20pt;');
+ $('DIV1').className = 'foo'; ]]></example>
+       
+   </section>
+    <section>
+        <title>How to Get The Primary Key Values for the Current Row</title>
+       <description>It is often necessary to get the Primary Key value(s) for the current row in your Xbasic callback function.
+The primary key data is included in the postback variables. The primary key value(s) are stored in an array (because a primary key can be based on multiple columns in the case of SQL tables).
+For example, if you did a callback on row 3 for a Grid that was based on a table that has a composite primary key (i.e. a primary key based on more than one column - say PartNumber and OrderNumber), the postback data will include an array called KEYS.R3
+Here is how you can write Xbasic to read the data in this variable:
+</description>
+       <example><![CDATA[dim arr as p
+arr = eval("e.KEYS.R" + e._currentRow)]]></example>
+       
+   </section>
+       <section>
+       <description>Now that you have created a local variables called 'arr', you can read the primary key values:</description>
+       <example><![CDATA[arr[1] - contains the PartNumber
+arr[2] - contains the OrderNumber]]></example>
+       
+   </section>
+       <section>
+       <description>Alternatively, if your are using an Xbasic function to handle the callback, you can simply use the 'e._currentRowKeys' variable. E.g.</description>
+       <example><![CDATA[e._currentRowKeys[1] - contains the PartNumber
+e._currentRowKeys[2] - contains the OrderNumber ]]></example>
+       
+   </section>
+       <section>
+           <title>Checkbox Values</title>
+       <description>If you have turned on the 'Checkbox' column, the data about which rows were checked is also submitted on the callback. For example, assume that you had checked 3 rows in the Grid. The following data will be submitted on the callback:</description>
+       <example><![CDATA[checkboxRows.countChecked = 3
+ checkboxRows.rows[] = 3
+ checkboxRows.rows[] = 4
+ checkboxRows.rows[] = 5
+ checkedRows.key1[] = 00000004
+ checkedRows.key2[] = 00000005
+ checkedRows.key3[] = 00000006 ]]></example>
+       
+   </section>
+   
+      <section>
+          <title>Using AEX Files</title>
+       <description>The Xbasic function that handles the callback can be contained in an .aex file. You must specify the name of the .aex file in the 'Xbasic .aex files' property.</description>
+
+       
+   </section>
+   
+      <section>
+          <title>Submitting Data when making a Callback on a Read-only Grid</title>
+       <description>If you use Action Javascript to write the Ajax call function for you, you will notice that the Genie has a prompt that allows you to specify if data from the current row should be submitted when the callback takes place. If the row is a read-only row however, then data from the current row will not be submitted (even though the checkbox to submit data has been checked). The primary key values for the current row will however be submitted.
+
+If you need to data from the current row in order to execute your callback function, you can instruct Alpha Five to use the primary key values that were submitted to get data for the current row. Alpha Five will do a query to find the record with the specified primary key and it will populate variables with the same name (e.g. V.R1.LASTNAME) as if the variables had been submitted from the browser.
+
+In order to enable this feature, you must include this name/value pair in the OtherData parameter:
+</description>
+       <example><![CDATA[_getData=true ]]></example>
+       
+   </section>
+   
+      <section>
+          <title>Setting Grid Properties in your Callback Handler using the e._set Object</title>
+       <description>The function or URL that handles the Ajax callback typically will send some Javascript code back to the Browser. This Javascript code can set properties of the Grid (e.g. set the value of a field to 'Paid', or set the color of a field to red).
+More correctly stated, the Ajax callback can return Javascript to set any DOM (Document Object Model) property in the Browser.
+
+As an alternative to generating Javascript code in your callback handler to set Grid properties, you can set properties of the special e._set object in your event handler function. Alpha Five will then automatically generate the appropriate Javascript.
+For example, assume that the current row in the Grid contains a field called 'OrderTotal' and 'ShippingCharges'. You want to make a callback to the server, submitting the current value of 'OrderTotal', then compute the 'ShippingCharges' on the server and in your Ajax response, you would like to set the value of the 'ShippingCharges' field to the value that you computed on the server.
+Here is what your Xbasic function might look like:
+</description>
+       <example><![CDATA[function computeShipping as c (e as p)
+    dim orderTotal as N
+    'get data from the e._currentRowDataNew object and convert it to numeric.
+    orderTotal = val(e._currentRowDataNew.orderTotal)
+    dim shippingCharges as N
+    'execute code to compute the shipping charges.
+    'dim formattedShippingCharge as c
+    'execute code to format the shipping charges with currency symbol, etc.
+    dim ajaxResponse as c
+    'The ajax response will call the Grid object's .setValue() method. e._currentRow is the row number of the row that was submitted.
+    ajaxResponse = "{grid.object}.setValue('G','SHIPPINGCHARGES'," + e._currentRow + ",'" + js_escape(formattedShippingCharges) + "');"
+    computeShipping = ajaxResponse
+end function ]]></example>
+       
+   </section>
+   
+   
+     </section>
+   
+      <section>
+       <description>Clearly, the Javascript response that this function computes is non-trivial. Here is how this function can be greatly simplified by using the e._set object:</description>
+       <example><![CDATA[function computeShipping as c (e as p)
+    dim orderTotal as N
+    'get data from the e._currentRowDataNew object and convert it to numeric.
+    orderTotal = val(e._currentRowDataNew.orderTotal)
+    dim shippingCharges as N
+    'execute code to compute the shipping charges.
+    'dim formattedShippingCharge as c
+    'execute code to format the shipping charges with currency symbol, etc.
+    e._set.shippingCharges.value = formattedShippingCharge
+    'if the shipping charges are above 100, set the font color to red.
+    if shippingCharges > 100 then
+        e._set.shippingCharges.style.color = "red"
+    end if
+end function ]]></example>
+       
+   </section>
+   
+   
+     </section>
+   
+      <section>
+       <description>Note that now the function does not return any Javascript (although of course it could if you wanted it to). After the callback function has executed, Alpha Five examines the e._set object and it automatically generates the appropriate Javascript to set the properties that you specified in the e._set object. This computed Javascript is automatically appended to the Javascript response computed by your callback function.
+You can set the following properties in the e._set object:
+</description>
+   <cases>
+       <case>
+           <title>e._set.fieldname.value</title>
+           <description>Sets the value of a field in the current row of the Grid. E.g. </description>
+           <example><![CDATA[e._set.lastname.value = js_escape("O'Hara") ]]></example>
+           <note>The value that you set must be processed by the js_escape() function to encode special characters, or else you will get a Javascript error.</note>
+       </case>
+       <case>
+           <title>e._set.fieldname.style</title>
+           <description> Sets the style of a field in the current row. Style is a comple CSS string. Any existing style that has been applied to the field will be overwritten. E.g.  </description>
+           <example><![CDATA[e._set.style.lastname.style = "color: red; font-size: 12pt" ]]></example>
+   
+       </case>
+       
+       <case>
+           <title>e._set.fieldname.style.styleAttribute</title>
+           <description>Sets an individual style attribute of a field in the current row. The existing style is preserved and only the specified styleAttribute is overwritten. E.g. </description>
+           <example><![CDATA[e._set.style.lastname.fontSize = "20pt" ]]></example>
+           <note>The styleAttribute is case-sensitive.
+Contrast setting individual styleAttributes, with the previous command that sets the entire style CSS value in a single command.
+</note>
+       </case>
+       
+       <case>
+           <title>e._set.fieldame.className</title>
+           <description>Sets the class name of a field in the current row.</description>
+    
+       </case>
+       
+       
+       
+   </cases>
+       
+   </section>
+   <section>
+       <title>Setting Properties of Fields on Rows other than the Current Row</title>
+       <description>You can also set properties of other rows in the Grid (other than the current row) by using the special 'e._setRow<rowNumber>' object.
+Where  is the row number of the row. In the case of new record rows, use and underscore in front of the row number.
+For example:</description>
+       <example><![CDATA[e._setRow3.lastname.value = "Smit"
+e._setRow_1.lastname.style.color = "Green" ]]></example>
+   </section>
+    <section>
+       <title>Setting 'Grid Element' Properties</title>
+       <description>In some cases, you will want your Ajax callback to set properties of an object that is not in the current Grid row. For example you might have an element (e.g. a DIV or SPAN in a free-form edit region above the Grid).
+
+It recommended practice to include the Grid alias in the name of the Id that you give to these elements so that if you have a page that contains more than one Grid component on it, the Ids of these elements are unique.
+For example, in a free-form section of a Grid, when you defined the element, you might have entered:
+rather than simply:
+
+At run-time, the {grid.componentname} placeholder would be replaced by the Grid's unique alias. So, if the Grid alias was 'GRID1', the actual Id of the DIV would be 'GRID1.DIV1'.
+Any element that is named using the '{grid.componentname}.name' convention is called a 'Grid Element' (as opposed to simply an 'Element').
+You can set the .value, .style and .className properties of Grid elements in the same way that you set the properties of fields in the current row. The only difference is that you use the e._setGridElement object.
+For example, say that you have a Grid element named '{grid.componentname}.DIV1' and you want to set its 'value' and 'style' ('value' in this case would actually be the innerHTML property). You would use this command:
+</description>
+       <example><![CDATA[e._setGridElement.DIV1.value = js_escape("This is the contents of the div")
+e._setGridElement.DIV1.style.color = "red" ]]></example>
+   </section>
+    <section>
+       <title>Setting 'Element' Properties</title>
+       <description>Al 'Element' is essentially the same as a 'Grid Element' except that it does not include the '{Grid.componentname}' placeholder in the Id. You can use the e._setElement object to set properties of 'Elements'.
+For example, a free-form section of the Grid might have this element:
+You could execute this command to set properties of this element:</description>
+       <example><![CDATA[e._setElement.ELEMENT1.value = js_escape("This is the contents of element1")]]></example>
+   </section>
+    <section>
+       <title>Additional Notes</title>
+       <description>Web Applications - Grid Component - Action Javascript - Ajax Callback
+ It is now significantly easier to write the Xbasic event handler that is called when you make a user-defined Ajax callback if you want your event handler to set control values in the Browser. 
+The following videos demonstrate the feature:
+</description>
+   <videos>
+       <video>
+           <name>Watch Video - Part 1</name>
+           <link>http://www.ajaxvideotutorials.com/V10Videos/UserDefinedAjaxCallback_Part1.swf</link>
+       </video>
+         <video>
+           <name>Watch Video - Part 2</name>
+           <link>http://www.ajaxvideotutorials.com/V10Videos/UserDefinedAjaxCallback_Part2.swf</link>
+       </video>
+         <video>
+           <name>Watch Video - Part 3</name>
+           <link>http://www.ajaxvideotutorials.com/V10Videos/UserDefinedAjaxCallback_Part3.swf</link>
+       </video>
+       
+       
+   </videos>  
+     
+     
+     
+     
+   </section>
+   
+   
+        
+    </sections>
+    
+    
+</page>
