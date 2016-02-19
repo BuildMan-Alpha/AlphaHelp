@@ -1,0 +1,291 @@
+<page>
+	<topic>Portable SQL Functions for Geographies</topic>
+<sections>
+	<description>These functions are only available from Alpha Anywhere when Portable SQL is used. They are intended to insulate you from the differences between the native SQL geography implementations in the supported databases.
+ All of the examples assume that you will be substituting the correct SpatialReferenceID value for the database currently in use for the argument :SRID.</description>
+<section>
+	
+
+<sections>
+	
+
+<section>
+	<title>GeogAsBinary</title>
+	<cases>
+		<case>
+			<title>GeogAsBinary as C(Object as Geography)</title>
+			<description>Return the object description in the Well Known Binary (WKB) format.
+</description>
+			<example>
+				<![CDATA[SELECT GeogAsText(g.Location) FROM GeogTest g]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+
+<section>
+	<title>GeogAsText</title>
+	<cases>
+		<case>
+			<title>GeogAsText as C(Object as Geography)</title>
+			<description>Return the object description in the Well Known Text (WKT) format.
+</description>
+			<example>
+				<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreatePolygon((70( 42( (70( 32( (60( 32( (60( 42( (70( 42( :SRID)) FROM GeogTest g
+SELECT FIRST 1 GeogAsText(GeogCreatePolygon((70( 42( (70( 32( (60( 32( (60( 42( (70( 42)) FROM GeogTest g ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogCreateFromBinary</title>
+	<cases>
+		<case>
+			<title>GeogCreateFromBinary as Geography(Binary as B [, SpatialReferenceID as N])</title>
+			<description>Create a geography object from Well Known Binary (WKB) format.
+</description>
+			<example>
+				<![CDATA[dim MyBlob as B = base64decode("AQEAAAAAAAAAAAAkwAAAAAAAAChA")
+args.add("WKB", MyBlob)
+ 
+Connection.Execute("select GeogAsText(GeogCreateFromBinary(:WKB))" + \
+" from GeogTest g") ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogCreateFromText</title>
+	<cases>
+		<case>
+			<title>GeogCreateFromText as Geography(Text as C [, SpatialReferenceID as N])</title>
+			<description>Create a geography object from Well Known Text (WKT) format.
+</description>
+			<example>
+				<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreateFromText('POINT(-10 27)')) 
+    FROM GeogTest g]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogCreateLine</title>
+	<cases>
+		<case>
+			<title>GeogCreateLine as Geography (Longitude as N, Latitude as N ... [,SpatialReferenceID as N])</title>
+			<description>Constructs a geographic line from two or more longitude/latitude pairs.
+</description>
+			<example>
+				<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreateLine(1(2(3(4(5(6( :SRID)) FROM GeogTest g
+SELECT FIRST 1 GeogAsText(GeogCreateLine(1(2(3(4(5(6)) FROM GeogTest g]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogCreateLocation</title>
+	<cases>
+		<case>
+			<title>GeogCreateLocation as Geography (Longitude as N, Latitude as N [,SpatialReferenceID as N])</title>
+			<description>Constructs a geographic location from a longitude/latitude pair.
+</description>
+			<example>
+				<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreateLocation(1(2( :SRID)) FROM GeogTest g
+SELECT FIRST 1 GeogAsText(GeogCreateLocation(1(2)) FROM GeogTest g
+SELECT FIRST 1 GeogDistanceBetween(GeogCreateLocation(1( 42( :SRID)( GeogCreateLocation(10( 20( :SRID)) FROM GeogTest g ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogCreatePolygon</title>
+	<cases>
+		<case>
+			<title>GeogCreatePolygon as Geography (Longitude as N, Latitude as N ... [,SpatialReferenceID as N])</title>
+			<description>Constructs a geographic polygon from three or more longitude/latitude pairs.</description>
+			<example>
+				<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreatePolygon((70( 42( (70( 32( (60( 32( (60( 42( (70( 42( :SRID)) 
+FROM GeogTest g
+ 
+SELECT FIRST 1 GeogAsText(GeogCreatePolygon((70( 42( (70( 32( (60( 32( (60( 42( (70( 42)) 
+FROM GeogTest g]]>
+			</example>
+			<note>The first and last point of the polygon must be the same, and the points must be arranged in counter-clockwise order.</note>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogDistanceBetween</title>
+	<cases>
+		<case>
+			<title>GeogDistanceBetween as N (Object as Geography, Object as Geography)</title>
+			<description>Returns the distance between two objects in the default unit, typically meters.</description>
+			<example>
+				<![CDATA[SELECT FIRST 200 id( Code( Name( City( County( State( GeogLatitude(Location) AS Lat( GeogLongitude(Location) AS Lon( Elevation( Location FROM US_Airports WHERE GeogLocationIsWithinRadius(Location( GeogCreateLocation( ( 71.0597732( 42.3584308) ( 16093) ORDER BY GeogDistanceBetween(Location( GeogCreateFromText('POINT ( -71.0597732 42.3584308)') )]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogLatitude</title>
+	<cases>
+		<case>
+			<title>GeogLatitude as N (Location as Geography)</title>
+			<description>Returns the latitude value for a geographic location.
+
+</description>
+			<example>
+				<![CDATA[SELECT GeogLongitude(g-Location)( GeogLatitude(g-Location) FROM GeogTest g 
+WHERE GeogType(g-Location) , 'LOCATION' ]]>
+			</example>
+			<note> This will be the value of X or Y depending on the database.
+</note>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogLocationIntersectsLine</title>
+	<cases>
+		<case>
+			<title>GeogLocationIntersectsLine as L (Location as Geography, Line as Geography, Tolerance as N)</title>
+			<description>Returns true if the location intersects the line or is within the tolerance distance from it.</description>
+			<example>
+				<![CDATA[SELECT IF(GeogLocationIntersectsLine(
+g-Location( 
+GeogCreateLine((60( 42( (70( 42( :SRID)( 3000)( 
+'It intersects'( 
+'It does not intersect') FROM GeogTest g ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogLocationIsWithinPolygon</title>
+	<cases>
+		<case>
+			<title>GeogLocationIsWithinPolygon as L (Location as Geography, Polygon as Geography, Tolerance as N)</title>
+			<description>Returns true if the location is contained within the polygon or within the tolerance distance from it.</description>
+			<example>
+				<![CDATA[SELECT IF(GeogLocationIsWithinPolygon(
+g-Location( 
+GeogCreatePolygon((70( 44( (70( 34( (60( 34( (70( 44( :SRID)( 5)( 
+'It is within the polygon'( 
+'It is not within the polygon') FROM GeogTest g ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogLocationIsWithinRadius</title>
+	<cases>
+		<case>
+			<title>GeogLocationIsWithinRadius as L (Location as Geography, Point as Geography, Radius as N, Tolerance as N)</title>
+			<description>Returns true if the location is within the radius defined around the point or within the tolerance defined.
+</description>
+			<example>
+				<![CDATA[SELECT IF(GeogLocationIsWithinRadius(
+g-Location( 
+GeogCreateLocation((70( 41.99999( :SRID)( 50)( 
+'It is within the radius'( 
+'It is not within the radius') FROM GeogTest g ]]>
+			</example>
+			<note>Each database handles tolerance somewhat differently (as it affects indexing performance).
+</note>
+		</case>
+	</cases>
+	
+</section>
+
+<section>
+	<title>GeogLongitude</title>
+	<cases>
+		<case>
+			<title>GeogLongitude as N (Location as Geography)</title>
+			<description>Returns the longitude value for a geographic location.</description>
+			<example>
+				<![CDATA[SELECT GeogLongitude(g-Location)( GeogLatitude(g-Location) FROM GeogTest g 
+WHERE GeogType(g-Location) , 'LOCATION' ]]>
+			</example>
+			<note>This will be the value of X or Y depending on the database.</note>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogSRID</title>
+	<cases>
+		<case>
+			<title>GeogSRID as N (Object as Geography)</title>
+			<description>Returns the Spatial Reference Identifier (SRID) assigned to the object.
+</description>
+			<example>
+				<![CDATA[CODE(wrap="1" colors="sql")}select first 1 GeogSRID(GeogCreateLocation(50, 44)) from GeogTest g{CODE} ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>GeogType</title>
+	<cases>
+		<case>
+			<title>GeogType as C (Object as Geography)</title>
+			<description>Returns LOCATION, LINE, or POLYGON if the geography object is one of them.
+ Values returned for other types are not guaranteed to be consistent across databases.
+</description>
+			<example>
+				<![CDATA[SELECT GeogLongitude(g-Location)( GeogLatitude(g-Location) FROM GeogTest g 
+WHERE GeogType(g-Location) , 'LOCATION' ]]>
+			</example>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<title>Important Note</title>
+	<cases>
+		<case>
+			<description>At least one database requires a table name alias in SQL statements that refer to geography objects. All of our geography samples use an alias for the table referenced in your FROM clause, and you will want to as well. For example, in the Portable SQL below g is an alias for table GeogTest:
+</description>
+			<example>
+				<![CDATA[SELECT GeogAsText(GeogCreateFromBinary(GeogAsBinary(g-Location))) 
+FROM GeogTest g 
+WHERE KeyValue , 'LOCATION' ]]>
+			</example>
+		</case>
+		<case>
+			<description>More discussion of the samples can be found on Common Geography Database Tasks.</description>
+		</case>
+	</cases>
+</section>
+
+
+	
+</sections>
+	<see>
+<ref>Geographic Databases </ref>
+<ref>Changes to SQL Objects for Geometry </ref>
+<ref>Portable SQL Functions for Geographies </ref>
+<ref>Common Geography Database Tasks </ref>
+<ref>Database-specific Geography Tasks </ref>
+<ref>DB2-specific Geography Tasks </ref>
+<ref>MySQL-specific Geography Tasks </ref>
+<ref>Oracle-specific Geography Tasks </ref>
+<ref>PostgreSQL-specific Geography Tasks </ref>
+<ref>SQL Server-specific Geography Tasks </ref>
+<ref>SQL Geography Examples 		</ref>
+		
+	</see>
+	
+</page>

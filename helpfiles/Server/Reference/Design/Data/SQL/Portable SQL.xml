@@ -1,0 +1,121 @@
+<page>
+	<topic>Portable SQL</topic>
+<sections>
+	<section>
+		<title>SQL is Not a Standard Syntax</title>
+			<description>Contrary to popular belief, SQL is not a standard syntax. Some terms:</description>
+			<cases>
+				<case>
+					<description>SQL Syntax - A set of rules describing how a SQL command is to be formatted.</description>
+				</case>
+				<case>
+					<description>Native SQL - The SQL syntax specific to a particular vendor (" Oracle " syntax or " MySQL " syntax).</description>
+				</case>
+				<case>
+					<description>Portable SQL - An Alpha supported SQL syntax intended to be translated into native SQL for execution.</description>
+				</case>
+				
+			</cases>
+		
+		
+	</section>
+	<section>
+		<title>Portable SQL</title>
+		<description>To solve the problem of the lack of SQL standardization, Alpha developed Portable SQL. Portable SQL is a database-independent, standardized SQL syntax. Using Portable SQL, the same syntax will work across all database platforms. Alpha Five invisibly translates Portable SQL Syntax to Native SQL syntax.
+
+The following is a sample Interactive Window session that shows how different vendors implement common SQL database queries. First is a Portable SQL statement using the CONCATENATE() helper function.
+</description>
+		<example><![CDATA[? q.parse("select CompanyName, Concatenate(City, Region), CurrentTime()from customers")
+= .T. ]]></example>
+	</section>
+	<section>
+		<description>Then, the SQL::Query.GenerateNativeSyntax() function generates native SQL for different databases.</description>
+		<example><![CDATA[? q.generatenativesyntax("{a5api=access}")
+= "SELECT CompanyName, City & Region, Time()FROM customers"
+? q.generatenativesyntax("{a5api=SQLServer}")
+= "SELECT CompanyName, City + Region, CURRENT_TIMESTAMP FROM customers"
+? q.generatenativesyntax("{a5api=mysql}")
+= "SELECT CompanyName, Concat(City, Region), CurTime()FROM customers"
+? q.generatenativesyntax("{a5api=oracle}")
+= "SELECT CompanyName, Concat(City, Region), LOCALTIMESTAMP FROM customers"
+? q.generatenativesyntax("{a5api=OracleLite}")
+= "SELECT CompanyName, Concat(City, Region), SYSDATE FROM customers"
+]]></example>
+	</section>
+	
+	
+	<section>
+		<title>The SQL::Query and SQL::Connection Objects</title>
+	</section>
+	<section>
+		<cases>
+			<case>
+				<description>The SQL::Query Object processes Portable SQL.</description>
+			</case>
+			<case>
+				<description>The SQL::Connection Object processes both Portable and Native SQL.</description>
+			</case>
+		</cases>
+	</section>	
+		<section>
+		<description>The following Interactive Window code illustrates the use of the Query object.</description>
+		<example><![CDATA[DIM q as SQL::Query
+DIM conn as SQL::Connection
+DIM SQL as C
+DIM cs as C
+cs = "{A5API='Access', FileName='c:\northwind.mdb'}"
+SQL = "select * from customers"
+? q.Parse(SQL)
+= .T.
+? conn.Open(cs)
+= .T.
+? q.Execute(conn)
+= .T.]]></example>
+	</section>
+	<section>
+		<description>This code illustrates the use of the Connection object with native SQL.</description>
+		<example><![CDATA[DIM conn as SQL::Connection
+DIM SQL as C
+DIM cs as C
+cs = "{A5API='Access', FileName='c:\northwind.mdb'}"
+SQL = "select top 10 * from customers"
+? conn.Open(cs)
+= .T.
+? conn.Execute(sql)
+= .T.]]></example>
+	</section>
+	<section>
+		<description>This code illustrates the use of the Connection object with Portable SQL.</description>
+		<example><![CDATA[dim conn as SQL::connection
+? conn.open("{A5API=Oracle, A5ProcedureLanguage=PLSQL, Server='alpha', Port=1522, Service='orcl102', UserName='system', Password='???'}")
+= .T.
+conn.portableSQLEnabled = .t.
+importstatement = "import with replace into 'c:\testimport.dbf' FROM customers"
+? conn.execute(importstatement)
+= .T.]]></example>
+	</section>
+	<section>
+		<description>When you execute a query, you create a SQL::ResultSet Object. The ResultSet object has methods that are used to fetch the data returned by a query.</description>
+		<example><![CDATA[DIM c as SQL::Connection
+DIM cs as C
+dim q as SQL::Query
+dim SQL as C
+DIM rs as SQL::ResultSet
+cs = "{A5API='Access', A5Syntax='Access', FileName='C:\Program Files\a5v6\MDBFiles\Alphasports.mdb', UserName='Admin'}"
+? c.Open(cs)
+= .T.
+SQL = "select * from customer"
+? q.Parse(SQL)
+= .T.
+? q.Execute(c)
+= .T.
+rs = q.ResultSet
+A5_SQLResultSetPreview(rs)]]></example>
+	</section>
+	
+	
+</sections>	
+<see>
+	<ref>Supported SQL Select Syntax</ref>
+</see>	
+</page>
