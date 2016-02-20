@@ -203,6 +203,19 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
 events.beforeRefresh = function() {
     
 };
+events.extractTitle = function(page) {
+    var topicStart = page.indexOf("<topic>");
+    if( topicStart > 0 ) {
+        var topicEnd = page.indexOf("</topic>");
+        topicStart += 7;
+        if( topicEnd > topicStart ) {
+            var  topic = page.substring(topicStart,topicEnd).trim();
+            if( topic.length > 0 )
+                return topic;
+        }
+    }
+    return null;
+}
 options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);
