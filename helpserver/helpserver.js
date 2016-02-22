@@ -208,10 +208,14 @@ events.extractTitle = function(page) {
     if( topicStart > 0 ) {
         var topicEnd = page.indexOf("</topic>");
         topicStart += 7;
-        if( topicEnd > topicStart && page.substring ) {
-            var  topic = page.substring(topicStart,topicEnd).trim();
-            if( topic.length > 0 )
-                return topic;
+        if( topicEnd > topicStart ) {
+            if( page.substring ) {
+                var  topic = page.substring(topicStart,topicEnd).trim();
+                if( topic.length > 0 )
+                    return topic;
+            } else {
+                console.log("substring method was not found."+page);
+            }
         }
     }
     return null;
