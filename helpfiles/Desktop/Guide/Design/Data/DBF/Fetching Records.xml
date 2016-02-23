@@ -1,0 +1,328 @@
+<page>
+	<topic>Fetching Records</topic>
+<sections>
+	<section>
+		<title>Current Record Pointer</title>
+	<description>When a table is open, there is always one record that can be called the current record. This record is the record upon which the next set of field operations will be applied. A temporary record buffer holds the data from the current record. When a record is entered or changed, the new data values are entered through this buffer.
+
+Internally, the physical location of the current record is referenced through the current record pointer. Every instance of an open table has its own record pointer. If the same table is opened twice (with two different object pointers), there will be two independently controlled record pointers.
+
+As Alpha Anywhere processes a table, it moves from one record to the next, advancing the current record pointer. Each time the current record is changed, the field values for the new current record are retrieved, or fetched, from the table file. This process of moving the record pointer and retrieving the current record is known as fetching through the table.
+
+Alpha Anywhere fetches through table records all the time. For example, suppose a browse displays the first 20 records from a table in record number order. To display these records, Alpha Anywhere has fetched to the first record and then fetched through 19 subsequent records.
+</description>	
+		<note>You can try these scripts with the AlphaSports Customer table.</note>
+	</section>
+	
+	<section>
+		<description><![CDATA[To fetch through table records in an Xbasic script, you use the fetching methods such as  <TBL>.FETCH_FIRST(), <TBL>.FETCH_NEXT(), <TBL>.FETCH_PREV(), and <TBL>.FETCH_LAST(). The following diagram illustrates how <TBL>.FETCH_FIRST()and <TBL>.FETCH_NEXT()are used to fetch successive records in the Customer table.]]></description>
+		<figure><link>images/atable.png</link></figure>
+		
+	</section>
+	
+	
+<section>
+	
+	<title>Fetching Through a Table in Record Order</title>
+	<description>Fetching is automated by calling fetching functions from within WHILE ... END WHILE and FOR ... NEXT loops. For instance, to fetch through all the records in the current primary index and range, the following script might be used. There are several things to note:
+</description>
+	<cases>
+		<case>
+			<description>Record order is the natural order of the table with no applied order expression. It is the order in which the records were added to the table.
+</description>
+		</case>
+		<case>
+			<description>The Trace window display is not something that you would put in a program. It part of these examples to show which records the script reads.
+</description>
+		</case>
+		<case>
+			<description>You set the value of the tbl pointer variable using the table.open( ) function. This is a necessary first step that allows you to manipulate data in the table.
+</description>
+		</case>
+		<case>
+			<description>You fetch the first record with tbl.fetch_first(). This statement is outside of the loop.
+</description>
+		</case>
+		<case>
+			<description>The tbl.fetch_next() function is inside the loop. It is the last statement before the end while statement. This statement keeps advancing you to the next record.
+</description>
+		</case>
+		<case>
+			<description>The while .NOT. tbl.fetch_eof() statement breaks out of the loop after you have read the last record in the table. Code execution resumes with the first statement after the end while statement.
+</description>
+		</case>
+		<case>
+			<description>You can read the value of a table field with the syntax illustrated below, which is value = table-pointer.field-name.
+</description>
+		</case>
+		
+	</cases>
+	
+</section>	
+<section>
+	
+	<example><![CDATA[dim tbl as P
+a5.command("VIEW_TRACE")' opens the Trace window
+tbl = table.open("customer.dbf")
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    trace.writeln(tbl.lastname)
+    tbl.fetch_next()
+end while
+tbl.close()]]></example>
+	
+</section>
+	
+<section>
+	<title>Fetching Through a Table with Ordered Records</title>
+	<description>The current primary index, range, or query selects the records that a script will retrieve. The current primary index, range, or query also sets the order of the selected records. For example, if the definition of the primary index for the Customer table is " LASTNAME ", the result of the fetching would be the following:
+</description>
+<figure><link>images/atable2.png</link></figure>
+	
+</section>	
+	
+<section>
+	<description>Things to note:
+</description>
+	<cases>
+		<case>
+			<description>This example sets the current index to an existing index named Lastname2 created for the Customer table. It returns all the records in the table, because the index's filter is expression is empty (which is equivalent to .T.).
+</description>
+		</case>
+		<case>
+			<description>The index sorts the records based on the value of the Lastname field. This index order expression is simply " Lastname ".
+</description>
+		</case>
+		<case>
+			<description>This script uses the indx = tbl.index_primary_put("Lastname2") expression to apply the Lastname2 index.
+</description>
+		</case>
+		<case>
+			<description>The indx.close() and tbl.close() methods release system resources when you are finished using them.
+</description>
+		</case>
+		
+	</cases>
+	
+	
+</section>
+	<section>
+		<example><![CDATA[dim tbl as P
+dim indx as P
+dim count as N
+a5.command("VIEW_TRACE")
+tbl = table.open("customer")
+indx = tbl.index_primary_put("Lastname2")
+count = indx.records_get()
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    trace.writeln(tbl.last_name)
+    tbl.fetch_next()
+end while
+indx.close()
+tbl.close()
+ui_msg_box("Record Count", "" + count) ]]></example>
+	</section>
+	
+	
+	
+	
+<section>
+	<title>Fetching Through Filtered Records</title>
+<description>If the table records are filtered by the primary index, query, or range, the fetching methods will fetch only records that pass through the filter.
+For example, if the range filter applied to the Customer table is STATE = "MA", the sequence of records would be:
+</description>	
+	
+	<figure><link>images/atable3.png</link></figure>
+	
+</section>	
+<section>
+	
+	<description>This example sets the current filter ( query.filter ) to the expression Lastname > "M". It returns only those records where the value of the Lastname field is greater than "M". The records are not sorted.
+</description>
+	<example><![CDATA[dim tbl as P
+dim indx as P
+dim count as N
+a5.command("VIEW_TRACE")
+tbl = table.open("customer")
+query.filter = "Lastname > " + s_quote("M")
+indx = tbl.query_create()
+count = indx.records_get()
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    trace.writeln(tbl.lastname)
+    tbl.fetch_next()
+end while
+indx.close()
+tbl.close()
+ui_msg_box("Record Count", "" + count) ]]></example>
+	
+	
+</section>
+	
+<section>
+	
+	<description>This example adds to the one above by setting query.order to Lastname. It returns only those records where the value of the Lastname field is greater than "M". The records are now sorted in descending order.
+Things to note:
+</description>
+	<cases>
+		<case>
+			<description>The query system variable contains the values used when creating a query.
+</description>
+		</case>
+		<case>
+			<description>The tbl.query_create() method sets the value of the indx pointer variable.
+</description>
+		</case>
+		<case>
+			<description>The indx.records_get() method returns the number of records that pass the current filter.
+</description>
+		</case>
+		<case>
+			<description>You can write the value of a table field with the syntax illustrated by tbl.lastname, which is table-pointer.field-name.
+</description>
+		</case>
+		
+	</cases>
+	<example><![CDATA[dim tbl as P
+dim indx as P
+dim count as N
+a5.command("VIEW_TRACE")
+tbl = table.open("customer")
+query.filter = "Lastname > " + s_quote("M")
+query.order = "Lastname"
+indx = tbl.query_create()
+count = indx.records_get()
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    trace.writeln(tbl.lastname)
+    tbl.fetch_next()
+end while
+indx.close()
+tbl.close()
+ui_msg_box("Record Count", "" + count)]]></example>
+	
+</section>
+<section>
+	
+	<title>Changing Field Values
+</title>
+	<description>Thus far the example scripts have been reading record values. This example writes values to the Lastname field.
+Things to note:
+</description>
+	<cases>
+		<case>
+			<description>The tbl.query_create() method sets the value of the indx pointer variable.
+</description>
+		</case>
+		<case>
+			<description>The indx.records_get() method returns the number of records that pass the current filter.
+</description>
+		</case>
+		<case>
+			<description>The query.options = "t" statement allows Alpha Anywhere to discard the query when it needs to make room for a new one.
+</description>
+		</case>
+		<case>
+			<description>Before you change an existing value, you must be in change mode. You set change mode with the tbl.change_begin(.t.) statement. The .t. says that you want to honor any field rules for the field.
+</description>
+		</case>
+		<case>
+			<description>You can write the value of a table field with the syntax illustrated below, which is table-pointer.field-name = value.
+</description>
+		</case>
+		<case>
+			<description>After changing one or more field values, you must use the tbl.change_end(.t.) statement. The .t. says that you want to save the changes.
+</description>
+		</case>
+		<case>
+			<description>Since the lastname value returned by tbl.lastname is padded with blanks to the fill the field, it is impossible to append another character. The alltrim() function removes those blanks, making it possible to add the letter "M".
+</description>
+		</case>
+		
+	</cases>
+<example><![CDATA[dim tbl as P
+dim indx as P
+dim count as N
+a5.command("VIEW_TRACE")
+tbl = table.open("customer")
+query.filter = "Lastname > " + s_quote("M")
+query.order = "Lastname"
+query.options = "t"
+indx = tbl.query_create()
+count = indx.records_get()
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    tbl.change_begin(.t.)
+    tbl.lastname = alltrim(tbl.lastname) + "M"
+    tbl.change_end(.t.)
+    trace.writeln(tbl.lastname)
+    tbl.fetch_next()
+end while
+indx.close()
+tbl.close()
+ui_msg_box("Record Count", "" + count) ]]></example>	
+</section>	
+	
+<section>
+	<title>Writing Field Values in a New Record</title>
+	<description>Thus far the example scripts have been reading and writing to existing records. This example adds a new record.
+Things to note:
+</description>
+	<cases>
+		<case>
+			<description>Whether or not a filter or order expression is in effect when you add a new record to a table is irrelevant, except if you are displaying the data (perhaps in an embedded browse). A new record that does not satisfy the current filter will not appear.</description>
+		</case>
+		<case>
+			<description>Before you add a new record, you must be in enter mode. The tbl.enter_begin(.t.) statement changes to enter mode. The .t. says that you want to honor any field rules for the field.</description>
+		</case>
+		<case>
+			<description>You can write the value of a table field with the syntax illustrated below, which is table-pointer.field-name = value.
+</description>
+		</case>
+		<case>
+			<description>After adding a new record, you must use the tbl.enter_end(.t.) statement. The .t. says that you want to save the changes.
+</description>
+		</case>
+		<case>
+			<description>You do not have to worry about positioning the table pointer. Alpha Anywhere automatically adds new records to the end of a table.
+</description>
+		</case>
+		<case>
+			<description>You do not have to set the value of a auto-increment field.
+</description>
+		</case>
+		
+		
+	</cases>
+	
+</section>
+	<section>
+		<example><![CDATA[dim tbl as P
+tbl = table.open("customer")
+tbl.enter_begin(.t.)
+tbl.lastname = "Jones"
+tbl.firstname = "Joe"
+...
+tbl.enter_end(.t.)
+tbl.close() ]]></example>
+		
+	</section>
+	
+	
+	
+	
+	
+	
+	
+</sections>	
+	<see>
+		
+<ref>Table Functions and Methods</ref>		
+<ref>Fetching in a Set</ref>		
+<ref>Fetching at a Particular Level in a Set</ref>	
+<ref>About Indexes, Queries, and Ranges</ref>	
+<ref>S_QUOTE()</ref>		
+	</see>
+	
+</page>

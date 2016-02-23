@@ -1,0 +1,78 @@
+<page>
+<topic>Populate Dynamically from a Table</topic>	
+<sections>
+<section>
+	<description>This example of a tree control shows how to use the X directive to dynamically populate the branches of a tree control from a table. It shows the use of the {DATA} command to return values different than displayed and the {EXPAND} command to display a message when populating a branch takes longer than 2 seconds. </description>
+	<figure><link>images/XD_Dynamic_Tree_Control.gif</link></figure>
+	
+</section>	
+<section>
+	<description>The contentExpn, filterExpn, and orderExpn expressions specify that the list will contain unique values from the bill_state_region field ordered by bill_state_region. After calling the expandState()and expandCity()functions to generate values for lower branches of the tree, the TABLE.EXTERNAL_RECORD_CONTENT_GET()method returns the CR-LF delimited list.</description>
+	<example><![CDATA[contentExpn = "alltrim(bill_state_region) + '|{EXPAND=Expanding tree...}!expandState(' + quote(alltrim(bill_state_region) ) + ')'"
+filterExpn = "bill_state_region <> '' .and. unique_key_value()"
+orderExpn = "bill_state_region"
+treeList = table.external_record_content_get(tablename,contentExpn,orderExpn,filterExpn)]]></example>
+</section>	
+
+<section>
+	<description>The X directive in the tree control syntax says that functions will be providing the contents of the branches of the tree. The D directive says that the "|" character separates the parent node from the function that defines its branches.
+</description>
+	<example><![CDATA[[%X;S=BLR;D="|"%.50,20selected^  ]]></example>
+</section>	
+
+<section>
+	<description>The expandState()function dynamically generates the expanded list of cities for a selected state.</description>
+	<example><![CDATA[function expandState as C (state as C)
+ui_yield()
+dim filterExpn as C
+dim orderExpn as C
+dim contentExpn as C
+dim tablename as C
+tablename = "customer"
+contentExpn = "alltrim(bill_city) + '|{EXPAND=Expanding tree...}!expandCity(' + quote(alltrim(bill_city) ) + ')'"
+filterExpn = "unique_key_value().and. bill_state_region=" + quote(state)
+orderExpn = "bill_city"
+expandState = table.external_record_content_get(tablename, contentExpn, orderExpn, filterExpn)
+if expandState = "" then
+
+expandState = ""
+end if
+end function]]></example>
+</section>	
+
+<section>
+	<description>The expandCity()function dynamically generates the expanded list of customer names for a selected city.</description>
+	<example><![CDATA[function expandCity as c (city as c )
+ui_yield()
+dim filterExpn as C
+dim orderExpn as C
+dim contentExpn as C
+dim tablename as C
+tablename = "customer"
+contentExpn = "'{DATA=ID:' + customer_id + '}' + alltrim(lastname) + ', ' + alltrim(firstname)"
+filterExpn = "unique_key_value().and. bill_city=" + quote(city)
+orderExpn = "lastname"
+expandCity = table.external_record_content_get(tablename, contentExpn, orderExpn, filterExpn)
+if expandCity = "" then
+
+expandCity = ""
+end if
+end function ]]></example>
+</section>	
+<section>
+	<description>Limitations: Desktop applications only.
+</description>
+</section>
+</sections>	
+<see>
+	
+<ref>Variable Text on a Button</ref>	
+<ref>Tree Control X Directive</ref>	
+<ref>Tree Control D Directive</ref>	
+<ref>{EXPAND}</ref>	
+<ref>{DATA}</ref>
+<ref>TABLE.EXTERNAL_RECORD_CONTENT_GET()</ref>
+	
+</see>	
+	
+</page>

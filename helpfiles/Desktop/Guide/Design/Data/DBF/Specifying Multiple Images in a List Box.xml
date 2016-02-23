@@ -1,0 +1,94 @@
+<page>
+	<topic>Specifying Multiple Images in a List Box</topic>
+	<sections>
+<section>
+<description>The owner-draw list boxes that we have shown so far have all used a single image in the list box. In a practical application, you will want to use multiple images in a list box, with the bitmap associated with each row of the list box determined dynamically, based on the text in the row.
+For example, in the following list box we display the names of several tables and sets. We use a different icon next to an entry if it is a table (has a .dbf extension), or a set (has a .set extension).
+</description>	
+<example><![CDATA[dim filelist[100] as C
+
+data = <<%dlg%
+customer.dbf
+invoice_header.dbf
+invoice_items.dbf
+products.dbf
+invoices.set
+%dlg%
+
+data = stritran(data,".dbf",".1")
+data = stritran(data,".set",".2")
+filelist.initialize(data)
+filelist.sort()
+
+result = ui_dlg_box("Select Table/Set",<<%dlg%
+{region}
+[%I=$a5_table,$a5_set;O={I=@$(.)+1} {@1,$(.)-1}%.25,10filename^#filelist]|
+{endregion};
+<10OK> <10Cancel>
+%dlg%)]]></example>	
+	
+</section>	
+
+<section>
+<description>This script produces the following dialog:  
+</description>	
+<figure><link>images/XD_Multiple images in a listbox.gif</link></figure>
+	
+</section>	
+
+<section>
+<description>Let's analyze how this script works.
+The commands:
+</description>	
+<example><![CDATA[data = stritran(data,".dbf",".1")
+data = stritran(data,".set",".2") ]]></example>	
+	
+</section>	
+
+<section>
+<description>converts the input values to:
+</description>	
+<example><![CDATA[customer.1
+invoice_header.1
+invoice_items.1
+products.1
+invoices.2 ]]></example>	
+	
+</section>	
+
+<section>
+<description>With the data in this form, the bitmap to associate with each row in the list box can be more easily derived from the data. For example, the first row 'customer.1', should display the first bitmap in the image list, whereas the last row, 'invoices.2', should display the second bitmap in the image list.
+The format string for the list box starts with:
+</description>	
+<example><![CDATA[I=$a5_table,$a5_set ]]></example>	
+	
+</section>	
+
+<section>
+<description>This defines the image list for the owner-draw list box. There are two images, $a5_table and $a5_set. These are internal Alpha Anywhere images. Image number 1 refers to $a5_table, and image number 2 refers to $a5_set.
+The owner-draw string is:
+</description>	
+<example><![CDATA[O={I=@$(.)+1} {@1,$(.)-1} ]]></example>	
+	
+</section>	
+	
+
+<section>
+<description>First let's analyze the {I= } component. This component specifies the bitmap image to draw on each line. The sub-command, @$(.)+1 returns the text starting with the first position after the period. In the case of the first row ('customer.1'), the value returned is '1'. So the command is {I=1}, which displays the table bitmap next to this entry in the list box. In the case of the last entry ('invoices.2'), this sub-command returns a value of '2', and so the command is {I=2}, which displays the set bitmap next to this entry in the list box.
+Next, the owner-draw string displays a space.
+Then, the owner-draw string displays the result of this component:
+</description>	
+<example><![CDATA[{@1,$(.)-1}]]></example>	
+	
+</section>		
+<section>
+	<description>This outputs text from the input value, starting in position 1, and continuing to the character before the first period.
+Limitations: Desktop applications only
+</description>
+</section>
+</sections>
+<see>
+	<ref>Another Approach to Specifying Multiple Images in a List Box 
+</ref>
+</see>
+</page>

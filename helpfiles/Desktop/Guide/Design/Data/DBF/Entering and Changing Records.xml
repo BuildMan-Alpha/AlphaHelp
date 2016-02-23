@@ -1,0 +1,87 @@
+<page>
+	<topic>Entering and Changing Records</topic>
+<sections>
+<section>
+	<description>You can enter or change records in any open table (assuming the table is not write-protected or being used exclusively by another user or session). Several open tables or related tables from a set can be in Enter or Change mode simultaneously.
+To enter a new record into a table, you do the following:
+</description>
+	<steps>
+		<step>
+			<description><![CDATA[Start a new record with the <TBL>.ENTER_BEGIN() method. This puts the table in Enter mode (however, the new record is not yet physically created).]]></description>
+		</step>
+		<step>
+			<description><![CDATA[Assign the field values. (The field values are held in the record buffer).]]></description>
+		</step>
+		<step>
+			<description><![CDATA[Complete the record with the <TBL>.ENTER_END() method; this creates a new record in the table from the values in the record buffer.]]></description>
+		</step>
+	</steps>
+	
+	
+</section>	
+<section>
+	<description>For example, the following script creates a new table based on the Products table, creating one record in the new table for every product record fetched:</description>
+	<example><![CDATA[dim old as P
+dim new as P
+old = table.open("c:\a5\a_sports\product.dbf")
+new = old.create_clone("c:\a5\a_sports\prod2.dbf")
+old.fetch_first()
+while .NOT. old.fetch_eof()
+    new.enter_begin()
+    new.name = old.name
+    new.retail = old.retail
+    new.enter_end(.T.)
+    old.fetch_next()
+end while]]></example>
+	
+</section>
+<section>
+	<description>To change the contents of the current record, you change the field values in the record buffer and then save the record buffer back to the table. The procedure for changing a record is similar to entering a record:</description>
+	<steps>
+		<step>
+			<description><![CDATA[Put the table in Change mode using the <TBL>.CHANGE_BEGIN() method.]]></description>
+		</step>
+		<step>
+			<description><![CDATA[Assign the field values in the record buffer.]]></description>
+		</step>
+		<step>
+			<description><![CDATA[Complete the change with the <TBL>.CHANGE_END() method; this will save the contents of the record buffer in the current table record.]]></description>
+		</step>
+		<step>
+			<description><![CDATA[The following script updates the records in the Product table, changing the value of each record's ON_SALE field to FALSE (.F.):]]></description>
+		</step>
+		
+	</steps>
+</section>	
+<section>
+	<example><![CDATA[tbl = table.open("c:\a5\a_sports\product.dbf")
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    tbl.change_begin()
+    tbl.on_sale = .F.
+    tbl.change_end(.T.)
+    tbl.fetch_next()
+end while]]></example>
+	
+	
+	
+</section>
+<section>
+	<description>Once a table is in Enter or Change mode, you cannot start another Enter or Change operation on the same table in the same session, until the preceding Enter or Change is completed. This is an especially important issue when attaching your scripts to buttons on forms. If your script will be entering or changing records in the current table, you should first check to see if you are already in Enter or Change mode through the form. To check the data entry mode of the current session, use the <TBL>.MODE_GET() method:</description>
+	
+	<example><![CDATA[tbl = table.current()
+if tbl.mode_get()> 0 then
+    ui_msg_box("Error", "Already in data entry mode.")
+else
+    tbl.enter_begin()
+    'enter field values
+    tbl.enter_end(.T.)
+end if ]]></example>
+</section>
+	
+</sections>	
+<see>
+	<ref>Rolling Back Enter and Change Operations</ref>
+</see>	
+	
+</page>

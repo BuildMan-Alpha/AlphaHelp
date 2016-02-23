@@ -1,0 +1,490 @@
+<page>
+	<topic>About Indexes, Queries, and Ranges</topic>
+	<sections>
+<section>
+	<title>When to Uses Indexes and Queries</title>
+<description>Indexes and queries make your program more efficient when you need to read records that have specific field values. Instead of reading each record and examining its field values to see they are interesting, the index or query list provides a pre-built list of the records you know you want to read.</description>	
+<cases>
+	<case>
+		<description>Use an index when you are going to be repetitively looking for records using the same filter and order criteria.</description>
+	</case>
+	<case>
+		<description>Use an index when speed is important.
+</description>
+	</case>
+	<case>
+		<description>Use an index if multiple users may be updating the same table.
+</description>
+	</case>
+	<case>
+		<description>Use a query list when your filter or order criteria change frequently.
+</description>
+	</case>
+	<case>
+		<description>Use a query list when you are not concerned with other users or processes changing the data in your table.
+</description>
+	</case>
+	
+</cases>	
+	
+	
+</section>		
+<section>
+	<title>Indexes</title>
+	<description>An index is an optional, but often desirable addition to a table. The index provides a fast way to find records in the table, by avoiding the necessity to individually examine record values until the desired records are found. In Alpha Anywhere, the default or production index for a table has the base name of the table, plus the extension .CDX. For example, the mytable.dbf file would be accompanied by the mytable.cdx file.
+</description>
+	<note>Deleting an index or modifying its definition has no effect on the data in your tables.</note>
+</section>
+<section>
+	
+	<title>Index Files vs Index Tags
+</title>
+	<description>The index file may contain more than one index tag. Many developers are confused about the difference between the two. When Alpha Anywhere uses an index, it looks inside the index file and uses one of its index tags, as specified by the developer. The index tag contains the information that orders, and optionally selects, the sequence records.  
+</description>
+	<figure><link>images/Index_tag.gif</link></figure>
+	
+</section>		
+<section>
+	<description>Tables can have index files. Sets cannot. When you specify an index tag for a set, as in the example above, you are actually specifying an index tag for one of the set's parent tables.
+A table may have more than one .CDX index file, although they must have different filenames. This is uncommon in practice, because the maintenance of too many indexes will degrade application performance.
+</description>
+</section>
+
+<section>
+	<title>The Components of an Index Tag</title>
+	<description>As the image above suggests, an index tag has five components:
+</description>
+	<cases>
+		<case>
+			<description>a name, which must be unique.
+</description>
+		</case>
+		<case>
+			<description>an order expression, which is required. The order expression can be the name of a field or any Xbasic expression that uses one or more field names and returns a value.
+</description>
+		</case>
+		<case>
+			<description>an optional filter expression. The filter expression causes the index tag to index some subset of the table's records. By default, an index tag selects all records in the table.
+</description>
+		</case>
+		<case>
+			<description>an optional direction. The default value is "Ascending". The other possible value is "Descending".
+</description>
+		</case>
+		<case>
+			<description>an optional include statement. The default value is "All". The other possible value is "Unique only".
+</description>
+		</case>
+		
+	</cases>
+</section>
+
+<section>
+	
+	<title>Important Index Procedures</title>
+	<description>Use either the TABLE.OPEN(), TABLE.CURRENT(), TABLE.CREATE_END(), or <OBJECT>.TABLE_GET() methods to return the pointer. Use the <TBL>.INDEX_PRIMARY_GET() method to return the object pointer that references the primary index for the table referenced by . The primary index is the index that is currently controlling the order of the records in the table.</description>
+	
+	<cases>
+		<case>
+			<title>Adding an Index Tag to any Index File</title>
+			<description><![CDATA[To add an index tag to any index file, you must either rebuild the entire index file in Xbasic (using the TABLE.INDEX_CREATE_BEGIN(), <TBL>.INDEX_GET(), and <TBL>.INDEX_CREATE_END() methods), or interactively, by right clicking on a table in the Control Panel and selecting the Define Indexes command.]]></description>
+		</case>
+		<case>
+			<title>Adding an Index Tag to the Production Index File</title>
+			<description><![CDATA[The <TBL>.INDEX_TAG_ADD() method finds an existing index tag in the production index file for the table referenced by . If the index tag does not exist, the method creates it. The  <TBL>.RELATION_TAG() method creates a new index tag and returns its handle. ]]></description>
+		</case>
+		<case>
+			<title>Deleting an Index Tag</title>
+			<description><![CDATA[The <INDEX>.DROP() method deletes the index tag referenced by the object pointer. Dropping an index from an index file does not reduce the size of the index file.
+]]></description>
+		</case>
+		<case>
+			<title>Deleting the Production Index File</title>
+			<description><![CDATA[Every time a table is opened, its production index (if it exists) is also automatically opened. If you wish to delete a table's production index using the FILE.REMOVE() method, you must first close the index file using the <INDEX>.CLOSE() method.]]></description>
+		</case>
+		<case>
+			<title>Compacting an Index File</title>
+			<description><![CDATA[To compact the size of the index file, you must either rebuild the entire index file in Xbasic (using the TABLE.INDEX_CREATE_BEGIN(), <TBL>.INDEX_GET(), and <TBL>.INDEX_CREATE_END() methods), or interactively, by right clicking on a table in the Control Panel and selecting the Define Indexes command.]]></description>
+		</case>
+		<case>
+			<title>Updating the Index Tags in any Index File</title>
+			<description><![CDATA[When an index file is closed, the index tags in the file are not updated when records are added or edited. When you subsequently re-open an index file, you will have to use the <INDEX>.UPDATE() method to update the index tags in the file.]]></description>
+		</case>
+		<case>
+			<title>Updating the Index Tags in the Production Index File</title>
+			<description><![CDATA[The <TBL>.UPDATE_PRODUCTION_INDEX() method updates all of the indexes in the production index of the table referenced by .
+]]></description>
+		</case>
+		<case>
+			<title>Get the Name of an Index Tag</title>
+			<description><![CDATA[The <INDEX>.NAME_GET() method returns the tag name of the index referenced by the.]]></description>
+		</case>
+		<case>
+			<title>Get the Name of the Index Tag's Table</title>
+			<description><![CDATA[The <INDEX>.TABLE_GET() method returns a  pointer for the table that the object pointer is based on.]]></description>
+		</case>
+		<case>
+			<title>Get the Order Expression for an Index Tag</title>
+			<description><![CDATA[The <INDEX>.ORDER_GET() method returns the order expression for the index referenced .]]></description>
+		</case>
+		<case>
+			<title>Get the Filter Expression for an Index Tag</title>
+			<description><![CDATA[The <INDEX>.FILTER_GET() method returns the filter expression f or the index referenced by.]]></description>
+		</case>
+		
+		
+	</cases>
+</section>
+
+<section>
+	<title>Queries</title>
+	<description>Queries are used for transient record ordering and selection operations. A query is similar to an index, but is a static snapshot that is not automatically maintained (refreshed) by Alpha Anywhere. A query is based on the Query dot variable, which has the following properties:</description>
+	<cases>
+		<case>
+			<description>Description (name)</description>
+		</case>
+		<case>
+			<description>Order</description>
+		</case>
+		<case>
+			<description>Filter (optional)
+</description>
+		</case>
+		<case>
+			<description>Options (optional, a combination of the direction and include attributes of an index tag)
+</description>
+		</case>
+		
+		
+		
+	</cases>
+</section>
+<description>However, there are important differences.</description>
+<cases>
+	<case>
+		<title>Creation</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description>All users who share a table have the same indexes.</description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description>Each user creates their own queries.</description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	<case>
+		<title>Access</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description>Exclusive access to the table is required to add an index.</description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description>Exclusive access to the table is not required to build a query.</description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	
+	<case>
+		<title>Limits</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description>The number of index tags is bounded by practical performance considerations but also cannot exceed 40.</description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description>There are a maximum of 4 queries per table and 16 queries per database at any time. New queries take up one of the four slot positions, pushing one of the older temporary queries off the list of open query lists.</description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	
+	<case>
+		<title>Updating</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description>Indexes are dynamic. They are updated when records are edited. Key values are always correctly sorted and records that do not satisfy index filters are removed from the index immediately.</description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description>Queries are static. They are not updated when records are edited. After it is edited, a record that no longer satisfies the query filter remains in the query list.</description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	
+	<case>
+		<title>Storage</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description>Indexes are stored in .CDX files, which you presumably want to keep.</description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description>Queries are stored in .MPX files, which always can be deleted.</description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	
+	<case>
+		<title>Retrieving Records</title>
+		<cases>
+			<case>
+				<title>Indexes:</title>
+				<description><![CDATA[Can use the <TBL>.FETCH_FIND() method to find records by key value.]]></description>				
+			</case>
+			<case>
+				<title>Queries:</title>
+				<description><![CDATA[Can use the <TBL>.FETCH_FIND() method to find records by key value.]]></description>				
+			</case>
+			
+		</cases>
+		
+		
+	</case>
+	
+	
+	
+	
+	
+	
+</cases>
+
+
+
+<section>
+	<description>Use the Query Builder to create a new query. From the Control Panel, click Operations > New > Query Records, select a table or set name, and click either Create Using Genie.
+As with indexes, you can use the .FETCH_FIND() method with query lists to find records by key value. In most ways, query list behave the same as indexes. The table below summarizes the differences.
+</description>
+	
+</section>
+
+<section>
+	<title>Important Query Procedures</title>
+	<description>Get the name of the query from the Operations tab of the Control Panel.
+</description>
+	<cases>
+		<case>
+			<title>Get the Order Expression from a Saved Query</title>
+			<description>QUERY_ORDER_GET() returns the order expression from a named and saved query operation.</description>
+		</case>
+		
+		<case>
+			<title>Get the Filter Expression from a Saved Query</title>
+			<description>QUERY_FILTER_GET() returns the filter expression from a named and saved query operation.
+</description>
+		</case>
+		
+		<case>
+			<title>Create a Query</title>
+			<description><![CDATA[The <TBL>.QUERY_CREATE() returns an object pointer. will reference either:]]></description>
+			
+		     <cases>
+				 <case>
+					 <description>a previously created query list that satisfies the query definition
+</description>
+				 </case>
+				  <case>
+					 <description>an index with the same definition as the query
+</description>
+				 </case>
+				  <case>
+					 <description>a new query list
+</description>
+				 </case>
+				 <case>
+					 <description>Alpha Anywhere will only select a previously created query list if the query list is still up to date. It will be out of date if the table was edited after the query list was built.</description>
+				 </case>
+				 <case>
+					 <description>The A5_OPEN_DEFAULT_BROWSE() and A5_OPEN_DEFAULT_FORM() functions display the default browse and form for a table while optionally creating a named query.</description>
+				 </case>
+					 
+			 </cases>
+		
+		</case>
+		
+		<case>
+			<title>Use a Query</title>
+			<description><![CDATA[The <TBL>.QUERY_PRIMARY_PUT() method runs a saved query for , which must be the primary table in the session. The <OBJECT>.RUN_SAVED_QUERY() method runs a saved query in the context of a form or browse.]]></description>
+		</case>
+		
+		<case>
+			<title>Update a Query</title>
+			<description><![CDATA[The <TBL>.QUERIES_REOPEN() method closes, and then reopens and updates the table's query lists.]]></description>
+		</case>
+		
+		<case>
+			<title>Convert a Range into a Query</title>
+			<description><![CDATA[The <TBL>.QUERY_FROM_RANGE() method converts the current range into a query.]]></description>
+		</case>
+		
+		<case>
+			<title>Delete a Query</title>
+			<description><![CDATA[The <INDEX>.DROP() method deletes the query specified by . The <TBL>.QUERY_DETACH() method deletes a named query from . The <TBL>.QUERY_DETACH_ALL() method deletes all queries for .]]></description>
+		</case>
+		
+		
+	</cases>
+	
+</section>
+<section>
+	<title>Ranges</title>
+	<description><![CDATA[Ranges are cousins to Indexes and Queries. as the name implies, a range works with a set of records defined by the first and last key values in an index tag. Ranges are useful when you have a batch operation that processes selected records in a table. For example, assume that you want to process all of the records in the state of California. You could use the <TBL>.QUERY_CREATE() method to build a query list, but this could take some time. However, setting a range with "State" as the primary index and "CA" as the first and last key value will instantaneously select the subset of records that you want to process.
+Here are the important differences between indexes and ranges.
+]]></description>
+	
+</section>
+<section>
+	<cases>
+		<case>
+			<title>Creation</title>
+			<cases>
+				<case>
+					<title>Indexes:</title>
+					<description>All users who share a table have the same indexes.</description>
+				</case>
+				<case>
+					<title>Ranges:</title>
+					<description>Each user creates their own ranges.</description>
+				</case>
+				
+			</cases>
+			
+			
+		</case>
+		
+		<case>
+			<title>Access</title>
+			<cases>
+				<case>
+					<title>Indexes:</title>
+					<description>Exclusive access to the table is required to add an index.</description>
+				</case>
+				<case>
+					<title>Ranges:</title>
+					<description>Exclusive access to the table is not required to build a range.</description>
+				</case>
+				
+			</cases>
+			
+			
+		</case>
+		
+		<case>
+			<title>Numbering</title>
+			<cases>
+				<case>
+					<title>Indexes:</title>
+					<description>The number of index tags is bounded only by practical performance considerations.</description>
+				</case>
+				<case>
+					<title>Ranges:</title>
+					<description>The number of ranges is unlimited.
+</description>
+				</case>
+				
+			</cases>
+			
+			
+		</case>
+		
+		<case>
+			<title>Storage</title>
+			<cases>
+				<case>
+					<title>Indexes:</title>
+					<description>Indexes are stored in .CDX files.</description>
+				</case>
+				<case>
+					<title>Ranges:</title>
+					<description>Old ranges are maintained in a run-time stack. You can retrieve them in the reverse order in which they were applied.</description>
+				</case>
+				
+			</cases>
+			
+			
+		</case>
+		
+		<case>
+			<title>Retrieving records</title>
+			<cases>
+				<case>
+					<title>Indexes:</title>
+					<description><![CDATA[Can use the <TBL>.FETCH_FIND() method to find records by key value.]]></description>
+				</case>
+				<case>
+					<title>Ranges:</title>
+					<description><![CDATA[Can use the <TBL>.FETCH_FIND() method to find records by key value.]]></description>
+				</case>
+				
+			</cases>
+			
+			
+		</case>
+		
+		
+	</cases>
+	
+	
+	
+</section>
+<section>
+	<description><![CDATA[For details about creating ranges please refer to <TBL>.RANGE_ADD().]]></description>
+</section>
+
+<section>
+	<title>Important Range Procedures</title>
+	<cases>
+		<case>
+			<title>Create a Range</title>
+			<description><![CDATA[The <TBL>.RANGE_ADD() method applies a range to a table. Only the records within the range are visible.]]></description>
+		</case>
+		<case>
+			<title>Delete a Range</title>
+			<description><![CDATA[The <TBL>.RANGE_DROP() method removes the active range for the table referenced by , replacing it with the previous range that was applied to the table.]]></description>
+		</case>
+		<case>
+			<title>Convert a Range into a Query</title>
+			<description><![CDATA[The <TBL>.QUERY_FROM_RANGE() method converts the current range into a query.]]></description>
+		</case>
+	</cases>
+	
+	
+</section>
+
+
+
+		
+	</sections>
+<see>
+	<ref>Using a Query to Find a Record</ref>
+	<ref>Using an Index to Find a Record</ref>
+	<ref>A Procedure for Building Complex Expressions</ref>
+	<ref>Overview: Functions and Expressions</ref>
+</see>	
+	
+</page>

@@ -1,0 +1,157 @@
+<page>
+	<topic>Advanced Record Lists</topic>
+	<sections>
+<section>
+	<description>Advanced record lists give you more control over the data that is displayed in the record list and the formatting of the record list. In addition, you are not restricted to showing data from the primary table of the session. You can display data from any table.
+
+The syntax for an advanced record list-combo box control is:
+</description>
+	<example><![CDATA[[%K=Table,{keylist_expression}{filter_expression}%.Size VariableName]
+]]></example>
+</section>		
+<section>
+	<description>The syntax for an advanced record list-edit combo box control is:</description>
+	<example><![CDATA[[%KE=Table,{keylist_expression}{filter_expression}%.Size VariableName]
+]]></example>
+</section>	
+<section>
+	<description>The syntax for an advanced list box-record list control is:</description>
+	<example><![CDATA[[%KL=Table,{keylist_expression}{filter_expression}%.Size VariableName]]]></example>
+</section>	
+<section>
+	<description>Where keylist_expression defines the order of the data in the record list and the columns in the record list. The keylist_expression uses a special function called KEYLIST_BUILD(). The syntax of KEYLIST_BUILD()is defined below.</description>
+	<note>The parameter is called keylist_expression because technically, the record list actually shows the "key" in an index or query.</note>
+</section>	
+<section>
+	<description>Filter_expression is optional. If specified, it filters the data that is shown in the keylist_expression.</description>
+	
+</section>	
+
+<section>
+	
+	<title>Syntax of the Keylist_Build() function</title>
+	<description>The KEYLIST_BUILD() function defines:</description>
+	<cases>
+		<case>
+			<description>Order of data in the record list</description>
+		</case>
+		<case>
+			<description>How many columns are displayed in the record list</description>
+		</case>
+		<case>
+			<description>The contents of each column</description>
+		</case>
+		<case>
+			<description>The width of each column</description>
+		</case>
+		<case>
+			<description>The value returned when the user makes a selection from the record list.</description>
+		</case>
+		
+	</cases>
+	
+	
+</section>
+<section>
+	<description>The syntax of KEYLIST_BUILD()is:</description>
+	<example><![CDATA[Keylist_build(column_format_string, return_expression, column_definition)
+]]></example>
+</section>
+<section>
+	<description>where:</description>
+	<cases>
+		<case>
+			<title>Column_format_string</title>
+			<description>A comma delimited character string of format: col#:width. For example: "1:30,2:20,3:15". In this example there are 3 columns of width 30, 20 and 15 respectively.</description>
+		</case>
+		<case>
+			<title>Return_expression</title>
+			<description>A standard Alpha Anywhere expression that defines the value returned when the user makes a selection from the record list.</description>
+		</case>
+		<case>
+			<title>Column_definition</title>
+			<description>A string that defines the order of the data in the record list and the contents of each column. The format is:  Column1expression,column2_expression, ... columnN_expression. The record list is sorted by the concatenated column expressions.</description>
+			<example><![CDATA[column1expression + column2_expression + ... columnN_expression.]]></example>
+		</case>
+		
+		
+	</cases>
+	
+</section>
+<section>
+	<description>For example, consider the following column_definition string:</description>
+			<example><![CDATA[Alltrim(firstname) + ' ' + lastname,phone]]></example>
+</section>
+
+<section>
+	<description>This defines two columns. The first column is: Alltrim(firstname) + ' ' + lastname. The second column is: phone.
+
+The corresponding column_format_string for this might be: "1:30,2:20", which indicates that the first column is 30 characters wide and the second is 20 characters wide.
+
+Let's analyze a complete Advanced Record List command:
+</description>
+	<example><![CDATA[[%k=clients,{keylist_build('1:30,2:20,3:15',customer_id, alltrim(firstname)+ ' ' + lastname , company,phone)}{state = 'MA'}%.30key_value];
+ ]]></example>
+</section>
+<section>
+	<description>This command creates a record list with 3 columns of width 30, 20 and 15 characters.
+When the user selects a value from the record list, the value in the selected record's customer_id field is returned.
+</description>
+	<cases>
+		<case>
+			<description>The first column in the keylist is: alltrim(firstname)+ ' ' + lastname.</description>
+		</case>
+		<case>
+			<description>The second column in the record list is: company.</description>
+		</case>
+		<case>
+			<description>The third column in the record list is: phone.</description>
+		</case>
+		<case>
+			<description>The record list is filtered with the expression: state = 'MA'.</description>
+		</case>
+		
+		
+	</cases>
+	<note> If you return a value that is not equal to the record list column definition (as in the above example), then there must be an existing index on the return value field/expression. If not, when you open a drop-down record list that has an existing value selected, Alpha Anywhere will not be able to synchronize the record list to the pre-existing selection. 
+
+ For example, in the above case, the return value is customer_id, so the 'clients' table must have an index on customer_id. When the user makes a selection from the drop-down record list, the customer_id corresponding to the selected customer is shown in the type-in area of the drop-down record list control. If you then go and open the record list again, Alpha Anywhere will highlight the row in the record list corresponding to the current customer_id value in the type-in area of the record list control. If there is no index on customer_id, Alpha Anywhere will not be able to highlight the correct row of data.</note>
+</section>
+<section>
+	<description>The following script shows an advanced drop-down record list control: </description>
+	<example><![CDATA[ui_dlg_box("Print Mail Label",<<%dlg%
+Preview mail labels for which customer?;
+[%k=clients,{keylist_build('1:25,2:25,3:25',
+customer_id,alltrim(firstname)+' '+lastname, phone, city)}%.30key];
+{lf};
+%dlg%,<<%code%
+if a_dlg_button = "ok" then
+    filter_expression = "customer_id = '"+key+"'"
+    label.Preview("mail_labels",filter_expression)
+end if
+%code%)]]></example>
+</section>
+
+<section>
+	
+	<figure><link>images/XD_Print Mail Label.gif</link></figure>
+	
+</section>
+
+<section>
+	<description>When the drop-down list is open, Alpha Anywhere displays three columns of data. </description>
+	<figure><link>images/XD_Formatting Record Lists.gif</link></figure>
+	
+</section>
+<section>
+	<description>Limitations: Desktop applications only.
+</description>
+	
+</section>
+		
+	</sections>
+	<see>
+		<ref>Advanced List Box-Record List Control</ref>
+	</see>
+	
+</page>

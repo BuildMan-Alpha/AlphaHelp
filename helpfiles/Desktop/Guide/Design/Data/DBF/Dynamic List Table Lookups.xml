@@ -1,0 +1,274 @@
+<page>
+	<topic>Dynamic List Table Lookups</topic>
+<sections>
+	<section>
+<description>Many applications call for the contents of list boxes to dynamically change as variables (external to the list box) change.</description>		
+		
+		
+	</section>
+<section>
+	<title>Xbasic Example</title>
+<description>Alpha Anywhere adds a new approach to populating and refreshing dynamic list boxes and other field bound controls that have a Choices tab in their Properties dialog boxes. The new option is: "Populated using Xbasic". </description>	
+<figure><link>images/Populate_List_Using_Xbasic.gif</link></figure>	
+	
+</section>	
+<section>
+	<description>A button illustrates how to use this option.
+</description>
+	<steps>
+		<step>
+			<description>Click 'Click Here for Example Code'.
+</description>
+		</step>
+		<step>
+			<description>Enter a list of choices, one per line. Use the 'AZ up' and 'AZ' down buttons to sort them. 
+</description>
+<figure><link>images/Sort_Ascending_button.gif</link></figure>
+<figure><link>images/Populate_List_Using_Xbasic_2.gif</link></figure>
+
+
+		</step>
+		<step>
+			<description>Click OK to display the Xbasic Code dialog box. 
+</description>
+			<figure><link>images/Populate_List_Using_Xbasic_3.gif</link></figure>
+		</step>
+		<step>
+			<description>Optionally, click Copy to Clipboard, then paste the code into the OnInit event of your form. 
+</description>
+			<figure><link>images/Populate_List_Using_Xbasic_4.gif</link></figure>
+		</step>
+		<step>
+			<description>The code can be run from other locations. For example, you could put a button on your form and reload the contents of the list box by redefining <<%str% ... %str% and then setting the new value of pObj.settings.dynamic_list.
+</description>
+		
+		</step>
+	</steps>
+	
+	
+</section>	
+
+<section>
+	<title>Cascading Dynamic List Using Xbasic
+</title>
+<description>A common application requirement is to dynamically populate a list box based on a selection in another list box. This example is based on the AlphaSports sample database. 
+</description>	
+<figure><link>images/UM_Dynamic_list.gif</link></figure>	
+	
+</section>
+<section>
+	<description>The OnInit event of the form contains the following script. This script populates the two list boxes with all unique values available for the selected fields. The pointers are global because we will use them later. Note that each TABLE.EXTERNAL_RECORD_CONTENT_GET() command uses UNIQUE_KEY_VALUE() to retrieve unique values. There is no attempt yet to filter the lists.
+</description>
+	<example><![CDATA[dim global pVendor as P
+dim global pDescription as P
+pVendor = topparent:VendorList.this
+pVendor.settings.dynamic_list = table.external_record_content_get("vendor", "Name", "Name", "unique_key_value()")
+pDescription = topparent:DescriptionList.this
+pDescription.settings.dynamic_list = table.external_record_content_get("product", "Description", "Description", "unique_key_value()")
+ ]]></example>
+</section>
+<section>
+	<description>The Vendor->Vendor_ID field links to the Product->Vendor field. Since the Vendor list box provides the Vendor->Name field, we need an intermediate query to retrieve current record's Vendor->Vendor_ID field. The following script is in the onchange event of the Vendor list box.
+</description>
+	<example><![CDATA[dim ven as C
+dim vent as C
+vent = alltrim(VendorList.text)
+ven = table.external_record_content_get("Vendor", "Vendor_ID", "", "alltrim(Name) = " + s_quote(vent))]]></example>
+</section>
+<section>
+	<description>Once we have the current record's Vendor->Vendor_ID field, we use it to retrieve a list of matching Product->Description values.
+</description>
+	<example><![CDATA[pDescription.settings.dynamic_list = table.external_record_content_get("product", "Description", "Description", "alltrim(Vendor) = " + s_quote(ven))
+topparent.resynch() ]]></example>
+</section>
+<section>
+	<description>Finally, we refresh the form to display the new values in the Product list box.
+</description>
+	<example><![CDATA[topparent.resynch() ]]></example>
+</section>
+
+
+<section>
+	<title>Xdialog Example
+</title>
+	<description>Here is a sample Xdialog list box that responds to two shared variables and repopulates when you click a button. The following are two before and after pictures that show the list in action. 
+</description>
+	<figure><link>images/XD_Dynamic_list_box_1.gif</link></figure>
+	<figure><link>images/XD_Dynamic_list_box_2.gif</link></figure>
+</section>
+<section>
+	<example><![CDATA[dim shared cid_start as C
+dim shared cid_end as C
+dim SHARED cust as C
+ok_button_label = "&OK"
+cid_start="A"
+cid_end = "L"
+cmd = "kl=customer,{keylist_build(\"H=.025,1:25,2:25,3:10\",Customer_id,Lastname,Firstname,Customer_id)}{between(Lastname,"+quote(cid_start)+","+quote(cid_end)+")}"
+ui_modeless_dlg_box("Dynamic List Box",<<%dlg%
+{can_exit=ok}
+{region}
+Select customer between:| [.10cid_start!changed] [.10cid_end!changed]
+{endregion};
+{region}
+Select customer:;
+[%@cmd%.80,10cust];
+{endregion};
+{line=1,0};
+{region}
+<*15=ok_button_label!OK>
+{endregion};
+%dlg%,<<%code%
+if a_dlg_button="changed" then
+    a_dlg_button=""
+    cmd = "kl=customer,{keylist_build(\"H=.025,1:25,2:25,3:10\",Customer_id,Lastname,Firstname,Customer_id)}{between(Lastname,"+quote(cid_start)+","+quote(cid_end)+")}"
+    ui_modeless_dlg_refresh("Dynamic List Box")
+end if
+if a_dlg_button="OK" then
+    ui_modeless_dlg_close("Dynamic List Box")
+end if
+%code%) ]]></example>
+</section>
+
+<section>
+	<title>Action Script Example</title>
+	<description>This example is based on the AlphaSports sample database.
+</description>
+	<steps>
+		<step>
+			<description>Create a new action script and select "Dialog Boxes" and "Display an Xdialog Box".
+</description>
+		</step>
+		<step>
+			<description>Enter Variable Name "vendor_id", Prompt "Vendor Records", Width "70", and Height "10".
+</description>
+		</step>
+		<step>
+			<description>For the Style select "Record List-List Box" and click Define Record List.  
+</description>
+<figure><link>images/Dynamic_List_Box_1.gif</link></figure>
+		</step>
+		<step>
+			<description>From the Table list select "vendor".
+</description>
+		</step>
+		<step>
+			<description>Click Add Column to add "Vendor_id" and "Name" to the Columns in Record List field. Their widths are 58 characters and 58 characters.
+</description>
+		</step>
+		<step>
+			<description>Select "Vendor_id" for the Return Value field. This is the linking field between the Vendor and Product tables.
+</description>
+		</step>
+		<step>
+			<description>Click OK. 
+</description>
+<figure><link>images/Dynamic_List_Box_2.gif</link></figure>
+		</step>
+		<step>
+			<description>Click Add New Variable.
+</description>
+		</step>
+		<step>
+			<description>Enter Variable Name "prod_id", Prompt "Product Records", Width "70", and Height "10".
+</description>
+		</step>
+		<step>
+			<description>For the Style select "Record List-List Box" and click Define Record List. 
+</description>
+<figure><link>images/Dynamic_List_Box_4.gif</link></figure>
+		</step>
+		<step>
+			<description>From the Table list select "product".
+</description>
+		</step>
+		<step>
+			<description>Click the Filter icon to display the Filter Builder.
+</description>
+		</step>
+		<step>
+			<description>Select "Vendor" in the left-most list.
+</description>
+		</step>
+		<step>
+			<description>Select "is equal to" in the middle list. 
+</description>
+<figure><link>images/Dynamic_List_Box_5.gif</link></figure>
+		</step>
+		<step>
+			<description>Click the Value icon to display the Value dialog box.
+</description>
+		</step>
+		<step>
+			<description>Click the Select Variable button to select the "vendor_id" field. 
+</description>
+<figure><link>images/Dynamic_List_Box_6.gif</link></figure>
+		</step>
+		<step>
+			<description>Select "Action Script" and "vendor_id".
+</description>
+		</step>
+		<step>
+			<description>Click Insert.
+</description>
+		</step>
+		<step>
+			<description>Click OK to return to the Filter Builder. 
+</description>
+<figure><link>images/Dynamic_List_Box_9.gif</link></figure>
+		</step>
+		<step>
+			<description>Click Add Column to add "Product_id", "Vendor", and "Description" to the Columns in Record List field. Their widths are 12 characters, 12 characters, and 46 characters.
+</description>
+		</step>
+		<step>
+			<description>If you were going to do something with the product selection, you would presumably select "Product_id" in the Return Value field
+</description>
+		</step>
+		<step>
+			<description>Click OK and Next >. 
+</description>
+<figure><link>images/Dynamic_List_Box_3.gif</link></figure>
+		</step>
+		<step>
+			<description>Optionally, enter values for the Dialog Title, Header Text, and Footer Text. 
+</description>
+<figure><link>images/Dynamic_List_Box_7.gif</link></figure>
+		</step>
+		<step>
+			<description>Click Next >.
+</description>
+		</step>
+		<step>
+			<description>Optionally, modify the comment that describes the action script.
+</description>
+		</step>
+		<step>
+			<description>Click Finish. The resulting dialog box appears below. 
+</description>
+<figure><link>images/Dynamic_List_Box_8.gif</link></figure>
+		</step>
+		
+	</steps>
+	
+	
+</section>
+
+
+
+
+
+
+
+
+
+
+
+	
+</sections>	
+<see>
+	<ref>Working with List Boxes, Combo Boxes, Radio Buttons Etc.</ref>
+	<ref>Display an Xdialog Box</ref>
+	
+</see>	
+	
+</page>
