@@ -1,0 +1,128 @@
+<page>
+	<topic>Field Rule Field Events</topic>
+<sections>
+<section>
+	<description>When defining field rules for a table, there are two types of field rule events to which a script can be attached: Field events and Record events.</description>
+	
+	
+</section>	
+<section>
+	<title>Field Events</title>
+	<description>Field events occur while in Change or Enter mode, on a field-by-field basis. By attaching a script to these events, you can create a specialized field rule of your own.</description>
+<cases>
+	<case>
+		<title>CanEditField</title>
+		<description>Before the cursor enters the field.
+</description>
+	</case>
+	<case>
+		<title>OnEditField
+</title>
+		<description>After the cursor enters the field.
+</description>
+	</case>
+	<case>
+		<title>CanWriteField
+</title>
+		<description>Before the cursor exits the field. Use to detect what the user has entered into the field before it has been saved.
+</description>
+	</case>
+	<case>
+		<title>OnWroteField</title>
+		<description>After the cursor exits the field.
+</description>
+	</case>
+	
+	
+</cases>
+
+
+
+
+</section>	
+
+
+<section>
+	<title>The A_FIELD_VALUE System Variable</title>
+	<description>An Alpha Anywhere system variable, A_FIELD_VALUE, is useful in the CanWriteField event. Because the CanWriteField event occurs before the field value you type is actually written to the record buffer, you can use the A_FIELD_VALUE system variable in your script to refer to the value that you typed into the control. If you reference the field by name, you will access the initial value in the field before you typed in a new value.</description>
+
+
+
+
+</section>	
+<section>
+	<title>Examining the Value of a Field in the CanWriteField Event</title>
+	<cases>
+		<case>
+			<title>TableName R11; >FieldName
+</title>
+			<description>The initial value of the field.
+</description>
+		</case>
+		<case>
+			<title>A_FIELD_VALUE.Value
+</title>
+			<description>The value just typed into the control, but not yet saved.
+</description>
+		</case>
+	</cases>
+</section>
+
+
+<section>
+	
+	<description>Once the field value is obtained you can use it in your script to determine if it is valid. Your script can compare the field value with other values, check it against the values in other fields or records, and then, if desired, change the field value by changing the contents of the .Value  property of the A_FIELD_VALUE variable (e.g. A_FIELD_VALUE.Value = "New Value").</description>
+	<note>A_FIELD_VALUE.Value is a character variable, so you must use type conversion functions before comparing it to a value that is not a character value. For example:</note>
+</section>	
+
+<section>
+
+	<example><![CDATA[if ( convert_type(A_FIELD_VALUE.Value,"D") <> (MyTable->MyDateField)) then
+...
+if ( convert_type(A_FIELD_VALUE.Value,"N") <> (MyTable->MyNumericField)) then
+...]]></example>
+</section>
+
+<section>
+	<description>For example, assume you have a form with a field called Last_name. The form is based on a table called Customers. In the CanWriteField event, you have the following code:</description>
+	<example><![CDATA[ui_msg_box("Original value in field: ", customers->last_name)
+ui_msg_box("New value just entered: ", a_FIELD_VALUE.Value)]]></example>
+</section>
+
+<section>
+	<description>If the Last_name initially field contains "Smith" and you type "Jones" in the field, when you tab out of the field, the first message box will display "Smith" and the second message box will display "Jones".
+The following example shows how the CanWriteField event can be used to transform a value that is entered into a field:
+
+Assume that you are doing data entry into the Customer_Name field in a table. If you enter the customer id into this field, you want Alpha Anywhere to automatically look up the this value in a lookup table and replace the value you typed with the customer name when you tab out of the field. For example, if you typed "C011" into the field, you want Alpha Anywhere to automatically replace this entry with "Smith and Boodles, Inc.".  If you typed in a customer name, then you do not want Alpha Anywhere to transform the entry. Assume that the lookup table is called Customer and it has these fields: Customer_Id and Customer_Name. Here is the script you would attach to the Customer_Name field's CanWriteField event:
+</description>
+	<example><![CDATA[tbl = table.open("customers")
+indx = tbl.index_primary_put("customer id")
+'assuming that customer_id is a character value (if numeric, for example, then tbl.fetch_find(convert_type(A_FIELD_VALUE.Value,"N")) )
+result = tbl.fetch_find(A_FIELD_VALUE.Value)
+if result < 1 then
+    'Customer id was not found in table.
+    'Leave field entry as is.
+else
+    'Since tbl.customer_name is a character value, we do not need to do any type conversion.
+    'If we wanted to assign a non-character value to A_FIELD_VALUE we would have to first convert the value to a character value.
+    'e.g. A_FIELD_VALUE.value = convert_type(date(),"C")
+    A_FIELD_VALUE.Value = tbl.customer_name
+end if
+tbl.close() ]]></example>
+</section>
+
+
+<section>
+	<title>Script Context for Field Events</title>
+	<description>When a script attached to a field event is executing the "this" alias refers to the control on a form, or column in the case of a browse, to which the field is bound. For example, assume you have defined a field event for the Customer_Id field. Assume that you are using a form with a control called Cust_Id that is bound to the Customer_Id field. Assume that you try to edit the value in the Cust_Id control. This will cause the CanEditField event to fire. If the script that is executed uses the "this" alias, then the alias will refer to the Cust_Id control.</description>
+</section>	
+
+
+	
+</sections>	
+<see>
+	<ref>Object Events</ref>
+	<ref>Field Rule Record Events</ref>
+	<ref>Attaching Scripts to Events</ref>
+</see>	
+</page>

@@ -1,0 +1,240 @@
+<page>
+  <topic>Automatically Populating Linking Field Values when Doing Data Entry</topic>
+  
+  
+  <sections>
+   <section>
+     
+     <description>The following scenario describes a situation in which you want to automatically populate "linking" fields in a grid component menus.
+Assume that you have an application with the following characteristics:
+</description>
+     <cases>
+       <case>
+         <description>You have a grid component called Orders that displays data from your Orders table.
+</description>
+       </case>
+       
+        <case>
+         <description>You have a grid component called Items that displays data from your Items table.
+</description>
+       </case>
+       
+        <case>
+         <description>You have a page called OrdersPage.A5W that displays the Orders grid. The alias (component name) for the component on this page is OrdersGrid.
+</description>
+       </case>
+       
+        <case>
+         <description>You have a page called ItemsPage.A5W that displays the Items grid. The alias for the component on this page is ItemsGrid.
+</description>
+       </case>
+       
+        <case>
+         <description>The Orders grid has a column that displays links. When the user clicks on the link in a particular row, the ItemsPage.A5W page is opened, showing the items for the selected order.
+</description>
+       </case>
+       
+        <case>
+         <description>The Orders grid and the Items grid are "linked" by the Invoice_Number field which they have in common. ( Note : It is possible for grid components to be linked on multiple fields: e.g. Firstname and Lastname.)
+</description>
+       </case>
+       
+        <case>
+         <description>When the user enters new records into the Items grid, the Invoice_Number field (i.e., the "linking" field) is automatically filled in with the correct order number (the order number of the row in the Orders grid that the user clicked in to open the ItemsPage.A5W page).
+</description>
+       </case>
+       
+       
+     </cases>
+     
+   </section> 
+   <section>
+     <note>It should really not be necessary to include the Invoice_Number field in the Items grid because the Items grid typically is used to display the items for a single order.</note>
+     
+   </section>
+     <section>
+     <note>Another approach to automatically populating linking fields in a grid component is to use GridLinker or TabbedGridLinker components to link the grids together. The approach described here differs from a GridLinker or TabbedGridLinker in that only one grid at a time is displayed. In a GridLinker both the parent grid and all of its child grids are displayed on the same page. In the approach described above, each page that is displayed contains only a single grid, and therefore, the pages display more quickly.</note>
+     
+   </section>
+    <section>
+      <description>Alpha Five makes it easy to create this type of application by defining a special query string for the links in the Orders grid that open the ItemsPage.A5W page.</description>
+    </section>
+    
+<section>
+  <title>Creating the Grids</title>
+  <steps>
+    <step>
+      <description>Create the Orders grid based on the Invoice_Header table of the AlphaSports database.
+</description>
+    </step>
+       <step>
+      <description>On the Component Type menu make the grid "updateable".
+</description>
+    </step>
+       <step>
+      <description>On the Grid > Fields menu select a number of fields. Make sure to include the Invoice_Number field.
+</description>
+    </step>
+       <step>
+      <description>Create the Items grid based on the Invoice_Items table of the AlphaSports database.
+</description>
+    </step>
+       <step>
+      <description>On the Component Type menu make the grid "updateable".
+</description>
+    </step>
+       <step>
+      <description>On the Grid > Fields menu select a number of fields. Make sure to include the Invoice_Number field. Picture
+</description>
+<cases>
+  <case>
+ <title>Orders Grid
+</title>
+ <figure><link>images/WPT_Link_Parameter_1.gif</link></figure>
+  </case>
+   <case>
+ <title>Items Grid
+</title>
+ <figure><link>images/WPT_Link_Parameter_2.gif</link></figure>
+  </case>
+</cases>
+
+
+
+
+    </step>
+    
+    
+  </steps>
+  
+  
+</section>    
+   <section>
+     <description>Here is how you would define the links for the link control in the Orders grid:
+</description>
+    <steps>
+      <step>
+        <description>Select the "Invoice_Number" field in the Selected Fields list.
+</description>
+      </step>
+      <step>
+        <description>Set its Display Settings > Control type as "Link".
+</description>
+      </step>
+      <step>
+        <description>Set its Link Properties > Link address type as "Computed from fields in the Grid".
+</description>
+      </step>
+      <step>
+        <description>Set its Link Properties > Link address to the following expression:
+</description>
+      </step>
+      
+      
+    </steps> 
+     
+   </section>
+   <section>
+     
+     <example><![CDATA[ItemsPage.A5W?ItemsGrid_link_1C=Invoice_Number={Invoice_Number} ]]></example>
+     
+   </section>
+      <section>
+     
+     <description>The general form of the template for the link is:
+</description>
+     <example><![CDATA[< TargetPage > ? < ComponentAlias > _link_ < LinkingFieldNumber >< LinkingFieldType > = < LinkingFieldName > = < LinkingFieldValue >
+]]></example>
+     
+   </section>
+   
+     <section>
+     
+     <description>If the parent and child grid are linked on more than a single field, then the query string is repeated for each linking field, incrementing the < LinkingFieldNumber > for each linking field. For example, say you have two grids that are linked on AccountNumber (a numeric field) and Location (a character field). The template for this link would be:
+</description>
+     <example><![CDATA[MyTargetPage.A5w?myGrid_link_1C=AccountNumber={AccountNumber}&myGrid_link_2N=Location={Location}]]></example>
+     
+   </section>
+   
+     <section>
+     
+     <description><![CDATA[Note that the < LinkingFieldType > is specified by a single character ("C" for the first linking field and "N" for the second linking field). Also note that the < LinkingFieldValue > is not quoted even if it is a character value.
+Continuing with our example, assuming that the order number in row 1 of the Orders grid is "001" and in row 2 is "002", the link address for the link control in the first two rows of the grid would be:
+]]></description>
+     <example><![CDATA[MyTargetPage.A5w?myGrid_link_1C=AccountNumber={AccountNumber}&myGrid_link_2N=Location={Location}]]></example>
+     
+   </section>
+   
+     <section>
+     
+     <description>The values generated for these URLs would be:
+</description>
+<example><![CDATA[ItemsPage.A5W?ItemsGrid_link_1C=Invoice_Number=001
+ItemsPage.A5W?ItemsGrid_link_1C=Invoice_Number=002]]></example>
+     
+   </section>
+    
+      <section>
+     
+     <description>When the user click the link in the first row, the browser will:
+</description>
+<cases>
+  <case>
+    <description>Open the ItemsPage.A5W page.
+</description>
+  </case>
+  <case>
+    <description>Filter the Items on the page with the filter expression: Invoice_Number="001".
+</description>
+  </case>
+  <case>
+    <description>Ensure that all new records added automatically set the Invoice_Number field to "001".
+</description>
+  </case>
+  
+  
+</cases>
+     
+   </section>
+ <section>
+   <title>Contrasting the '_Link' and '_Filter' Query String Parameters
+</title>
+   <description>In the above example, we used the "_Link" parameter in the query string to serve two purposes:
+</description>
+   <cases>
+     <case>
+       <description>to specify the filter to use for the grid component
+</description>
+     </case>
+       <case>
+       <description>to specify the value for the linking fields in the component.
+</description>
+     </case>
+     
+   </cases>
+   
+ </section>  
+  <section>
+    
+    <description>The "_Filter" parameter can also be used in a query string to specify the filter for a grid component. For example, the following URL will open the ItemsPage.A5W page, showing only the order for order number "001":
+</description>
+    <example><![CDATA[ItemsPage.A5W?ItemsGrid_Filter=Invoice_Number="001" ]]></example>
+  </section> 
+   
+   <section>
+    
+    <description>However, if this URL opened the ItemsPage.A5W page, then if the user entered new records and did not explicitly set the Invoice_Number field to "001", the new order items would not be linked to the correct parent record.
+</description>
+ 
+  </section> 
+   
+   
+    
+  </sections>
+ <see>
+   <ref>A5W Page Filter and Order Syntax</ref>
+  
+ </see> 
+  
+  
+</page>
