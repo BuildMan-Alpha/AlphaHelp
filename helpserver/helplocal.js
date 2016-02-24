@@ -100,15 +100,17 @@ events.pageIndexer = function (args, savePage) {
         var methodFiles = 0;
         var nonMethodFiles = 0;
         for( i = 0 ; i < args.all.length ; ++i ) {
-            var testName = args.all[i].path.toLowerCase();
-            var pathEnd = testName.lastIndexOf('/');
-            if( pathEnd > 0 )
-                testName = testName.substring(pathEnd);
-            if( testName != '/index.xml' ) {
-                if( testName.indexOf(' method.') > 0 ) {
-                    ++methodFiles;
-                } else {
-                    ++nonMethodFiles;
+            if( args.all[i].path ) {
+                var testName = args.all[i].path.toLowerCase();
+                var pathEnd = testName.lastIndexOf('/');
+                if( pathEnd > 0 )
+                    testName = testName.substring(pathEnd);
+                if( testName != '/index.xml' ) {
+                    if( testName.indexOf(' method.') > 0 ) {
+                        ++methodFiles;
+                    } else {
+                        ++nonMethodFiles;
+                    }
                 }
             }    
         }
