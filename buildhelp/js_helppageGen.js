@@ -7,6 +7,22 @@ var async = require('async');
 var esprima = require('esprima');
 var sourceFiles = [];
 var lastContext = null;
+var dirCreateRecurse = function( folderName ) {
+    var stats = null;
+    try {
+        stats = fs.statSync(folderName);
+    } 
+    catch (e) {
+    };
+    
+    if (!stats || !stats.isDirectory()) {
+        var parentFolderName = folderName.substring(0,folderName.lastIndexOf('/'));
+        if( parentFolderName.length > 1 ) {
+            dirCreateRecurse(parentFolderName);
+        }
+        fs.mkdirSync(folderName);
+    }
+}; 
 
 var protectXml = function(content) {
     if( content.indexOf("&") >= 0 
@@ -51,7 +67,20 @@ var generateXMLHelp = function(content) {
             }
             if( type ) {
                 if( type == "context" ) {
-                    context = line.substring(splitPos+1);
+                    context = line.substring(splitPos+1).trim();
+                } else if( type == "namespace" || type == "class" ) {
+                    context = line.substring(splitPos+1).trim();
+                    if( !build.context[context] ) {
+                        var allParts = context.split('.');
+                        if( allParts.length > 1 ) {
+                            var parentContext = build.context[allParts[0]];
+                            if( parentContext ) {
+                                allParts.splice(0,1);
+                                build.context[context] = {  path : parentContext.path + '/' + allParts.join('/') , classname : context };
+                                console.log("Added context "+context);
+                            }                            
+                        }
+                    }
                 } else if( type == "method") {
                     method = line.substring(splitPos+1).trim();
                 } else if( type == "function" || type == "funct" || type == "func" || type == "fun" )  {
@@ -178,7 +207,10 @@ var generateXMLHelp = function(content) {
         pagename = "index";
         xml += "\t<!--list:.-->\r\n";
     }
-        
+    if( !pagename ) {
+        pagename = "index";
+        xml += "\t<!--list:.-->\r\n";        
+    }    
     xml += "</page>\r\n";
     lastContext = context;
     return { context : context.trim() , pagename : pagename , xml : xml };
@@ -193,8 +225,8 @@ var extractJsHelp = function() {
                 var options = { loc : true , range : false , comment : true }
                 var syntax = esprima.tokenize(code,options);
                 var i;
-                var contexts = {};
                 var fileOps = [];
+                var contexts = {};
                 lastContext = null;
                 for( i = 0 ; i < syntax.comments.length ; ++i ) {
                     if( syntax.comments[i].type == "Block" ) {
@@ -224,6 +256,8 @@ var extractJsHelp = function() {
             if( fileOps.length > 0 ) {
                 async.eachSeries(fileOps, function (fileOp, callbackLoopNested) {
                     fs.writeFile(fileOp.filename,fileOp.xml,function(err) {
+                        var folderName = fileOp.filename.substring(0,fileOp.filename.lastIndexOf('/'));
+                        dirCreateRecurse(folderName);                                
                          if( err ) {
                              console.log('Error writing '+fileOp.filename+" error "+err);
                          }
