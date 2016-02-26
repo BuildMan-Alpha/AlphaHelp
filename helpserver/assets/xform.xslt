@@ -134,6 +134,7 @@
                             <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
                     </xsl:if>
+                    <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
                     <xsl:if test="section">
                         <xsl:for-each select="section">
                             <xsl:call-template name="sectionstep-content"/>

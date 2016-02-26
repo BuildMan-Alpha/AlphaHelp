@@ -157,8 +157,23 @@ var generateXMLHelp = function(content) {
             examples += "\r\n" + line;
         } else if( lastType == "arguments" || lastType == "args" ) {
             if( lastPropOrArg ) {
-                lastPropOrArg.arguments = [];
-                processArgOrProc(line,dashPos,lastPropOrArg.arguments);
+                var splitPos = line.indexOf(":");
+                var dashPos = line.indexOf("-");
+                var typePos = line.indexOf("(");
+                var type = null; 
+                if( splitPos > 0 ) {
+                    if( dashPos < 0 || splitPos < dashPos ) {
+                        if( typePos < 0 || splitPos < typePos ) {
+                            type = line.substring(0,splitPos).toLowerCase();
+                        }
+                    }
+                }
+                if( dashPos > 0 ) {
+                    if( !lastPropOrArg.arguments ) {
+                        lastPropOrArg.arguments = [];
+                    }
+                    processArgOrProc(line,dashPos,lastPropOrArg.arguments);
+                }
             }
         }        
     }
@@ -219,17 +234,15 @@ var generateXMLHelp = function(content) {
             xml += "\t\t\t<description>"+properties[i].description+"</description>\r\n";
             if( properties[i].arguments ) {
                 var j;
-                xml += "\t\t\t<section>";
-                xml += "\t\t\t\t<arguments>";
+                xml += "\t\t\t<arguments>\r\n";
                 for(j = 0 ; j < properties[i].arguments.length ; ++j ) {
-                    xml += "\t\t\t\t\t<argument>\r\n";
-                    xml += "\t\t\t\t\t\t<name>"+properties[i].arguments[j].name+"</name>\r\n";
-                    xml += "\t\t\t\t\t\t<type>"+properties[i].arguments[j].type+"</type>\r\n";
-                    xml += "\t\t\t\t\t\t<description>"+properties[i].arguments[j].description+"</description>\r\n";
-                    xml += "\t\t\t\t\t</argument>\r\n";
+                    xml += "\t\t\t\t<argument>\r\n";
+                    xml += "\t\t\t\t\t<name>"+properties[i].arguments[j].name+"</name>\r\n";
+                    xml += "\t\t\t\t\t<type>"+properties[i].arguments[j].type+"</type>\r\n";
+                    xml += "\t\t\t\t\t<description>"+properties[i].arguments[j].description+"</description>\r\n";
+                    xml += "\t\t\t\t</argument>\r\n";
                 }
-                xml += "\t\t\t\t</arguments>";
-                xml += "\t\t\t</section>";
+                xml += "\t\t\t</arguments>\r\n";
             } 
             xml += "\t\t</property>\r\n";
         }
