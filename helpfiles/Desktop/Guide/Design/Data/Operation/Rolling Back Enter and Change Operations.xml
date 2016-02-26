@@ -1,0 +1,38 @@
+<page>
+	<topic>Rolling Back Enter and Change Operations</topic>
+<sections>
+	
+	<section>
+		<description><![CDATA[The success or failure of  Enter and  Change operations is controlled through a special flag passed to the <TBL>.ENTER_END() and <TBL>.CHANGE_END() methods. These flags, called commit flags, are used to prevent either the creation of a new record or changes to an existing record at the time the  Enter or  Change operation is completed. If the commit flag is set to FALSE, the operation is canceled. 
+
+When several related tables are being changed simultaneously, you use the commit flags to ensure that the failure of one Enter or Change operation will cancel any other related Enter or Change operations. For example, the following script shows a general model for rolling back an Enter operation:
+]]></description>
+	<example><![CDATA[dim commit_flag as L
+tbl = table.current()
+tbl.enter_begin()
+commit_flag = .T.
+ON ERROR GOTO ERROR_handler
+'--------------------------------------
+'Body of enter operation
+'Field assignments and other statements
+'--------------------------------------
+entry_point:
+tbl.enter_end(commit_flag)
+'--------------------------------------
+'other statements
+'--------------------------------------
+end
+ERROR_handler:
+'--------------------------------------
+'statements to execute on error.
+'--------------------------------------
+commit_flag = .F.
+RESUME entry_point]]></example>	
+	</section>
+	<section>
+		<description>Any other dependent Enter operations should be nested in the body of the Enter operation for the current table. If any of these operations set the commit_flag variable to FALSE, the nested operation and all nested operations above it are canceled.</description>
+	</section>
+	
+</sections>	
+	
+</page>
