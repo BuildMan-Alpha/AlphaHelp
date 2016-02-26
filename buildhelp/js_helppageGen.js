@@ -34,6 +34,24 @@ var protectXml = function(content) {
     return content;
 };
 
+var processArgOrProc = function(line,dashPos,properties) {
+    var argName = line.substring(0,dashPos).trim();
+    var description = line.substring(dashPos+1).trim();
+    var typeIndex = argName.indexOf('(');
+    var argType = "string";
+    if( typeIndex > 0 ) {
+        argType = argName.substring(typeIndex+1).trim();
+        var endArgType = argType.lastIndexOf(')');
+        if( endArgType > 0 ) {
+            argType = argType.substring(0,endArgType);
+        }                        
+        argName = argName.substring(0,typeIndex).trim();
+    }
+    var lastObj = { name : argName , type : argType , description : description };
+    properties.push( lastObj );
+    return lastObj; 
+}
+
 var generateXMLHelp = function(content) {
     var lines = content.split('\n');
     var i;
@@ -48,11 +66,17 @@ var generateXMLHelp = function(content) {
     var arguments = [];
     var isFunction = false;
     var isConstructor = false;
+    var endTagType = []; 
+    var lastPropOrArg = null;
     for(i = 0 ; i < lines.length ; ++i ) {
         var line = lines[i].trim();
         if( endTag && line.indexOf(endTag) >= 0 ) {
             lastType = null;
             endTag = null;
+            if( endTagType.length > 0 ) {
+                lastType = endTagType[endTagType.length-1];
+                endTagType.splice(endTagType.length-1,1);
+            }
         } else if( !endTag ) {
             var splitPos = line.indexOf(":");
             var dashPos = line.indexOf("-");
@@ -94,7 +118,12 @@ var generateXMLHelp = function(content) {
                 } else if( type == "discussion" || type == "disc") {
                     discussion = line.substring(splitPos+1);
                 } else if( type == "arguments" || type == "args") {
-                    ;                    
+                    endTag = line.substring(splitPos+1).trim();
+                    if( endTag.length == 0 ) {
+                        endTag = null;
+                    } else {
+                        endTagType.push(lastType);
+                    }                    
                 } else if( type == "properties" || type == "props") {
                     ;                    
                 } else if( type == "example") {
@@ -113,32 +142,24 @@ var generateXMLHelp = function(content) {
                 examples += "\r\n" + line;
             } else if( lastType == "arguments" 
                     || lastType == "args"
-                    || lastType == "properties" 
+            ) {
+                if( dashPos > 0 ) {
+                   lastPropOrArg = processArgOrProc(line,dashPos,arguments);
+                }
+            } else if( lastType == "properties" 
                     || lastType == "props" 
                     ) {
                 if( dashPos > 0 ) {
-                    // argument...
-                    var argName = line.substring(0,dashPos).trim();
-                    var description = line.substring(dashPos+1).trim();
-                    var typeIndex = argName.indexOf('(');
-                    var argType = "string";
-                    if( typeIndex > 0 ) {
-                        argType = argName.substring(typeIndex+1).trim();
-                        var endArgType = argType.lastIndexOf(')');
-                        if( endArgType > 0 ) {
-                            argType = argType.substring(0,endArgType);
-                        }                        
-                        argName = argName.substring(0,typeIndex).trim();
-                    }
-                    if( lastType == "properties" || lastType == "props" ) {
-                        properties.push( { name : argName , type : argType , description : description } );                        
-                    } else {
-                        arguments.push( { name : argName , type : argType , description : description } );
-                    }                    
+                   lastPropOrArg = processArgOrProc(line,dashPos,properties);
                 }
             }
         } else if( lastType == "example" ) {
             examples += "\r\n" + line;
+        } else if( lastType == "arguments" || lastType == "args" ) {
+            if( lastPropOrArg ) {
+                lastPropOrArg.arguments = [];
+                processArgOrProc(line,dashPos,lastPropOrArg.arguments);
+            }
         }        
     }
     var pagename = method;
@@ -196,6 +217,20 @@ var generateXMLHelp = function(content) {
             xml += "\t\t\t<name>"+properties[i].name+"</name>\r\n";
             xml += "\t\t\t<type>"+properties[i].type+"</type>\r\n";
             xml += "\t\t\t<description>"+properties[i].description+"</description>\r\n";
+            if( properties[i].arguments ) {
+                var j;
+                xml += "\t\t\t<section>";
+                xml += "\t\t\t\t<arguments>";
+                for(j = 0 ; j < properties[i].arguments.length ; ++j ) {
+                    xml += "\t\t\t\t\t<argument>\r\n";
+                    xml += "\t\t\t\t\t\t<name>"+properties[i].arguments[j].name+"</name>\r\n";
+                    xml += "\t\t\t\t\t\t<type>"+properties[i].arguments[j].type+"</type>\r\n";
+                    xml += "\t\t\t\t\t\t<description>"+properties[i].arguments[j].description+"</description>\r\n";
+                    xml += "\t\t\t\t\t</argument>\r\n";
+                }
+                xml += "\t\t\t\t</arguments>";
+                xml += "\t\t\t</section>";
+            } 
             xml += "\t\t</property>\r\n";
         }
         xml += "\t</properties>\r\n";
