@@ -181,7 +181,7 @@ var generateXMLHelp = function(content) {
         
     xml += "</page>\r\n";
     lastContext = context;
-    return { context : context , pagename : pagename , xml : xml };
+    return { context : context.trim() , pagename : pagename , xml : xml };
 };
 
 var extractJsHelp = function() {
@@ -196,9 +196,9 @@ var extractJsHelp = function() {
                 var contexts = {};
                 var fileOps = [];
                 lastContext = null;
-                for( i = 0 ; i < syntax.length ; ++i ) {
-                    if( syntax[i].type == "BlockComment" ) {
-                        var  content = syntax[i].value.trim();
+                for( i = 0 ; i < syntax.comments.length ; ++i ) {
+                    if( syntax.comments[i].type == "Block" ) {
+                        var  content = syntax.comments[i].value.trim();
                         if( content.substring(0,5) == "[DOC:" && content.substring(content.length-1) == ']' ) {
                             content = content.substring(5,content.length-1).trim();
                             var helpPage = generateXMLHelp(content);
@@ -208,10 +208,11 @@ var extractJsHelp = function() {
                         }              
                     }
                 }
-                for (context in contexts) {
-                    var map = build.context[context];
+                var ctxName;
+                for (ctxName in contexts) {
+                    var map = build.context[ctxName];
                     if( map ) {
-                        var ctx = contexts[context];
+                        var ctx = contexts[ctxName];
                         var j;
                         for( j = 0 ; j < ctx.files.length ; ++j ) {
                             var fn = map.path + '/' + ctx.files[j].pagename + ".xml";
