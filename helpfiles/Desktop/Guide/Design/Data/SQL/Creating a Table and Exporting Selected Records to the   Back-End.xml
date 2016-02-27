@@ -1,0 +1,77 @@
+<page>
+	<topic>Creating a Table and Exporting Selected Records to the Back-End</topic>
+<sections>
+	<section>
+		<description>The following script selects records from the Alpha Sports customer.dbf table and writes them to a new table named "CustomerX" in the Access AlphaSport.mdb database.
+Start by defining variables. In this case you need SQL::Connection, SQL::ResultSet, and SQL::TableInfo objects.
+</description>
+		<example><![CDATA[dim conn as SQL::Connection
+dim rs as SQL::ResultSet
+dim ti as SQL::TableInfo
+dim source_table as C
+dim destination_table as C
+dim tbl as P]]></example>
+	</section>
+	<section>
+		<description>Define the source and destination tables.</description>
+		<example><![CDATA[source_table = "C:\Program Files\A5V8\Samples\AlphaSports\customer.dbf"
+destination_table = "CustomerX"]]></example>
+	</section>
+	<section>
+		<description>Read the properties of the source table. SQL_TableInfoOfDBF() sets the values of the ti SQL::TableInfo object to reflect the properties of source_table.</description>
+		<example><![CDATA[if .not. SQL_TableInfoOfDBF(source_table, ti) then
+    ui_msg_box("Error", "Could not read properties of " + source_table)
+    end
+end if]]></example>
+	</section>
+	<section>
+		<description>Connect to the back-end database. If there is an error, display a message and end the script.</description>
+		<example><![CDATA[if .not. conn.open("{A5API=Access,FileName='C:\Program Files\A5V8\MDBFiles\Alphasports.mdb',UserName='Admin'}") then
+    ui_msg_box("Error", "Could not establish connection" + crlf()+ conn.CallResult.text)
+    end
+end if]]></example>
+	</section>
+	<section>
+		<description>Create the new destination table in the back-end database with the CreateTable() method. If there is an error, display a message, close the connection, and end the script.</description>
+		<example><![CDATA[ti.Name = destination_table then
+if .not. conn.CreateTable(ti)
+    ui_msg_box("Error", "Could not create back-end table" + crlf()+ conn.CallResult.text)
+    conn.close()
+    end
+end if]]></example>
+	</section>
+	<section>
+		<description>Select the records to copy. Read the data from the source table into the rs SQL::ResultSet object with the ResultSetFromDBF() method.</description>
+		<example><![CDATA[tbl = table.open(source_table)
+query.filter = "bill_state_region = \"MA\""
+tbl.query_create()
+rs = conn.ResultSetFromDBF(tbl)]]></example>
+	</section>
+	<section>
+		<description>Add the selected records to the destination_table with the InsertData() method.</description>
+		<example><![CDATA[if .not. conn.InsertData("", destination_table, rs)
+    ui_msg_box("Error", "Could not insert data into back-end table" + crlf()+ conn.CallResult.text)
+    conn.close()
+    end
+end if]]></example>
+	</section>
+	<section>
+		<description>Close the table and the connection.</description>
+		<example><![CDATA[tbl.close()
+conn.close()]]></example>
+	</section>
+	<section>
+		<description>Limitations: Desktop applications only.</description>
+		
+	</section>
+	
+</sections>	
+	<see>
+<ref>Working with SQL Databases, SQL_TableInfoOfDBF()</ref>
+<ref>SQL::Connection::CreateTable()</ref>
+<ref>SQL::Connection::InsertData()</ref>
+<ref>SQL::Connection::ResultSetFromDBF()	</ref>	
+		
+		
+	</see>
+</page>
