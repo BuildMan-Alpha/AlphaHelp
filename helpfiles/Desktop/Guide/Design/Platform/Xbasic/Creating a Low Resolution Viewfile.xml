@@ -1,0 +1,56 @@
+<page>
+	
+	<topic>Creating a Low Resolution Viewfile</topic>
+<sections>
+	<section>
+		<description>When you create an image database, you may want to have a low resolution viewfile to represent a higher resolution image. Typically, the viewfile would be used when you want to quickly put an image on the screen, without moving megabytes of data.
+
+The following script illustrates a technique for creating a low resolution viewfile on the fly. Presumably, you would save the viewfiles you create along side their higher resolution partners. This script was attached to the OnFetch() event of a form with an image control named bitmap1. and a text field named Fname.
+</description>
+		<example><![CDATA[dim imag as B
+dim pth as C
+dim fptr as P
+pth = a5.get_path()+ chr(92)]]></example>
+	</section>
+	
+	<section>
+		<description>Test whether we have a filename for the picture in the control Fname. If yes, then read the picture into a blob variable named imag. Next, load imag into a memory buffer named hres with UI_BITMAP_LOAD().</description>
+		<example><![CDATA[if (alltrim(Fname.text) <> "") then
+    imag = file.to_blob(Fname.text)
+    ui_bitmap_load("hres", imag)]]></example>
+	</section>
+	
+	<section>
+		<description>Create a new memory buffer named lres with UI_BITMAP_CREATE(), then fill it with a stretched version of hres.</description>
+		<example><![CDATA[ui_bitmap_create("lres", 4, 3)
+    ui_bitmap_draw("lres", <<%code%
+    bitmap("hres", 0, 0, 4, 3, "stretch")
+    %code%)]]></example>
+	</section>
+	
+	<section>
+		<description><![CDATA[Move the memory buffer named lres into the imag variable with UI_BITMAP_SAVE() and save it to disk with <FILE>.WRITEB() . Remove the lres and hres buffers from memory.  ]]></description>
+		<example><![CDATA[ imag = ui_bitmap_save("lres")
+    fptr = file.create(pth + "lres.bmp", FILE_RW_EXCLUSIVE)
+    fptr.writeb(imag)
+    fptr.close()
+    ui_bitmap_drop("lres")
+    ui_bitmap_drop("hres")]]></example>
+	</section>
+	
+	<section>
+		<description>Display the low resolution image on the form. If there was no high resolution image to display, display white.bmp.  </description>
+		<example><![CDATA[  bitmap1.bitmap.filename = pth + "lres.bmp"
+    bitmap1.Refresh()
+else
+    bitmap1.bitmap.filename = pth + "white.bmp"
+    bitmap1.Refresh()
+end if]]></example>
+	</section>
+	
+	
+</sections>	
+	
+	
+	
+</page>

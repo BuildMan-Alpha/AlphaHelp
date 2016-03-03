@@ -1,0 +1,177 @@
+<page>
+	<topic>Using Xbasic to Create Queries</topic>
+<description>The RADIO2 option button asks the user whether to preview or print, and stores the result into a form variable named print_option. BUTTON1 executes an Xbasic routine that examines all these variables and calls the appropriate preview or print functions.</description>	
+
+<sections>
+	<section>
+		<title>Xbasic Code Run by the Button1 OnPush Event </title>
+		<example><![CDATA[if (option = 1) then
+    filter = "date = [varD->today]"
+else if (option = 2) then
+    filter = "between(date, [varD->begindate], [varD->enddate])"
+else if (option = 3) then
+    list_invno = stritran(invoice_numbers,",",crlf())
+    list_invo = alltrim(list_invno)
+   filter = *for_each(x, "invoice_number = " + quote(x) ,list_invo)
+    filter = alltrim(filter)
+    filter = stritran(filter, crlf(), " .or. ")
+else if (option = 4) then
+    filter = "between(invoice_number, [varC->begin_inv], [varC->end_inv])"
+end if
+filter = replace_parameters(filter, local_variables())
+if (print_option = "preview") then
+    report.preview("Invoice", filter)
+else
+    report.print("invoice", filter)
+end if]]></example>
+	</section>
+	
+	<section>
+		<title>An Explanation of the Xbasic Code</title>
+		<description><![CDATA[The RADIO1 option buttons set the value of a form variable named option. The value 1 corresponds to the "Today's Invoices" selection. If option is equal to 1, we set the filter variable equal to the expression "date = [varD->today]", where today is a field initialized to the current date.]]></description>
+		<example><![CDATA[if (option = 1) then
+    filter = "date = [varD->today]" ]]></example>
+	</section>
+	
+	<section>
+	
+		<description><![CDATA[The "Range of Dates" selection corresponds to option equal to 2. In this case we set filter equal to the expression "between(date, [varD->begindate], [varD->enddate])". The between() function returns true if the first argument, date, is between the values of the second and third arguments, the begindate and enddate fields.]]></description>
+		<example><![CDATA[else if (option = 2) then
+    filter = "between(date, [varD->begindate], [varD->enddate])" ]]></example>
+	</section>
+	
+	
+	<section>
+	
+		<description>The "Specific Invoice Number(s)" selection corresponds to option equal to 3. The stritran() function replaces each comma in the invoice_numbers field with the carriage return and line feed characters. The result is saved into the list_invno character variable.</description>
+		<list>
+			<item>
+				<name-title>Before
+</name-title>
+				<description-title>After
+</description-title>
+			</item>
+			<item>
+				<name>A001, A002, A003
+</name>
+				<description><![CDATA[A001 
+A002 
+A003]]></description>
+			</item>
+			
+		</list>
+	</section>
+	
+	<section>
+
+		<example><![CDATA[else if (option = 3) then
+ list_invno = stritran(invoice_numbers,",",crlf())]]></example>
+	</section>
+	
+	
+	
+	
+	<section>
+	
+		<description>The alltrim() function removes any leading or trailing spaces.</description>
+		<example><![CDATA[    list_invo = alltrim(list_invno) ]]></example>
+	</section>
+	
+	<section>
+	
+		<description>The *for_each() function adds "invoice_number = " to each line, places quotes around the invoice number, and saves the results into the filter variable.</description>
+		<list>
+			<item>
+				<name-title>Before</name-title>
+				<description-title>After</description-title>
+			</item>
+			<item>
+				<name>A001 </name>
+				<description>invoice_number = "A001"</description>
+			</item>
+			<item>
+				<name>A002 </name>
+				<description>invoice_number = "A002"</description>
+			</item>
+				<item>
+				<name>A003</name>
+				<description>invoice_number = "A003"
+</description>
+			</item>
+		</list>
+	</section>
+	
+	
+	
+	<section>
+	
+
+		<example><![CDATA[filter = *for_each(x, "invoice_number = " + quote(x) ,list_invo) ]]></example>
+	</section>
+	
+	
+	<section>
+	
+		<description>The alltrim() function again removes any leading or trailing spaces.</description>
+		<example><![CDATA[filter = alltrim(filter) ]]></example>
+	</section>
+	
+	
+	<section>
+	
+		<description>The stritran()function again reformats the data to substitute ".or." for each pair of carriage return and line feed characters.</description>
+		<list>
+			<item>
+				<name-title>Before</name-title>
+				<description-title>After</description-title>
+			</item>
+			<item>
+				<name>invoice_number = "A001" 
+invoice_number = "A002" 
+invoice_number = "A003"</name>
+				<description>invoice_number = "A001" .or. invoice_number = "A002" .or. invoice_number = "A003"
+</description>
+			</item>
+			
+		</list>
+	</section>
+	
+	
+	<section>
+	
+
+		<example><![CDATA[ filter = stritran(filter, crlf(), " .or. ") ]]></example>
+	</section>
+	
+	<section>
+	
+		<description>The "Range of Invoice Numbers" selection corresponds to option equal to 4. The between() function returns true if an invoice number is between the begin_inv and end_inv field values.</description>
+		<example><![CDATA[else if (option = 4) then
+    filter = "between(invoice_number, [varC->begin_inv], [varC->end_inv])"
+end if ]]></example>
+	</section>
+	
+	<section>
+	
+		<description>The replace_parameters() function inserts the actual values of the referenced variables into the filter expression. The reason that this function is necessary is that the variables only have local session scope and cannot be resolved by the preview() and print() functions. An alternative solution that would not require the use of replace_parameters would be to first declare the variables as shared.</description>
+		<example><![CDATA[filter = replace_parameters(filter, local_variables()) ]]></example>
+	</section>
+	
+	<section>
+	
+		<description>Finally, we call the appropriate function depending on the value of the print_option variable.</description>
+		<example><![CDATA[if (print_option = "preview") then
+    report.preview("Invoice", filter)
+else
+    report.print("invoice", filter)
+end if ]]></example>
+	</section>
+	
+</sections>	
+	<see>
+		<ref>Creating and Programming a Hotspot with Action Scripting</ref>
+	<ref>Creating and Programming Hotspots with Xbasic</ref>
+	<ref>The InvoiceReportMenu Form</ref>
+	
+	</see>
+</page>

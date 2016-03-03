@@ -1,0 +1,163 @@
+<page>
+	<topic>Conditionally Displaying Panes on a Tab Control
+</topic>
+<sections>
+	<section>
+		<description>The panes in a tab control can be turned on and off, depending on whether a condition is true.
+To conditionally show a pane in a tab control, use the following syntax for the tab control:
+</description>
+		<example><![CDATA[{tab=variable_name!event_name}
+{pane=Pane1 Description?condition1} ]]></example>
+	</section>
+	
+	<section>
+		<description>Xdialog code for first page of tab control
+</description>
+		<example><![CDATA[{pane=Pane2 Description?condition2} ]]></example>
+	</section>
+	<section>
+		<description>Xdialog code for second page of tab control
+</description>
+		<example><![CDATA[{pane=Pane'n' Description?condition'n'} ]]></example>
+	</section>
+	
+	<section>
+		<description>Xdialog code for 'N'th page of tab control
+</description>
+		<example><![CDATA[{endtab}
+ ]]></example>
+	</section>
+	
+	<section>
+		<description>For example, the following script displays a dialog with a tab control. If the user checks the 'Different shipping address?' check box, then a new tab, called 'Shipping' is displayed. When the user clicks on a different tab, a ui_msg_box()pops up, demonstrating how the tab change event can be trapped.</description>
+		<example><![CDATA[dim a_card_type[100] as C
+dim a_expire_month[12] as C
+x = "American Express,Visa,Master Card,Discover"
+a_card_type.initialize( stritran(x,",",crlf() ) )
+x = "01,02,03,04,05,06,07,08,09,10,11,12"
+a_expire_month.initialize( stritran(x,",",crlf() ) )
+dim a_expire_year[10] as C
+x = "2000,2001,2002,2003,2004,2005,2006,2007,2008,2009"
+a_expire_year.initialize( stritran(x,",",crlf() ) )
+shipping_flag = .f.
+page = "Billing"
+old_tab = page
+result = ui_dlg_box("Title",<<%dlg%
+{tab=page!page_change}
+{pane=Billing}
+{region1}
+Billing Address:;
+{line=2,0};
+First name:| [.32firstname] ;
+Last name:| [.32lastname] ;
+Address 1:| [.32address1] ;
+Address 2:| [.32address2] ;
+City:| [.32City] ;
+State:| [State] ;
+Zip:| [Zip];
+{lf};
+(shipping_flag) Different shipping address?;
+{endregion1};
+{pane=Shipping?shipping_flag}
+{region}
+Shipping Address:;
+{line=2,0};
+First name:| [.32firstname] ;
+Last name:| [.32lastname] ;
+Address 1:| [.32address1] ;
+Address 2:| [.32address2] ;
+City:| [.32City] ;
+State:| [State] ;
+Zip:| [Zip]
+{endregion};
+{pane=Credit Card}
+{region}
+Card Type:| [.32card_type^=a_card_type] ;
+Card Number:| [.32card_number] ;
+Expiration:| [.4expiry_month^=a_expire_month] [.5expiry_year^=a_expire_year] ;
+{endregion};
+{endtab}|
+{Region3}
+ <10&OK>;
+ <10&Cancel>;
+{Endregion3}
+%dlg%,<<%code%
+if a_dlg_button = "page_change" then
+    a_dlg_button = ""
+    question = ui_msg_box("Notice","User wants to change the tab page. Allow?", ui_yes_no + ui_question_symbol)
+    if question = ui_no_selected then
+        page = old_tab
+    else
+        old_tab = page
+    end if
+end if
+%code%) ]]></example>
+	</section>
+	
+	<section>
+		<description>The above script creates this dialog: 
+</description>
+		<figure><link>images/XD_TABBED_CONTROL_3.GIF</link></figure>
+	</section>
+	
+	<section>
+		<description>When the user clicks the check box, the 'Shipping' tab appears: 
+</description>
+		<figure><link>images/XD_TABBED_CONTROL_4.GIF</link></figure>
+	</section>
+	
+	<section>
+		<description>When the user tries to navigate to a new tab, the following UI_MSG_BOX() appears: 
+</description>
+		<figure><link>images/XD_Notice.gif</link></figure>
+	</section>
+	
+	
+	
+	
+	<section>
+		<description>In the above script notice that the command to define the Shipping pane is:
+</description>
+		<example><![CDATA[{pane=Shipping?shipping_flag} ]]></example>
+	</section>
+	
+	<section>
+		<description>When the dialog is opened, the shipping_flag is initially set to .F., so the Shipping pane is not shown. When the user clicks the check box on the Billing pane, the shipping_flag is set to .T., and so the pane is displayed.
+The tab control is defined using the command:</description>
+		<example><![CDATA[{tab=page!page_change} ]]></example>
+	</section>
+	
+	<section>
+		<description>Whenever the user changes panes on the tab control, and event called page_change is generated. The following event handling code handles this event:
+</description>
+		<example><![CDATA[1. if a_dlg_button = "page_change" then
+2. a_dlg_button = ""
+3. question = ui_msg_box("Notice","User wants to change the tab page. Allow?",ui_yes_no+ui_question_symbol)
+4.            if question = ui_no_selected then
+5.              page = old_tab
+6.            else
+7.              old_tab = page
+8.            end if
+9. end if
+]]></example>
+	</section>
+	
+	<section>
+		<description>In line 3, a message box is opened when the user tries to change tabs. If the user click 'No' on the message box, then question is equal to ui_no_selected and page is set to old_tab. old_tab is a variable that contains the name of pane that had focus before the user tried to change panes. So, the user stays on the current pane.
+If, on the other hand, the user selects 'Yes', then old_tab is set to the tab pane to which the user is switching.
+Note that old_tab is initialized to 'Billing' before the dialog is opened. (i.e. before the UI_DLG_BOX()command).
+</description>
+		
+	</section>
+	<section>
+		<description>Limitations: Desktop applications only.
+</description>
+		
+	</section>
+	
+</sections>	
+<see>
+	<ref>The Help Command</ref>
+</see>	
+	
+</page>

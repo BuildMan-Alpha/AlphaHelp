@@ -1,0 +1,61 @@
+<page>
+	<topic>Reading an Excel Spreadsheet with OLE</topic>
+<description>The following script shows how to read data from an Excel spreadsheet into a character array.</description>	
+	
+<sections>
+<section>
+	<description>Create an array to receive the data. The array is 4 columns by 10 rows.</description>
+	<example><![CDATA[dim ptr2[4,10] as C
+get_excel_data("c:\spread\books.xls", ptr2)]]></example>
+</section>	
+<section>
+	<description>Open the spreadsheet and step through the cells.</description>
+	<example><![CDATA[' Reads spreadsheet data into Data_Array
+function get_excel_data as V (Filename as C, First_Row as N, First_Col as N, Data_Array as P)
+    dim MyObject as P
+    dim row as N
+    dim col as N
+    dim rows as N
+    dim cols as N
+    dim cell as C
+    dim temp as C
+    cols = Data_Array.size(1)
+    rows = Data_Array.size(2)
+    on error goto quitting
+    MyObject = ole.getobject(Filename)
+    for row = First_Row to First_Row + rows
+        for col = First_Col to First_Col + cols
+            cell = get_col(col) + row
+            Data_Array[row,col] = MyObject.activesheet.Cells.Range(cell)
+        next col
+    next row
+quitting:
+    MyObject.close()
+    delete MyObject
+end function
+' Computes the column letter
+function get_col as C (num as N)
+    dim k as N
+    dim c1 as C
+    dim c2 as C
+    k = int( mod(num/26,26) )
+    c1 = if(k > 0, chr(k + 64), "")
+    c2 = chr(num - (k * 26) + 64)
+    get_col = ltrim(c1+c2)
+end function ]]></example>
+</section>	
+<section>
+	<description>If you do not know the data types of a returned value, you can check it with this statement.</description>
+	<example><![CDATA[typeof(Data_Array[row,col].value) ]]></example>
+</section>		
+<section>
+	<description>The value returned will be "C" (character), "N" (numeric), or "T" (date/time). If you want to preserve the format of a date/time value, examine the value of : </description>
+	<example><![CDATA[Data_Array[row,col].NumberFormat. ]]></example>
+</section>	
+	
+</sections>	
+<see>
+	<ref>OLE and ActiveX Methods</ref>
+</see>	
+	
+</page>

@@ -1,0 +1,53 @@
+<page>
+	<topic>Sending Dialog Contents via Email</topic>
+<sections>
+<section>
+	<description>There are times when the output of a dialog should not go directly to a database. You may want to email the entry, for example. Here is how you would do that, assuming that once again you are starting with our Simple Dialog example.
+
+ In the Xbasic functions section of your dialog, insert this function:
+</description>
+	<example><![CDATA[FUNCTION sendEmail AS L (address AS C, subject as C, body AS C )
+  debug(1)
+  dim pm as P
+  dim ps as P
+  sendEmail= .F.
+  IF (email_smtp_open(ps, "smtp.myserver.com", 25, "username@myserver.com","password"))
+		pm.to = address
+		pm.from = "myserver.com"
+		pm.from_alias = "My Email Alias"
+		pm.subject = subject
+		pm.message = body
+		sendEmail = email_smtp_send(pm, ps)
+  END IF
+  email_smtp_close(ps)
+END FUNCTION ]]></example>
+</section>	
+<section>
+	<description>You will need to edit the function for your server, which is why we have inserted the debug statement for you.
+ In the afterDialogValidate event, insert the following code:
+</description>
+	<example><![CDATA[function afterDialogValidate as v (e as p)
+'... comments omitted here ...
+'debug(1)
+ 
+dim address as C = "destinationUsername@destinationCompany.com"
+dim subject as C = "Captured Combatant"
+dim body as C
+body = "NAME: " + e.dataSubmitted.NAME + crlf()
+body = body + "RANK: " + e.dataSubmitted.RANK + crlf()
+body = body + "SERIALNR " + e.dataSubmitted.SERIALNR + crlf()
+if sendEmail(address,subject,body)
+	e.javascript="alert('Submitted: "+e.dataSubmitted.NAME + ", " + e.dataSubmitted.RANK
+	e.javascript=e.javascript + ", " + e.dataSubmitted.SERIALNR + ", "
+else
+	e.javascript="');"
+end if
+end function ]]></example>
+</section>		
+	<section>
+		<description>You will obviously have to edit the address to be the intended, valid email.
+</description>
+	</section>
+</sections>	
+	
+</page>

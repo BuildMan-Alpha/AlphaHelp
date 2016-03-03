@@ -1,0 +1,148 @@
+<page>
+	<topic>Thread Example</topic>
+
+<sections>
+	<section>
+		<description>This is an example of using background threads. This thread is going to look for a specific file.If that file is found, it will be read in and executed (making the assumption that the text file is an Xbasic script). If the file doesn't exist, the thread will sleep for a while before looking for the file again.</description>	
+		
+		
+	</section>
+	<section>
+		<title>Creating the Thread Code</title>
+		<description>Define the code that will run in the background thread.</description>
+		<example><![CDATA[dim thread_code as C
+thread_code = <<%code%]]></example>
+	</section>
+	
+	<section>
+		
+		<description>The Xbasic debugger cannot be used on threads and if there is an error running the script below, the thread will simply exit with no indication of what the problem was. By defining an Xbasic error log inside the thread, any errors will be written out to the specified file.</description>
+		<example><![CDATA[xbasic_error_log("c:\thread_error.txt")
+]]></example>
+	</section>
+	
+	<section>
+		
+		<description>The file we want to look for is "work_to_do.txt" in the current database folder.</description>
+		<example><![CDATA[dim looking_for as C
+looking_for = file.filename_parse(a5.Get_Name(),"DP") + "work_to_do.txt"]]></example>
+	</section>
+	
+	<section>
+		
+		<description>Define a log file to store the results of what this thread does.</description>
+		<example><![CDATA[dim logfile as C
+logfile = "c:\threadlog.txt"]]></example>
+	</section>
+	
+	<section>
+		
+		<description>Get a pointer to our own thread so we can set some options on it.</description>
+		<example><![CDATA[dim this_thread as P
+this_thread = thread.current()]]></example>
+	</section>
+	
+	<section>
+		
+		<description>Set a flag that says we want to disable UI from this thread. Attempting to use UI functions from a background thread will hang Alpha Anywhere, but most UI operations will check this flag first to prevent the hang.</description>
+		<example><![CDATA[this_thread.ui_disable = .t.
+]]></example>
+
+	</section>
+	
+	<section>
+		
+		<description>Set this thread's priority to a lower level. Threads with a lower priority will yield to a threads with a higher priority. This will prevent this thread from interfering with other work being done in this instance of Alpha Five. Valid thread priorities are -2, -1, 0, 1 and 2. These are "lowest", "below normal", "normal", "above normal" and "highest".</description>
+		<example><![CDATA[this_thread.set_priority(-2)
+ ]]></example>
+	</section>
+	
+	<section>
+		
+		<description>A thread will end when its script runs to completion. However, this thread should keep running to monitor for new files. The solution is use a while loop to keep the script from ever ending. Of course the thread may need to be stopped at some point, and this can be done by changing the value of the logical variable we are looping on. The details of how to change the value and stop the thread are explained below.</description>
+		<example><![CDATA[dim thread_run_flag as L = .t.
+while thread_run_flag
+    'the file exists, so now work with it...
+    if file.exists(looking_for)
+        dim file_contents as C
+        'read in the contents of the file
+        file_contents = get_from_file(looking_for)
+        'delete the file so it isn't found the next time through this loop
+        file.remove(looking_for)
+        'assume the file contains valid (and safe) Xbasic and execute it
+        dim run_result as C
+        run_result = evaluate_template(file_contents)
+        'save the result to the log file
+        if run_result = ""
+            run_result = "The script ran successfully"
+        end if
+        save_to_file(time("0h:0h:0s") + " " + run_result,logfile,.t.)
+    end if
+    'Tell this thread to go ahead and yield to any other threads waiting to run
+    yield control
+end while
+%code% ]]></example>
+	</section>
+	
+	<section>
+		<title>Naming the Thread</title>
+		<description>Each thread must have a unique name. The name "Main" is reserved as it is used by the main Alpha Anywhwere application.</description>
+		<example><![CDATA[dim thread_name as C
+thread_name = "MyThread"]]></example>
+	</section>
+	
+	<section>
+		<title>Starting the Thread</title>
+		<description>Now that the thread code and name have been created, all that is left is the actual creation of the thread.</description>
+		<example><![CDATA[thread_create(thread_name, thread_code)]]></example>
+	</section>
+	
+	
+	<section>
+		<title>Stopping the Thread</title>
+		<description>This thread will now run indefinitely. To stop it at some later time, use code such as the following on a button, in a script, etc..</description>
+		<example><![CDATA[dim tv as P
+tv = thread_variables("MyThread")
+tv.thread_run_flag = .f.
+delete tv ]]></example>
+	</section>
+	
+	
+	<section>
+
+		<description>The code above can be shortened by using the explicit assignment operator: ":=".</description>
+		<example><![CDATA[thread_variables("MyThread").thread_run_flag := .f.
+ ]]></example>
+	</section>
+	
+	
+	<section>
+		<title>Checking for a Thread with the Same Name</title>
+		<description>Note that the THREAD_CREATE()  above will fail with an "Error 1" if the thread 'name being used to create the thread already exists. There are two ways to prevent the error.Which one to use depends on whether or not multiple copies 'of the same code should be allowed to run. To prevent more than one copy, use code such as this before the thread_create():</description>
+		<example><![CDATA[if thread_exists(thread_name)
+    ui_msg_box("Error", "The " + thread_name + " thread is already running", UI_STOP_SYMBOL)
+    end
+end if ]]></example>
+	</section>
+	
+	<section>
+		<title>Running Multiple Copies of a Thread</title>
+		<description>To allow multiple copies to run, the thread name must be changed. THREAD_NAME_CREATE() will ensure that a unique thread name is generated, 'based on the base name you give it and the names of the threads that are currently running.To use it, the thread_create() call used above would be changed to:</description>
+		<example><![CDATA[thread_create(thread_name_create(thread_name), thread_code)
+ ]]></example>
+	</section>
+	
+	<section>
+		
+		<description>Note that in the above, the thread_name_create() is used inline as part of the thread_create() call. If the thread_name_create() were to be done on a separate line, and more than one thread was trying to create threads, you could potentially end up with a situation where script 1 runs the thread_name_create() and gets what it thinks is a unique name, script 2 runs the thread_name_create() and gets what it thinks is a unique name, but in reality it is not unique and matches exactly what script 1 has.Whichever script goes on to create the thread first will succeed, but the second one will result in an error since the thread name is no longer available. This is what is known as a "race condition" and is a common pitfall in threaded programming.</description>
+	
+	</section>
+	
+</sections>
+<see>
+	<ref>Thread Functions and Methods</ref>
+	<ref>Using the Thread UI_Disable Property</ref>
+	
+</see>
+	
+</page>
