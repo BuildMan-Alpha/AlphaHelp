@@ -195,7 +195,14 @@
 			<xsl:for-each select="video">
 				<li>
 					<a xsl:use-attribute-sets="href-link">
-						<xsl:value-of select="name" />
+                        <xsl:choose>
+                            <xsl:when test="name">
+                               <xsl:value-of select="name" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                               <xsl:value-of select="." />
+                            </xsl:otherwise>
+                        </xsl:choose>
 					</a>
 				</li>
 			</xsl:for-each>
@@ -204,7 +211,14 @@
 			<xsl:for-each select="videos/video">
 				<li>
 					<a xsl:use-attribute-sets="href-link">
-						<xsl:value-of select="name" />
+                        <xsl:choose>
+                            <xsl:when test="name">
+                               <xsl:value-of select="name" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                               <xsl:value-of select="." />
+                            </xsl:otherwise>
+                        </xsl:choose>
 					</a>
 				</li>
 			</xsl:for-each>
@@ -327,7 +341,14 @@
         <xsl:if test="video">
             <li>
                 <a xsl:use-attribute-sets="href-link">
-                    <xsl:value-of select="name" />
+                    <xsl:choose>
+                        <xsl:when test="name">
+                            <xsl:value-of select="name" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="." />
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </a>
             </li>
         </xsl:if>
@@ -335,7 +356,14 @@
 			<xsl:for-each select="videos/video">
 				<li>
 					<a xsl:use-attribute-sets="href-link">
-						<xsl:value-of select="name" />
+                        <xsl:choose>
+                            <xsl:when test="name">
+                               <xsl:value-of select="name" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                               <xsl:value-of select="." />
+                            </xsl:otherwise>
+                        </xsl:choose>
 					</a>
 				</li>
 			</xsl:for-each>
