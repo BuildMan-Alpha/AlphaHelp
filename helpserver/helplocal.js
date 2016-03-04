@@ -183,7 +183,7 @@ events.getDefaultIndexTemplate = function( args ) {
 };
 //--------------------------------------------------------------------------------------
 var xsltproc = require('xsltproc');
-events.translateXML = function(xmlFile,htmlFile,callback) {
+events.translateXML = function(xmlFile,htmlFile,callback) {    
    var xslt = xsltproc.transform(options.assetpath+'assets/xform.xslt', xmlFile);
    var err = null;
    var dataOut = '';
