@@ -223,6 +223,10 @@
 				</li>
 			</xsl:for-each>
 		</xsl:if>
+		<xsl:if test="limitations">
+            <p class="A5">Limitations</p>
+            <p><xsl:value-of select="limitations" /></p>
+		</xsl:if>
 		<xsl:if test="see">
 			<p class="A5">See Also</p>
 			<ul>
