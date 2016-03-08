@@ -1,0 +1,200 @@
+<page>
+	<topic>Creating and Using a Multi-state Button
+</topic>
+<sections>
+	<section>
+		<description>The MULSTBTN1 multi-state button presents a simple way to limit the Browse1 list to those records where the SearchBy field begins with the selected letter. 
+</description>
+	<figure><link>images/AL_form_customer_information_mulstbtn1.gif</link></figure>	
+		
+	</section>
+	<section>
+		<title>Multi-State Button Options
+</title>
+	<description>Multi-state buttons are similar in purpose to list boxes.
+</description>	
+	<cases>
+		<case>
+			<description>The user can select one of several pre-defined values.
+</description>
+		</case>
+		<case>
+			<description>The control always displays the selected value.
+</description>
+		</case>
+		<case>
+			<description>The display value and the stored value can be different.
+</description>
+		</case>
+		
+		
+	</cases>	
+	</section>
+	<section>
+		
+	<description>The primary differences from a list box are that the multi-state button:
+</description>	
+	<cases>
+		<case>
+			<description>Displays a button for each of the pre-defined values.
+</description>
+		</case>
+		<case>
+			<description>Can have vertical or horizontal orientations.
+</description>
+		</case>
+		<case>
+			<description>Can substitute bitmap images for text.
+</description>
+		</case>
+		<case>
+			<description>Can change the bitmap when the button is clicked.
+</description>
+		</case>
+		
+	</cases>	
+	</section>
+<section>
+	<title>Procedure: Configuring the MULSTBTN1 Multi-State Button 
+</title>
+<description>The following procedure assumes that the developer has opened the form in the Form Editor. Follow these instructions to create a multi-state button similar to MULSTBTN1 :
+</description>	
+<steps>
+	<step>
+		<description>Draw a multi-state button on the form.
+</description>	
+	</step>
+	<step>
+		<description>Right click the control and select Properties....
+</description>	
+	</step>
+	
+	<step>
+		<description>In the Field list select the appropriate field in your table or variable on your form. In this case the user selection is stored into the variable vcLetter. 
+</description>	
+	</step>
+	<step>
+		<description>images/AL_form_customer_information_mulstbtn1_setup.gif</description>	
+	</step>
+	<step>
+		<description>Click the Choices tab.
+</description>	
+	</step>
+	<step>
+		<description>Select "Text only" in the Display list.
+</description>	
+	</step>
+	<step>
+		<description>Enter your choices in the large type-In box, one line per entry. You only need to enter the first character of each line. Alpha Anywhere will add the rest. The pipe "|" character separates the display value (the character on the left) from the stored value (the character on the right). In this case, both the display and stored values are the same, but they may be different. Picture
+</description>	
+<figure><link>images/AL_Form_customer_information_mulstbtn1_choices.gif</link></figure>
+	</step>
+	<step>
+		<description>Click the OK button to return to the Form Editor.</description>
+	</step>
+	
+</steps>	
+	
+</section>	
+<section>
+	<title>Xbasic Code Run by the MULSTBTN1 onchange Event
+</title>
+<description>The MULSTBTN1 onchange event redefines the filter and order expressions for the customer table, queries the table, and, if no records were found, displays the entire table.
+</description>	
+<example><![CDATA[dim tbl as P
+topparent:tables:customer.filter_expression = "left("+searchby.text+", 1) = '" + mulstbtn1.text + "'"
+topparent:tables:customer.order_expression = searchby.text
+topparent:tables:customer.query()
+tbl = table.current()
+i = tbl.index_primary_get()
+count = i.records_get()
+if count = 0
+    ui_msg_box("Warning", "No records found. Showing all records")
+    tbl.order(searchby.text,searchby.text + " <> \"\"")
+    browse1.refresh()
+    mulstbtn1.text = "1"
+end if ]]></example>	
+</section>	
+	
+<section>
+	<title>An Explanation of the Code
+</title>
+<description>The first line creates a pointer variable named tbl to refer to table (and the data) that the Customer Information form displays.
+</description>	
+<example><![CDATA[dim tbl as P ]]></example>	
+</section>	
+
+<section>	
+<description>The next line sets the filter_expression property of the form: topparent:tables:customer. This works when you know the name of the table. The code sets the filter_expression to be the first character selected field ( searchby.text ).
+</description>	
+<example><![CDATA[topparent:tables:customer.filter_expression = "left("+searchby.text+", 1) = '" + mulstbtn1.text + "'" ]]></example>	
+</section>	
+
+<section>	
+<description>This line sets the order_expression property of the form. It says to order the query results on the field defined by searchby.text. The default sort order is ascending.
+</description>	
+<example><![CDATA[topparent:tables:customer.order_expression = searchby.text
+ ]]></example>	
+</section>			
+
+<section>	
+<description>The next line executes a new query against the customer table. The query() method knows to use the filter_expression and order_expression properties of the form.
+</description>	
+<example><![CDATA[topparent:tables:customer.query() ]]></example>	
+</section>	
+
+<section>	
+<description>This line sets the tbl pointer equal to the customer table.
+</description>	
+<example><![CDATA[tbl = table.current() ]]></example>	
+</section>	
+
+<section>	
+<description>Next, we get a pointer to the table's primary index. The variable i is implicitly dimmed as  P (a pointer).
+</description>	
+<example><![CDATA[i = tbl.index_primary_get()
+]]></example>	
+</section>	
+
+<section>	
+<description>The records_get() method returns a count of records for the table. The variable count is implicitly dimmed as  N (numeric).
+</description>	
+<example><![CDATA[count = i.records_get() ]]></example>	
+</section>	
+
+<section>	
+<description>If the count variable is equal to 0, then display a message box that the query is empty.</description>	
+<example><![CDATA[if (count = 0) then
+    ui_msg_box("Warning", "No records found. Showing all records") ]]></example>	
+</section>	
+
+<section>	
+<description>The order() method sorts the table (parameter one) on searchby.text, which is the name of a field, and restricts the results (parameter two) to records not equal to NULL. The backslash \ escape character precedes the quote " character to show that the quote is to be interpreted as a character and not as Part of the syntax.
+</description>	
+<example><![CDATA[tbl.order(searchby.text,searchby.text + " <> \"\"") ]]></example>	
+</section>	
+
+<section>	
+<description>Force browse1 to display the new results.</description>	
+<example><![CDATA[browse1.refresh() ]]></example>	
+</section>	
+
+<section>	
+<description>Reset the MULSTBTN1 multi-state button. Chose '1' because it is not in the set A-Z and thereby de-selects any previously selected letter.
+</description>	
+<example><![CDATA[mulstbtn1.text = "1"
+end if
+ ]]></example>	
+</section>	
+
+</sections>	
+	<see>
+		<ref>Creating a Button that Calls an Action Script</ref>
+		<ref>Creating a Button that Calls an Xbasic Script</ref>
+		<ref>Creating a Button with a Bitmap</ref>
+		<ref>Using Action Script to Select a Record and Display a Form</ref>
+		
+	</see>
+	
+	
+</page>
