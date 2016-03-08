@@ -1,0 +1,251 @@
+<page>
+	<topic>Creating a User Defined Control</topic>
+<sections>
+	<section>
+		<description>This script shows how to create user-defined controls (based on ActivX controls) that can be used on an Xdialog. The control will be called myControl. Once the control has been defined, it can be placed on the Xdialog using the syntax {myControl=width,heightInstanceVariable} e.g. {myControl=100,20p} where p is a dot variable that defines and instance of the myControl User Defined Control. In this example, we will create a User Defined Control called myControl. This control will have two methods, setHTML()and setCSS(). 
+</description>
+		<figure><link>images/XD_UserDefined_Control.gif</link></figure>
+	</section>
+	
+<section>
+	<description>This will be a User Defined Control that will use the shell.explorer ActiveX control to display HTML.
+</description>
+	<example><![CDATA[define class system [control] myControl
+ ]]></example>
+</section>	
+
+<section>
+	<description>Dim a variable as The class (the ::myNameSpace::myInterface class is defined below).
+</description>
+	<example><![CDATA[dim iface as ::myNameSpace::myInterface ]]></example>
+</section>
+
+<section>
+	<description>When the User Defined Control is loaded, Xdialog automatically calls the following methods of the control (.i.e think of these as the control's "constructor"):</description>
+	<cases>
+		<case>
+			<description>.initialize()
+</description>
+		</case>
+		<case>
+			<description>.getActiveXName()</description>
+		</case>
+		<case>
+			<description>.bindActiveX()</description>
+		</case>
+	</cases>
+</section>
+
+<section>
+	<description>When the User Defined Control goes away Xdialog automaticaly calls the following method of the control '(i.e. think of these as the control's "destructor"):
+</description>
+	<cases>
+		<case>
+			<description>.close()</description>
+		</case>
+		
+	</cases>
+</section>
+<section>
+	<description>The initialize()function initializes the User Defined Control. It is called automatically when the control is loaded. In this example, the Xdialog command to use the User Defined Control is : {myControl=150,5p} ; .
+The arguments of this initialize()function are described below:
+</description>
+<steps>
+	<step>
+		<description>pargs is equal to name of the InstanceVariable - in this example, the InstanceVariable's name is p.
+</description>
+	</step>
+	<step>
+		<description>pcont is the contents between the beginning and end of the control. This argument is only non-null if the following syntax is used for the User Defined Control: 
+</description>
+<cases>
+	<case>
+		<example><![CDATA[{Mycontrol=150,20}  ]]></example>
+	</case>
+	<case>
+		<description>the definition for MyControl goes here 
+</description>
+		<example><![CDATA[{EndMyControl} 
+ ]]></example>
+	</case>
+	<case>
+		<description>If this "in place" definition of the User Defined Control is used then pcont is the text between the opening {Mycontrol} and the closing </description>
+		<example><![CDATA[{EndMyControl}.
+ ]]></example>
+	</case>
+	
+	
+</cases>
+	</step>
+	<step>
+		<description>pframe is the variable frame for the Xdialog. (Note: This is not used anymore and will be dropped in future).
+</description>
+	</step>
+</steps>	
+	
+</section>
+
+
+<section>
+	
+	<example><![CDATA[function initialize as v(dlgtitle as c, pargs as c, pcont as c, pframe as p) ]]></example>
+</section>
+
+<section>
+	<description>Get a pointer to the InstanceVariable for the User Defined Control (e.g. the p dot variable). self.ptr will just point to the p variable.
+</description>
+	<example><![CDATA[self.ptr = ui_dlg_eval(dlgtitle, pargs) ]]></example>
+</section>
+
+<section>
+	<description>This is where we bind the methods defined in the ::myNameSpace::myInterface class to this control. After doing this, the p InstanceVariable used in this example has new methods: .htmlSet()and .cssSet().
+</description>
+	<example><![CDATA[self.ptr.object = self.iface
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>Get the name of the ActiveX control you are using. This function is called automatically when the control is loaded.
+</description>
+	<example><![CDATA[function [static] GetActiveXName as c ( )
+        GetActiveXName = "shell.explorer"
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>Bind the ActiveX control. This function is called automatically when the control is loaded. pActiveX is passed in from GetActiveXName().
+</description>
+	<example><![CDATA[function BindActiveX as v (pActiveX as p)
+        self.ActiveX = pActiveX ' keep a local pointer
+ ]]></example>
+</section>
+
+<section>
+	<description>Keep a pointer availible to the interface class. This line gives the iface class its own pointer to the ActiveX control.
+</description>
+	<example><![CDATA[self.ptr.object.MyControl = self.ActiveX ]]></example>
+</section>
+
+
+<section>
+	<description>Create an html page to load into the ActiveX control.
+</description>
+	<example><![CDATA[file.from_string(file.temp_path_get()+"myControl.html","&lthtml>&lthead>&lttitle></title></head>&ltbody style=\"overflow:hidden;\">Now is the time</body></html>")
+        self.ActiveX.navigate(file.temp_path_get()+"myControl.html")
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>A function to set the border style.
+</description>
+	<example><![CDATA[function GetBorderStyle as c()
+        GetBorderStyle = "default"
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>A function to clean up.
+</description>
+	<example><![CDATA[function close as v ()
+        'this will delete the reference to the ActiveX control
+        delete self.ptr.object
+        file.remove(file.temp_path_get()+"myControl.html")
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>The end of the class definition.
+</description>
+	<example><![CDATA[end class]]></example>
+</section>
+
+<section>
+	<description>Here is where we define the methods of the User Defined Control.
+</description>
+	<example><![CDATA[define class ::myNameSpace::myInterface
+    dim MyControl as P
+ ]]></example>
+</section>
+
+<section>
+	<description>This function will set the body's html.
+</description>
+	<example><![CDATA[function htmlSet as v(htmlStr as c)
+        self.MyControl.document.body.innerHTML = htmlStr
+    end function
+ ]]></example>
+</section>
+
+
+<section>
+	<description>This function will set the body's Cascading Style Sheet.
+</description>
+	<example><![CDATA[function htmlSet as v(htmlStr as c)
+        self.MyControl.document.body.innerHTML = htmlStr
+    end function
+ ]]></example>
+</section>
+
+<section>
+	<description>This particular User Defined Control does have any properties that are set by its InstanceVariable, but we still need to have one, so we create a InstanceVariable with a dummy property.</description>
+	<example><![CDATA[dim p as p
+p.dummy = ""
+
+dim html as c
+html = <<%html%
+&ltstrong>Now</strong> is the time for all good men to come to the aid of the &ltem>Party</em>.
+%html%
+dim bodyCSS as c
+bodyCSS = <<%css%
+color: blue;
+font:10pt arial;
+background: #aaaabb;
+overflow:hidden;
+%css%
+ ]]></example>
+</section>
+
+<section>
+	<description>Now display the Xdialog.
+</description>
+	<example><![CDATA[ui_dlg_box("Xdialog that Contains a User Defined Control",<<%dlg%
+This control is a User Defined Control called 'myControl'.;
+{myControl=150,5p};
+{lf};
+{lf};
+{frame=1,1HTML: }
+{region}
+[%A5W%.150,5html];
+&ltSet HTML!htmlSet> This will invoke the 'htmlSet\()' method of the User Defined Control;
+{endregion};
+{lf};
+{frame=1,1Body CSS: }
+{region}
+[%M%.150,5bodyCSS];
+&ltSet CSS!cssSet> This will invoke the 'cssSet\()' method of the User Defined Control;
+{endregion}
+%dlg%,<<%code%
+if a_dlg_button = "htmlSet" then
+    a_dlg_button = ""
+    'now call the method of the User Defined Control
+    p.object.htmlSet(html)
+else if a_dlg_button = "cssSet" then
+    a_dlg_button = ""
+    p.object.cssSet(bodyCSS)
+end if
+%code%) ]]></example>
+</section>
+	
+</sections>	
+<limitations>Desktop applications only.
+</limitations>	
+<see>
+	<ref>ActiveX Examples and Above
+</ref>
+</see>	
+</page>
