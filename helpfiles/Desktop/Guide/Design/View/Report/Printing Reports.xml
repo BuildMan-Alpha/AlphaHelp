@@ -1,0 +1,274 @@
+<page>
+	<topic>Printing Reports</topic>
+	<sections>
+<section>
+	<note>The Printing Reports topic describes a technique available to Alpha Anywhere database users.</note>
+	
+</section>
+<section>
+	<description>This example shows how to print a report and deliver it to your Internet user. Since, a paper report is out the question, Alpha Five will compose the Invoice report from the invoice.set, save it in PDF format as  foo.pdf, and then start Adobe Acrobat to display it in the client's browser.
+The expression ?" + time("hms03") added to the PDF filename insures that you do not open a cached version of the file.
+</description>
+	<example><![CDATA[<%a5
+Report.saveas("Invoice@c:\program files\a5v5\samples\alphasports\invoice.set", "pdf", "", "", session.session_folder + "\foo.pdf", .f.)
+response.redirect(session.session_url + "foo.pdf?" + time("hms03"))
+%>]]></example>
+</section>		
+<section>
+	<title>Creating the Dialog
+</title>
+<steps>
+	<step>
+		<description>Create a new dialog web component.
+</description>
+	</step>
+	<step>
+		<description>Display the Form > Controls page.
+</description>
+	</step>
+	
+	<step>
+		<description>Under the Control Types list select "Dropdownbox" and click the '>' button.
+</description>
+	</step>
+	
+	<step>
+		<description>Enter "invoiceNumber" in the Name field, click Make label same as name, and click OK.
+</description>
+	</step>
+	
+	<step>
+		<description>Click the '...' in the DropDownBox Properties > Choices field to display the Define Choices dialog.
+</description>
+<cases>
+	<case>
+		<description>1. Select "Dynamic" in the Define Choices > List Type list.
+</description>
+	</case>
+	<case>
+		<description>2. Select "DBF-Table" in the Data Source > Data source type list.
+</description>
+	</case>
+	<case>
+		<description>3. Select "invoice_header" in the Data Source > Table name list.
+</description>
+	</case>
+	<case>
+		<description>4. Click the '...' button in the Data Source > Display value field/expression field to display the Expression Builder.
+</description>
+	</case>
+	<case>
+		<description>5. Press F2, select "Invoice_Number", and click Insert. Click OK.
+</description>
+	</case>
+	
+	
+</cases>
+	</step>
+	
+	<step>
+		<description>Set the DropDownBox Properties > Height field to 6.
+</description>
+	</step>
+	
+	<step>
+		<description>Select "Multiple" in the DropDownBox Properties > Multi-select allowed field.
+</description>
+	</step>
+	
+	<step>
+		<description>Click the '...' button in the DropDownBox Properties > In-line style field.
+</description>
+<cases>
+	<case>
+		<description>1. Display the Position tab.
+</description>
+	</case>
+	<case>
+		<description>2. Click the ruler icon next to the Width field.
+</description>
+<figure><link>images/Ruler_button.gif</link></figure>
+	</case>
+	<case>
+		<description>3. Enter 2 into the Size field.
+</description>
+	</case>
+	<case>
+		<description>4. Select "in" from the drop down list box.
+</description>
+	</case>
+	<case>
+		<description>5. Click OK > OK.
+</description>
+	</case>
+	
+</cases>
+	</step>
+	
+	<step>
+		<description>Change the Row Properties > Row label field to "Invoice Number".
+</description>
+	</step>
+	
+	<step>
+		<description>Check the Row Properties > Freeform layout check box.
+</description>
+	</step>
+	
+	<step>
+		<description>Click the '...' button in the Row Properties > Freeform template field to display the Freeform Column Layout dialog.
+</description>
+	</step>
+	
+	<step>
+		<description>Enter the following text and click OK. Note how this displays the invoiceNumber field with HTML text above and below it.
+</description>
+<example><![CDATA[&ltb>Invoice Numbers</b>&ltbr>
+{invoiceNumber} &ltbr>
+Select one or more invoices. ]]></example>
+	</step>
+	
+	<step>
+		<description>Display the Form > Properties page.
+</description>
+	</step>
+	
+	<step>
+		<description>Clear the Layout Options > Show row labels check box.
+</description>
+	</step>
+	
+	<step>
+		<description>Change the Submit/Reset Buttons > Submit button label field to "Print Invoices".
+</description>
+	</step>
+	
+	<step>
+		<description>Click the '...' button in the Server Events > AfterValidate field to display the Form > Events page.
+</description>
+</step>
+<step>
+		<description>Enter the following code into the Form Events dialog and click OK.
+</description>
+	
+
+
+<cases>
+	<case>
+		<example><![CDATA[IF eval_valid("invoiceNumber") = .f. Then
+    goto skipreport
+end if
+dim filter as C
+dim order as C
+dim invnum as C
+dim filename as C
+'since InvoiceNumber is a multi-select DropDownBox, it is actually an array that contains the selected values.
+invnum = invoiceNumber.dump()
+invnum = remove_blank_lines(invnum)
+invnum = *for_each(x,"invoice_number = " + quote(x),invnum)
+filter = stritran(alltrim(invnum), crlf()," .or. ")
+Order = ""
+filename = session.session_folder + chr(92) + "tempreport.pdf"
+filename = report.saveas("Invoice@&ltadb_path>\invoice.set", "pdf", filter, order, filename,.f.)
+if file.exists(filename)
+    currentform.RedirectTarget = session.session_url + "tempreport.pdf?" + rand_string(5)
+end if
+skipreport: ]]></example>
+	</case>
+	<case>
+		<title>Understanding the AfterValidate Script</title>
+		<description>The AfterValidate event occurs when you click the submit button (in this case renamed to "Print Invoices"). The first part of the script tests to see if any invoice numbers have been selected. When you select one or more invoice numbers, the invoiceNumber variable exists, and eval_valid("invoiceNumber") equals .T. . When no selection has been made, the result is .F., which causes the code to go to skipreport: and exit.</description>
+		<example><![CDATA[IF eval_valid("invoiceNumber") = .f. Then
+    goto skipreport
+end if ]]></example>
+	</case>
+	<case>
+		<description>A multi-select drop down box saves the user's input into an array. The invoiceNumber.dump() method extracts these values and puts them into a CR-LF delimited list named invnum. The remove_blank_lines(invnum) function collapses the list when you skip selections in the list box (i.e. 1,3,4). The *for_each(x,"invoice_number = " + quote(x),invnum) statement converts the list into a series of table filter expressions. The stritran(alltrim(invnum), crlf()," .or. ") function replaces each CR with an " .or. ", resulting in a single filter expression that is assigned to the filter variable.</description>
+		<example><![CDATA[invnum = invoiceNumber.dump()
+invnum = remove_blank_lines(invnum)
+invnum = *for_each(x,"invoice_number = " + quote(x),invnum)
+filter = stritran(alltrim(invnum), crlf()," .or. ")
+Order = ""
+ ]]></example>
+	</case>
+	<case>
+		<description>The following statement sets the path and filename of the new report and assigns it to the filename variable. The purpose of the session.session_folder is to hold these temporary files.
+</description>
+		<example><![CDATA[filename = session.session_folder + chr(92) + "tempreport.pdf" ]]></example>
+	</case>
+	<case>
+		<description>The REPORT.SAVEAS() function actually prints the report. It calls the Invoice_Report report of the invoice set. The method references uses &ltadb_path> alias, which makes the application portable to other servers. The REPORT.SAVEAS() function returns the filename of the report it creates.
+</description>
+		<example><![CDATA[filename = report.saveas("Invoice_Report@&ltadb_path>\invoice.set", "pdf", filter, order, filename, .f.) ]]></example>
+	</case>
+	<case>
+		<description>If the file.exists(filename) method determines that Alpha Five created the PDF file, the script sets the currentform.RedirectTarget property of the page to session.session_url + "tempreport.pdf?" + rand_string(5). When the currentform.RedirectTarget property has a value, Alpha Five interprets it as the next page to display. The report's filename is session.session_url + "tempreport.pdf?" + rand_string(5). One interesting aspect of the report's filename is the rand_string(5) appended to the end. This forces Acrobat to load and display the report.
+</description>
+		<example><![CDATA[if file.exists(filename)
+    currentform.RedirectTarget = session.session_url + "tempreport.pdf?" + rand_string(5)
+end if ]]></example>
+	</case>
+	
+</cases>
+	</step>
+	
+	
+	
+	<step>
+		<description>Click OK to close the Form Events dialog.
+</description>
+	</step>
+	
+	<step>
+		<description>Click File > Save As, enter "Print_Report" in the File name field, and click Save.
+</description>
+	</step>
+	
+	<step>
+		<description>Close the Dialog Builder.
+</description>
+	</step>
+	
+	
+</steps>	
+	
+</section>		
+	<section>
+		<title>Creating the Print_Report Page
+</title>
+	<steps>
+		<step>
+			<description>Click New > OK to create a new A5W page.
+</description>
+		</step>
+			<step>
+			<description>Click File > Save As, enter "Print_Report" in the File name field, and click Save.
+</description>
+		</step>
+			<step>
+			<description>Select Insert Component > Select, pick "Print_Report", and click OK > OK.
+</description>
+		</step>
+			<step>
+			<description>Save the page and close the HTML Editor.
+</description>
+		</step>
+			<step>
+			<description>Right click the "Print_Report" page, select Publish (Local Webroot) and open.
+</description>
+		</step>
+			<step>
+			<description>Select a couple of invoice numbers and click Print Invoices. The report will open in your browser.
+</description>
+		</step>
+		
+		
+	</steps>	
+		
+		
+		
+	</section>
+	</sections>
+	
+	
+</page>
