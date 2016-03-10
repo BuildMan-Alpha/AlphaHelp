@@ -5,6 +5,20 @@
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="page-content" name="page-content" >
+        <xsl:if test="links">
+            <script id="definePageLinks" type="text/xmldata" >
+                <xsl:for-each select="links/link">
+                    <xsl:choose>
+                        <xsl:when test="./@href">
+                            <a href="{./@href}"><xsl:value-of select="." /></a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <a><xsl:value-of select="." /></a>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+            </script>
+        </xsl:if>
 		<xsl:if test="topic">
 		<p>
 			<p class="A3Function">
