@@ -5,6 +5,7 @@
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="page-content" name="page-content" >
+        <xsl:if test="./@reorder-children"><xsl:comment>orderchildren</xsl:comment> </xsl:if>
         <xsl:if test="links">
             <script id="definePageLinks" type="text/xmldata" >
                 <xsl:for-each select="links/link">
