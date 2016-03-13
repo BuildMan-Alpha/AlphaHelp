@@ -1,0 +1,282 @@
+<page>
+  <topic>Using a Dialog as a Search Form</topic>
+ <sections>
+   
+  <section>
+    <description>Assume you have a grid that shows all the records of a table, such as  the following. 
+</description>
+   <figure><link>images/WPT_Dialog_as_Search_Form_1.gif</link></figure> 
+    
+  </section> 
+   
+     
+  <section>
+    <description>If you wanted to search for all of the customers in a specified city and state, you could add a search part to the grid. The following search part has two drop down list boxes that display the unique field values from the state and city fields. 
+</description>
+   <figure><link>images/WPT_Dialog_as_Search_Form_2.gif</link></figure> 
+    
+  </section> 
+  
+     
+  <section>
+    <description>Unfortunately, there is no way for the search part to display only valid city entries for the specified state. A solution is to use a dialog component on a different page as a search form. </description>
+   <figure><link>images/WPT_Dialog_as_Search_Form_3.gif</link></figure> 
+    
+  </section> 
+  
+  
+  <section>
+    <title>Putting it Together
+</title>
+   <steps>
+     <step>
+       <description>Add an advanced button to the page containing the grid. This button will open the page that contains the dialog search form. 
+</description>
+       <figure><link>images/WPT_Dialog_as_Search_Form_4.gif</link></figure>
+     </step>
+      <step>
+       <description>The page that contains the dialog search form is named customer_filter.a5w. The form is named filt. The modifications to the form and button code is as follows.
+</description>
+      <example><![CDATA[&ltform method=post name="filt"  action="customer_filter.a5w" >&ltbutton id=button_adv1 name=button_adv1 onclick="document.forms'filt'.submit()" >&ltstrong>&ltfont
+face=Verdana color=#008000>Search</font></strong></button></form>
+]]></example>
+     </step>
+     <step>
+       <description>The dialog component that is placed on customer_filter.a5w has two drop down list boxes. The state control is based on the bill_state_region field of the customer table. Its properties are as follows:
+</description>
+<cases>
+  <case>
+    <title>Control Settings > Control Type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>DropDownBox</description>
+      </case>
+      
+    </cases>
+    
+  </case>
+  
+   <case>
+    <title>Define Choices > List Type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>Dynamic
+</description>
+      </case>
+      
+    </cases>
+    
+  </case>
+  
+   <case>
+    <title>DropDownBox Properties > Choices > Data Source > Data source type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>DBF-Table</description>
+      </case>
+      
+    </cases>
+    
+  </case>
+  
+   <case>
+    <title>DropDownBox Properties > Choices > Data Source > Table name</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>customer</description>
+      </case>
+      
+    </cases>
+    
+  </case>
+  
+   <case>
+    <title>DropDownBox Properties > Choices > Data Source > Display value field</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>bill_state_region</description>
+      </case>
+      
+    </cases>
+    
+  </case>
+  
+  
+</cases>
+
+
+     </step>
+       <step>
+       <description>The city control is based on the bill_city field of the customer table. Its properties are as follows:
+</description>
+<cases>
+  <case>
+    <title>Control Settings > Control Type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>DropDownBox
+</description>
+      </case>
+      
+    </cases>
+  </case>
+  
+   <case>
+    <title>Define Choices > List Type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>Dynamic</description>
+      </case>
+      
+    </cases>
+  </case>
+  
+  
+   <case>
+    <title>DropDownBox Properties > Choices > Data Source > Data source type</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>DBF-Table
+</description>
+      </case>
+      
+    </cases>
+  </case>
+  
+  
+   <case>
+    <title>DropDownBox Properties > Choices > Data Source > Table name</title>
+    <cases>
+      <case>
+        <title>Value</title>
+        <description>customer</description>
+      </case>
+      
+    </cases>
+  </case>
+  
+</cases>
+
+
+     </step>
+       <step>
+       <description>Define the parameter mapping for bill_state_region on the Parameter Mapping tab of the Filter Expression dialog:
+</description>
+<list>
+  <item>
+    <name-title>Property</name-title>
+    <description-title>Value</description-title>
+  </item>
+   <item>
+    <name>Parameter maps to a</name>
+    <description>Variable</description>
+  </item>
+   <item>
+    <name>Variable name</name>
+    <description>State</description>
+  </item>
+   <item>
+    <name>Parameter type</name>
+    <description>character</description>
+  </item>
+  
+  
+</list>
+     </step>
+       <step>
+       <description>Select the Form > Properties page of the menus.
+</description>
+     </step>
+       <step>
+       <description>In the Server Events > AfterValidate field click the '...' button to display the Form Events dialog. Enter the following code and click OK. In this case the name of the grid component on the customers.a5w page is cust.
+</description>
+<note>The expression placed into the filter variable has to be a valid expression for the database you are using.</note>
+     </step>
+       <step>
+       <description>Code for an Alpha Five table.
+</description>
+       <cases>
+         <case>
+             <example><![CDATA[dim filter as C
+filter = "bill_state_region = " + quote(state) + " .and. bill_city = " + quote(city)
+filter = urlencode(filter)
+currentform.redirecttarget = "customers.a5w?cust_filter=" + filter
+]]></example>
+         </case>
+           <case>
+                  <description>Equivalent code for a SQL database.
+</description>
+             <example><![CDATA[dim filter as C
+filter = "customer.bill_state_region = '" + state + "' and customer.bill_city = '" + city + "'"
+filter = urlencode(filter)
+currentform.redirecttarget = "customers.a5w?cust_filter=" + filter
+]]></example>
+         </case>
+        
+         
+       </cases>
+       
+       
+     </step>
+     <step>
+          <description>Finally, you need a second button to clear any search filter that you have imposed on the customers.a5w page. Create a second advanced button (as described in steps 1 and 2), name it clear, and modify its &ltform> and &ltbutton> code as follows. The filter expression indicates that all records are to be displayed.
+</description>
+    <example><![CDATA[&ltform method=post name="clear" action="customers.a5w?cust_filter=.t." >&ltbutton id=button_adv1 onclick="document.forms'clear'.submit()" name=button_adv1>&ltstrong>&ltfont face=Verdana color=#008000>Clear
+Search</font></strong></button></form>
+]]></example>
+       
+     </step>
+     
+     
+     
+   </steps> 
+    
+  </section>
+
+    <section>
+      <title>Running the Pages
+</title>
+      <steps>
+        <step>
+             <description>The initial view of the customers.a5w page is as follows. 
+</description>
+    <example><![CDATA[images/WPT_Dialog_as_Search_Form_5.gif]]></example>
+        </step>
+        
+        
+         <step>
+             <description>After clicking Search and entering values into the search form, you see the following. 
+</description>
+    <example><![CDATA[images/WPT_Dialog_as_Search_Form_6.gif]]></example>
+        </step>
+        
+        
+         <step>
+             <description>After clicking Submit, the filtered customers.a5w page reappears. 
+</description>
+    <example><![CDATA[images/WPT_Dialog_as_Search_Form_7.gif]]></example>
+        </step>
+        
+      </steps>
+ 
+  </section>
+  
+  
+  
+   
+ </sections> 
+  <see>
+    <ref>Calling a Filtered Grid Component</ref>
+    <ref>Opening a Page with an Advanced Button</ref>
+    
+  </see>
+  
+</page>

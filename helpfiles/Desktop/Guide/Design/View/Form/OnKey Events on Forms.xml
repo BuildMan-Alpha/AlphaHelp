@@ -1,0 +1,149 @@
+<page>
+	<topic>OnKey Events on Forms
+</topic>
+<sections>
+<section>
+	<title>Handling Key Events
+</title>
+<description>The general approach to intercepting and handling keystrokes in your application is as follows: 
+</description>	
+<steps>
+	<step>
+		<description>Test to see what key was pressed by examining the value in a_user.key.value. Keys such as 'Backspace', 'Up', 'Down' etc. will be represented using a curly bracket syntax (e.g. {Backspace}) 
+</description>
+	</step>
+	<step>
+		<description>Tip: To get a list of key codes, right click in the Code Editor and select Genies, Insert Key code.. from the menu.
+</description>
+	</step>
+	<step>
+		<description>Write code that you want to execute if a particular key was pressed. Remember that your event handler will be called multiple times for each key event ('down', 'repeat' and 'up'). The value of the key event is in a_user.key.event.
+</description>
+	</step>
+	<step>
+		<description>If you want to prevent Alpha Anywhere from passing the key on to the form, set a_user.key.handled to .t.. If this value is .f. then the key will be passed onto the form. Otherwise, the keystroke will not be passed onto the form.
+</description>
+	</step>
+	
+	
+</steps>	
+</section>	
+<section>
+	<description>For example, this code intercepts the Shift+F10 key. The keystroke is NOT passed onto the form.
+</description>
+<example><![CDATA[IF a_user.key.value = "{+F10}" THEN
+    'set a_user.key.handled = .t. to prevent the key stroke being passed on to the Form
+    a_user.key.handled = .t.
+    IF a_user.key.event = "down" THEN
+        ui_msg_box("","User pressed shift+F10")
+    END IF
+END IF ]]></example>	
+</section>
+
+<section>
+	<title>Macro Recorder Example
+</title>
+<description>Here is an example script that records and plays back keystroke macros within a form. The script is defined in a form's OnKey event.
+</description>	
+	<note>This script can be found in the Samples\Xbasic directory off the directory in which you installed Alpha Anywhere. Open the Xbasic database and then open the MacroExample form.</note>
+</section>
+<section>
+	<title>Application Help Example
+</title>
+
+	<note>The following script is presented as an example of how to call the Windows API. as a practical matter, in V5 the following script is obsolete because V5 has a WINHELP_SHOW() function.</note>
+</section>	
+
+<section>
+	
+<description>Here is a collection of examples scripts that intercepts the F1 key and lets the application redefine HELP. The help topic is set by each field's OnArrive event, and cleared on the field's OnDepart event. In this example, it is assumed that the Xbasic application programmer has provided a windows HELP file. :
+</description>	
+	<note>These scripts can be found in the Samples\Xbasic directory off the directory in which you installed Alpha Anywhere. Open the Xbasic database and then open the CustomHelp form.</note>
+</section>
+
+<section>
+	
+<description>OnKey event for form:
+</description>	
+	<example><![CDATA[' Declare the WinHelp function - Published windows
+' function name is WinHelpA (A is for ASCII single byte)
+' there is also a WinHelpW that is multibyte (i.e. Unicode)
+' WinHelp is the name our Xbasic program uses
+declare user32 WinHelp@WinHelpA LLCLL
+' Define some useful constants
+constant global HELP_COMMAND = 258
+constant global HELP_KEY    = 257
+constant global HELP_PARTIAL_KEY = 261
+constant global HELP_INDEX  = 3
+dim shared helptopic as C
+HELP_FILENAME = :a5.get_path()+ "\invoice.hlp"
+' If the user hit the {F1} key...
+if (A_USER.KEY.value = "{F1}" ) then
+   ' eat the key and invoke help with our help file
+   A_USER.KEY.handled = .T.
+   if (A_USER.KEY.event = "down") then
+        if (helptopic <> "") then
+          ' if a topic is defined, use the topic in the help call
+           WinHelp(0, HELP_FILENAME, HELP_PARTIAL_KEY,helptopic)
+      else
+         ' If no help topic defined, then just show an index
+         WinHelp(0, HELP_FILENAME, HELP_INDEX,"")
+      end if
+  end if
+end if ]]></example>
+</section>
+
+
+<section>
+	
+<description>OnArrive event for INV_NO field:
+</description>	
+	<example><![CDATA[' Set the topic to be invoice numbers
+dim shared helptopic as C
+helptopic = "Invoice Numbers" ]]></example>
+</section>
+	
+	
+	
+<section>
+	
+<description>OnDepart event for INV_NO field:
+</description>	
+	<example><![CDATA[' No longer on the invoice number field, so un-define the topic
+dim shared helptopic as C
+helptopic = "" ]]></example>
+</section>
+	
+	
+	
+<section>
+	
+<description>OnArrive event for Vendor_ID field:
+</description>	
+	<example><![CDATA[' Set the topic to be Vendor
+dim shared helptopic as C
+helptopic = "Vendor" ]]></example>
+</section>
+	
+	
+	
+<section>
+	
+<description>OnDepart event for Vendor_ID field:
+</description>	
+	<example><![CDATA[' No longer on the Vendor_ID field, so
+' undefine the topic
+dim shared helptopic as C
+helptopic = "" ]]></example>
+</section>
+	
+	
+</sections>	
+<see>
+	<ref>SYS_SEND_KEYS()
+</ref>
+	<ref>Ui_keycode_Normalize()</ref>
+	
+</see>	
+	
+</page>
