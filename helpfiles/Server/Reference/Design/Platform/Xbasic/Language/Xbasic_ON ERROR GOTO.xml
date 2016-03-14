@@ -1,0 +1,129 @@
+<page>
+	<topic>ON ERROR GOTO</topic>
+	<prototypes>
+<prototype>ON ERROR RESUME NEXT 
+</prototype>		
+<prototype>ON ERROR RESUME Label Name 
+</prototype>	
+<prototype>ON ERROR RESUME 0 
+</prototype>			
+<prototype>ON ERROR GOTO NEXT 
+</prototype>	
+<prototype>ON ERROR GOTO Label Name 
+</prototype>	
+<prototype>ON ERROR GOTO 0
+</prototype>	
+		
+	</prototypes>
+<arguments>
+	<argument>
+		<name>Label Name</name>
+		<description>Specifies a label in the code. The command line following the label is the first statement executed after an error occurs.</description>
+	</argument>
+	<argument>
+		<name>0</name>
+		<description>Disables error handling.
+</description>
+<cases>
+	<case>
+		<title>ON ERROR GOTO 0</title>
+		<description>Disables error handling.</description>
+	</case>
+	<case>
+		<title>ON ERROR GOTO Label Name</title>
+		<description>Branch to the address of Label Name (expecting it to be an error handler).</description>
+	</case>
+	<case>
+		<title>ON ERROR GOTO NEXT</title>
+		<description>Branch to the next line (expecting it to be an error handler).</description>
+	</case>
+	<case>
+		<title>ON ERROR RESUME 0</title>
+		<description>Disables error handling.</description>
+	</case>
+	<case>
+		<title>ON ERROR RESUME Label Name</title>
+		<description>Ignore the error and branch to the address of Label Name.</description>
+	</case>
+	<case>
+		<title>ON ERROR RESUME NEXT</title>
+		<description>Ignore the error and go to the next instruction.</description>
+	</case>
+	
+</cases>
+	</argument>
+</arguments>	
+	
+<description>Expects to have the error handled</description>	
+
+<discussion>Note that the ON ERROR GOTO statement expects to have the error handled, while ON ERROR RESUME expects to have the error ignored. When using ON ERROR RESUME NEXT, there will not be error information available after the branch. ON ERROR RESUME NEXT may produce an error if there is no NEXT to resume to. See Also, ERROR_GENERATE(), ERROR_CODE_GET(), 
+</discussion>
+
+<sections>
+<section>
+	<title>Examples</title>
+	<description>For example, the following script shows a generic error handling routine:
+</description>
+	<example><![CDATA[on error goto error_handler
+'put Xbasic code here
+end
+error_handler:
+    err = error_code_get()
+    msg = error_text_get(err)
+    ui_msg_box("Error", msg)
+end ]]></example>
+</section>	
+<section>
+	<description>When an error is encountered, this routine displays the text message from the error and then ends script execution. For more robust error handling, use the ERROR_CODE_GET() function to determine exactly which error occurred. You can then take steps to recover from this error so you can resume script execution.
+Note: Each function should handle and clear its own errors. A calling function will see errors created within called functions, but will not be able to properly handle RESUME statements.
+
+This error handling routine is evaluated when x = 3. The STOP command is used to generate the run-time error.
+</description>
+	<example><![CDATA[trace.writeln("Start")
+on error goto error_handler
+for x = 1 TO 10
+    if (x = 3) then
+        stop
+    end if
+    trace.writeln( str(x) )
+next x
+trace.writeln("End")
+end
+error_handler:
+    trace.writeln("Error processed.")
+    resume next ]]></example>
+</section>	
+<section>
+	<description>This script shows how an error handler is used to recover from a field rule violation.
+</description>
+	<example><![CDATA[tbl = table.current()
+if (tbl.mode_get()> 0) then
+    'Compute the Message Type code
+    code = UI_ATTENTION_SYMBOL
+    ui_msg_box("Warning", "Already in data entry mode.", code)
+else
+    commit_flag = .T.
+    tbl.change_begin()
+    on error goto error_handler
+    tbl.last_name = "Washington"
+    tbl.first_name = "George"
+    tbl.change_end(commit_flag)
+end if
+parent.resynch()
+end
+error_handler:
+    commit_flag = .F.
+    resume next ]]></example>
+</section>	
+
+	
+	
+</sections>
+
+
+<see>
+	
+	<ref>Xbasic Language Reference</ref>
+</see>	
+	
+</page>

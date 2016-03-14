@@ -1,0 +1,253 @@
+<page>
+	<topic>FUNCTION</topic>
+	<syntax>FUNCTION [ BACKGROUND ] Function_Name [ as Return_Type ] ( [ [ BYREF ] Parameter1 [ AS Type1 | = Default_Value1 ] [, [ BYREF ] Parameter2 [ AS Type2 | = Default_Value2 ] [, ... [, [ BYREF ] ParameterN [ AS TypeN | = Default_ValueN ]...]]] ) 
+[ statements ] 
+[ Function_Name = expression ] 
+[ EXIT FUNCTION ] 
+END FUNCTION</syntax>
+<arguments>
+	<argument>
+		<name>BACKGROUND</name>
+		<description>Optional. Forces a function to run in the background.</description>
+	</argument>
+	
+	<argument>
+		<name>Function_Name</name>
+		<description>The name of the function. Function names should begin with a letter (A-Z, a-z) and may contain numbers and underscore (_) characters. Although the use of the period (.) character is not prohibited, it may not be supported in future releases of Alpha Anywhere.</description>
+	</argument>
+	
+	<argument>
+		<name>Return_Type</name>
+		<description>Required. The data type of the returned variable. See Variable Data Types.</description>
+	</argument>
+	
+	<argument>
+		<name>BYREF</name>
+		<description>Optional. By default FUNCTION passes arguments by value (BYVAL). Use the BYREF keyword to have a function pass an argument by reference (e.g. pass its address).</description>
+	</argument>
+	
+	<argument>
+		<name>Parameter1 ... ParameterN</name>
+		<description>Optional. A constant, variable, or expression that passes a value to the function. Each Parameter must have an associated Type.</description>
+	</argument>
+	
+	<argument>
+		<name>Default_Value1 ... Default_ValueN</name>
+		<description>Optional. The value to use if the value is omitted in the function call. This syntax makes the argument optional.</description>
+	</argument>
+	
+	<argument>
+		<name>Type1 ... TypeN</name>
+		<description>Required for each Parameter. See Variable Data Types.
+</description>
+	</argument>
+	
+</arguments>	
+	
+<description>Used to declare a user-defined function.</description>	
+
+<sections>
+	<section>
+		<title>Discussion</title>
+	<description>FUNCTION is used to declare a user-defined function. A function declaration specifies the name of the function Function_Name, the type of value returned by the function ( Return_Type ) and the name ( Parameter1 ... ParameterN ) and type ( Type ), of values to be passed to the function, if any. The Return_Type is defined after the function name, and defaults to numeric (N) if no return type is specified.
+
+The parameter type can be any Alpha Anywhere variable type. Use the A type when the parameter you pass to the function may be one type in a certain instance and another type in another 'instance. Although function parameters are not required, a function can have one or more defined parameters. The functions parameter names and types are declared inside parentheses, separated by commas. The parameters' types determine what kind of values the function accepts. The declared parameters behave like local variables, remaining defined until the function execution is complete. The functions return value is established by assigning an expression value to the function name. The data type of this value must match the defined Return_Type.
+By default parameters are passed by value (BYVAL). With Alpha Anywhere version 6 it is possible to pass variables BYREF. This means that the receiving function can directly manipulate the variables of the calling function.
+
+Variables declared inside a function remain local to that function unless they are declared with the dim SHARED or dim GLOBAL statement. When the function terminates local variables are destroyed. If the SHARED or GLOBAL variable does not already exist it is created in the function and remains after the function 'terminates. Function execution is terminated when any of the following commands are reached: EXIT FUNCTION, RETURN, END FUNCTION, or END.
+
+A script can have up to 64 user-defined functions. Functions can call other functions or the same function recursively up to 32 'times. A function defined within a script is a local function. It is only visible to that script. Alpha Anywhere also supports global functions which can be used anywhere in Alpha Anywhere. For information on global functions, see How to Define a Global Function.
+
+</description>	
+		
+	</section>
+	<section>
+		<title>Optional Function Arguments</title>
+	<description>Function can be defined with optional parameters. To define an optional parameter, you give the parameter a default value in the function prototype. For example: 
+</description>	
+		<example><![CDATA[function myfunc as c (var1 as c, var2 as n, var3 = "Name", var4 = 3, var5 = .t., var6 = null_value())
+]]></example>
+	</section>
+	<section>
+		<description>In this example, var3, var4, var5 and var6 are all optional parameters. The data type of optional parameters is automatically inferred from the default value. So, for example, the data type of var4 is Numeric.
+Var6 represents an special case where the optional argument will be an object (see examples below).
+</description>
+<note>An optional parameter cannot be followed by a required parameter in the parameter list.
+Note that in the example above the last argument, "var6", is given a default value of NULL_VALUE(). This indicates that the argument is optional, but its type is not known in advance.
+</note>
+	</section>
+	<section>
+		<title>Examples</title>
+	<description>A simple function that returns a value. Notice that the function returns a value by setting the value of a variable that is the same name and data type of the function. 
+</description>	
+		<example><![CDATA[function sayHello as c (name as c ) 
+    sayHello = "Hello: " + name 
+end function 
+
+'From the Interactive window: 
+?sayHello("martin") 
+= "Hello: martin"  ]]></example>
+	</section>
+	<section>
+	<description>A simple function with an optional argument. 
+</description>	
+		<example><![CDATA[function sayHello as c (name = "") 
+    if name = "" then 
+        sayHello = "Please don't be coy" 
+    else 
+        sayHello = "Hello: " + name 
+    end if 
+end function 
+
+'From the Interactive window: 
+?sayHello("martin") 
+= "Hello: martin" 
+?sayHello() 
+= "Please don't be coy"  ]]></example>
+	</section>
+	<section>
+	<description>A simple function with multiple arguments: 
+</description>	
+		<example><![CDATA[function multiply as n (val1 as n, val2 as n) 
+    dim result as n 
+    result = val1 * val2 
+    multiply = result 
+end function 
+
+?multiply(2,3) 
+= 6  ]]></example>
+	</section>
+	
+	<section>
+	<description>A simple function with multiple arguments, and an optional argument. Notice that the return type of the function is now 'a' meaning that the function can return any type of data. It is not limited to character, numeric, logical, etc. Notice that 'format' is an optional parameter, but has been given a default value of .f. The data type (logical) of the default argument was infered automatically from its default value (.f.). Notice also that optional arguments have to follow required arguments. You can't have any required arguments AFTER optional arguments! 
+</description>	
+		<example><![CDATA[function multiply as A (val1 as n, val2 as n, format = .f.) 
+    dim result as n 
+    result = val1 * val2 
+    if format = .f. then 
+        multiply = result 
+    else 
+        multiply = alltrimresult,10,2? 
+    end if 
+end function 
+
+'return value is numeric 
+?multiply(2,3) 
+= 6 
+
+'return value is a character string 
+?multiply(2,3,.t.) 
+= "6,00"  ]]></example>
+	</section>
+	
+	<section>
+	<description>When passing in a lot of arguments to a function, use an object (type 'p') as the function argument. 
+</description>	
+		<example><![CDATA[function formatAddress as c (options as p) 
+
+    dim txt as c = "" 
+    txt = txt + options.firstname + " " + options.lastname + crlf() 
+    txt = txt + options.address1 + crlf() 
+    if options.address2 <> "" then 
+        txt = txt + options.address2 + crlf() 
+    end if 
+    txt = options.city + ", " + options.state + " " + options.zip 
+
+    formatAddress = txt 
+end function 
+
+'from the interactive window 
+dim o as p 
+o.firstname = "Martin" 
+o.lastname = "Smith" 
+o.address1 = "1 Main St" 
+o.address2 = "" 
+o.city = "Burlington" 
+o.state = "Ma" 
+o.zip = "01803" 
+
+?formatAddress(o) 
+= "Martin Smith 
+1 Main St 
+Burlington, MA 01803" 
+ ]]></example>
+	</section>
+	
+	<section>
+	<description>When you want a function to return more than one value, have the function return an object. 
+</description>	
+		<example><![CDATA[function parseName as p (fullname as c ) 
+    dim fn as c 
+    dim ln as c 
+    fn = word(fullname,1) 
+    ln = word(fullname,2) 
+
+    dim p as p 
+    p.firstname = fn 
+    p.lastname = ln 
+
+    parseName = p 
+end function  ]]></example>
+	</section>
+	
+	<section>
+	<description>From the interactive window: 
+</description>	
+		<example><![CDATA[dim pn as p 
+pn = parseName("John Smith") 
+?pn.firstname 
+= "John" 
+?pn.lastname 
+= "Smith"  ]]></example>
+	</section>
+	
+	<section>
+	<description>Advanced Concept - To pass in an optional argument of type 'P' to a function, set the default value to null_value(): 
+</description>	
+		<example><![CDATA[function myfunction as c (obj = null_value()) 
+    dim txt as c = "Object was NOT passed in" 
+    dim options as p 
+    if typeof(obj) = "P" then 
+        options = obj 
+        txt = "Object WAS passed in" 
+    end if 
+
+    myfunction = txt 
+
+end function   ]]></example>
+	</section>
+	
+	<section>
+	<description>From the interactive window
+</description>	
+		<example><![CDATA[?myfunction() 
+= "Object was NOT passed in" 
+
+dim o as p 
+?myfunction(o) 
+= "Object WAS passed in ]]></example>
+	</section>
+	
+	<section>
+	<description>To pass in a value by reference. Notice that this function does not return a value so the return type is 'v' (void) 
+</description>	
+		<example><![CDATA[function multiply as v (BYREF result as n , v1 as n, v2 as n) 
+    result = v1 * v2 
+end function 
+
+dim result as n 
+multiply(result,2,3) 
+?result 
+= 6]]></example>
+	</section>
+</sections>
+
+
+
+
+<see>
+	
+	<ref>Xbasic Language Reference</ref>
+</see>	
+	
+</page>
