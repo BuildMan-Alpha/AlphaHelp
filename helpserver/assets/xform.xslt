@@ -267,26 +267,26 @@
 		</xsl:if>	
 	</xsl:template>
 	<xsl:template match="list" name="list" >
-		<table class="definitionTable" >
+		<dl class="definitionTable" >
 			<xsl:for-each select="list/item">
 				<xsl:choose>
 					<xsl:when test="name-title">
-						<tr>
-							<th style="white-space: nowrap; text-align: left;padding-right:8pt;">
+						<div>
+							<div style="white-space: nowrap; text-align: left;padding-right:8pt;">
 								<xsl:value-of select="name-title" />
-							</th>
-							<th style="white-space: nowrap; text-align: left;">
+							</div>
+							<div style="white-space: nowrap; text-align: left;">
 								<xsl:choose>
 									<xsl:when test="description-title">
 										<xsl:value-of select="description-title" /></xsl:when>
 									<xsl:otherwise>Description</xsl:otherwise>
 								</xsl:choose>
-							</th>
-						</tr>
+							</div>
+						</div>
 					</xsl:when>
 					<xsl:otherwise>
-						<tr>
-							<td class="definitionNameTD" >
+						<div>
+							<dt class="definitionNameTD" >
                                 <xsl:choose>
                                     <xsl:when test="name/@href">
                                         <a href="{name/@href}"><xsl:value-of select="name" /></a>
@@ -295,18 +295,18 @@
                                         <xsl:value-of select="name" />
                                     </xsl:otherwise>
                                 </xsl:choose>
-							</td>
-							<td class="definitionDescriptionTD">
+							</dt>
+							<dd class="definitionDescriptionTD">
 								<xsl:value-of select="description" />
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
 								</xsl:if>
-							</td>
-						</tr>
+							</dd>
+						</div>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
-		</table>
+		</dl>
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
