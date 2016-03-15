@@ -1,7 +1,7 @@
 // Move images into proper location
 var fs = require("fs");
 var path = require('path');
-var baseFolder = "../helpfiles/Ref/Desktop_Api";
+var baseFolder = "../helpfiles/Ref/Api/Functions/Data Type/Array Functions";
 
 var files = { xml: [], images: [] };
 var pending = 1;
