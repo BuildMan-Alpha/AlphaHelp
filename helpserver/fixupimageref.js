@@ -1,7 +1,7 @@
 // Move images into proper location
 var fs = require("fs");
 var path = require('path');
-var baseFolder = "../helpfiles/SQLGuide";
+var baseFolder = "../helpfiles/Ref/Api";
 var files = { xml: [], images: [] };
 var pending = 1;
 var replaceAll = function (str, find, replace) {
