@@ -1,0 +1,121 @@
+<page>
+	
+	<topic>Displaying Miscellaneous Chart Examples</topic>
+<sections>
+<section>
+	<description>The Main Menu of AlphaSports contains a button labeled "Miscellaneous Examples". This button runs an Action Script, which in turn runs an Xbasic script named "MiscExamples" using the Scripts > Run a Script action. This script displays pie and bar charts created with a SimpleChart ActiveX control. This is a feature of Alpha Five Version 7.</description>
+</section>	
+<section>
+<title>Understanding the MiscExamples Script
+</title>
+	<description>First, we create the variables that the script will use.
+</description>
+	<example><![CDATA[DIM dlg_title as C = "Miscellaneous Examples"
+DIM arrExamples[1] as P
+DIM t as P
+DIM count as N
+DIM nExample as N
+DIM Description as C ]]></example>
+</section>		
+
+<section>
+	
+	<description>Next, the script opens the MiscExamples to count the number of examples.
+</description>
+	<example><![CDATA[t = table.open("MiscExamples", FILE_RO_SHARED)
+count = t.records_get()
+t.close() ]]></example>
+</section>		
+
+
+<section>
+	
+	<description>The script then reads the MiscExamples table's data into an array. This makes it easy for the script to jump between different examples.
+</description>
+	<example><![CDATA[arrExamples.resize(count)
+arrExamples.initialize_from_table("MiscExamples", "", "Category")
+nExample = 1 ]]></example>
+</section>		
+
+
+
+<section>
+	
+	<description>Next, the script creates a new minimized window, loads its button onto the Window Bar, loads it into the list of windows under the Windows menu, tests for its existence, and sets focus to it.
+</description>
+	<example><![CDATA[a5_mdi_windowclass_add("AlphaSportsMiscExamples", dlg_title, "a5_ball_blue")
+IF ui_modeless_dlg_exist(dlg_title)
+    Miscellaneous_Examples.Activate()
+    END
+END IF ]]></example>
+</section>		
+
+
+<section>
+	
+	<description>Finally, the script creates the contents of the new window. The window contains a tree control that displays the contents of the arrExamples[] array. When you click the Go to Example button, the script displays either the BarChart or PieChart forms.</description>
+	<example><![CDATA[ui_modeless_dlg_box(dlg_title, <<%dlg%
+{on_key=enter!goto_Example}
+{mdichild=AlphaSportsMiscExamples}
+{on_activate=activate}
+{on_deactivate=deactivate}
+{startup=example_change}
+{can_exit=close}
+{region}
+Select an Example:;
+{stretch=width,height}
+[%S=BLR%.60,10nExample^ 
+{lf};
+{stretch=width,top}
+{frame=Description:}
+{text=60,10Description};
+{endregion}
+{stickto=top,right}
+{region}
+{lf};
+<*20,1.5Go to Example!goto_example>;
+<20,1.5&Close!close>;
+{endregion}
+%dlg%, <<%code%
+IF left(a_dlg_button, 8) = "example_"
+    IF A_dlg_button = "example_change"
+        IF nExample > 0
+            Description = arrExamples[nExample].Description
+        ELSE
+            Description = ""
+        END IF
+    ELSE IF a_dlG_button = "example_dblclick"
+        ui_dlg_event(dlg_title, "goto_example")
+    END IF
+    a_dlg_button = ""
+ELSE IF a_DlG_button = "activate"
+    DIM toolbar_name as C
+    DIM pDummy as P
+    toolbar_name = a5_system_toolbar_show(pDummy, a5_toolbar_def_load("MiscEx"))
+ELSE IF a_dlg_button = "deactivate"
+    a_Dlg_button = ""
+    IF ui_modeless_dlg_exist(toolbar_name)
+        ui_modeless_dlg_close(toolbar_name)
+    END IF
+ELSE IF a_Dlg_button = "goto_example"
+    a_dlg_button = ""
+    form.view(arrExamples[nExample].Form)
+ELSE IF a_dlG_button = "close"
+    a_dlg_Button = ""
+    ui_modeless_dlg_close(dlg_title)
+END IF
+%code%)
+ ]]></example>
+</section>		
+
+
+
+
+
+	
+</sections>	
+	<see>
+		<ref>Learning Xdialog</ref>
+	</see>
+	
+</page>

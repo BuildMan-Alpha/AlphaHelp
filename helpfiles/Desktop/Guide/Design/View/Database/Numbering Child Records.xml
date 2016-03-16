@@ -1,0 +1,148 @@
+<page>
+	<topic>Numbering Child Records</topic>
+<sections>
+<section>
+	<description>Many applications create a set with a parent table in a one-to-many relationship with a child table. Field Rules auto-numbering can assign unique ID numbers to the records in the parent table. The problem of numbering the child table records is cannot be solved with Field Rules, particularly if you want to reset the child record counter to 1 for each new parent record. For example, the solution might provide the following record numbers:</description>
+	<list>
+		<item>
+			<name>Parent Record Number</name>
+			<description>Child Record Numbers</description>
+		</item>
+			<item>
+			<name>1</name>
+			<description>01 to 04</description>
+		</item>
+			<item>
+			<name>2</name>
+			<description>01 to 02</description>
+		</item>
+			<item>
+			<name>3</name>
+			<description>01 to 07</description>
+		</item>
+			<item>
+			<name>4</name>
+			<description>01</description>
+		</item>
+		
+	</list>
+	
+</section>	
+<section>
+	<description>One additional requirements could be that the deletion of a child record would cause the remaining child records to be renumbered. Assume there are two tables: invoice and line_items with the following structures.
+</description>
+	<figure><link>images/dbtable3.png</link></figure>
+	
+</section>
+<section>
+	<description>The two tables are linked one-to-many on the Invoice_ID field.
+A script placed under the OnSaveRecord event of the line_items table numbers new records. The same script placed under the OnDeleteRecord event renumbers line items after one is deleted.
+</description>
+	<example><![CDATA[dim head as P
+dim items as P
+dim line_number as N
+line_number = 0]]></example>
+	
+</section>
+
+
+<section>
+	<description>The TABLE.GET() method returns a pointer to an open table (in this case the parent table in the set). This line verifies that the line_items child table is being opened in a set with parent table. This is very important. If the line_items table is not opened as a child table, then there is no meaningful way to assign consecutive line numbers to the records in the same invoice. If the table is opened by itself, then the script passes program flow to the error trap at not_in_set and does not renumber the line item records.</description>
+	<example><![CDATA[on error goto not_in_set
+head = table.get("invoice")]]></example>
+	
+</section>
+
+
+<section>
+	<description><![CDATA[Once we have verified that we are in the right set, we sequentially fetch through the records in line_items. We use <TBL>.FETCH_FIND() and <TBL>.FETCH_LAST() in a WHILE ... END WHILE loop. The set structure guarantees that active range of the line_items records is limited to the current header number.]]></description>
+	<example><![CDATA[on error goto 0
+items = table.get("line_items")
+items.fetch_first()
+while .not. items.fetch_eof()
+    line_number = line_number + 1
+    items.change_begin()
+    items.line_number = padl(ltrim(str(line_number, 2, 0)), 2, "0")
+    items.change_end(.t.)
+    items.fetch_next()
+end while ]]></example>
+	
+</section>
+
+<section>
+	<description>After fetching each record in line_items, we have to update its line_number field. That is done with the <TBL>.CHANGE_BEGIN() and <TBL>.CHANGE_END() methods.
+Finally, after updating the records in the browse, we issue a PARENTFORM.RESYNCH() to make sure the form reflects the changes made to the underlying table.
+</description>
+	<example><![CDATA[parentform.resynch()
+end
+not_in_set:
+on error goto 0
+end]]></example>
+	
+</section>
+
+<section>
+	<description>You can use this technique any time you need to number child records consecutively. Examples would include invoices for customers, clinic visits for patients, monthly deposits or withdrawals in an account - the number of such applications is unlimited.
+</description>
+	<example><![CDATA[ ]]></example>
+	
+</section>
+<section>
+	<title>Multiuser considerations
+</title>
+		<description>Under rare circumstances, it is possible for a multi-user record-locking conflict to arise. If two users are simultaneously adding or deleting line items on a single invoice, then conceivably one of the OnSaveRecord or OnDeleteRecord scripts could fail to obtain the record lock it needs to initiate a .CHANGE_BEGIN(). This would be a rare circumstance indeed, but of course it is just such rare circumstances that are behind most spectacular software failures.
+We can check for multi-user conflicts by placing another on error goto statement just before the .CHANGE_BEGIN(). as in all error traps, we have to decide in advance what we will do if we encounter an error. In this case, we will just delay one second and try again. If the record is still locked and we can't change it, we will delay a second and then a third time. If we continue to fail after 3 tries, we will abort the script with an informative message to the operator. Here is our script with multi-user error trapping added:
+</description>
+		<example>dim head as P
+dim items as P
+dim line_number as N
+dim tries as N
+tries = 0
+line_number = 0
+on error goto not_in_set
+head = table.get("invoice")
+on error goto 0
+items = table.get("line_items")
+items.fetch_first()
+while .not. items.fetch_eof()
+    line_number=line_number + 1
+    on error goto record_locked
+    items.change_begin()
+    on error goto 0
+    items.line_number=padl(ltrim(str(line_number, 2, 0)), 2, "0")
+    items.change_end(.t.)
+    items.fetch_next()
+    tries = 0
+end while
+parentform.resynch()
+end
+not_in_set:
+on error goto 0
+end
+record_locked:
+on error goto 0
+if (tries < 3) then
+    tries = tries + 1
+    sleep(1)
+    resume 0
+else
+    ui_msg_box("System error", "Unable to lock and update line numbers!")
+    end
+end if
+</example>
+	
+	
+</section>
+<section>
+	<title>Thanks To</title>
+	<description>Dr. Peter Wayne
+</description>
+</section>
+	
+</sections>	
+	<see>
+		<ref>One to Many Links<ref>
+	</see>
+	
+	
+</page>

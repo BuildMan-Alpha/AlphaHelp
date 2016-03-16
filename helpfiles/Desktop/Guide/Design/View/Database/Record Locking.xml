@@ -1,0 +1,122 @@
+<page>
+	
+	<topic>Record Locking</topic>
+<sections>
+	<section>
+		<description>Alpha Anywhere places a lock on a record when:
+</description>
+		<cases>
+			<case>
+				<description>a user starts changing a record, or entering a new record\
+</description>
+			</case>
+			<case>
+				<description>the user commits the changes
+</description>
+			</case>
+		</cases>
+	</section>
+<section>
+	<description>There is no need for the end user to explicitly lock and unlock records. The programmer can test if a record is locked by using <TBL>.IS_RECORD_LOCKED().
+Open 2 the same table twice. Both t1 and t2 point to the same record.
+</description>
+	<example><![CDATA[t1 = table.open("customer") 
+? t1.recno() 
+= 1 
+t2 = table.open("customer") 
+? t2.recno() 
+= 1 ]]></example>
+	
+</section>	
+<section>
+	<description><![CDATA[Note how the <TBL>.CHANGE_BEGIN() used by t1 method locks the record for t2.
+]]></description>
+	<example><![CDATA[? t1.is_record_locked() 
+= .F. 
+t1.change_begin()
+  
+? t2.is_record_locked() 
+= .T. ]]></example>
+	
+</section>	
+<section>
+	<description><![CDATA[When t2 uses <TBL>.CHANGE_BEGIN() an error results because the record is locked by t1.
+]]></description>
+	<example><![CDATA[t2.change_begin() 
+ERROR: The process cannot access the file because another process has locked a portion of the file. 
+ customer.DBF
+]]></example>
+	
+</section>	
+<section>
+	<description><![CDATA[The use of <TBL>.CHANGE_END() by t1 releases the lock.]]></description>
+	<example><![CDATA[t1.change_end() 
+? t2.is_record_locked() 
+= .F.]]></example>
+	
+</section>	
+<section>
+	<description>Now t2 can go into change mode without causing an error.
+</description>
+	<example><![CDATA[t2.change_begin() 
+t2.change_end() ]]></example>
+	
+</section>	
+<section>
+	<title>Example</title>
+	<description>Change the value in the COUNTRY field. If already in Change mode then do not change record.
+</description>
+	<example><![CDATA['Create an object pointer to the current table
+tbl = table.current()
+if tbl.mode_get()> 0 then
+    'Compute the Message Type code
+    code = UI_ATTENTION_SYMBOL
+    ui_msg_box("Warning", "Already in data entry mode.", code)
+else
+    commit_flag = .T.
+    tbl.change_begin()
+    on error goto error_handler
+    tbl.last_name = "Washington"
+    tbl. first_name = "George"
+    tbl.change_end(commit_flag)
+end if
+end
+error_handler:
+   commit_flag = .F.
+RESUME NEXT ]]></example>
+	
+</section>	
+<section>
+	<description><![CDATA[Same as above example, but uses the newer <TBL>.IS_RECORD_LOCKED() method (introduced in V5), instead of ON ERROR.
+]]></description>
+	<example><![CDATA['Create an object pointer to the current table
+tbl = table.current()
+if tbl.mode_get()> 0 then
+    code = UI_ATTENTION_SYMBOL
+    ui_msg_box("Warning", "Already in data entry mode.", code)
+else
+    if (tbl.is_record_locked()= .f.) then
+       tbl.change_begin()
+       tbl.last_name = "Washington"
+       tbl. first_name = "George"
+       tbl.change_end(.T.)
+    end if
+end if
+end]]></example>
+	
+</section>	
+<section>
+	<description>This next example contrasts the .CHANGE_BEGIN() method (which works with tables "behind the scenes") with the form methods for changing the record that is currently displayed on a form. This script could be on a button on a form. Note that, just as when you are editing data in a form, there is no need to explicitly put the form into change mode. as soon as you change the value property of the Last_name control, the record is automatically placed in change mode.
+</description>
+	<example><![CDATA[Last_name.value = "Washington"
+First_name.value = "George"
+parent.commit() ]]></example>
+	
+</section>	
+	
+	
+</sections>	
+	
+	
+	
+</page>

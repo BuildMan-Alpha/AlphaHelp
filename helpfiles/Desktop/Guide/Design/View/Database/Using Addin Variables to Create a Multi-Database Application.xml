@@ -1,0 +1,186 @@
+<page>
+	<topic>Using Addin Variables to Create a Multi-Database Application
+</topic>
+<sections>
+<section>
+
+	<description>Our agency is responsible for administering many programs for the needy population in our county. For over 10 years, we have used Alpha Software to handle the task. The system is currently written in Alpha5 version 1 and it has performed admirably!
+Our user interface is one where they sign into the system with a user-id and password. Once authenticated, the user is presented with a "Main Menu" application. Applications were a series of "card stacks", which are forms not associated with any table or set, only the application. From this Main Menu, a user can get to (provided they have appropriate security) whichever application they need. Application-to-application communication was fairly straightforward using an "app_run" command. We were also able to create "Global" variables that would be available to all called applications.
+With the release of version 2 of Alpha 5, card stacks were no longer being used, and Xbasic, as we knew it, had changed. The methodology we used in our system design could no longer be used!
+When version 5 came along, Alpha Software gave us access to the system variable space know as "addin variable" space. This variable space is where Alpha keeps many of the variables it uses to run the database engine. Addin variable space is open and active as long as Alpha 5 is open, and is NOT tied to any ONE database.
+This sounds like something we can use to convert our Applications without a full rethinking and redesign of our system. So, now we have a migration path for our 10 year-old application! With an incredible amount of patient help from Selwyn, I was able to take advantage of this addin variable space to bring our systems forward. Full conversion of our systems is still, probably a year away, but we now have a methodology and powerful toolset to accomplish our task.
+Addin Variable space is much like any other variable space. You define the space, assign values to defined variables, and then use these variables where you need them.
+We use the addin variable space to hold database paths, user name and security level, and agency-specific information. This information is defined in our "Main Menu" database, and is available to all "called" databases for as long as Alpha 5 stays open.
+The Main Menu database has an "autoexec" script that defines the addin variable space and then assigns values to many of the variables defined. See below:
+</description>
+	<example><![CDATA[dim aa as P
+aa = addin.variables()
+dim aa.bcbss as P
+dim aa.bcbss.access as N
+dim aa.bcbss.agency as C
+dim aa.bcbss.whereto as C
+dim aa.bcbss.wherefrom as C
+dim aa.bcbss.level as C
+' aa.bcbss.path and aa.bcbss.ppath set up relative pathing for all scripts.
+' This will alleviate the need to hard-code a path into any scripts.
+' We can change it here, and it should carry through all of the systems.
+dim aa.bcbss.path as C
+dim aa.bcbss.lpath as C
+dim aa.bcbss.ppath as C
+dim aa.bcbss.fpath as C
+dim aa.bcbss.drive as C
+dim global agency as C
+dim Global level as C
+dim shared result as C
+dim shared userid as C
+dim shared passwd as C
+dim trys as N
+dim global formname as C
+PleaseWait()
+trys = 0
+'set the paths. This is where it needs to be changed for later use.
+aa.bcbss.path = "\\percy\a5share"
+aa.bcbss.lpath = "C:\Program Files\A5V5Runtime\shadow"
+aa.bcbss.ppath = "\\percy\a5share\pers$"
+aa.bcbss.fpath = "\\bergen\famis\famisincv5"
+aa.bcbss.drive = "O:"
+aa.bcbss.agency =
+trim(lookupc("F", 1, "agency", aa.bcbss.path + "\tables\agency.dbf", "rec"))
+agency = aa.bcbss.agency
+access = aa.bcbss.access
+level = aa.bcbss.level
+if aa.bcbss.wherefrom = ""
+    aa.bcbss.wherefrom = "Main_Menu"
+end if
+DIM layout_name as C
+' Make sure that the name of the Sub-menu appears on the sub-menu
+' instead of the called application name
+if (aa.bcbss.wherefrom <> "Main_Menu")
+    dim Global retn as C
+    ' Retn is a variable used to turn on/off the "RETURN" custom menu Item
+    retn = "X"
+    'The following code insures that the proper Menu name is displayed
+    if aa.bcbss.wherefrom = "Training_Main"
+        aa.bcbss.whereto = "Integrity / Training Department"
+    elseif aa.bcbss.wherefrom = "Finance_Main"
+        aa.bcbss.whereto = "Finance Department"
+    elseif aa.bcbss.wherefrom = "IM_Main"
+        aa.bcbss.whereto = "Income Maintenance Department"
+    elseif aa.bcbss.wherefrom = "Service_Main"
+        aa.bcbss.whereto = "Social Services Department"
+    elsif aa.bcbss.wherefrom = "Investigations_Main"
+        aa.bcbss.whereto = "Investigation Unit"
+    else
+        aa.bcbss.whereto = aa.bcbss.wherefrom
+    end if
+end if
+layout_name = aa.bcbss.wherefrom
+ControlPanel.hide()
+agency = aa.bcbss.agency
+DIM Shared varP_Formname as P
+DIM layout_name as C
+DIM tempP as P
+' Get pointer to existing window. In case layout_name is qualified with a
+' dictionary name, extract up to first @. In case formname has spaces, normalize it
+tempP=obj(":"+object_Name_normalizelayout_name,1,"@"?)
+' Test if pointer is valid
+IF is_object(tempP) THEN
+    ' Test if pointer refers to a form or browse
+    IF tempP.class()= "form" .or. tempP.class()= "browse" THEN
+        ' If so, then activate the already open window
+        tempP.activate()
+        tempP.show()
+        tempP.maximize()
+    ELSE
+        ' Window is not already open, so open it
+        tempP = :Form.load(layout_name)
+        tempP.show()
+        tempP.maximize()
+    END IF
+ELSE
+    tempP = :Form.load(layout_name)
+    tempP.show()
+    tempP.maximize()
+END IF
+END ]]></example>
+</section>	
+<section>
+
+	<description>A big "thanks" to Jerry Brightbill for his PleaseWait() function. We have modified it a little, and use it extensively throughout the system to inform the users that we didn't go away, but that we are "changing gears".
+This script defines the addin variable space: AA.BCBSS. Within this space, I have several dot variables that I defined for use throughout the system. The great thing about this space is that in the "called" databases, all I need to do is define the AA.BCBSS variable space, and voila!, all my dot variables are available. To make things easy and addressable in my called databases, I define global variables that I set to the dot variables in AA.BCBSS. Using the Global variables, I can pull them from a drag-drop list.
+In an effort to maintain what is left of my sanity, and to insure consistency throughout the system, I developed several functions to be used when calling and starting other databases.
+This is a typical sub-database call. The code is attached to a button to open our "Client Information" database.
+</description>
+	<example><![CDATA[' FUNCTION "SETUP" INITIALIZES THE VARIABLES TO BE SENT TO THE CALLED APPLICATION.
+' THE CHARACTER PARAMETERS ARE THE NAMES OF THE CALLED APPLICATION AND THE FORM
+' WE ARE COMING FROM. THEY ARE PLACED INTO THE AA.BCBSS.WHERETO AND AA.BCBSS.WHEREFROM
+' SUPER-GLOBAL VARIABLES
+' FUNCTION CALLSUB IS USED TO DETERMINE IF A SHADOW DATABASE EXISTS, AND IF SO,
+' CALL THE LOCAL COPY OF THE DATABASE INSTEAD OF THE NETWORK MASTER. INFORMATION
+' PASSED IS THE SUBFOLDER NAME AND APPLICATION NAME.
+' VARIABLE AA.BCBSS.SUBAPP CONTAINS A TEXT STRING IN THE FOLLOWING FORMAT:
+' aa.bcbss.lpath+chr(92)+subapp+".adb" OR
+' aa.bcbss.path+chr(92)+subapp+".adb"
+' WHERE AA.BCBSS.LPATH AND AA.BCBSS.PATH ARE FULLY QUALIFIED PATH NAMES TO EITHER THE
+' SHADOW DATABASE(lpath) OR THE NETWORK DATABASE(path)
+pleasewait(.T., "Retrieving Customer Info Menu... ")
+setup("Customer Information","Main_Menu")
+dim aa as P
+aa = addin.variables()
+callsub("casereg\Client_info")
+' Open database:
+:A5.load(aa.bcbss.subapp)
+' And here is the on_init code in the called database menu form:
+dim aa as P
+aa = addin.variables()
+varinit()
+PleaseWait(.F.)
+form.Refresh_Layout() ]]></example>
+</section>	
+<section>
+
+	<description>The function varinit() sets the pointers to all of my addin variables and assigns global variables for use on forms, reports, etc.
+</description>
+	<example><![CDATA[' Initializes Variables for use throughout the whole application
+FUNCTION varinit ( )
+    dim aa as P
+    aa = addin.variables()
+    dim aa.bcbss as P
+    dim global access as N
+    DIM global agency as C
+    dim global whereto as C
+    dim global wherefrom as C
+    DIM GLOBAL LEVEL as C
+    dim Global path as C
+    dim global ppath as C
+    dim global fpath as C
+    access = aa.bcbss.access
+    agency = aa.bcbss.agency
+    whereto = aa.bcbss.whereto
+    wherefrom = aa.bcbss.wherefrom
+    level = aa.bcbss.level
+    path = aa.bcbss.path
+    ppath = aa.bcbss.ppath
+    fpath = aa.bcbss.fpath
+END FUNCTION ]]></example>
+</section>		
+<section>
+	<description>PleaseWait(.F.) shuts off the PleaseWait dialog box.
+At this point, all the variables I defined in my "calling" database are available in my "called" database and I know where I came from so that I can go back to the appropriate menu form if it is not the main one.
+Our "called" databases all have a "Main Menu" form that is based on a security type table and has buttons which lead us to the actual forms, reports, etc. necessary to do the task at hand. Using this method, we can quickly and easily allow or disallow users into specific portions of our system by just modifying the table.
+So far, this methodology has worked. With the many new tools in version 5, we are making changes every day. We are trying to set up standardized user menus and toolbars so that we do not clutter up our forms with buttons.
+</description>
+	
+	
+</section>	
+<section>
+	<title>Thanks to</title>
+	<description>Tom Henkel
+</description>
+</section>
+</sections>
+	<see>
+		<ref>What is a Variable?</ref>
+	</see>
+	
+</page>

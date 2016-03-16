@@ -1,0 +1,182 @@
+<page>
+	<topic>Automatic Recovery of Indexes</topic>
+<sections>
+	
+<section>
+	<description>The following two scripts allow a user to take a snapshot of all of the indexes in all of the tables in their application, and then check the actual indexes against the index definitions stored in the snapshot.
+Script 1 loops through all of the table in a database and stores the index definitions in a text file on disk. The text file is the same as the Database name but it has a ".TableInformation" extension. You would run Script 1 only once.
+Script 2 retrieves the index definitions and checks the indexes in the tables against the saved index definitions.</description>
+	
+	
+</section>	
+	
+<section>
+	<title>Script 1 - Save Index Definitions
+</title>
+	<description>Start by getting a list of all tables.
+</description>
+	<example><![CDATA[dim tables as C 
+tables = a5.Table_Enum() ]]></example>
+	
+</section>	
+	
+<section>
+	<description>Create an array to hold the index information for each table.
+</description>
+	<example><![CDATA[dim td as P
+dim count as N 
+count = line_count(tables) 
+dim td.TableInfo[count] as P
+ ]]></example>
+</section>	
+
+<section>
+	<description>Initialize the array.
+</description>
+	<example><![CDATA[td.TableInfo.initialize_properties("TableName",tables) ]]></example>
+</section>	
+
+<section>
+	<description>Create and display a progress dialog box with the WaitDialog .Create() method.
+</description>
+	<example><![CDATA[dim pDlg1 as {waitdialog} 
+pDlg1.Create(3,"Percent") 
+pDlg1.Set_Title("Please Wait") 
+pDlg1.Set_Message("Storing index information. Please wait...") ]]></example>
+</section>	
+
+<section>
+	<description>Iterate through the tables, retrieving the index information for each.
+</description>
+	<example><![CDATA[dim i as N 
+dim table_i as C 
+dim indexInfo_i as C 
+dim sourceType_i as C
+  
+for i = 1 to count 
+    table_i = td.TableInfo[i].tablename ]]></example>
+</section>	
+
+<section>
+	<description>Check the table type. The only type of table to examine is a "Native" table. Use the .Set_Bottom_Message() method to update the progress dialog.
+</description>
+	<example><![CDATA[sourceType_i = table.get_source_type(table.filename_get(table_i)) 
+    td.TableInfo[i].sourceType = sourceType_i 
+    pDlg1.Set_Bottom_Message(table_i) 
+    if (sourceType_i = "Native") then ]]></example>
+</section>	
+
+<section>
+	<description>The get_index_definitions() function retrieves a text definition of a table's indexes.
+</description>
+	<example><![CDATA[td.TableInfo[i].indexDefinitions = get_index_definitions(table_i) 
+    else 
+        td.TableInfo[i].indexDefinitions = "" 
+    end if 
+next i ]]></example>
+</section>	
+
+<section>
+	<description>Close the progress dialog. The a5.get_name() method returns the name of the current database. The file.filename_parse() method constructs the path and filename for the file that will store the index definitions.</description>
+	<example><![CDATA[pDlg1.close() 
+
+dim fn as C 
+fn = file.filename_parse(a5.Get_Name(),"dpn") + ".TableInformation"]]></example>
+</section>	
+
+<section>
+	<description>Use save_to_file() to save the variable that contains the index information to the file on disk. Before you can save the variable, you have to convert it to a character value using property_to_string().</description>
+	<example><![CDATA[save_to_file(property_to_string(td),fn)]]></example>
+</section>	
+
+<section>
+	<title>Retrieve Index Definitions
+</title>
+	<description>Script 2 is used to check the indexes in the tables against the saved index definitions. The first step is to compute the name of the index definition file and open it. If the file doesn't exist, the script exits by going to the skip label.
+</description>
+	<example><![CDATA[dim fn as C
+  
+fn = file.filename_parse(a5.Get_Name(),"dpn") + ".TableInformation" 
+if file.exists(fn) = .f. then 
+ui_msg_box("Error", "Saved index information file not found.") 
+goto skip 
+end if ]]></example>
+</section>	
+
+<section>
+	<description>Retrieve the index definition using the get_from_file() function, then import the ASCII data into the td dot variable using property_from_string().
+</description>
+	<example><![CDATA[dim txt as C 
+dim td as P
+txt = get_from_file(fn) 
+property_from_string(td, txt) ]]></example>
+</section>	
+
+<section>
+	<description>Count the number of entries in the td dot variable by finding the first empty entry with the array .first_empty() method and subtracting 1.
+</description>
+	<example><![CDATA[dim i as N 
+dim count as N 
+count = td.TableInfo.first_empty()- 1 ]]></example>
+</section>	
+
+<section>
+	<description>Create and display a progress dialog box. Use the WaitDialog .Set_Title() method to set the title of the progress dialog.
+</description>
+	<example><![CDATA[dim pDlg1 as {waitdialog} 
+pDlg1.Create(3,"Percent") 
+pDlg1.Set_Title("Please Wait") 
+pDlg1.Set_Message("Checking indexes. Please wait...") ]]></example>
+</section>	
+
+<section>
+	<description>Compare the saved index definitions with each table's indexes.</description>
+	<example><![CDATA[dim tablesWithErrors as C = "" 
+dim index_info_i as C 
+dim table_i as C 
+dim ptr as P
+  
+for i = 1 to count 
+    index_info_i = td.TableInfo[i].indexDefinitions 
+    table_i = td.TableInfo[i].tablename 
+    pDlg1.Set_Bottom_Message(table_i) ]]></example>
+</section>	
+
+<section>
+	<description>Only restore indexes if the table type is a native table. Use the  <a>indexes_match_defstring() function to do the comparison. Check the .missingIndexTags property to see which tables have missing or damaged indexes. If necessary, use the create_indexes() function to restore an index.</description>
+	<example><![CDATA[if td.TableInfo[i].sourceType = "Native" then 
+        ptr = indexes_match_defstring(table_i , index_info_i) 
+        if ptr.missingIndexTags <> "" then 
+            tablesWithErrors = tablesWithErrors + table_i + crlf() 
+            Create_Indexes(table_i, index_info_i) 
+        end if 
+    end if 
+next i ]]></example>
+</section>	
+
+
+<section>
+	<description>Close the progress dialog using the .close() method. Use ui_msg_box() to report what was done.
+</description>
+	<example><![CDATA[pDlg1.close() 
+
+
+if tablesWithErrors <> "" then 
+    ui_msg_box("Notice","Missing indexes were re-created in the following tables: " + crlf()+ tablesWithErrors) 
+else 
+    ui_msg_box("Notice","No missing indexes were found") 
+end if
+  
+skip: ]]></example>
+</section>	
+
+
+</sections>	
+	<see>
+		<ref>Creating an Index</ref>
+		<ref>About Indexes, Queries, and Ranges</ref>
+		
+		
+	</see>
+	
+</page>

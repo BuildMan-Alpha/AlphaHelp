@@ -1,0 +1,241 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\" />
+	<link rel="stylesheet" type="text/css" href="theme.css" />
+	</head>
+	<body>
+	<div id="tiki-clean">
+			<div id="tiki-mid">
+	
+ 
+
+
+
+ 
+
+	 
+
+
+
+
+<article id="top" class="wikitext nopagetitle">
+<div><h1>Creating Online Forms for Web Security Users</h1>
+	<p>OBSOLETE. DOA.</p>
+	<p>&nbsp;</div>			
+<div><h3>Table of contents</h3></div>
+
+<div class="helpserver_toc">
+<ul>
+	<li>
+		<a href="#Overview" class='link'>Overview</a>
+	</li>
+	<li>	
+		<a href="#Linking_To_Another_User_Table" class='link'>Linking To Another User Table</a>
+	</li>
+	<ul>
+		<li>
+			<a href="#Enter_and_Edit_On_Separated_Pages" class='link'>Enter and Edit On Separated Pages</a>
+		</li>
+		<li>
+			<a href="#Enter_and_Edit_On_One_Component" class='link'>Enter and Edit On One Component</a>
+		</li>
+	</ul>	
+	<li>
+		<a href="#Using_Events_-_Initialize_Event" class='link'>Using Events - Initialize Event</a>
+	</li>
+	<li>
+		<a href="#Using_Events_Validate_Event" class='link'>Using Events Validate Event</a>
+	</li>
+	<li>
+		<a href="#Using_Events_AfterValidate_Event" class='link'>Using Events AfterValidate Event</a>
+	</li>
+	<li>
+		<a href="#Other_Options:_Multiple_Components_on_Page" class='link'>Other Options: Multiple Components on Page</a>
+	</li>
+	
+</ul>
+</div>
+
+<br />
+<a name="Overview"></a><h2>Overview</h2>
+The web security user information is in an isolated, system controlled table that is not designed for direct access.  However, there are a number of functions available to assist in entering and editing web users.  The help file has a section under Tutorials, Web Publishing Tutorial, Implementing Security, and 
+	Adding Users with a Web Component that covers how to build a dialog form to enter or edits the security information for users.  The 
+	Web Applications Demo that ships with Alpha Anywhere includes the form described in the help, along with another dialog to select a user.<br />
+<br />
+However, the developer may have a desire to save additional user information for the user.  The web security has an option that allows adding additional information to the security record to identify the user in other tables.  The security settings has a 
+	customize option to activate an external identifier field.  This option will activate a special field named 'ulink'.  The value entered in the 'ulink' field can identify a related user record in the external table.  For example, in Alpha Sports, each customer has a unique customer_id value.  This value could be added to a security record that may exist for that user.<br />
+<br />
+The ulink field can be populated in a number of ways.  From the desktop, users can be imported into the web security using the Users and Groups form.  The import can populate the 
+	ulink field with an appropriate value from the external table.  This would be the most typical method as records can be created with as much or as little information as desired. Each user record can also be edited and the value manually entered.<br />
+<br />
+From the web, the dialog form shown in the tutorial and in Web Application Demo could be modified to add a 
+	ulink field where a user can manually enter an value.<br />
+<a name="Linking To Another User Table"></a><h2>Linking To Another User Table</h2>
+In many cases, data must be entered in the security table and the external table for the same user.  There are a couple of approaches that can be used<br />
+<a name="Enter and Edit On Separated Pages"></a><h3>Enter and Edit On Separated Pages</h3>
+The data for the external table can be entered on one page or component.  That component or page can then use a link to open another page with a dialog with security information.  Since the only value on the external table that can be saved in the security data is the value entered into ulink, the link must pass the value as ulink.  Here is an example.<br />
+<br />
+A component is created based on a customer table.  The value in the customer table that will link to the web security is 
+	customer_id  A link can be created in a grid or detail record to open  another page.  This second page has a dialog component similar to the sample in Web Applications Demo.  If the second page is named webusers.a5w, the full URL for the link would be 
+	webusers.a5w?ulink={customer_id} This will pass a variable named ulink to the page which will contain the customer_id value from the record with the link.<br />
+<br />
+The function to get a users security record can use one of three different values.  These values are passed to the dialog as request variables and must have names that match the ones the system expects. The names allowed are not case sensitive but must be one of the ones listed below.<br />
+<br />
+1.	guid<br />
+2.	userid<br />
+3.	ulink<br />
+<br />
+The system then uses a hierarchy to find a user in the web security.  It uses the first field that has a value other than blank. If it finds a value in one of the steps below, it does NOT check the next value in the hierarchy.<br />
+<br />
+1.	Checks by GUID if GUID value supplied is not blank<br />
+2.	Checks by Userid if Userid value supplied is not blank<br />
+3.	Checks by Ulink if Ulink value supplied is not blank<br />
+4.	If no value is supplied by any of the above, record is considered 'New'<br />
+<br />
+Since the link in the example sent a ulink value and no other, if any user record has that ulink value, its data will be found and shown.  There must be a control on the dialog named 
+	ulink and it must be populated when the dialog opens.  Otherwise, the value will not be saved into the web security record when it is saved.  Unless there is some reason to show the value, it should be in a hidden field.<br />
+<br />
+Note, there is a significant difference between the control type called hidden and a control that is 
+	hidden with a hide row command.   The value in textbox control that is not shown because the row is hidden is not sent as data when a page submit is made.  Therefore any value in that control is not saved.  On the other hand, a control that is designated as a hidden type is sent on a submit.<br />
+<br />
+The following can be used in the dialog Initialize event to populate a control for ulink.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox" >a5ws_get_webuser_values(CurrentForm)</pre></div><br />
+When the web security record is saved, the value from the customer_id table for the user will exist in the 
+	ulink field in the security record.<br />
+<br />
+In cases where a new user record may be created, there should be some default security groups assignment.  The following can be used in the dialog 
+	Initialize event to populate a default value for a specific security group.  In this example, the control names 
+	groups will be populated with the proper group guid value for the customers group.  When a record is found, this value may be replaced by a value in the existing security user record.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox1" >CurrentForm.Controls.groups.value = a5ws_get_guid_from_group("customers",request)</pre></div><br />
+The actual dialog construction needed to enter or edit the user can be found in the help or in the Web Applications Demo sample program.  The component 
+	WebUsersDetail in the demo shows how to construct a dialog to enter or edit a user.  The only difference in this process is that the value passed to the dialog is not a guid value, but the 
+	ulink value.<br />
+<br />
+While the example above uses ulink, is is possible that the userid may exist in an external tables.  That could also be used as a link.  However, the user id may change over time.  Therefore some id field that is unique and system generated is a better value to use.<br />
+<br />
+Once a security record has a ulink value, that value could be used to link from a web security user record to a record in the external table.  For example, a link could be built in the link builder to open a customer grid from the web user dialog that is linked or filtered on the customer_id.  A typical link to open a page named 
+	customers that has a grid named grd_cust might be<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox2" >customers.a5w?grd_cust_filter=Customer_id="{ulink}"</pre></div><br />
+<a name="Enter and Edit On One Component"></a><h3>Enter and Edit On One Component</h3>
+Another method to add or edit a record for a user is to use a single dialog component with fields for both data structures.  The web security functions can be used to populate and save controls that are appropriate for security and simple xbasic can be used to populate and save controls specific to an external table.<br />
+<br />
+The start of the process will vary based on how the page containing the dialog is opened. In all cases, some value must be passed to the component to identify the record to display.  For example, a page named 
+	userdetail.a5w may contain the dialog we are designing.  Another page containing a grid with customer records may have a link to pass a customer id to the dialog. The url to open the page with the dialog may be something like this<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox3" >Userdetail.a5w?customer_id={customer_id}</pre></div><br />
+The dialog component will use this passed value in event code to find a single user record in both the customer table and the web security table.<br />
+<br />
+First, the component must be constructed.  Just as in the example in Web Applications Demo, the security fields must follow a specific naming convention.  There must be a field named guid, which must be a hidden control type.  Since the goal is to link records in both tables, a control for 
+	ulink must also be provided, again typically hidden.<br />
+<br />
+Note, there is a significant difference between the control type called hidden and a textbox control that is 
+	hidden with a hide row command.   The value in textbox control that is not shown because the row is hidden is not sent as data when a page submit is made.  Therefore any value in that control is not saved.  On the other hand, a control that is designated as a hidden type is send on a submit.<br />
+<br />
+If the ulink field is going to be populated by another field from the other table, the other field can be on the dialog.  However, its value could be used to fill the 
+	ulink security field and not displayed or used for the other table record.<br />
+<a name="Using Events - Initialize Event"></a><h2>Using Events - Initialize Event</h2>
+When the dialog is opened, the initialize event can be used to populate the controls.  The value that is passed to the dialog will determine which table should be checked first for a match.  The example above suggested a value from the external 
+	customer table was sent to the dialog.  Therefore, that value should be used to first find a match in the customer table.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox4" >if eval_valid("Request.variables.customer_id") ' passed to page - also used in 'ulink'
+	if Request.variables.customer_id &lt;&gt; ""
+		query.filter = "Customer_Id= \""+ Request.variables.customer_id+"\""
+		query.order = ""
+		tbl = table.open("[PathAlias.ADB_Name]\customer.dbf")
+		qdx = tbl.query_create()
+		if qdx.records_get() = 1 ' got one match</pre></div><br />
+Since a record was found, controls for the customer record can be populated along with a value for the ulink control.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox5" >CurrentForm.Controls.Fname.value = alltrim(tbl.Firstname)
+			CurrentForm.Controls.Lname.value = alltrim(tbl.Lastname)
+			CurrentForm.Controls.customer_id.value = alltrim(tbl.Customer_id)
+			CurrentForm.Controls.ulink.value = alltrim(tbl.Customer_id)
+			tbl.close()</pre></div><br />
+After the controls for the customer record are filled, the value in ulink can be passed to the function to populate the security controls.  Note, this must be passed in the form of a request variable.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox6" >request.variables.ulink = alltrim(Request.variables.customer_id)
+a5ws_get_user_values(CurrentForm,request)</pre></div><br />
+If no user record was found in the external table, there are two options.  If the value passed to the dialog is a value typically found in the field used to populate ulink, the value can be passed to the security function to see if there is a matching security record.  However, in many cases, the value that ultimately will be placed in 
+	ulink will be an autoincremented field.  In that case, there is no possibility that a new record can have a value in the id field that already exists.  Therefore, the proper solution is to not populate any controls.<br />
+<a name="Using Events Validate Event"></a><h2>Using Events Validate Event</h2>
+The validate event fires when the component is submitted.  Any validation rules for the controls for the external table will generate an error if the data does not meet the rules.  If the data is acceptable, then the security code can be validated and saved.  Do not add any validation rules for the security fields as they are controlled by the functions. The function that saves the data also validates it first and therefore should be in the Validate event.<br />
+<br />
+This would be typical code to check if the controls are validated and then check and save security information.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox7" >if CurrentForm.Has_Error = .F. ' no errors in non-security fields
+	a5ws_save_user_values(CurrentForm,request) ' validate and save
+end if</pre></div><br />
+Even though the security function has saved the security information, the data for the external table has not yet been saved. While it could be saved in the validate event if<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox8" >CurrentForm.Has_error = .F.</pre></div><br />
+It is preferable to save after the security function runs.  It may be desirable to not save any data in the external table until the security fields are validated and saved.  This prevent 
+	orphaned records.<br />
+<a name="Using Events AfterValidate Event"></a><h2>Using Events AfterValidate Event</h2>
+If all data is validated, the AfterValidate event fires.  The first action should be to save the record in the external table. The security data was already saved in the Validate event. If the dialog edited an existing record, there will be a value in the hidden field that contains the values passed to the page to find the record.  In the example above, the 
+	customer_id value was used to find the record<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox9" >dim FlagNew as l = .T. ' set a flag to determine if we need to save a new record
+if CurrentForm.Controls.customer_id.value &lt;&gt; "" ' indicates existing record (could also use any other known value)
+query.filter = "Customer_Id= \""+alltrim(CurrentForm.Controls.customer_id.value)+"\""	
+query.order = ""
+	tbl = table.open("[PathAlias.ADB_Name]\customer.dbf")
+	qdx = tbl.query_create()
+	if qdx.records_get() = 1 ' got one, so save the values
+		tbl.change_begin()
+		tbl.Firstname = alltrim(CurrentForm.Controls.Fname.value)
+		tbl.Lastname = alltrim(CurrentForm.Controls.Lname.value)
+		tbl.change_end()
+		FlagNew = .F. 
+	end if 
+	tbl.close()
+end if</pre></div><br />
+The FlagNew variable is used to designate if this is a new record.  If an existing record is being saved, the security information has already been saved.  Since the value in 
+	ulink was used to find the existing security record, there is no need to update that field.  However, if some action changed the value that is used for ulink, then some code would have to be added to get the new 'customer_id' and then resave security record to add new 'ulink' value.  If the record in the external table is new, a new value will be created for the field that creates the value for ulink.  Therefore, the value in that field must be found, the value added to a request variable, and the security user record saved again to update the 
+	ulink value.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox10" >if FlagNew = .T. 'no match was found for the value in 'ulink'
+	tbl = table.open("[PathAlias.ADB_Name]\customer.dbf")
+	tbl.enter_begin()
+	tbl.Firstname = alltrim(CurrentForm.Controls.Fname.value)
+	tbl.Lastname = alltrim(CurrentForm.Controls.Lname.value)
+	tbl.enter_end()
+	customer_id = tbl.Customer_id
+	tbl.close()
+	request.variables.ulink = alltrim(customer_id) 'resave security record with new 'ulink' value
+	a5ws_save_user_values(CurrentForm,request)
+end if</pre></div><br />
+After all data has been saved, the security values can be repopulated.  This isn't necessary, but is a good idea if the password field is encrypted.  The value in the password control will be replaced with the encrypted value and be unreadable.<br />
+<div class="plugincode" ><pre class="codelisting" data-syntax="" dir="ltr" style="overflow:auto;" id="codebox11" >a5ws_get_user_values(CurrentForm,request)</pre></div><br />
+<a name="Other Options: Multiple Components on Page"></a><h2><h2>Other Options: Multiple Components on Page</h2>
+The only reason to have two components on one page would be to show or edit the records for the external table using a grid component, and then use a dialog component for the security data.  The biggest problem with two components on the page is the problem caused when the page first opens.  Unless the page opens filtered on a specific record in the grid, the dialog for web security doesn't yet have a linking value for ulink or whatever value is used to find the security record.  Therefore the dialog would be empty.  If it were saved in that condition, getting the 
+	ulink value would be difficult and the two records would not be linked. The same problem occurs if a new record is added with a grid.  Getting the value for 
+	ulink would be very difficult and would be needed before the new security record was saved.  It is also an inefficient process as each component must be submitted separately.<br />
+<br />
+A grid component could be used to list user records in an external table and then a link created to reload the same page with a passed value for the 
+	ulink fields to populate a dialog on the page for security data.  The grid could even have a detail view as long as some method was used to pass a valid value to find a security record.  The Web Application Demo has a similar concept using two dialogs on the 
+	WebUsers page.<br />
+<br />
+
+	
+	
+	<hr class="hrwikibottom" /> 
+
+	
+	</article> 
+
+
+
+
+	<!-- WIKIPATH:Creating+Online+Forms+for+Web+Security+Users">-->
+
+
+	 
+
+			</div>
+		</div>
+
+
+	
+	
+<!-- Put JS at the end -->
+	
+<!-- jsfile external -->
+
+
+<!-- jsfile dynamic -->
+<!-- jsfile 0 -->
+<!---HELPMETADATA:{"tags":"web, review","status":"pending","notes":"a5, funky characters","keywords":"server,security"}--->
+</body></html>
