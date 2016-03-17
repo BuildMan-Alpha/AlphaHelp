@@ -1,0 +1,166 @@
+<page>
+	<topic>{ACTIVEX}</topic>
+	<syntax>{ActiveX= Width, Height ObjectName }</syntax>
+<arguments>
+<argument>
+	<name>Width</name>
+	<description>Numeric. An integer value for the maximum number of characters to display on one line. The actual number displayed may be less because of word wrap.</description>
+	
+</argument>	
+<argument>
+	<name>Height</name>
+	<description>Numeric. Optional. Default = 1. The number of rows to display. This may be a fractional number, such as 1.25.</description>
+	
+</argument>		
+<argument>
+	<name>ObjectName</name>
+	<description>Pointer. A pointer variable with the following properties.</description>
+	<cases>
+		<case>
+			<title>Properties:</title>
+			<cases>
+				<case>
+					<title>Object</title>
+					<description>A pointer to the ActiveX object, which provides various properties and methods, depending on the control.</description>
+				</case>
+				<case>
+					<title>Class</title>
+					<description>A character value that contains the name of the class of the ActiveX object.</description>
+				</case>
+				<case>
+					<title>Events</title>
+					<description>The Events property is a script that contains a set of functions, one for each event you wish to respond to. Each function is what the consumer of the control would like to have happen whenever the event is published by the control. The specific ActiveX determines which functions are available to implement.</description>
+				</case>
+				
+				
+			</cases>
+		</case>
+		
+		
+	</cases>
+</argument>		
+</arguments>	
+<description>The {ActiveX} command displays an ActiveX control on an Xdialog.
+</description>	
+<sections>
+	<section>
+		<title>Using ActiveX Control Events
+</title>
+	<description>The ActiveX control should provide documentation on its events and the appropriate arguments. If this information is lacking, you can place the ActiveX control on an Alpha Anywhere desktop form, which will generate the list of event functions. After placing the ActiveX control on the page, right click on the control and select Events > ActiveXEvent. If the control has any events, you will see a script similar to the following.
+</description>
+		<example><![CDATA[function contextmenuaction as v (itemIndex as N)
+end function
+function displaychanged as v ()
+end function
+function documentcomplete as v ()
+end function
+function onblur as v ()
+end function
+... ]]></example>
+<note>Hopefully, your ActiveX control's documentation will make it clear when events fire, and suggest how and why to use them. Write code for only those events you want to use.</note>
+	</section>
+	<section>
+
+	<description>If you want to write code to respond to any of the ActiveX control's events, here is an example using the Mabry Grid (note the code setting Grid.Events ). In this case the Mabry Grid publishes an event called UnboundReadData.</description>
+		<example><![CDATA[dim vl as P
+vl = local_variables()
+dim shared t as P
+' The Grid control
+dim grid as P
+dim grid.object as P
+dim grid.class as C
+grid.class = "mabry.gridx"
+dlg_title = "Budget Data"
+' Grid Control Event Handlers
+grid.events = <<%code%
+Function UnboundReadData as v (nRowIndex as N, pRowData as p)
+if t.fetch_goto(nRowIndex + 1) then
+    for Index = 1 to field_count
+        fld = t.field_get(Index)
+        pRowDataIndex-1 = eval("t."+ fld.name_get())
+    next
+end if
+End function
+%code%
+dlg_source = <<%dlg%
+{can_exit=close}
+{startup=init}
+{lf};
+{region001}
+{stretch=height,width}
+{sp}{activex=75,15grid};
+{stretch=}
+{stickto=right,top}
+{endregion001}
+{region002};
+{sp}<%i=$a5_window_close;O={J=C} {I=1} Close; %18,1.5&Close!close>{sp};
+{endregion002}
+%dlg%
+' Dialog Event Handlers
+dlg_event = <<%code%
+if a_dlg_button = "close" .or. a_dlg_button = "" then
+    ui_modeless_dlg_close(dlg_title)
+    if t.isopen("budget") then
+        t.close()
+    end if
+end if
+if a_dlg_button = "init" then
+    a_dlg_button = ""
+    grid.object.DataMode = 1329745493 ' 0x4f424e44 ' mgxUnboundedMode
+    ' populate the headings of the grid
+    t = table.open("budget")
+    t.persist()
+    field_count = t.fields_get()
+    for i = 1 to field_count
+        fld = t.field_get(i)
+        evaluate_template("col = grid.object.Columns.Add(\"" + fld.name_get()+ "\")")
+        col.EditType = 1 ' text box edit style
+        col.allowsorting = .t.
+        if (i <> 1) then ' In this particular case, only the first column is character
+            col.sorttype = 1 ' ask for a numeric sort
+        end if
+    next
+    grid.object.Views(0).GridLineStyle = 1' mgxSmallDots
+    grid.object.Views(0).ColumnAutoResize = .t.
+    grid.object.Views(0).Mode = 5 ' mgxGroupingRowView
+    'Tell GridX1 how many rows you have in your dataset
+    grid.object.RowsCount = t.records_get()
+    grid.object.Refresh()
+end if
+if a_dlg_button = "AddData" then
+    a_dlg_button = ""
+    if GridData.Size()< MasterData.Size()then
+        dim nRowCount as N
+        'first we add the row to the dataset
+        nRowCount = GridData.size()+ 1
+        GridData.resize(nRowCount)
+        'set values in the last row in the array
+        for each Element in GridDataProps
+            dim Expr as C
+            Expr = "GridDatanRowCount." + Element + " = MasterDatanRowCount." + Element
+            evaluate_template(Expr)
+        next
+        'Now adjust the RowsCount
+        grid.object.RowsCount = nRowCount
+        ' If one of the columns is sorted we have to call Refresh method
+        grid.object.Refresh()
+        if nRowCount >= MasterData.size()then
+            dlg_addEnabled = .f.
+        end if
+    end if
+end if
+%code% ]]></example>
+	</section>
+	
+	
+</sections>
+<limitations>Desktop applications only</limitations>
+<see>
+	<ref>XY Graph</ref>
+	<ref>Responding to JavaScript Events on an HTML Page</ref>
+	<ref>Creating a User Defined Control</ref>
+	<ref>Xdialog Language Directives and Operators</ref>
+	
+</see>
+
+</page>

@@ -1,0 +1,75 @@
+<page>
+	<topic>Manipulating Global Bitmaps</topic>
+<sections>
+<section>
+	<title>Adding a Global Bitmap
+</title>
+<description>The code below creates a bitmap of a small red square and saves it in the database as RedSwatch.
+</description>	
+<example><![CDATA[dim r as C
+dim g as C
+dim b as C
+dim rd as N
+dim gd as N
+dim bd as N
+dim d as P
+dim dn as C
+list = ""
+counter = 0
+hourglass_cursor(.t.)
+dn = a5.Get_Name()
+dn = stritran(dn,".adb",".alb")
+d = dictionary.open(dn,FILE_RW_EXCLUSIVE)
+ui_bitmap_create("tmpimg", .15,.15)
+ui_bitmap_draw("tmpimg", <<%code%
+set_brush("#255,0,255")
+inner_rect(0,0,.15,.15)
+set_brush("#255,0,0")
+set_pen("black")
+fill_rect(.025,.025,.1,.1)
+%code%)
+d.enter_begin()
+d.name = "RedSwatch"
+d.type = "GBMP"
+f = d.field_get("contents_m")
+b1 = ui_bitmap_save("tmpimg")
+f.value_put(b1)
+d.enter_end(.t.)
+d.close()
+hourglass_cursor(.f.)
+ControlPanel.Refresh()]]></example>	
+</section>	
+<section>
+	<title>Deleting a Global Bitmap</title>
+<description>The code below deletes all bitmaps in the current database.
+</description>	
+<example><![CDATA[dim d as P
+dim id as P
+dim dn as C
+hourglass_cursor(.t.)
+dn = a5.Get_Name()
+dn = stritran(dn,".adb",".alb")
+d = dictionary.open(dn,FILE_RW_EXCLUSIVE)
+'delete the existing swatches
+query.filter = "type = 'gbmp'"
+id = d.query_create()
+d.fetch_first()
+while .not. d.fetch_eof()
+    d.change_begin()
+    d.delete()
+    d.change_end(.t.)
+    d.fetch_first()
+end while
+d.index_primary_put("")
+d.close()
+hourglass_cursor(.f.)
+ControlPanel.Refresh()]]></example>	
+</section>	
+		
+	
+</sections>	
+	<see>
+		<ref>Adding a Global Image to Your Database</ref>
+	</see>
+	
+</page>
