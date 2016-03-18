@@ -1,0 +1,292 @@
+<page>
+	<topic>FLATTENQUERY()and CROSSLEVEL()Compared</topic>
+<sections>
+<section>
+	<description>In a form or a browse, Alpha Anywhere does not allow you to include fields from a one-to-many child table in a query. (This restriction does not apply to report, letters and labels). However, if you use the FLATTENQUERY() or the CROSSLEVEL() functions, you can include one-to-many child fields in your query.
+The FLATTENQUERY() function, has the effect of flattening the set, and making it appear as a single table. In is generally used in the context of a Browse layout.
+The CROSSLEVEL() function, on the other hand allows you to find a list of parent records in a set, using fields from one-many child tables in the filter expression. Is generally used in the context of a form layout.
+An example will help clarify the difference. Assume that you have two tables, Patrons and Donations, linked in a one-many relationship.
+</description>
+	
+	
+</section>	
+<section>
+	<title>Patron</title>
+	<figure><link>images/atable.png</link></figure>
+	
+</section>
+<section>
+	<title>Donation</title>
+	<figure><link>images/atable2.png</link></figure>
+	
+</section>
+<section>
+	<description>The "composite" table for the set looks like this:</description>
+	<figure><link>images/atable3.png</link></figure>
+	
+	
+</section>
+<section>
+	<description>If you are viewing this set in a Browse layout, then you will see the "composite" table for the set, as shown above. as you can see, the set just appears as a "flat" table. Using the FLATTENQUERY() function in a query, you can select all donations greater or equal to $3,000. The result would appear in the Browse layout as follows:</description>
+	<figure><link>images/atable4.png</link></figure>
+	
+	
+</section>	
+<section>
+	<description>The filter expression for the above query would be:
+</description>
+	<example><![CDATA[Flattenquery(donations->amount >= 3000)]]></example>
+	
+</section>		
+
+<section>
+	<description>Here is how the first record for Smith looks:
+</description>
+	<figure><link>images/atable5.png</link></figure>
+</section>
+
+<section>
+	<description>Here is how the second record for Jones looks:
+</description>
+	<figure><link>images/atable6.png</link></figure>
+</section>
+
+<section>
+	<description>And, here is how the third record for King looks:</description>
+	<figure><link>images/atable7.png</link></figure>
+</section>
+
+<section>
+	<description>Assuming you wanted to find all donors who had donated $3,000 or more. The filter expression would be:
+</description>
+	<example><![CDATA[Crosslevel("donations->amount> = 3000")
+]]></example>
+	
+</section>
+<section>
+	<description>After you had run this query, Alpha Anywhere would report that two records had been found (i.e. the record for Smith, and the record for Jones). When you viewed the result of the query in your form you would see these two records.
+</description>
+</section>
+
+<section>
+	<title>Name: Smith
+</title>
+	<figure><link>images/atable8.png</link></figure>
+	
+</section>
+<section>
+	<title>Name: Jones</title>
+	<figure><link>images/atable9.png</link></figure>
+	
+</section>
+<section>
+	<description>Note that Alpha Anywhere continues to display all of the child records for each parent record. I.e. the forms for Smith and Jones show all of the donations, not just those of $3,000 or more.
+In effect, the CROSSLEVEL()query can be used to get a list of parent records that meet your criteria, even if the criteria include fields from a one-many child table.
+</description>
+	<note>There is an important difference in the syntax between FLATTENQUERY()and CROSSLEVEL(). In the case of FLATTENQUERY() the argument (i.e. the filter expression) is not quoted, whereas in the case of CROSSLEVEL()the argument is quoted.</note>
+	
+</section>
+<section>
+	<note>If you are in a form or a browse layout and you select the Query by Expression, or Query Genie commands, these command will automatically insert the appropriate FLATTENQUERY() or CROSSLEVEL() function into the query filter. In addition, if you use the </note>
+</section>
+
+<section>
+	<description>QUERYRUN(), or the .QUERYRUN() methods, Alpha Anywhere automatically inserts FLATTENQUERY() or CROSSLEVEL()into the filter expression. You only need to be aware of these functions if you are using low level Xbasic to create a query.</description>
+	<note>If you want to use Xbasic to do a query on the records shown by a form or browse, the <FORM>.QUERYRUN(), or the <BROWSE>.QUERYRUN() methods provide an alternative approach. Internally, these methods use the .QUERY_CREATE() method, but they just encapsulate several Xbasic commands into a single Xbasic command. See example below.</note>
+	
+</section>
+<section>
+	<description>Flags is an optional parameter. If flags is set to "N", then Alpha Anywhere will not add the query to the list of most recent queries remembered. Normally, Alpha Anywhere remembers the last four queries executed for a table or a set.</description>
+</section>
+
+
+<section>
+	<title>Example</title>
+<description>Build a query list for customers from Massachusetts, in last name order. Then display a message box with the number of selected records.
+</description>	
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Customers in MA"
+query.order = "LAST_NAME"
+query.filter = "STATE_PROV = 'MA' "
+query.options = ""
+indx = tbl.query_create()
+rec_count = indx.records_get()
+ui_msg_box("", "Number of records selected: " + ltrim (str(rec_count,5,0) ) )
+parent.resynch()
+ ]]></example>
+</section>
+<section>
+
+<description>Same as above, but references a variable that contains the state name. Note that this example uses the s_quote() function for creating the filter expression. S_quote() is an extremely useful function when creating filter expressions that reference variables because s_quote() can generate the correct filter expression regardless of the data type of the referenced variable.</description>	
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+dim vStateName as c 
+vStateName = "MA"
+query.description = "Customers in " + vStateName
+query.order = "LAST_NAME"
+query.filter = "STATE_PROV = " + s_quote(vStateName)
+query.options = ""
+indx = tbl.query_create()
+rec_count = indx.records_get()
+ui_msg_box("", "Number of records selected: " + ltrim( str(rec_count,5,0) ) )
+parent.resynch() ]]></example>
+</section>
+<section>
+	<description>Runs a query then displays a message box saying whether a query list was built, or an existing index was selected. (If a query can be satisfied by using an existing Index, Alpha Anywhere's Lightening Query Optimization feature will select the index. This will result in getting the query result instantaneously, rather than the more time consuming process of actually building a query list. You can control whether Alpha Anywhere returns an index or not by specifying the appropriate flags in 'query.options').</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Lastname order"
+query.filter = ".T."
+query.order = "LAST_NAME"
+indx = tbl.query_create()
+type = indx.type_get()
+select
+    CASE type = 2
+    type_desc = "An index was selected"
+    CASE type = 6
+    type_desc = "A query list was built"
+    CASE else
+    type_desc = "Unknown query type"
+end select
+ui_msg_box("Query type:",type_desc)]]></example>
+</section>
+
+<section>
+	<description>A form has a variable on it that allows the user to enter a date The form has a button that does a query for records with an invoice date that matches the value in the variable. The variable is a date variable and is called whatDate. It is a global variable.</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Invoices for certain date"
+query.filter = "invoice_date = var->whatDate"
+indx = tbl.query_create()
+ ]]></example>
+ <note>The above technique of placing a variable name directly inside a quoted filter string will only work for global and session variables. It is therefore recommended that you do not use this technique because it will not work for local variables. The next example shows the recommended technique (using the s_quote() function).</note>
+</section>
+
+<section>
+	<description>Here is another way to do the same query
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Invoices for certain date"
+query.filter = "invoice_date = " + s_quote(whatDate)
+indx = tbl.query_create()]]></example>
+</section>
+
+<section>
+	<description>In the above example, the filter expression evaluates to: "invoice_date = {11/09/1999}". Here is yet another way to do the same query.
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Invoices for certain date"
+query.filter = "invoice_date = {" + dtoc(whatDate) + "}"
+indx = tbl.query_create() ]]></example>
+</section>
+
+<section>
+	<description>As in the previous example, the filter expression evaluates to: "invoice_date = {11/09/1999}". As you can see however, the s_quote() syntax is easier to use.
+Here is yet another way to do the same query. The between_date() function is a special function intended to help create string filter expressions. It is shown here for backward compatibility reasons. This technique is no longer a recommended technique - the technique using s_quote() is easier to understand.
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Invoices for certain date"
+query.filter = between_date("invoice_date", whatDate, whatDate)
+indx = tbl.query_create()
+]]></example>
+</section>
+
+
+<section>
+	<description>Assume you have a button on a form for the Invoice.set which ships with Alpha Anywhere. The button performs a query, searching for all customers in Boston who have ordered 7 or more units of any item.
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Customers in Boston"
+query.order = "customer->lastname"
+filter = "customer->bill_city = 'boston' .and. invoice_items->quantity > = 7"
+query.filter = "crosslevel(" + quote(filter) + ")"
+query.options = ""
+tbl.query_create()
+topparent.resynch() 'resynch the form to the current selection ]]></example>
+</section>
+
+<section>
+	<description>This is the same as the previous example, except the name of the city is contained in a variable.
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+dim vWhatCity as c 
+vWhatCity = "Boston"
+query.description = "Customers in " + vWhatCity
+query.order = "customer->lastname"
+filter = "customer->bill_city = "+s_quote(vWhatCity)+" .and. invoice_items->quantity > = 7"
+query.filter = "crosslevel(" + quote(filter) + ")"
+query.options = ""
+tbl.query_create()
+topparent.resynch() 'resynch the form to the current selection
+]]></example>
+</section>
+
+
+
+<section>
+	<description>In the above example, the several lines of Xbasic code can be shortened by calling the .QUERYRUN() method:
+</description>
+	<example><![CDATA[filter = "customer->bill_city = 'boston' .and. invoice_items->quantity > = 7"
+topparent.QueryRun(filter) ]]></example>
+</section>
+
+
+
+<section>
+	<description>or</description>
+	<example><![CDATA[dim vWhatCity as c 
+vWhatCity = "Boston"
+filter = "customer->bill_city = "+s_quote(vWhatCity)+" .and. invoice_items->quantity > = 7"
+topparent.QueryRun(filter) ]]></example>
+</section>
+
+
+
+<section>
+	<description>Assume you have defined the following Global Script which you run from the Scripts > Favorites menu in a browse layout defined for the Invoice.set that ships with Alpha Anywhere. The script finds all orders for more than 5 units.</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+query.description = "Orders with more than 5 units"
+query.order = "customer->lastname"
+filter = "invoice_items->quantity > 5"
+query.filter = "flattenquery(" + filter + ")"
+query.options = ""
+tbl.query_create()
+topparent.fetch_first() 'display the first record in the query ]]></example>
+</section>
+
+
+
+<section>
+	<description>Same as above, but the quantity is assumed to be in a variable.
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+dim vWhatQty as n 
+vWhatQty = 5
+query.description = "Orders with more than "+ vWhatQty +"  units"
+query.order = "customer->lastname"
+filter = "invoice_items->quantity > " + s_quote(vWhatQty)
+query.filter = "flattenquery(" + filter + ")"
+query.options = ""
+tbl.query_create()
+topparent.fetch_first() 'display the first record in the query
+ ]]></example>
+</section>	
+</sections>	
+	
+	<see>
+		<ref>Query Functions and Methods</ref>
+		<ref>Table Functions and Methods</ref>
+		<ref>A5_COMBINE_FILTERS()</ref>
+		<ref>CROSSLEVEL()</ref>
+		<ref>FLATTENQUERY()</ref>
+	</see>
+	
+</page>
