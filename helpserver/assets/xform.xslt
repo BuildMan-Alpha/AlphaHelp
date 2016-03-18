@@ -125,39 +125,11 @@
         </xsl:if>
 		<xsl:if test="properties">
 			<p class="A5">Properties</p>
-			<dl class="propertiesDL" >
-				<xsl:for-each select="properties/property">
-                <xsl:choose>
-                    <xsl:when test="./@readonly">
-                        <dt class="propertyReadonly" ><xsl:value-of select="name" /></dt>
-                    </xsl:when> 
-                    <xsl:when test="./@writeonly">
-                        <dt class="propertyWriteonly" ><xsl:value-of select="name" /></dt>
-                    </xsl:when> 
-                    <xsl:when test="./@pseudo">
-                        <dt class="propertyPseudo"><xsl:value-of select="name" /></dt>
-                    </xsl:when> 
-                    <xsl:otherwise>
-                        <dt class="propertyReadwrite" ><xsl:value-of select="name" /></dt>
-                    </xsl:otherwise>
-                </xsl:choose> 
-                <dd><xsl:value-of select="description" />
-                    <xsl:if test="example"><b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre></xsl:if>							 
-                    <xsl:if test="ref">
-                        <xsl:choose>
-                            <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                    <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
-                    <xsl:if test="section">
-                        <xsl:for-each select="section">
-                            <xsl:call-template name="sectionstep-content"/>
-                        </xsl:for-each>
-                    </xsl:if>
-                </dd>
-				</xsl:for-each>
-			</dl>
+            <dl class="propertiesDL" >
+                <xsl:for-each select="properties/property">
+                <xsl:call-template name="properties-content"/>
+                </xsl:for-each>
+            </dl>
 		</xsl:if>
 		<xsl:if test="methods">
 			<p class="A5">Methods</p>
@@ -406,6 +378,45 @@
 			<xsl:for-each select="sections/section">
                 <xsl:call-template name="sectionstep-content"/>
 			</xsl:for-each>
+    </xsl:template>
+    
+	<xsl:template match="properties-content" name="properties-content" >
+        <xsl:choose>
+            <xsl:when test="./@readonly">
+                <dt class="propertyReadonly" ><xsl:value-of select="name" /></dt>
+            </xsl:when> 
+            <xsl:when test="./@writeonly">
+                <dt class="propertyWriteonly" ><xsl:value-of select="name" /></dt>
+            </xsl:when> 
+            <xsl:when test="./@pseudo">
+                <dt class="propertyPseudo"><xsl:value-of select="name" /></dt>
+            </xsl:when> 
+            <xsl:otherwise>
+                <dt class="propertyReadwrite" ><xsl:value-of select="name" /></dt>
+            </xsl:otherwise>
+        </xsl:choose> 
+        <dd><xsl:value-of select="description" />
+            <xsl:if test="example"><b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre></xsl:if>							 
+            <xsl:if test="ref">
+                <xsl:choose>
+                    <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                    <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                </xsl:choose>
+            </xsl:if>
+            <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
+            <xsl:if test="properties">
+                <dl class="propertiesDL" >
+                    <xsl:for-each select="properties/property">
+                        <xsl:call-template name="properties-content"/>
+                    </xsl:for-each>
+                </dl>
+            </xsl:if>
+            <xsl:if test="section">
+                <xsl:for-each select="section">
+                    <xsl:call-template name="sectionstep-content"/>
+                </xsl:for-each>
+            </xsl:if>
+        </dd>
     </xsl:template>
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">

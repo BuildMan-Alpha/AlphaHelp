@@ -128,7 +128,12 @@ var generateXMLHelp = function (content) {
                         endTagType.push(lastType);
                     }
                 } else if (type == "properties" || type == "props") {
-                    ;
+                    endTag = line.substring(splitPos + 1).trim();
+                    if (endTag.length == 0) {
+                        endTag = null;
+                    } else {
+                        endTagType.push(lastType);
+                    }
                 } else if (type == "example") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
@@ -158,7 +163,7 @@ var generateXMLHelp = function (content) {
             }
         } else if (lastType == "example") {
             examples += "\r\n" + line;
-        } else if (lastType == "arguments" || lastType == "args") {
+        } else if (lastType == "arguments" || lastType == "args" || lastType == "properties" || lastType == "props") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
                 var dashPos = line.indexOf("-");
@@ -172,10 +177,17 @@ var generateXMLHelp = function (content) {
                     }
                 }
                 if (dashPos > 0) {
-                    if (!lastPropOrArg.arguments) {
-                        lastPropOrArg.arguments = [];
+                    if( lastType == "properties" || lastType == "props" ) {
+                        if (!lastPropOrArg.properties) {
+                            lastPropOrArg.properties = [];
+                        }
+                        processArgOrProc(line, dashPos, lastPropOrArg.properties);
+                    } else {
+                        if (!lastPropOrArg.arguments) {
+                            lastPropOrArg.arguments = [];
+                        }
+                        processArgOrProc(line, dashPos, lastPropOrArg.arguments);
                     }
-                    processArgOrProc(line, dashPos, lastPropOrArg.arguments);
                 }
             }
         }
@@ -202,7 +214,14 @@ var generateXMLHelp = function (content) {
         if (isConstructor) {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         } else if (map && map.classname) {
-            xml += "\t<topic>" + protectXml(map.classname + "." + pagename) + "</topic>\r\n";
+            var normalizedClass =  map.classname.toLowerCase().trim() + ".";
+            var normalizedPagename = pagename.toLowerCase().trim();
+            
+            if( normalizedPagename.substring(0,normalizedClass.length) == normalizedClass ) {
+                xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
+            } else {            
+                xml += "\t<topic>" + protectXml(map.classname + "." + pagename) + "</topic>\r\n";
+            }
         } else {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         }
@@ -246,6 +265,18 @@ var generateXMLHelp = function (content) {
                     xml += "\t\t\t\t</argument>\r\n";
                 }
                 xml += "\t\t\t</arguments>\r\n";
+            }
+            if (properties[i].properties) {
+                var j;
+                xml += "\t\t\t<properties>\r\n";
+                for (j = 0; j < properties[i].properties.length; ++j) {
+                    xml += "\t\t\t\t<property>\r\n";
+                    xml += "\t\t\t\t\t<name>" + properties[i].properties[j].name + "</name>\r\n";
+                    xml += "\t\t\t\t\t<type>" + properties[i].properties[j].type + "</type>\r\n";
+                    xml += "\t\t\t\t\t<description>" + properties[i].properties[j].description + "</description>\r\n";
+                    xml += "\t\t\t\t</property>\r\n";
+                }
+                xml += "\t\t\t</properties>\r\n";
             }
             xml += "\t\t</property>\r\n";
         }
