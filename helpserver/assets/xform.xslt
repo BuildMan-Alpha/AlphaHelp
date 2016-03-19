@@ -20,20 +20,8 @@
                 </xsl:for-each>
             </script>
         </xsl:if>
-		<xsl:if test="topic">
-		<p>
-			<p class="A3Function">
-				<xsl:value-of select="topic" />
-			</p>
-		</p>
-		</xsl:if>
-		<xsl:if test="name">
-		<p>
-			<p class="A3Function">
-				<xsl:value-of select="name" />
-			</p>
-		</p>
-		</xsl:if>
+		<xsl:if test="topic"><h1><xsl:value-of select="topic" /></h1></xsl:if>
+		<xsl:if test="name"> <h1><xsl:value-of select="name" /></h1></xsl:if>
 		<xsl:if test="syntax">
 			<p class="A5">Syntax</p>
 			<xsl:value-of select="syntax" />
@@ -65,11 +53,14 @@
 		<xsl:if test="arguments">
 			<xsl:call-template name="arguments"/>    
 		</xsl:if>
+		<xsl:if test="returns">
+			<p class="A5">Returns</p>
+			<p><xsl:value-of select="returns" /> </p>
+		</xsl:if>
 		<xsl:if test="description">
             <meta name="description" content="{description}"/>
 			<p class="A5">Description</p>
-			<p>
-				<xsl:value-of select="description" /> </p>
+			<p><xsl:value-of select="description" /> </p>
 		</xsl:if>
 		<xsl:choose>
 			<xsl:when test="content">
@@ -145,7 +136,8 @@
                     </xsl:otherwise>
                    </xsl:choose>
                    </xsl:if>
-					<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>						
+					<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
+            		<xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>                    						
 						<xsl:value-of select="description" />
 						<xsl:if test="example">
 							<b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre>
@@ -178,6 +170,9 @@
 				<xsl:call-template name="page-content"/>
 			</xsl:for-each>
 		</xsl:if>
+        <xsl:if test="note">
+           <div class="sectionNote" > <xsl:value-of select="note" /> </div>
+        </xsl:if>
 		<xsl:if test="video">
 			<xsl:for-each select="video">
 				<li>
@@ -404,6 +399,7 @@
                 </xsl:choose>
             </xsl:if>
             <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
+            <xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>
             <xsl:if test="properties">
                 <dl class="propertiesDL" >
                     <xsl:for-each select="properties/property">

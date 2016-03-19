@@ -61,6 +61,8 @@ var generateXMLHelp = function (content) {
     var description = null;
     var discussion = null;
     var examples = null;
+    var note = null;
+    var returns = null;
     var endTag = null;
     var properties = [];
     var arguments = [];
@@ -69,6 +71,7 @@ var generateXMLHelp = function (content) {
     var endTagType = [];
     var lastPropOrArg = null;
     var topContext = null;
+    var contextType = "";
 
     for (i = 0; i < lines.length; ++i) {
         var line = lines[i].trim();
@@ -96,6 +99,10 @@ var generateXMLHelp = function (content) {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
                 } else if (type == "namespace" || type == "class") {
+                    if( type == "class" )
+                        contextType = " Class";
+                    else    
+                        contextType = " Namespace";
                     context = line.substring(splitPos + 1).trim();
                     if (!build.context[context]) {
                         var allParts = context.split('.');
@@ -120,6 +127,10 @@ var generateXMLHelp = function (content) {
                     description = line.substring(splitPos + 1);
                 } else if (type == "discussion" || type == "disc") {
                     discussion = line.substring(splitPos + 1);
+                } else if (type == "note") {
+                    note = line.substring(splitPos + 1);
+                } else if (type == "returns") {
+                    returns = line.substring(splitPos + 1);
                 } else if (type == "arguments" || type == "args") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
@@ -146,6 +157,10 @@ var generateXMLHelp = function (content) {
                 description += "\r\n" + line;
             } else if (lastType == "discussion" || lastType == "disc") {
                 discussion += "\r\n" + line;
+            } else if (lastType == "note") {
+                note += "\r\n" + line;
+            } else if (lastType == "returns") {
+                returns += "\r\n" + line;
             } else if (lastType == "example") {
                 examples += "\r\n" + line;
             } else if (lastType == "arguments"
@@ -206,7 +221,7 @@ var generateXMLHelp = function (content) {
         } else {
             pagename += " Method";
         }
-    }
+    } 
     var xml = "<page>\r\n";
 
     if (pagename) {
@@ -225,6 +240,8 @@ var generateXMLHelp = function (content) {
         } else {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         }
+    } else if( contextType.length > 0 ) {
+        xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
     }
 
     if (method) {
@@ -240,6 +257,9 @@ var generateXMLHelp = function (content) {
             xml += "\t\t</argument>\r\n";
         }
         xml += "\t</arguments>\r\n";
+    }
+    if( returns ) {
+        xml += "\t<returns>" + protectXml(returns) + "</returns>\r\n";
     }
     if (description) {
         xml += "\t<description>" + protectXml(description) + "</description>\r\n";
@@ -284,6 +304,9 @@ var generateXMLHelp = function (content) {
     }
     if (examples) {
         xml += "\t<example>" + protectXml(examples) + "</example>\r\n";
+    }
+    if( note ) {
+        xml += "\t<note>" + protectXml(note) + "</note>\r\n";        
     }
     if (isConstructor) {
         pagename = "index";
