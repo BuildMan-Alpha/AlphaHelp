@@ -318,7 +318,7 @@
         </xsl:if>
         <xsl:if test="figure">
             <xsl:for-each select="figure">
-                <img xsl:use-attribute-sets="src-link" class="sectionFigure" />
+                <a xsl:use-attribute-sets="href-link" class="sectionFigure"><img xsl:use-attribute-sets="src-link" /></a>
                 <xsl:if test="title">
                     <p>
                         <xsl:value-of select="title" />
