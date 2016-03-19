@@ -1,0 +1,75 @@
+<page>
+	<topic>Button O Directive {@@} Operator</topic>
+<syntax>{@@}
+</syntax>	
+<description>The {@@} operator is used in a Button's owner draw (O) directive to specify that the button text contains embedded formatting commands.
+</description>	
+<example><![CDATA[dlg_title = "Anchor Buttons"
+buttons1 = "{A=1}Sub-Button1{T=1.5}{A=2}Sub-Button2{T=3}{A=3}Sub-Button3"
+buttons2 = "{C=Black}{B=Win3D}"+buttons1
+highlight = "{C=Black}{B=Win3D}"
+buttons3 = highlight + "{A=1}Sub-Button1{T=1.5}{A=2}Sub-Button2{T=3}{A=3}Sub-Button3"
+ui_dlg_box(dlg_title,<<%dlg%
+{watch=ui_dlg_control_anchor_from_pos(dlg_title)!mouse_move}
+{wrap=80}
+Anchor buttons are useful when you want to accurately position buttons on a dialog using onwer draw strings with tab stops. For example, to position buttons over columns in an owner draw list box.;
+{lf};
+This button does not specify background color and font color in the owner draw string. as a result, when the mouse is over the button, all of the logical "sub-buttons" are highlighted -- not the effect you would want.;
+{lf};
+Button 1:;
+<%O={@@};B=M%=buttons1!button1>;
+{lf};
+{line=1,0};
+Button 2:;
+This button uses an onwer draw string that includes a specification for the font color and background color. as a result, when the mouse is over the button, none of the logical "sub-buttons" are highlighted -- closer to the effect you might want, but still not perfect.;
+<%O={@@};B=M%=buttons2!button2>;
+{lf};
+{line=1,0};
+Button 3:;
+This button changes the onwer draw string dynamically to indicate which "sub-button" the mouse is over. The key to this button is the ui_dlg_control_anchor_from_pos\() function which returns the current anchor under the mouse. We constantly watch the result of this function by setting up a watch event called "mouse_moved". ;
+<%O={@@};B=M%=buttons3!button3>;
+{line=1,0}
+%dlg%,<<%code%
+if a_dlg_button = "button1" then
+    anchor = ui_dlg_control_anchor_from_pos(dlg_title)
+    ui_msg_box("Note","You just clicked on sub-button " + anchor + " in Button 1")
+    a_dlg_button = ""
+end if
+if a_dlg_button = "button2" then
+    anchor = ui_dlg_control_anchor_from_pos(dlg_title)
+    ui_msg_box("Note","You just clicked on sub-button " + anchor + " in Button 2")
+    a_dlg_button = ""
+end if
+if a_dlg_button = "button3" then
+    anchor = ui_dlg_control_anchor_from_pos(dlg_title)
+    ui_msg_box("Note","You just clicked on sub-button " + anchor + " in Button 3")
+    a_dlg_button = ""
+end if
+if a_dlg_button = "mouse_move" then
+    current_anchor = ui_dlg_control_anchor_from_pos(dlg_title)
+    a_dlg_button = ""
+    if current_anchor = "1" then
+        buttons3 = highlight + "{A=1}{F=Arial,8,U}Sub-Button1{F=Arial,8}{T=1.5}{A=2}Sub-Button2{T=3}{A=3}Sub-Button3"
+    else if current_anchor = "2" then
+        buttons3 = highlight + "{A=1}Sub-Button1{T=1.5}{A=2}{F=Arial,8,U}Sub-Button2{T=3}{F=Arial,8}{A=3}Sub-Button3"
+    else if current_anchor = "3" then
+        buttons3 = highlight + "{A=1}Sub-Button1{T=1.5}{A=2}Sub-Button2{T=3}{A=3}{F=Arial,8,U}Sub-Button3"
+    else
+        buttons3 = highlight + "{A=1}Sub-Button1{T=1.5}{A=2}Sub-Button2{T=3}{A=3}Sub-Button3"
+    end if
+end if
+%code%) ]]></example>
+
+
+
+<see>
+	<ref>Xdialog Language Directives and Operators</ref>
+	<ref>Button Syntax</ref>
+	<ref>Owner Draw O Directive Command Summary</ref>
+	<ref>Owner Draw Strings and Dates</ref>
+</see>
+
+
+
+
+</page>
