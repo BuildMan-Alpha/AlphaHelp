@@ -187,7 +187,7 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
       dataOut += data;
    }); 
    xslt.stderr.on('data', function (data) {
-      err = data;
+      err = ''+data;
    }); 
     xslt.on('exit', function(code) {
         if (err) {
