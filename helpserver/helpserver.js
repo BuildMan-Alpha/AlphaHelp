@@ -208,12 +208,15 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                         {
                             var lines = errPage.split('\n');
                             if( index < lines.length ) {
-                                lines[index] = "<span style=\"color:red;background:yellow\">"+lines[index]+"</span>";
-                                errPage = lines.join("\n");
+                                lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
                             }
+                            for( var i = 0 ; i < lines.length ; ++i ) {
+                                lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                            }
+                            errPage = lines.join("\n");
                         }
                     }                    
-                    errPage = "<b>Error Encpountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
+                    errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
                     callback(null, errPage);
                 }
             });
