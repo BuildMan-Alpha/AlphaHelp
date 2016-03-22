@@ -216,11 +216,36 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
         dataOut += data;
     });
     xslt.stderr.on('data', function(data) {
-        err = data;
+        err = ''+data;
     });
     xslt.on('exit', function(code) {
         if (err) {
-            callback(err, null);
+            var fs = require('fs');
+            fs.readFile(xmlFile, "utf8",function(err2,errPage) {
+                if( err2 ) {
+                    callback(err2, null);
+                } else {
+                    var errparts = err.split(':');
+                    errPage = replaceAll(errPage,"<amp>;","&amp;");
+                    errPage = replaceAll(errPage,"<","&lt;");
+                    errPage = replaceAll(errPage,">","&gt;");         
+                    errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
+                    
+                    if( errparts.length > 2 ) {
+                        var index = parseInt(errparts[1]);                        
+                        if( 0 <= index && index < 10000000 )
+                        {
+                            var lines = errPage.split('\n');
+                            if( index < lines.length ) {
+                                lines[index] = "<span style=\"color:red;background:yellow\">"+lines[index]+"</span>";
+                                errPage = lines.join("\n");
+                            }
+                        }
+                    }                    
+                    errPage = "<b>Error Encpountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
+                    callback(null, errPage);
+                }
+            });
         } else {
             var fs = require('fs');
             fs.writeFile(htmlFile, dataOut, function(err) {
