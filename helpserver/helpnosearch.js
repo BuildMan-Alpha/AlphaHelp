@@ -4,12 +4,22 @@ var app = express();
 var options = require("./settingsnosearch");
 var library = require("./assets/library");
 var Help = require('helpserver');
+var fs = require("fs");
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
     }
     return str;
 };
+
+// Check for required folders...
+if (!fs.existsSync(options.generated)) {
+    fs.mkdirSync(options.generated);
+}
+if (!fs.existsSync(options.generated+"/topics")) {
+    fs.mkdirSync(options.generated+"/topics");
+}
+
 
 var events = {};
 var tocData = { altTocs : [] , defaultPathMetadata : [] };
