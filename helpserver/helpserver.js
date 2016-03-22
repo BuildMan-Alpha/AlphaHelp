@@ -204,17 +204,17 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                     
                     if( errparts.length > 2 ) {
                         var index = parseInt(errparts[1]);                        
+                        var lines = errPage.split('\n');
                         if( 0 <= index && index < 10000000 )
                         {
-                            var lines = errPage.split('\n');
                             if( index < lines.length ) {
                                 lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
                             }
-                            for( var i = 0 ; i < lines.length ; ++i ) {
-                                lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
-                            }
-                            errPage = lines.join("\n");
                         }
+                        for( var i = 0 ; i < lines.length ; ++i ) {
+                            lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                        }
+                        errPage = lines.join("\n");
                     }                    
                     errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
                     callback(null, errPage);
