@@ -37,6 +37,7 @@ if (process.platform == "win32") {
     }
 }
 
+
 var events = {};
 var tocData = { altTocs: [], defaultPathMetadata: [] };
 options.library = library;
@@ -334,3 +335,11 @@ app.use("/", function(req, res) {
 
 app.listen(options.port);
 console.log('Listening on port ' + options.port);
+
+// test if we need to do initial refresh
+if (!fs.existsSync(options.generated + "/_alltree.json")) {
+    console.log("Initial refresh...");
+    help.refresh(function (err, result) {
+        console.log("Refresh complete...");
+    });
+}
