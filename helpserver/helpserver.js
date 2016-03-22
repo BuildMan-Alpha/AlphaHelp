@@ -202,20 +202,20 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                     errPage = replaceAll(errPage,">","&gt;");         
                     errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
                     
+                    var lines = errPage.split('\n');
                     if( errparts.length > 2 ) {
                         var index = parseInt(errparts[1]);                        
-                        var lines = errPage.split('\n');
                         if( 0 <= index && index < 10000000 )
                         {
                             if( index < lines.length ) {
                                 lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
                             }
                         }
-                        for( var i = 0 ; i < lines.length ; ++i ) {
-                            lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
-                        }
-                        errPage = lines.join("\n");
                     }                    
+                    for( var i = 0 ; i < lines.length ; ++i ) {
+                        lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                    }
+                    errPage = lines.join("\n");
                     errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
                     callback(null, errPage);
                 }
