@@ -197,27 +197,45 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                     callback(err2, null);
                 } else {
                     var errparts = err.split(':');
-                    errPage = replaceAll(errPage,"<amp>;","&amp;");
-                    errPage = replaceAll(errPage,"<","&lt;");
-                    errPage = replaceAll(errPage,">","&gt;");         
-                    errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
-                    
-                    var lines = errPage.split('\n');
+                    var index = -1;
                     if( errparts.length > 2 ) {
-                        var index = parseInt(errparts[1]);                        
+                        index = parseInt(errparts[1]);                        
+                    }   
+                    var completeErrPage = function(index) {
+                        errPage = replaceAll(errPage,"<amp>;","&amp;");
+                        errPage = replaceAll(errPage,"<","&lt;");
+                        errPage = replaceAll(errPage,">","&gt;");         
+                        errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
+                        
+                        var lines = errPage.split('\n');
                         if( 0 <= index && index < 10000000 )
                         {
                             if( index < lines.length ) {
                                 lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
                             }
                         }
-                    }                    
-                    for( var i = 0 ; i < lines.length ; ++i ) {
-                        lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                        for( var i = 0 ; i < lines.length ; ++i ) {
+                            lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                        }
+                        errPage = lines.join("\n");
+                        errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
+                        callback(null, errPage);                        
+                    };
+                    if( index < 0 ) {
+                        var parseString = require('xml2js').parseString;
+                        parseString(errPage, function(err, result) {
+                            var description = null;
+                            if (err) {
+                                var lineArg = (''+err).split('Line:');
+                                if( lineArg.length > 1 ) {
+                                    index = parseInt( lineArg[1].split('\n')[0].trim() );
+                                }
+                            }
+                            completeErrPage(index);
+                        });
+                    } else {
+                        completeErrPage(index);
                     }
-                    errPage = lines.join("\n");
-                    errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
-                    callback(null, errPage);
                 }
             });
         } else {
