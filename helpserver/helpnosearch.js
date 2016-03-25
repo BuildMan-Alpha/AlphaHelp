@@ -94,7 +94,14 @@ var outputSnippet = function(args, description, type, topic ) {
     }
     if( !topic ) {
        topic = args.name;
+       if( !topic ) {
+           topic = "Unknown";   
+       }
     }
+    if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
+         topic = "<![CDATA[" + topic + "]]>";
+    }
+    
     if (description) {
         if (args.format == ".xml") {
             if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
