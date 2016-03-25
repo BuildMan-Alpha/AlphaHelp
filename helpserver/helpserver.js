@@ -56,85 +56,96 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args,description,type) {
+var outputSnippet = function(args, description, type, topic ) {
     var result = "";
-    if( args.isFolder ) {
-        if( args.format == ".xml" ) {
-            args.path = args.path + "/index.xml"; 
+    if (args.isFolder) {
+        if (args.format == ".xml") {
+            args.path = args.path + "/index.xml";
         }
     }
-    if( description ) {
-        if( args.format == ".xml" ) {
-            if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
-                description = "<![CDATA["+description+"]]>";
-                if( type == "method" ) {
-                    result =  "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
-                } else {
-                    result =  "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
-                }
-        } else {
-                result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>\n<dd>" + description + "</dd>";
-        }
-    } else {
-        if( args.format == ".xml" ) {
-            if( type == "method" ) {
-                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
-            } else  {
-                result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+    if( !topic ) {
+       topic = args.name;
+    }
+    if (description) {
+        if (args.format == ".xml") {
+            if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
+                description = "<![CDATA[" + description + "]]>";
+            if (type == "method") {
+                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+            } else {
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
         } else {
-            result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>";
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>\n<dd>" + description + "</dd>";
+        }
+    } else {
+        if (args.format == ".xml") {
+            if (type == "method") {
+                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
+            } else {
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name></item>";
+            }
+        } else {
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>";
         }
     }
     return result;
 }
 
-events.pageIndexer = function (args, savePage) {
+events.pageIndexer = function(args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var type = null;
-    if( args.all ) {
+    if (args.all) {
         var i;
         var methodFiles = 0;
         var nonMethodFiles = 0;
-        for( i = 0 ; i < args.all.length ; ++i ) {
+        for (i = 0; i < args.all.length; ++i) {
             var testName = args.all[i].path.toLowerCase();
             var pathEnd = testName.lastIndexOf('/');
-            if( pathEnd > 0 )
+            if (pathEnd > 0)
                 testName = testName.substring(pathEnd);
-            if( testName != '/index.xml' ) {
-                if( testName.indexOf(' method.') > 0 ) {
+            if (testName != '/index.xml') {
+                if (testName.indexOf(' method.') > 0) {
                     ++methodFiles;
                 } else {
                     ++nonMethodFiles;
                 }
-            }    
+            }
         }
-        if( methodFiles > 0 && nonMethodFiles == 0 ) {
+        if (methodFiles > 0 && nonMethodFiles == 0) {
             type = "method";
         }
-        
+
     }
-    var extensionIndex = filename.lastIndexOf(".");    
-//    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
-//        debugger;
-//    }
-    if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
+    var extensionIndex = filename.lastIndexOf(".");
+    //    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
+    //        debugger;
+    //    }
+    if (filename.substring(extensionIndex).toLowerCase() == ".xml") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function (err, data) {
+        fs.readFile(filename, "utf8", function(err, data) {
             if (err) {
                 console.log(filename + " was not found");
-                savePage(outputSnippet(args,null,type));
+                savePage(outputSnippet(args, null, type));
             } else {
                 var parseString = require('xml2js').parseString;
-                parseString(data, function (err, result) {
+                parseString(data, function(err, result) {
                     var description = null;
+                    var topic = null;
                     if (err) {
                         console.log(err + " processing file " + filename);
                     } else {
                         result = eval(result);
                         if (result) {
                             if (result.page) {
+                                if (result.page.topic) {
+                                    if (Object.prototype.toString.call(result.page.topic) === '[object Array]') {
+                                        topic = result.page.topic[0];
+                                    } else {
+                                        topic = result.page.topic;
+                                    }
+                                }
                                 if (result.page.description) {
                                     if (Object.prototype.toString.call(result.page.description) === '[object Array]') {
                                         description = result.page.description[0];
@@ -145,12 +156,12 @@ events.pageIndexer = function (args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args,description,type));
+                    savePage(outputSnippet(args, description, type , topic ));
                 });
             }
         });
     } else {
-        savePage(outputSnippet(args,null,type));
+        savePage(outputSnippet(args, null, type));
     }
 };
 

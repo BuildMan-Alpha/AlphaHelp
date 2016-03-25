@@ -85,12 +85,15 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args, description, type) {
+var outputSnippet = function(args, description, type, topic ) {
     var result = "";
     if (args.isFolder) {
         if (args.format == ".xml") {
             args.path = args.path + "/index.xml";
         }
+    }
+    if( !topic ) {
+       topic = args.name;
     }
     if (description) {
         if (args.format == ".xml") {
@@ -99,20 +102,20 @@ var outputSnippet = function(args, description, type) {
             if (type == "method") {
                 result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
-                result = "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
         } else {
-            result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>\n<dd>" + description + "</dd>";
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>\n<dd>" + description + "</dd>";
         }
     } else {
         if (args.format == ".xml") {
             if (type == "method") {
                 result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
             } else {
-                result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name></item>";
             }
         } else {
-            result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>";
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>";
         }
     }
     return result;
@@ -158,12 +161,20 @@ events.pageIndexer = function(args, savePage) {
                 var parseString = require('xml2js').parseString;
                 parseString(data, function(err, result) {
                     var description = null;
+                    var topic = null;
                     if (err) {
                         console.log(err + " processing file " + filename);
                     } else {
                         result = eval(result);
                         if (result) {
                             if (result.page) {
+                                if (result.page.topic) {
+                                    if (Object.prototype.toString.call(result.page.topic) === '[object Array]') {
+                                        topic = result.page.topic[0];
+                                    } else {
+                                        topic = result.page.topic;
+                                    }
+                                }
                                 if (result.page.description) {
                                     if (Object.prototype.toString.call(result.page.description) === '[object Array]') {
                                         description = result.page.description[0];
@@ -174,7 +185,7 @@ events.pageIndexer = function(args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args, description, type));
+                    savePage(outputSnippet(args, description, type , topic ));
                 });
             }
         });
