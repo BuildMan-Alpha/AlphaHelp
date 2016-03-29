@@ -342,6 +342,18 @@ events.extractDescription = function(page) {
     }
     return null;
 }
+events.decorateTitle = function(title) {
+   if( title.indexOf('Api') >= 0 ) {
+       if( title == 'Api' ) {
+           title = "API";
+       } else if( title == "Client_Api" ) {
+           title = "Client API";
+       } else if( title == "Desktop_Api" ) {
+           title = "Desktop API";
+       }
+   }
+   return title;  
+};
 
 options.events = events;
 //--------------------------------------------------------------------------------------------

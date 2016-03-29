@@ -339,6 +339,48 @@ events.extractTitle = function(page) {
     }
     return null;
 }
+events.extractDescription = function(page) {
+    var descriptionStart = page.indexOf("<description>");
+    var endArgument = page.indexOf("</argument");
+    if( endArgument > descriptionStart ) {
+        var startArgument = page.indexOf("<argument");
+        if( startArgument > 0 && startArgument < descriptionStart ) {
+            page = page.substring(endArgument);
+            descriptionStart = page.indexOf("<description>");
+        }
+    }
+    if( descriptionStart > 0 ) {
+        var descriptionEnd = page.indexOf("</description>");
+        descriptionStart += 13;
+        if( descriptionEnd > descriptionStart ) {
+            var  description = page.substring(descriptionStart,descriptionEnd).trim();
+            if( description.substring(0,9) == "<![CDATA[" ) {
+                description = description.substring(9).trim();
+                var endTagPos = description.lastIndexOf("]]>");
+                if( endTagPos > 0 ) {
+                    description = description.substring(0,endTagPos);
+                }
+            }
+            if( description.length > 0 )
+                return description;
+        }
+    }
+    return null;
+}
+
+events.decorateTitle = function(title) {
+   if( title.indexOf('Api') >= 0 ) {
+       if( title == 'Api' ) {
+           title = "API";
+       } else if( title == "Client_Api" ) {
+           title = "Client API";
+       } else if( title == "Desktop_Api" ) {
+           title = "Desktop API";
+       }
+   }
+   return title;  
+};
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 
