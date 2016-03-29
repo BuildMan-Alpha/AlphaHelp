@@ -152,7 +152,9 @@ events.pageIndexer = function(args, savePage) {
         if (methodFiles > 0 && nonMethodFiles == 0) {
             type = "method";
         }
-
+    }
+    if( filename.indexOf('#') > 0 ) {
+        filename = filename.split('#')[0];
     }
     var extensionIndex = filename.lastIndexOf(".");
     //    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {

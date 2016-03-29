@@ -125,6 +125,9 @@ events.pageIndexer = function(args, savePage) {
         }
 
     }
+    if( filename.indexOf('#') > 0 ) {
+        filename = filename.split('#')[0];
+    }    
     var extensionIndex = filename.lastIndexOf(".");
     //    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
     //        debugger;
