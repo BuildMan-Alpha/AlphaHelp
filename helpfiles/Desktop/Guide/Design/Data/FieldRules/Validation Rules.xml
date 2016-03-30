@@ -1,0 +1,387 @@
+<page>
+	<topic>Validation Rules
+</topic>
+<sections>
+	
+<section>
+	<description>Validation Rules help assure that data entry is reasonable and accurate. 
+</description>
+	<figure><link>images/UG_Field_Rules_Validations_tab.gif</link></figure>
+	
+</section>	
+<section>
+	<title>Double Entry Mode
+</title>
+	<description>For fields in which data entry accuracy is important, use the Double-Entry Field Rule. The user must enter the value twice, exactly the same way, for it to be accepted. For example, if you keep confidential records that are referenced only by client number for security, using the Double-Entry rule helps ensure that a keyboard operator does not accidentally press a wrong key.
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Edit Field Rules.
+</description>
+	
+</step>		
+<step>
+	<description>Display the Validations tab.
+</description>
+	
+</step>	
+<step>
+	<description>Select an entry from the Case convert list. The options are:
+</description>
+	<cases>
+		<case>
+			<description>"Not required" - the default
+</description>
+		</case>
+		<case>
+			<description>"Always required"
+</description>
+		</case>
+		<case>
+			<description>"Conditionally required"
+</description>
+		</case>
+		
+	</cases>
+</step>			
+<step>
+	<description>If you selected "Conditionally required" in step 3, enter an expression in the Double entry condition field. The expression must evaluate to TRUE (.T.) or FALSE (.F.). Click 'xy' to use the Expression Builder to help you define the expression.
+</description>
+	
+</step>	
+		
+	</steps>
+	
+</section>	
+	
+<section>
+	<title>Uniqueness Test for a Field
+</title>
+	<description>If you want to prevent duplicate values from being entered into a field, use one of the two Uniqueness test rules: Value of field must be unique, or Value of expression must be unique.
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Edit Field Rules.
+</description>
+	
+</step>		
+<step>
+	<description>Display the Validations tab.
+</description>
+	
+</step>	
+<step>
+	<description>Select an entry from the Uniqueness test list. The options are:
+</description>
+<cases>
+	<case>
+		<description>"None" - the default
+</description>
+	</case>
+	<case>
+		<description>"Value of field must be unique" - Select this setting to specify that any value you enter must not already exist in the same field in another record. If you try to save a record that has a duplicate value in a unique field, an error message appears listing the duplicate value.
+</description>
+	</case>
+	<case>
+		<description>"Value of expression must be unique" - Use this setting when you want to build an expression to determine if a value is unique. The field for which this rule is defined is usually included in the Unique expression. The value that results from this expression must be unique for each record in the table; if not, the record cannot be saved.
+</description>
+	</case>
+	
+</cases>
+	
+</step>			
+<step>
+	<description>If you selected "Value of expression must be unique" in step 3, enter an expression in the Unique expression field. The expression must evaluate to a unique value of the same type as the table field. Click the 'xy' to use the Expression Builder to help you define the expression.
+</description>
+	
+</step>	
+		
+	</steps>
+	
+</section>	
+	
+<section>
+	<title>Uniqueness Test for Multiple Fields in a Record
+</title>
+	<description>There are two techniques to prevent duplicate values from being entered into multiple fields in a record. This technique also applies to calculated fields.
+Testing each field:
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Edit Field Rules.
+</description>
+	
+</step>		
+<step>
+	<description>Display the Validations tab.
+</description>
+	
+</step>	
+<step>
+	<description>For each of the multiple fields:
+</description>
+	<cases>
+		<case>
+			<description>1. Select "Value of expression must be unique" in the Uniqueness test list.
+</description>
+		</case>
+		<case>
+			<description>2. In the Unique expression field enter an expression that evaluates to a character value and that includes all of the multiple fields that you want to test.
+</description>
+<cases>
+	<case>
+			<description>For example, if you wanted to make sure that the firstname and lastname combination in any record was unique, the Unique expression would be firstname + lastname.
+</description>
+		</case>
+		<case>
+			<description>Suppose you defined a calculated field named fullname that was defined as  alltrim(firstname) + " " + alltrim(lastname), then this would be the Unique expression that you define for the firstname and lastname fields.
+</description>
+		</case>
+</cases>
+		</case>
+		
+		
+		
+	</cases>
+</step>			
+
+	</steps>
+	
+</section>	
+	
+<section>
+
+	<description>Testing the combined value:
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Define Indexes.
+</description>
+	
+</step>		
+<step>
+	<description>Create a new index that uses the expression you want to test. For example, the index might be named fullname and use the expression alltrim(firstname) + " " + alltrim(lastname).
+</description>
+	
+</step>	
+<step>
+	<description>Click Build Indexes and Field Rules.
+</description>
+	
+</step>			
+<step>
+	<description>Display the Events tab of the Field Rule Editor.
+</description>
+	
+</step>	
+<step>
+	<description>Select the Record Events radio button.
+</description>
+	
+</step>	
+<step>
+	<description>Select the "CanSaveRecord" event from the list box.
+</description>
+	
+</step>	
+<step>
+	<description>Enter a script that tests whether the index value exists. Note that the KEY_EXIST() function:
+</description>
+	<cases>
+		<case>
+			<description>references the name of the index created in step 2 in its first argument
+</description>
+		</case>
+		<case>
+			<description>uses the same expression as the index as its second argument, with the exception that each field name is prefaced by " tbl. ".
+</description>
+			<example><![CDATA[tbl = table.current()
+if key_exist("fullname", alltrim(tbl.firstname) + " " + alltrim(tbl.lastname) ) then
+    cancel()
+    ui_msg_box("Error", "The combined values of First Name and Last Name must be unique")
+end if ]]></example>
+		</case>
+		
+		
+	</cases>
+</step>	
+		
+	</steps>
+	
+</section>	
+	
+<section>
+	<title>Cross File Validation
+</title>
+	<description>You can validate new values based on ones that exist in another table using Cross-File Validation. There are two cross-file validation settings: Simple and Advanced.
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Edit Field Rules.
+</description>
+	
+</step>		
+<step>
+	<description>Display the Validations tab.
+</description>
+	
+</step>	
+<step>
+	<description>Select an entry from the Cross file validation list. The options are:
+</description>
+	<cases>
+		<case>
+			<description>"None" - the default
+</description>
+		</case>
+		<case>
+			<description>"Simple" - Use this setting when you only want to validate one field in one table.
+</description>
+		</case>
+		<case>
+			<description>"Advanced" - Use this setting when you only want to validate several fields across one or more tables or want to validate fields conditionally.
+</description>
+		</case>
+		
+		
+	</cases>
+</step>			
+<step>
+	<description>If you selected "Simple" in step 3:
+</description>
+	<cases>
+		<case>
+			<description>1. Depending on the type of validation you want, select "Must not exist in" or "Must exist in" in Test.
+</description>
+		</case>
+			<case>
+			<description>2. Enter the name of the table you want to reference in the Table field. Click 'open' to select from a list of tables.
+</description>
+		</case>
+			<case>
+			<description>3. Enter the name of the field you want to reference in Field. You can also use an expression to select the field name. The field in the local and the validation tables must be of the same type. Click the 'xy' icon to use the Expression Builder to help you define the expression.
+</description>
+		</case>
+		
+	</cases>
+</step>	
+<step>
+	<description>If you selected "Advanced" in step 3, an embedded browse appears for entering validation criteria. It contains columns labeled Field, Test, Table, Lookup, and Condition.
+</description>
+	<cases>
+		<case>
+			<description>1. In the first row in the Field column, use the drop-down list to select a field name from the current table. Otherwise, create an expression that evaluates to a field name.
+</description>
+		</case>
+			<case>
+			<description>2. In the first row in the Test column, select either "Must not exist in" or "Must exist in".
+</description>
+		</case>
+			<case>
+			<description>3. In the first row in the Table column, click the 'open' icon to select from a list of tables.
+</description>
+		</case>
+		<case>
+			<description>4. In the first row in the Lookup column, select either a field from the validation table or an expression that evaluates to a field name. Click 'xy' to use the Expression Builder to help you define the expression..
+</description>
+		</case>
+			<case>
+			<description>5. Optionally, in the first row in the Condition column, enter an create an expression that evaluates to a logical value. If the expression evaluates to FALSE (.F.), the rule will not be applied.
+</description>
+		</case>
+			<case>
+			<description>6. Repeat steps 5a through 5e for each additional field that you want to validate.
+</description>
+		</case>
+		
+	</cases>
+</step>			
+	</steps>
+	
+</section>	
+	
+<section>
+	<title>Custom Validations
+</title>
+	<description>You can check the validity of values you enter into a field using one or more custom validation expressions. A validation expression must be a logical expression, and is typically based on the field for which the rule is defined, although it can include previously entered fields.
+If all validation expressions evaluate to TRUE for the record, the entered value is allowed in the field. Otherwise, the entry is rejected, and a validation error message for the first expression to fail appears.
+Alpha Five evaluates the validation expressions for a field when the user exits the field, and when the record is saved.
+Custom Validation and Error Message:</description>
+	<figure><link>images/Custom_Validations_1.gif</link></figure>
+	
+</section>	
+<section>
+	<description>Custom Error Message During Data Entry:</description>
+	<figure><link>images/Custom_Validations_2.gif</link></figure>
+</section>
+	
+<section>
+
+	<description>To create a Custom Validation:
+</description>
+	<steps>
+<step>
+	<description>In the Control Panel select the table and click Table > Edit Field Rules.
+</description>
+	
+</step>		
+<step>
+	<description>Display the Validations tab.
+</description>
+	
+</step>	
+<step>
+	<description>Enter an expression in the first row of the Validation column. The expression must evaluate to TRUE (.T.) or FALSE (.F.). Click  to use the Expression Builder to help you define the expression.
+</description>
+	
+</step>			
+<step>
+	<description>Enter a corresponding Message that will appear when the validation expression evaluates to FALSE (.F.), during data entry.
+</description>
+	
+</step>	
+<step>
+	<description>Repeat steps 3 and 4 to enter custom validation expressions on subsequent rows of the embedded browse.
+</description>
+	
+</step>			
+	</steps>
+	
+</section>	
+
+<section>
+	<title>Range Checking
+</title>
+<description>To check that a value is with in specified range of numbers, enter a validation expression similar to the following, where fieldname is the name of the field that is being validated.
+</description>	
+<example><![CDATA[dim lowervalue as N
+dim uppervalue as N
+lowervalue = 1
+uppervalue = 21
+between(fieldname, lowervalue, uppervalue)
+]]></example>	
+</section>
+
+<section>
+	<title>Validating Input to Form Variables
+</title>
+<description>Field rules do not validate inputs to variables. Instead, you must create your own validation routines. The following script uses CanDepart event of the form field to check the length of the user's input to var->variablename.
+</description>	
+<example><![CDATA[if alltrim(var->variablename? > 30) then 
+ui_msg_box("Sorry","Entries over 30 characters are not permitted") 
+cancel() 
+end 
+end if]]></example>	
+</section>
+
+
+
+
+
+
+
+							
+</sections>	
+	
+	
+</page>
