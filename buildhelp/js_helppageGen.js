@@ -23,6 +23,17 @@ var dirCreateRecurse = function (folderName) {
         fs.mkdirSync(folderName);
     }
 };
+var indentLevelCalc = function(txt) {
+    var i;
+    for( i = 0 ; i < txt.length ; ++i ) {
+        if( txt[i] != '\t' ) {
+            if( txt[i] <= ' ' )
+                return 0;
+            return i;
+        }
+    }
+    return 0;
+};
 
 var protectXml = function (content) {
     if (content.indexOf("&") >= 0
@@ -72,8 +83,11 @@ var generateXMLHelp = function (content) {
     var lastPropOrArg = null;
     var topContext = null;
     var contextType = "";
+    var lastIndentLevel = 0;
+    var nestingProps = [];
 
     for (i = 0; i < lines.length; ++i) {
+        var indentLevel = indentLevelCalc(lines[i]);
         var line = lines[i].trim();
         if (endTag && line.indexOf(endTag) >= 0) {
             lastType = null;
@@ -173,7 +187,23 @@ var generateXMLHelp = function (content) {
                 || lastType == "props"
                 ) {
                 if (dashPos > 0) {
-                    lastPropOrArg = processArgOrProc(line, dashPos, properties);
+                    if( !endTag && lastPropOrArg ) {
+                        if( lastIndentLevel == (indentLevel - 1) ) {
+                            if( !lastPropOrArg.properties )
+                                lastPropOrArg.properties = [];
+                            nestingProps.push(lastPropOrArg);
+                        } else if( lastIndentLevel > indentLevel ) {
+                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                                lastPropOrArg = nestingProps.pop();
+                                --lastIndentLevel;
+                            }
+                        }
+                    }
+                    if( nestingProps.length > 0 ) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    } else {
+                        lastPropOrArg = processArgOrProc(line, dashPos, properties);                        
+                    }
                 }
             }
         } else if (lastType == "example") {
@@ -206,6 +236,7 @@ var generateXMLHelp = function (content) {
                 }
             }
         }
+        lastIndentLevel = indentLevel;
     }
     var pagename = method;
     if (pagename) {
@@ -267,41 +298,38 @@ var generateXMLHelp = function (content) {
     if (discussion) {
         xml += "\t<discussion>" + protectXml(discussion) + "</discussion>\r\n";
     }
-    if (properties.length > 0) {
-        xml += "\t<properties>\r\n";
-        for (i = 0; i < properties.length; ++i) {
-            xml += "\t\t<property>\r\n";
-            xml += "\t\t\t<name>" + properties[i].name + "</name>\r\n";
-            xml += "\t\t\t<type>" + properties[i].type + "</type>\r\n";
-            xml += "\t\t\t<description>" + properties[i].description + "</description>\r\n";
-            if (properties[i].arguments) {
-                var j;
-                xml += "\t\t\t<arguments>\r\n";
-                for (j = 0; j < properties[i].arguments.length; ++j) {
-                    xml += "\t\t\t\t<argument>\r\n";
-                    xml += "\t\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
-                    xml += "\t\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
-                    xml += "\t\t\t\t\t<description>" + properties[i].arguments[j].description + "</description>\r\n";
-                    xml += "\t\t\t\t</argument>\r\n";
+    var recurseProperties = function(properties,indented) {
+        var xml = "";
+        if (properties.length > 0) {
+            var i = 0;
+            xml += indented + "<properties>\r\n";
+            for (i = 0; i < properties.length; ++i) {
+                xml += indented + "\t<property>\r\n";
+                xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
+                xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+                xml += indented + "\t\t<description>" + properties[i].description + "</description>\r\n";
+                if (properties[i].arguments) {
+                    var j;
+                    xml += indented + "\t\t<arguments>\r\n";
+                    for (j = 0; j < properties[i].arguments.length; ++j) {
+                        xml += indented + "\t\t\t<argument>\r\n";
+                        xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
+                        xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                        xml += indented + "\t\t\t\t<description>" + properties[i].arguments[j].description + "</description>\r\n";
+                        xml += indented + "\t\t\t</argument>\r\n";
+                    }
+                    xml += indented + "\t\t</arguments>\r\n";
                 }
-                xml += "\t\t\t</arguments>\r\n";
-            }
-            if (properties[i].properties) {
-                var j;
-                xml += "\t\t\t<properties>\r\n";
-                for (j = 0; j < properties[i].properties.length; ++j) {
-                    xml += "\t\t\t\t<property>\r\n";
-                    xml += "\t\t\t\t\t<name>" + properties[i].properties[j].name + "</name>\r\n";
-                    xml += "\t\t\t\t\t<type>" + properties[i].properties[j].type + "</type>\r\n";
-                    xml += "\t\t\t\t\t<description>" + properties[i].properties[j].description + "</description>\r\n";
-                    xml += "\t\t\t\t</property>\r\n";
+                if (properties[i].properties && properties[i].properties.length ) {
+                    xml += recurseProperties(properties[i].properties,indented + "\t\t");
                 }
-                xml += "\t\t\t</properties>\r\n";
+                xml += indented+"\t</property>\r\n";
             }
-            xml += "\t\t</property>\r\n";
+            xml += indented+"</properties>\r\n";
         }
-        xml += "\t</properties>\r\n";
-    }
+        return xml;
+    };
+    xml += recurseProperties(properties,"\t");
     if (examples) {
         xml += "\t<example>" + protectXml(examples) + "</example>\r\n";
     }
