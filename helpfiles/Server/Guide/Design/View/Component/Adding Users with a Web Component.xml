@@ -1,0 +1,315 @@
+<page>
+  <topic>Adding Users with a Web Component</topic>
+  <sections>
+    <section>
+      <note>This topic is obsolete for V11 and above. In V11 when you create a new Dialog component, you can choose from list of pre-defined Dialogs. Select the 'SecurityFramework-CreateNewUserAccount' entry in the list. See video D_SF_1 for more details. </note>
+    </section>
+    <section>
+      <description>This example shows how to create a dialog component that will accept all the information required to add a new user to the web user table. 
+</description>
+      <figure><link>images/WPT_New_User_Dialog.gif</link></figure>
+    </section>
+    <section>
+      <description>The controls on the dialog must have names that match fields currently being used by the web security settings. The actual fields being used will be different depending on the security options selected. 
+</description>
+    </section>
+    <section>
+      <title>Getting the Current Field Names 
+</title>
+     <steps>
+       <step>
+         <description>In the Database Control Panel click Interactive Window to open the Interactive Window.
+</description>
+       </step>
+       <step>
+         <description>In the Interactive Window, enter the following code and click Enter. 
+</description>
+<example><![CDATA[?a5ws_user_file_field_list()
+= Guid
+Password
+RedirPage
+Ulink
+Userid]]></example>
+       </step>
+       <step>
+         <description>This shows the field names currently available in the web users table. 
+</description>
+       </step>
+       <step>
+         <description>There are two additional fields that can be used 
+</description>
+<cases>
+  <case>
+    <description>1. "groups" - This field can be used to select security groups for the user.
+</description>
+  </case>
+   <case>
+    <description>2. "confirm_password" - This field can be added to require entering a password a second time to validate the value.
+</description>
+  </case>
+  
+  
+</cases>
+       </step>
+       
+       
+     </steps> 
+      
+    </section>
+    
+<section>
+  <title>Creating the Dialog
+</title>
+ <steps>
+   <step>
+     <description>In the Web Projects Control Panel click New > Web Component > Next > Dialog > OK.
+</description>
+   </step>
+  <step>
+     <description>Select Save, name the dialog component "NewUser", and click Save.
+</description>
+   </step>
+     <step>
+     <description>Display the Form > Controls menu.
+</description>
+   </step>
+     <step>
+     <description>Add six controls. NOTE: If you are using password encryption, the max length for the password field must be at least 60 to allow space for the encypted value. 
+</description>
+<figure><link>images/atable.png</link></figure>
+   </step>
+     <step>
+     <description>Select "RedirPage" in the Selected Controls list.
+</description>
+<cases>
+  <case>
+    <description>1. Click '...' in DropDownBox Properties > Choices to display the Define Choices dialog.
+</description>
+  </case>
+   <case>
+    <description>2. Set Define Choices > List Type to "Dynamic".
+</description>
+  </case>
+   <case>
+    <description>3. Set Data Source > Data source type to "Variable".
+</description>
+  </case>
+   <case>
+    <description>4. Set Data Source > Variable name to "PageList".
+</description>
+  </case>
+   <case>
+    <description>5. Click OK to continue.
+</description>
+  </case>
+  
+</cases>
+   </step>
+  <step>
+     <description>Select "Groups" in the Selected Controls list. 
+</description>
+<cases>
+  <case>
+    <description>1. Click '...' in Checkbox Properties > Choices to display the Define Choices dialog.
+</description>
+  </case>
+   <case>
+    <description>2. Set Define Choices > List Type to "Dynamic".
+</description>
+  </case>
+   <case>
+    <description>3. Set Data Source > Data source type to "Variable".
+</description>
+  </case>
+   <case>
+    <description>4. Set Data Source > Variable name to "GroupList".
+</description>
+  </case>
+   <case>
+    <description>5. Click OK to continue.
+</description>
+  </case>
+  
+  
+</cases>
+   </step>
+     <step>
+     <description>Display the Form > Properties menu.
+</description>
+   </step>
+     <step>
+     <description>Click the '...' in Server Events > Initialize to display the Form Events dialog. Enter the following code and click OK.
+</description>
+<example><![CDATA[a5ws_get_webuser_values(CurrentForm)
+]]></example>
+   </step>
+     <step>
+     <description>Click the '...' button in Server Events > Validate to display the Form Events dialog. Enter the following code and click OK.
+</description>
+     <example><![CDATA[a5ws_save_webuser_values(CurrentForm)
+]]></example>
+   </step>
+  <step>
+     <description>Click '...' in Server Events > After Validate to display the Form Events dialog. Enter the following code and click OK. Note: If a new record was created in the Validate event, the new security record guid value will be returned in the variable CurrentForm.Controls.Guid.Value. This MUST be passed back to the function a5ws_get_webuser_values() to find the new record to reload the saved values. 
+</description>
+     <example><![CDATA[Dim UserValue as p 
+UserValue.guid = alltrim(CurrentForm.Controls.Guid.Value) 
+a5ws_get_webuser_values(CurrentForm,UserValue) 
+]]></example>
+   </step>
+     <step>
+     <description>Click '...' in Server Events > Activate to display the Form Events dialog. Enter the following code and click OK.
+</description>
+     <example><![CDATA[pagelist = a5ws_get_page_list(request)
+grouplist = a5ws_get_groups(request,.T.)
+]]></example>
+   </step>
+     <step>
+     <description>Note: If you want to allow the user to leave the redirect page blank, you can modify the Activate code as follows: 
+</description>
+     <example><![CDATA[pagelist = ""+crlf()+a5ws_get_page_list(request)
+]]></example>
+   </step>
+    <step>
+     <description>Click Save and Close.
+</description>
+
+   </step>
+   
+   
+ </steps> 
+  
+  
+  
+</section>    
+    
+ <section>
+  <title>Creating the Page
+</title> 
+  <steps>
+    
+    <step>
+      <description>In the Web Projects Control Panel click New > A5W Page > OK.
+</description>
+    </step>
+    <step>
+      <description>Select Save, name the page "NewUser", and click Save.
+</description>
+    </step>
+    <step>
+      <description>Click Insert Component > Select.
+</description>
+    </step>
+    <step>
+      <description>Select the "NewUser" component and click OK > OK.
+</description>
+    </step>
+    <step>
+      <description>Close the HTML Editor and return to the Web Projects Control Panel.
+</description>
+    </step>
+    <step>
+      <description>Click Web Security > Page Security > OK.
+</description>
+    </step>
+    <step>
+      <description>Move NewUser.A5W to the Always Allowed column and click OK.
+</description>
+    </step>
+    
+  </steps> 
+   
+ </section>   
+    
+    
+    
+    <section>
+  <title>Adding a New User
+</title> 
+  <steps>
+    
+    <step>
+      <description>In the Web Projects Control Panel click Publish.
+</description>
+    </step>
+    <step>
+      <description>Select All files in project.
+</description>
+    </step>
+    <step>
+      <description>Clear Publish new or modified files only.
+</description>
+    </step>
+    <step>
+      <description>Click Clear Publishing History.
+</description>
+    </step>
+    <step>
+      <description>Select Launch browser after files are published.
+</description>
+    </step>
+    <step>
+      <description>In the Page to show list select "NewUser.a5w".
+</description>
+    </step>
+    <step>
+      <description>Click Publish.
+</description>
+    </step>
+     <step>
+      <description>When the NewUser page appears in your browser:
+</description>
+<cases>
+  <case>
+    <description>1. Enter "ellen" into User ID.
+</description>
+  </case>
+   <case>
+    <description>2. Enter "ellen" into Password.
+</description>
+  </case>
+   <case>
+    <description>3. Enter "ellen" into Confirm Password.
+</description>
+  </case>
+   <case>
+    <description>4. Select "Menu.a5w" in Redirect Page.
+</description>
+  </case>
+   <case>
+    <description>5. Select "Accounting" in Permissions.
+</description>
+  </case>
+  
+  
+</cases>
+    </step>
+     <step>
+      <description>Click Submit. 
+</description>
+      <figure><link>images/WPT_Add_New_User_via_Web.gif</link></figure>
+    </step>
+    
+  </steps> 
+   
+ </section>   
+    
+    
+    
+    
+    
+    
+    
+    
+  </sections>
+  <limitations>Web publishing applications only.
+</limitations>
+  
+  <see>
+    <ref>White Papers</ref>
+    <ref>http://www.gregoryfca.com/blogs/alpha/documents/Alpha_RegisterWebUsersAFV10_WP_FINAL.pdf</ref>
+    
+  </see>
+  
+  
+</page>
