@@ -97,9 +97,30 @@ var generateXMLHelp = function (content) {
                 endTagType.splice(endTagType.length - 1, 1);
             }
         } else if (!endTag) {
+            var saveString = "";
+            if( line[0] == "'" ) {
+                line = line.split("'");
+                if( line.length > 2 ) {
+                    saveString = "'"+line[1]+"'";
+                    line.splice(0,2);
+                    line = line.join("'"); 
+                } else {
+                    saveString = "";
+                    line = line.join("'");
+                }
+                console.log(saveString);
+            }
             var splitPos = line.indexOf(":");
             var dashPos = line.indexOf("-");
             var typePos = line.indexOf("(");
+            
+            if( saveString.length > 0 ) {
+                splitPos += saveString.length;
+                dashPos += saveString.length;
+                typePos += saveString.length;
+                line = saveString+line;
+            }
+            
             var type = null;
             if (splitPos > 0) {
                 if (dashPos < 0 || splitPos < dashPos) {
@@ -149,20 +170,20 @@ var generateXMLHelp = function (content) {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
                         endTag = null;
+                        if( nestingProps.length == 0 )
+                            lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                    if( nestingProps.length == 0 )
-                        lastPropOrArg = null;
                 } else if (type == "properties" || type == "props") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
                         endTag = null;
+                        if( nestingProps.length == 0 )
+                            lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                    if( nestingProps.length == 0 )
-                        lastPropOrArg = null;
                 } else if (type == "example") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
