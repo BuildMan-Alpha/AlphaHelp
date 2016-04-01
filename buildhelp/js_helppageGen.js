@@ -152,7 +152,8 @@ var generateXMLHelp = function (content) {
                     } else {
                         endTagType.push(lastType);
                     }
-                    lastPropOrArg = null;
+                    if( nestingProps.length == 0 )
+                        lastPropOrArg = null;
                 } else if (type == "properties" || type == "props") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
@@ -160,7 +161,8 @@ var generateXMLHelp = function (content) {
                     } else {
                         endTagType.push(lastType);
                     }
-                    lastPropOrArg = null;
+                    if( nestingProps.length == 0 )
+                        lastPropOrArg = null;
                 } else if (type == "example") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length == 0) {
