@@ -155,6 +155,36 @@ events.pageIndexer = function (args, savePage) {
                 });
             }
         });
+    } else if (filename.substring(extensionIndex).toLowerCase() == ".html") { //&& filename.indexOf("/index.xml") < 0) {
+        var fs = require("fs");
+        fs.readFile(filename, "utf8", function(err, data) {
+            var description = null;
+            if( !err ) {
+                var metaDataTags = data.split("<meta");
+                if( metaDataTags.length > 1) {
+                    var i;
+                    for( i = 1 ; i < metaDataTags.length ; ++i ) {
+                        var nameAttribute = metaDataTags[i].split('>')[0].split("name=");
+                        if( nameAttribute.length > 1 ) {
+                            nameAttribute =  nameAttribute[1].split('"');
+                            if( nameAttribute.length > 1 ) {
+                                if( nameAttribute[1].toLowerCase() == "description" ) {
+                                     var contentAttribute = metaDataTags[i].split("content=");
+                                     if( contentAttribute.length > 1 ) {
+                                        contentAttribute = contentAttribute[1].split('"');
+                                        if( contentAttribute.length > 1 ) {
+                                             description = contentAttribute[1];
+                                        }
+                                        break; 
+                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            savePage(outputSnippet(args, description, type));
+        });        
     } else {
         savePage(outputSnippet(args,null,type));
     }
