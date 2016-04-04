@@ -348,7 +348,7 @@ events.extractDescription = function(page) {
 events.decorateTitle = function(title) {
    if( title.indexOf('Api') >= 0 ) {
        if( title == 'Api' ) {
-           title = "API";
+           title = "Server API";
        } else if( title == "Client_Api" ) {
            title = "Client API";
        } else if( title == "Desktop_Api" ) {
