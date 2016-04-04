@@ -60,7 +60,9 @@
 		<xsl:if test="description">
             <meta name="description" content="{description}"/>
 			<p class="A5">Description</p>
-			<p><xsl:value-of select="description" /> </p>
+            <xsl:for-each select="description">
+                <xsl:call-template name="text-content"/>
+            </xsl:for-each>
 		</xsl:if>
 		<xsl:choose>
 			<xsl:when test="content">
@@ -76,7 +78,10 @@
 			<xsl:when test="discussion">
 				<p class="A5">Discussion</p>
 				<p>
-					<xsl:value-of select="discussion" /> </p>
+                <xsl:for-each select="discussion">
+                    <xsl:call-template name="text-content"/>
+                </xsl:for-each>
+                </p>
 			</xsl:when>
 		</xsl:choose>
         <xsl:if test="list">
@@ -138,7 +143,9 @@
                    </xsl:if>
 					<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
             		<xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>                    						
-						<xsl:value-of select="description" />
+                        <xsl:for-each select="description">
+                            <xsl:call-template name="text-content"/>
+                        </xsl:for-each>
 						<xsl:if test="example">
 							<b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre>
 						</xsl:if>
@@ -160,7 +167,7 @@
                             <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>
                             </xsl:otherwise>
                         </xsl:choose>                                            
-                        <dd><xsl:value-of select="description" /></dd>
+                        <dd><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each></dd>
                     </xsl:if>    
 				</xsl:for-each>
 			</dl>
@@ -289,12 +296,16 @@
             </xsl:when>
             <xsl:when test="discussion">
                 <p>
-                    <xsl:value-of select="discussion" />
+                    <xsl:for-each select="discussion">
+                        <xsl:call-template name="text-content"/>
+                    </xsl:for-each>
                 </p>
             </xsl:when>
             <xsl:when test="description">
                 <p>
-                    <xsl:value-of select="description" />
+                    <xsl:for-each select="description">
+                    <xsl:call-template name="text-content"/>
+                    </xsl:for-each>
                 </p>
             </xsl:when>
             <xsl:otherwise></xsl:otherwise>
@@ -355,6 +366,19 @@
 			</xsl:for-each>
 		</xsl:if>
     </xsl:template>    	
+    <xsl:template match="text-content" name="text-content" >
+        <xsl:choose>
+            <xsl:when test="p">
+                <xsl:for-each select="p">
+                    <p>  <xsl:value-of select="." /> </p>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="." />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>    	
+    
     <xsl:template match="step-content" name="step-content" >
             <ol class="stepsOL">
                 <xsl:for-each select="steps/step">
@@ -424,7 +448,7 @@
 							<xsl:value-of select="content" disable-output-escaping="yes" />
 						</xsl:when>
 						<xsl:when test="description">
-							<xsl:value-of select="description" />
+                            <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>							
 						</xsl:when>
 					</xsl:choose>
 					<xsl:if test="ref">
