@@ -374,7 +374,7 @@
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="." />
+                <p><xsl:value-of select="." /></p>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>    	
