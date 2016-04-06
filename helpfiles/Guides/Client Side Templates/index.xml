@@ -1265,24 +1265,286 @@ Grand total for all 3 orders is: $593.40<br/>
 </div>]]></content>
                 </section>
                 <section>
-                    <description></description>
-                    <example><![CDATA[]]></example>
+                    <description>
+                        <p>There is a lot going on in this example. The template for this example is shown below.</p>
+                        <p>Items of note in this example include:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <description>
+                                <p>While the data for each orderItem does not contain an extendedPriice property, the extended price is shown for each item and it is formatted with a $ and two decimal places.</p>
+                                <p>If you look at the template below you will notice that the template for the 'Extended Total' column is defined as: {qty*price:number(\'$#,###.00\')}. The template defines the expression qty * price and then uses the :number() directive to format is with a $ and two decimal places (and a comma for the thousands separator - not shown in the output because none of the extended totals are above $999.99).</p>
+                            </description>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The Order Items are displayed in a table. The <table> HTML tag is output in the {*header} section for the OrderItems array and the </table> HTML tag is output in the {*footer} section for the OrderItems array.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The footer row for the Order Items table displays the count of the number of items, the average quantity, the average price and the total for the order. All of these summary values are computed in the array pre-processor function (orderItemsPreprocessor). Notice that the tag for the orderItems array {orderItems@orderItemsPreProcessor} specifies the name of the pre-processor function.</p>
+                                <p>The array pre-processor function puts these summary values in the special 'temp' variable. The function adds the following properties to the 'temp' variable:</p>
+                            </description>
+                            <cases>
+                                <case>
+                                    <description>temp.grandTotal - the grand total for all of the orders</description>
+                                </case>
+                                <case>
+                                    <description>temp.averagePrice - the average price for each order</description>
+                                </case>
+                                <case>
+                                    <description>temp.averageQuantity - the average quantity for each order</description>
+                                </case>
+                                <case>
+                                    <description>temp.totalExtendedPrice - the order total for each order</description>
+                                </case>
+                                <case>
+                                    <description>temp.itemCount - the number of items in each order</description>
+                                </case>
+                            </cases>
+                        </case>
+                        <case>
+                            <description>
+                                <p>In order to output these computed values in the template, the special [temp] variable is used. For example, to show the average price (formatted with $ and two decimal places), the template has: {[temp].avaragePrice:number(\'$#,###.00\')}.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The rows in the Order Items table are numbered. The special {[countOneBased]} tag is used to number the rows.</p>
+                            </description>
+                            </case>
+                        <case>
+                            <description>
+                                <p>Each order specifies the order number and the number of orders (e.g. Order number 2 of 3 orders). The template looks like this:</p>
+                                <p>(Order number {[countOneBased]} of {[root].length} orders .....</p>
+                                <p>In order to output the order number  (i.e. 1 for the first order, 2 for the 2nd order, etc.), the special {[countOneBased]} tag  is used.</p>
+                                <p>In order to output the total number of orders, the length property of the special [root] variable is used. Because the data passed into the template expand function is an array, the 'root' object is implicitly created (see section above 'The {*root} Tag ')</p>
+                            </description>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Each order also indicates the date for the first order and last order displayed. For example:</p>
+                                <p>(Order number 2 of 3 orders - for orders placed between 1/1/2014 and 1/5/2014)</p>
+                                <p>The template the date range is:</p>
+                                <p>- for orders placed between <b>{[root][0].date}</b> and <b>{[root][-1].date}</b></p>
+                                <p>To get the date of the first order the special [root] variable is used with an index of 0. So [root][0] has the data for the first order and [root][0].date is the date for the first order.</p>
+                                <p>To get the date for the last order, we again use the special [root] variable, but this time with an index of -1. So [root][-1].date is the date for the last order.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <description>
+                                <p>To print the grand total of all of the orders, the template is:</p>
+                                <p>Grand total for all {[root].length} orders is: {[temp].grandTotal:number(\'$#,###.00\')}</p>
+                                <p>The count of the number of orders can be obtained using the length property of the special [root] variable. The grand total of all orders is output using the grandTotal property that was added to the 'temp' variable by the 'orderItems' array pre-processor function. To output a value in the special 'temp' variable, we use [temp].</p>
+                                <p>The 'temp' variable is not scoped to each invocation of the array pre-processor function. It it therefore ideal for accumulating aggregate values for all of the data. You will notice that in the pre-processor function, when the first order is processed, the temp.grandTotal variable does not yet exist. It is therefore initialized to 0. Then, the order total for the current order being processed is added into the temp.grandTotal variable.</p>
+                            </description>
+                        </case>
+                    </cases>
                 </section>
                 <section>
-                    <description></description>
-                    <example><![CDATA[]]></example>
+                    <description> Here is the template for this example:</description>
+                    <example><![CDATA[var template = [
+    '{*root}',
+        'Order Id: {orderId} (Order number {[countOneBased]} of {[root].length} orders - for orders placed between <b>{[root][0].date}</b> and <b>{[root][-1].date}</b>) <br>',
+        'Order Date: {date}<br>',
+        '{orderItems@orderItemsPreProcessor}',
+            '{*header}',
+                '<table border="1" cellspacing="1" cellpadding="3" style="border-collapse: collapse;" >',
+                '<tr>',
+                    '<th>#</th>',
+                    '<th>Item Id</th>',
+                    '<th>Quantity</th>',
+                    '<th>Price</th>',
+                    '<th>Extended Total</th>',
+                '</tr>',
+            '{/*header}',
+            '<tr>',
+                '<td>{[countOneBased]}</td>',
+                '<td>{itemId}</td>',
+
+                '<td style="text-align:right;">{qty}</td>',
+                '<td style="text-align:right;">{price:number(\'$#,###.00\')}</td>',
+                '<td style="text-align:right;">{qty*price:number(\'$#,###.00\')}</td>',
+            '</tr>',
+            '{*footer}',
+                '<tr>',
+                    '<td>Count: {[temp].itemCount}</td>',
+                    '<td></td>',
+                    '<td>Avg Quantity: {[temp].averageQuantity:number(\'#.00\')}</td>',
+                    '<td>Avg Price {[temp].averagePrice:number(\'$#,###.00\')}</td>',
+                    '<td style="text-align:right;">Total: {[temp].totalExtendedPrice:number(\'$#,###.00\')} </td>',
+                '</tr>',
+                '</table><br>',
+            '{/*footer}',
+        '{/orderItems}',
+        '{*footer}',
+            'Grand total for all {[root].length} orders is: {[temp].grandTotal:number(\'$#,###.00\')}<br>',
+        '{/*footer}',
+    '{/*root}'
+].join('');]]></example>
                 </section>
                 <section>
-                    <description></description>
-                    <example><![CDATA[]]></example>
+                    <description> The array pre-processor function for the 'orderItems' array is defined as follows:</description>
+                    <example><![CDATA[ function orderItemsPreProcessor(data,temp,root) {
+    var totalQuantity = 0;
+    var totalPrice = 0;
+    var totalExtendedPrice = 0;
+    var extendedPrice = 0;
+    var _d = '';
+    for(var i = 0; i < data.length; i++) {
+        _d = data[i];
+        extendedPrice = _d.qty * _d.price;
+        totalExtendedPrice = totalExtendedPrice + extendedPrice;
+        totalPrice = totalPrice + _d.price;
+        totalQuantity = totalQuantity + _d.qty;
+    }
+
+    //the first time this function is called temp.grandTotal will be undefined
+
+    //so we initialize it to 0
+    if(typeof temp.grandTotal == 'undefined') temp.grandTotal = 0;
+
+ 
+
+    //we can then accumulate the grand total for all orders
+    temp.grandTotal = temp.grandTotal + totalExtendedPrice;
+ 
+
+    temp.averagePrice = (totalPrice / data.length);
+    temp.averageQuantity = (totalQuantity / data.length);
+    temp.totalExtendedPrice = totalExtendedPrice;
+    temp.itemCount = data.length;
+    //it is CRITICAL that the pre-processor function return an array to be expanded
+    //even though this function has not modified the data in the 'data' array,
+
+    //it must still return the 'data' array
+    return data;
+} ]]></example>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Templates Can Reference Functions in Any Namespace and Can Take Arguments</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>Previously, when a template referenced a function, the function needed to be defined as a global function. Now, templates can reference functions an arbitrary namespaces.</p>
+                        <p>Consider the following simple example:</p>
+                        <p>Data:</p>
+                    </description>
+                    <example><![CDATA[var data = [
+    {firstname: 'Fred', lastname: 'Smith'},
+    {firstname: 'John', lastname: 'Jones'}
+]]]></example>
                 </section>
                 <section>
-                    <description></description>
-                    <example><![CDATA[]]></example>
+                    <description>
+                        <p>Javascript function definition (Notice that the function takes two arguments and is in the 'obj' namespace.):</p>
+                    </description>
+                    <example><![CDATA[var obj = {
+    fullname: function(fn,ln) { return 'Hello <b>' + fn + ' ' + ln + '</b>'}
+}]]></example>
                 </section>
                 <section>
-                    <description></description>
-                    <example><![CDATA[]]></example>
+                    <description>Template (Notice that the template calls the function in the 'obj' namespace and passes in argument values from the current row.):</description>
+                    <example><![CDATA[var template = '{firstname} {lastname} Function call is output here: {@obj.fullname(firstname,lastname)}<br>']]></example>
+                </section>
+                <section>
+                    <description>The output HTML produced is:</description>
+                </section>
+                <section>
+                    <content><![CDATA[<div>
+Fred Smith Function call is output here: Hello <b>Fred Smith</b><br/>
+John Jones Function call is output here: Hello <b>John Jones</b><br/>
+</div>]]></content>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title> Defining Custom Formatters</title>
+            <sections>
+                <section>
+                    <description> Templates can format data before it is output using the built-in format directives. For example, you can format a number so that it has $ and two decimal places by using the :number() format directive. For example:</description>
+                    <example><![CDATA[ {price:number(\'$#,###.00\')}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>However, you can also define your own custom format directives. This is done by adding functions to the A5.u.template.formats object.</p>
+                        <p>Consider the following example:</p>
+                        <p>Data:</p>
+                    </description>
+                    <example><![CDATA[ var data = {
+    company: [
+        {firstname: 'Fred', lastname: 'Smith', phone: 7815551234},
+        {firstname: 'John', lastname: 'Jones', phone: 2125551234},
+        {firstname: 'Jane', lastname: 'Jones', phone: 4155551234},
+        {firstname: 'Margo', lastname: 'Jones', phone: 4325551234}
+    ]
+}]]></example>
+                </section>
+                <section>
+                    <description>Template:</description>
+                    <example><![CDATA[ var template = [
+    '{company}',
+    '{firstname:formatName(\'l\')} {lastname:formatName(\'u\')} {phone:phoneNumber}<br>',
+    '{/company}'
+
+].join('');]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Notice the template uses custom formatters for the each of the fields. Both 'firstname' and 'lastname' use a custom formatter called 'formatName' and in one case an argument value of 'l' is passed in (to format the data as lower case) and in the second case, an argument value of 'u' is passed in (to format the data as upper case).</p>
+                        <p>The 'phone' field uses a custom formatter called 'phoneNumber'. This formatter does not take any arguments.</p>
+                        <p>To define these two custom formatters, the following Javascript is used to add the format functions to the A5.u.template.formats object:</p>
+                    </description>
+                    <example><![CDATA[ A5.u.template.formats.formatName = function(value,flag) {
+    if(flag == 'u') return value.toUpperCase();
+    else if(flag == 'l') return value.toLowerCase();
+    else return value;
+}
+
+A5.u.template.formats.phoneNumber = function(value) {
+    return value.toFormat('=(###)-###-#####');
+}]]></example>
+                </section>
+                <section>
+                    <description>Notice that the custom format functions all get passed 'value' - the value to be formatted. </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Arguments Passed to Template Functions</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>If a template function does not explicitly specify arguments, the implicit arguments passed to the function now include the special 'temp' and 'root' variables.</p>
+                        <p>For example, consider the following template snippet:</p>
+                    </description>
+                    <example><![CDATA[{@myCustomFunction}]]></example>
+                </section>
+                <section>
+                    <description>This template function does not specify any arguments. Therefore the 'implicit' arguments for the function called are:</description>
+                    <cases>
+                        <case>
+                            <description>data</description>
+                        </case>
+                        <case>
+                            <description>context</description>
+                        </case>
+                        <case>
+                            <description>temp</description>
+                        </case>
+                        <case>
+                            <description>root</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <description>
+                        <p>Previously, only 'data' and 'context' were passed to the function.</p>
+                        <p>Where context is a string with the name of the variable that the function was being called in the context of. For example, in a {*header} or {*footer} directive for an array called 'company' the 'context' would be 'company'. However in an individual item in the company array, the context would be blank (as the context is implicit). </p>
+                    </description>
                 </section>
             </sections>
         </group>
