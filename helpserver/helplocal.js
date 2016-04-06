@@ -281,6 +281,24 @@ events.extractDescription = function(page) {
     }
     return null;
 }
+
+events.decorateTitle = function(title) {
+   if( title.indexOf('Api') >= 0 ) {
+       if( title == 'Api' ) {
+           title = "API";
+       } else if( title == "Client_Api" ) {
+           title = "Client API";
+       } else if( title == "Desktop_Api" ) {
+           title = "Desktop API";
+       }
+   }
+   return title;  
+};
+events.addPageSourceComment = function(page) {
+    page = page.replace(".xml_html",".xml");
+    return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
+}
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 

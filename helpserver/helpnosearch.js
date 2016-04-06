@@ -382,6 +382,10 @@ events.decorateTitle = function(title) {
    }
    return title;  
 };
+events.addPageSourceComment = function(page) {
+    page = page.replace(".xml_html",".xml");
+    return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
+}
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
