@@ -404,14 +404,14 @@ app.use("/", function (req, res) {
             help.onSendExpress(res);
             res.send(JSON.stringify(subtoc));
         });
-    } else if (req.path == "/apihelp" || req.path == "/web/apihelp" || req.path == "/web/main/apihelp") {
+    } else if (req.path == "/Ref/Api" || req.path == "/Ref/Desktop_Api" || req.path == "/Ref/Client_Api") {
         help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
                 res.send(JSON.stringify({ error: err }));
             } else {
                 // search through the data
-                var lookFor = "/design/api/";
+                var lookFor = "api/";
                 var foundItem = null;
                 var i;
                 for (i = 0; i < data.length; ++i) {
