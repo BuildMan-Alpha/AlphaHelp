@@ -404,7 +404,7 @@ app.use("/", function (req, res) {
             help.onSendExpress(res);
             res.send(JSON.stringify(subtoc));
         });
-    } else if (req.path == "/Ref/Api" || req.path == "/Ref/Desktop_Api" || req.path == "/Ref/Client_Api") {
+    } else if (req.path == "/apihelp" ) {
         help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
