@@ -373,7 +373,23 @@ events.generateLocalToc = function(localNames) {
    }
    return "";
 };
-
+events.loadIndex = function(callback) {
+    fs.readFile("../links.json","utf8",function(err,data) {
+         var hashObj = {};
+         var srcObj = null;
+         try {
+             srcObj = JSON.parse(data);
+         } catch(err) {            
+         }
+         if( srcObj ) {
+             for( var name in srcObj ) {
+                 var normalName = name.trim().toLowerCase();
+                 hashObj[normalName] = srcObj[name];
+             }
+         }
+         callback(hashObj);
+    });
+};
 options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);
