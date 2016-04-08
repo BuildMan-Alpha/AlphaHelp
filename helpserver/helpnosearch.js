@@ -385,7 +385,19 @@ events.decorateTitle = function(title) {
 events.addPageSourceComment = function(page) {
     page = page.replace(".xml_html",".xml");
     return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
-}
+};
+events.generateLocalToc = function(localNames) {
+   if( localNames.length > 1 ) { 
+        var localToc = "<div id=\"local-toc\">\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        for( var i = 0 ; i < localNames.length ; ++i ) {
+            var ln = localNames[i];
+            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content+"</a></li>\n";
+        }
+        localToc += "</ul>\n</div>";
+        return localToc;  
+   }
+   return "";
+};
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
