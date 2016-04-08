@@ -3,6 +3,7 @@ var app = express();
 var options = require("./settings");
 var library = require("./assets/library");
 var Help = require('helpserver');
+var fs = require("fs");
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
         str = str.replace(find, replace);
