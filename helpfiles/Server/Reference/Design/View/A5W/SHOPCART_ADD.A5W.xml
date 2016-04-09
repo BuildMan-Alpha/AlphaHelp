@@ -1,0 +1,145 @@
+<page>
+	<topic>SHOPCART_ADD.A5W</topic>
+<description>The SHOPCART_ADD.A5W page displays in a popup window to confirm that the customer has added an item to the shopping cart.
+</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+	<description>Nearly all of the HTML on this page is returned from a shopping cart function. This function takes various values and parameters and builds the correct HTML to display.
+A script may open this page as a popup from a button or link, or embed it on another page. It is not necessary to test for logon. However, the values are retrieved to properly test for an existing shopping cart.
+</description>
+	
+</section>	
+<section>
+	<title>Links</title>
+	<description>The SHOPCART.JS script calls the SHOPCART_ADD.A5W page.</description>
+	
+</section>		
+<section>
+	<title>Page Source</title>
+	<description>The a5w_include("loggedinvalues.a5w") statement runs the code on the LOGGEDINVALUES.A5W page. This page creates and sets the values of session.protectedpUser.userid, session.protectedpUser.type, and session.protectedpUser.name. These values are used by the functions in on SHOPCART_UDFSHOPCART.A5W.
+</description>
+	<example><![CDATA[a5w_include("loggedinvalues.a5w")
+ ]]></example>
+</section>		
+
+<section>
+	
+	<description>The cart_id value is unique for each browser session and identifies the current instance of the open browser. This is different from session.sessionID, which is same for every browser session from the same computer. If the cart_id variable does not exist or its value is NULL, the API_UUIDCREATE() function generates a unique number to identify the cart (or order). The RESPONSE.ADD_COOKIE() saves this value in a cookie.
+</description>
+	<example><![CDATA[if eval_valid("cart_id") = .F.
+    cart_id = api_uuidcreate()
+    response.add_cookie("cart_id", cart_id, 0)
+elseif cart_id = ""
+    cart_id = api_uuidcreate()
+    response.add_cookie("cart_id", cart_id, 0)
+end if
+]]></example>
+</section>	
+
+<section>
+	
+	<description>pgstyle is used to apply a consistent style to different elements of the page.
+</description>
+	<example><![CDATA[pgstyle = "shopcart"
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Next, the page script runs shopcart_chk() to test if old shopping cart data exists. This function will return shopcart_chk.html, which will be NULL if there is no old cart. shopcart_chk() is located on SHOPCART_UDFSHOPCART.A5W.
+</description>
+	<example><![CDATA[a5w_include("shopcart_UDF.a5w")
+]]></example>
+</section>	
+
+<section>
+	
+	<description>The following code defines the variables required for the call to shopcart_chk().
+</description>
+	<example><![CDATA[request.variables.cart_id = cart_id
+dim cartparms as P
+cartparms.style_name = pgstyle
+cartparms.DBF.table_name = "PathAlias.ADB_Path\shop_cart.dbf"
+cartparms.product_table = "PathAlias.ADB_Path\product.dbf"
+cartparms.product_table_display_fld = "description"
+cartparms.product_table_id_fld = "Product_Id"
+cartparms.owner_Id = loginid
+cartparms.user_type = logintype
+cartparms.session = session
+cartparms.request = request
+cartparms.response = response
+cartparms.popup = 1 ' opened as popup
+cartparms.RedirectURL = "index.a5w"
+cartparms.product_id = ""
+cartparms.quantity = 1
+cartparms.input_value_missing = ""
+cartparms.emptycart_message = .F. ' no message for empty cart
+if eval_valid("pid") = .T.
+    cartparms.product_id = pid
+    if cartparms.product_id = ""
+        cartparms.input_value_missing = "Product ID"
+    end if
+else
+    cartparms.input_value_missing = "pid" ' value parameter not passed to page
+end if ]]></example>
+</section>	
+
+<section>
+	
+	<description>If tmpl_cart.RedirectURL is not NULL, the page redirects to that URL.
+</description>
+	<example><![CDATA[dim tmpl_cart as p
+tmpl_cart = shopcart_chk(cartparms)
+if tmpl_cart.RedirectURL <> "" then
+    response.redirect(tmpl_cart.redirectURL)
+    end
+end if]]></example>
+</section>	
+
+<section>
+	
+	<description>If tmpl_cart.html is NULL, the script creates a new cart with shopcart_add(). The JavaScript may have passed a quantity value. If a value is passed, it is verified to be a number. If no value is present, the default of 1 set previously is used. 
+</description>
+	<example><![CDATA[if tmpl_cart.html = ""
+    if eval_valid("request.variables.quan") = .T. ' check for valid numeric values if passed by JavaScript 
+        if isnumber(request.variables.quan) = .T. 
+            cartparms.quantity = val(request.variables.quan) 
+        end if 
+    end if 
+    tmpl_cart = shopcart_add(cartparms)
+end if
+]]></example>
+</section>	
+
+<section>
+	
+	<description>The HTML data is placed into the html_body variable.
+</description>
+	<example><![CDATA[html_body = tmpl_cart.html
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Finally, the page appears with the HTML code formatted with the pgstyle style.
+</description>
+	<example><![CDATA[load="window.resizeTo(document.getElementById('add_cart').offsetWidth+40, document.getElementById('add_cart').offsetHeight+60)" style="margin:0px; overflow: hidden;">
+  ]]></example>
+</section>	
+
+
+
+<section>
+	<title>Page Security Information
+</title>
+	<description>Always Allowed
+</description>
+	
+</section>	
+
+</sections>	
+<see>
+	<ref>Web Pages</ref>
+</see>	
+</page>

@@ -1,0 +1,66 @@
+<page>
+	<topic>LOGGEDINVALUES.A5W</topic>
+<description>The LOGGEDINVALUES.A5W page finds values for an existing logged in user.
+</description>	
+<sections>
+<section>
+	<title>Discussion
+</title>
+<description>LOGGEDINVALUES.A5W contains Xbasic code only and returns values for a logged in user. Pages that require this information use A5W_INCLUDE() to add LOGGEDINVALUES.A5W. If no user is logged in, the values returned will be empty. The page does not redirect users to LOGIN.A5W.
+</description>	
+	<note>Do not open this page in the WYSIWYG tab of the HTML Editor and then save it. This will result in the loss of Xbasic code, which the underlying Microsoft ActiveX control does not properly support.</note>
+</section>	
+
+<section>
+	<title>Links
+</title>
+<description>The CHECKOUTCART.A5W, CHECKOUTCOMP.A5W, CHECKOUTUSER.A5W, INDEX.A5W, PRODUCTINFO.A5W, PRODUCTLIST.A5W, SHOPCART.A5W, SPECIALS.A5W, and TEMPLATEPUBLIC.A5W pages call the LOGGEDINVALUES.A5W page.
+</description>	
+	
+</section>	
+
+<section>
+	<title>Page Source
+</title>
+<description>The page code will set two values in a pointer variable named session.protectedpUser. The value for a third variable, session.protectedpUser.ulink is automatically set by the security system. The ulink value is a value saved in the ulink field in the users security table. It will be blank if no one is logged on, or contain a customer_id for a customer logged in, or an emp_id for an internal users logged in. 
+session.protectedpUser.name = user name from external table
+session.protectedpUser.type = user type, which is either "I" for internal or blank for a customer. 
+The code will first check if the variable created by the security system exists. This is necessary because the variable will not exist if the security framework is turned off at the server 
+</description>	
+	<example><![CDATA[if eval_valid("session.protectedpUser.ulink") = .f. ' security framework off, set blank
+    session.protectedpUser.ulink = ""
+end if
+]]></example>
+</section>	
+
+<section>
+<description>The following code finds values for the two other variables only if the session.protectedpUser.ulink variable has a value. if no one is logged in, all values will be blank. These variable values are now available to the page that includes LOGINUSERDATA.A5W.</description>	
+	<example><![CDATA[if eval_valid("login") = .F.
+    session.protectedpUser.userid = "" ' empty value
+    session.protectedpUser.type = "" ' empty value
+    session.protectedpUser.name = "" ' empty value
+else
+    session.protectedpUser.type = left(session.protectedpUser.ulink,1) ' current logged in user type
+    if session.protectedpUser.type = "I" 'internal user - all internal ulinks start with 'I'
+        session.protectedpUser.name = alltrim(table.external_record_content_get("PathAlias.ADB_Path\internal_users.dbf","emp_fname","","alltrim(Emp_Id) = " + quote(session.protectedpUser.ulink)))
+    else 'customer
+        session.protectedpUser.name = alltrim(table.external_record_content_get("PathAlias.ADB_Path\customer","Firstname","","alltrim(Customer_id) = " + quote(session.protectedpUser.ulink)))
+    end if
+end if
+]]></example>
+</section>		
+
+<section>
+	<title>Page Security Information
+</title>
+<description>Always Allowed
+</description>	
+	
+</section>
+
+	
+</sections>	
+	<see>
+		<ref>Web Pages</ref>
+	</see>
+</page>

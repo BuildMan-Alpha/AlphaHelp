@@ -1,0 +1,245 @@
+<page>
+	<topic>INDEX.A5W</topic>
+<description>INDEX.A5W is the first page that AlphaSportsWeb displays.</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+<description>INDEX.A5W is the first page that AlphaSportsWeb displays. The page contains a list of product categories, a random list of 3 products on sale, and the NAV_MAIN navigation component, which allows the user to login to administrative pages.
+The INDEX.A5W page contains the GRD_PRODNAV grid, which allows the user to display a list of product filtered by the selected category. The GRD_SPEC grid component displays a random selection of three products on sales. A special search section is located below the product navigation section. We copied this search section from the search HTML created by the GRD_PRODS component. The result is the ability to search on any page that contains the GRD_PRODS component. INDEX.A5W includes shopcart.js, which displays a popup window for the shopping cart.	
+</description>	
+	
+</section>	
+<section>
+	<title>Links</title>
+<description>The CHECKOUTCALC.A5W, CHECKOUTCART.A5W, FRAMEEXIT.A5W, PROCESSHEADER.A5W, PRODUCTINFO.A5W, PRODUCTLIST.A5W, SHOPCART.A5W, SHOPCART_ADD.A5W, and TOPPAGE.A5W pages, the DLG_LOGIN dialog component, and the NAV_INT and NAV_MAIN navigation components display the INDEX.A5W page.</description>	
+</section>
+
+<section>
+	<title>Edits to the Page Source
+</title>
+<description>When you look at INDEX.A5W with the Source tab of the HTML Editor, you will see a large amount of HTML and Xbasic code. The HTML Editor placed almost all of it there automatically, as we the WYSIWYG tab to place the tables, text, graphics, and components on the page. There are a few interesting exceptions, where we changed the page code through the Source tab.
+The a5w_include("loggedinvalues.a5w") statement runs the code on the LOGGEDINVALUES.A5W page. This page creates and sets the values of session.__protected__pUser.userid, session.__protected__pUser.type, and session.__protected__pUser.name.
+</description>	
+<example><![CDATA[a5w_include("loggedinvalues.a5w")
+]]></example>	
+	
+</section>	
+
+<section>
+<description>Next, the code defines the welcome message for the current user. If no name was found for the current user, welcome is set to NULL. If a user name was found, the welcome message includes the session.__protected__pUser.name.
+</description>	
+<example><![CDATA[if session.__protected__pUser.name = ""
+    welcome = "" ' welcome message for current user shown below product navigation list
+else
+    welcome = "Welcome "+session.__protected__pUser.name+"!"
+end if
+]]></example>	
+	
+</section>		
+
+<section>
+<description>The script then sets the session.__protected__chkoutprogress session variable to show that no checkout pages have been completed. The next statement deletes any existing session.__protected__chkout variable, to make sure that the customer's inputs are not merged with any previous data.
+</description>	
+<example><![CDATA[session.__protected__chkoutprogress = 0
+delete session.__protected__chkout
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>The location = "" statement clears the menu of any highlighted entries.
+</description>	
+<example><![CDATA[with tmpl_NAV_MAIN
+    location = ""
+    componentName = "NAV_MAIN"
+end with
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>This statement saves the value of the grid component's style to pgstyle. This allows the script to apply this style to the welcome and header messages.
+</description>	
+<example><![CDATA[pgstyle = tmpl_GRD_PRODNAV.style_name
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>The page script then adds the search form. See Creating the Abstracted Search Code. The following code defines default values for the three variables needed by the search form.
+</description>	
+<example><![CDATA[comp_name = "GRD_PRODS" 'the component to search
+fld_name = "description" 'a field defined in the 'search' in 'GRD_PRODS'
+pg_name = "productlist.a5w" 'a page to open that has the GRD_PRODS component
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>This code saves the style to use for the search code. showall contains the text for the link to show all products.
+</description>	
+<example><![CDATA[style = "shopcart"
+showall = "All Products"
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>The script uses pgstyle to give the page title the same style as the grid component.
+</description>	
+<example><![CDATA[<%a5 
+ ? pgstyle %>
+ErrorDataTD 
+'Since 1982, Your Preferred Sporting Goods Supplier! Now with Many New Products
+]]></example>	
+	
+</section>		
+	
+	
+	<section>
+<description>Here, the page code uses pgstyle to give the welcome message the same style as the grid component.
+</description>	
+<example><![CDATA[<%a5 if welcome <> "" %> ]]></example>	
+<%a5 ? pgstyle %>	
+<%a5 ? welcome %>
+<%a5 end if %>
+</section>		
+	
+	
+	<section>
+<description>Here, the page code uses pgstyle to give the link to SPECIALS.A5W the same style as the grid component.</description>	
+<example><![CDATA[<%a5 ? pgstyle %>
+Show All Specials
+ ]]></example>	
+	
+</section>		
+<section>
+<title>Creating the Abstracted Search Code
+</title>	
+<description>The search form is the HTML created by adding a search part to the GRD_PRODS grid component. Then we abstracted the HTML by replacing critical parameters with placeholders. The objective was to make a search form that could flexibly search in different pages against different components and fields within components.
+The component parameters must show that the component has a search part. The has_search_component property must have the value .t. .
+We replaces the search part with the HTML code defined below. The HTML uses the same methods as a search part to find records in the component. It sends values in the "get" to a page with the defined component and uses the same name conventions.
+To make the search able to work across multiple fields in multiple components on different pages, it contains the following placeholders.
+</description>	
+<cases>
+	<case>
+		<description>"fld_name" is a field name
+</description>
+	</case>
+	<case>
+		<description>"comp_name" is that component name
+</description>
+	</case>
+	<case>
+		<description>"pg_name" is a page name
+</description>
+	</case>
+	
+</cases>	
+	
+</section>	
+<section>
+<description>The component MUST have a search part defined with a field named "fld_name". Each target page must have ComponentName property with the value "comp_name".
+The search_html string contains many placeholders for critical values. The find_string variable contains those placeholders in a CR-LF delimited list.
+</description>	
+<example><![CDATA[find_string = <<%text%
+comp_name
+pg_name
+fld_name
+style
+showall
+%text%]]></example>	
+	
+</section>
+<section>
+	<description>The replace_string variable contains the values that need to be substituted into the search_html string. The STRITRAN_MULTI() function uses find_string and replace_string to make all the replacements in search_html.
+</description>
+<example><![CDATA[replace_string = comp_name + crlf()+ pg_name + crlf()+ fld_name + crlf()+ style + crlf()+ showall + crlf()' values to insert, defined earlier in script
+search_html = stritran_multi(search_html, find_string, replace_string) ' this is the html that will show the 'search' 'grid'
+]]></example>	
+	
+</section>
+<section>
+	<description>We created the GRD_PRODS grid component with a search part. Here is the generated HTML for the search part.
+</description>
+	<example><![CDATA[
+<form id="GRD_PRODS.SEARCH" name="GRD_PRODS_Search" action="" method="Get">		
+<input type="hidden" value="" name="GRD_PRODS_SaveURL">		
+<td 
+ class="shopcartFieldCaptionTD" nowrap > Description		</td>
+<td 
+ class="shopcartDataTD" ><input id="GRD_PRODS_S_DESCRIPTION" 
+ size="40" maxlength="200" class="shopcartInput" 
+ type="TEXT" name="GRD_PRODS_S_DESCRIPTION" value=""></td>
+ <td 
+ class="shopcartFooterTD" nowrap align="left" colspan="1"> 
+ <a class="shopcartNavigatorLink" href="#" on<x>click="return 
+ false;" >Clear Search Criteria</a>		
+ </td>]]></example>
+	
+</section>
+
+<section>
+	<description>We wanted to build reusable code that could be used for other components in addition to GRD_PRODS. Therefore, he took this code and modified it so it could be used on any page and any component with a single field search by using aliases for any value that could change. First, he took the code within the 
+and replaced some of the names with aliases for:
+</description>
+	<cases>
+		<case>
+			<description>comp_name - the name of the component on the page, which had a search section defined. In this case, it is "GRD_PRODS"
+</description>
+		</case>
+		<case>
+			<description>pg_name - the page that has the body section of the GRD_PRODS component, which in this case would be "productlist.a5w"
+</description>
+		</case>
+		<case>
+			<description>style - the page style on the target page
+</description>
+		</case>
+		<case>
+			<description>fld_name - an override probably not needed, but sets the field that is to be searched in the target component.
+</description>
+		</case>
+		
+		
+	</cases>
+	
+</section>
+
+<section>
+	<description></description>
+	<example>comp_name .SEARCH" name=" comp_name _Search" action=" pg_name " method="Get">  
+style FormTABLE" cellpadding="2" cellspacing="0" width="100%">
+styleFieldCaptionTD" colspan="2" > Find:   
+comp_name _S_ fld_name " size="15" maxlength="200" class=" style Input" type="TEXT" name=" comp_name _S_ fld_name " value="" />          
+style FooterTD" nowrap align="left" colspan="1"> style NavigatorLink" href=" pg_name " > showall             
+style FooterTD"nowrap align="right" >
+style Button" type="submit" value="Search" name=" comp_name _Search" />
+</example>
+	
+</section>
+
+
+
+<section>
+	<title>Page Security Information</title>
+	<description>Always Allowed</description>
+
+	
+</section>
+
+
+
+
+	
+</sections>	
+	<see>
+		<ref>Web Pages</ref>
+	</see>
+	
+</page>

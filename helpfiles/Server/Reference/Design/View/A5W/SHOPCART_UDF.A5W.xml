@@ -1,0 +1,346 @@
+<page>
+	<topic>SHOPCART_UDF.A5W
+</topic>
+<description>The SHOPCART_UDF.A5W page provides functions for the shopping cart.
+</description>	
+	
+<sections>
+	
+<section>
+	<title>Discussion</title>
+<description>The SHOPCART_UDF.A5W contains user functions for the shopping cart.
+</description>
+<cases>
+	<case>
+		<description>Shopcart_Parm_Confirm() checks if the proper parameters have been passed to a shop cart function.
+</description>
+	</case>
+	<case>
+		<description>Shopcart_CHK() checks if a shopping cart exists.
+</description>
+	</case>
+	<case>
+		<description>Shopcart_Add() adds a selected item to the shopping cart.
+</description>
+	</case>
+	<case>
+		<description>Error_Msg() displays an error message if one exists.
+</description>
+	</case>
+	
+	
+</cases>
+	
+	
+</section>	
+<section>
+	<note>Do not open this page in the WYSIWYG tab of the HTML Editor and then save it. This will result in the loss of Xbasic code, which the underlying Microsoft ActiveX control does not properly support.</note>
+</section>
+<section>
+	<title>Links
+</title>
+	<description>The CHECKOUTCART.A5W, SHOPCART.A5W and SHOPCART_ADD.A5W pages include the SHOPCART_UDF.A5W page.
+</description>
+</section>	
+<section>
+	<title>Shopcart_CHK()
+</title>
+	<example><![CDATA[FUNCTION shopcart_chk as p (parms as P )
+shopcart_chk.html = ""
+on error goto error_chk
+shopcart_chk = shopcart_parm_confirm(parms)
+if shopcart_chk.html <> ""
+    shopcart_chk.RedirectURL = ""
+    exit function
+end if
+shopcart_chk.RedirectURL = ""
+html_exit = <<%html%
+%html%
+with parms
+    'test if parms passed
+    if session.protectedpUser.type = "I" ' internal user - html to show shop cart option not available for internal users
+        shopcart_chk.html = stritran(html_exit, "[style]", style_name)
+        shopcart_chk.html = stritran(shopcart_chk.html, "[msg]", " Internal Users are not authorized for Shopping Carts
+
+Please log in with a Customer UserID ")
+        exit function
+    end if
+    cart_old = "" ' empty list
+    ' ignore any items already in current cart id
+    ' Test if any items exist for customer
+     if session.protectedpUser.ulink = "" ' no one logged in, use current session id to check for old cart
+        cart_old = table.external_record_content_get(DBF.table_name, "item_id","item_id", "owner_id=\"\" .and. session_id = \"" + session.sessionid + "\" .and. cart_id <> \"" + request.variables.cart_id + "\"")
+     elseif session.protectedpUser.ulink <> "" .and. session.protectedpUser.type <> "I"' valid user id found, ok see if records exist for current customer - not current cart_id
+        cart_old = table.external_record_content_get(DBF.table_name, "item_id", "item_id", "owner_id=\"" + session.protectedpUser.ulink + "\" .and. cart_id <> \"" + request.variables.cart_id + "\"")
+    end if
+    ' no old items, do nothing unless 'emptycart_message' is .T. Then test for empty cart
+    if line_count(cart_old) = 0
+        if emptycart_message = .T. ' test for empty cart
+            cart_new = table.external_record_content_get(DBF.table_name, "item_id", "item_id", "cart_id = \"" + request.variables.cart_id + "\" .and. Quantity > 0")
+            if cart_new = "" 'no current cart records
+                shopcart_chk.html = stritran(html_exit, "[style]", style_name)
+                shopcart_chk.html = stritran(shopcart_chk.html,"[msg]"," There are No Items in Your Shopping Cart ")
+            end if
+        end if
+        exit function ' ' No HTML Output
+    end if
+    'NOTE: all submits will not show this page html
+    if eval_valid("request.variables.cart_test_submit") ' submit button pushed
+        if eval_valid("request.variables.cart_option") = .F.
+            end ' no value passed
+        end if
+        select
+            case request.variables.cart_option = "add" ' change values to current session, current cart, current user if logged on.
+                query.filter = ".T."
+                query.order = "item_id"
+                tbl = table.open(DBF.table_name)
+                qdx = tbl.query_create()
+                if qdx.records_get()> 0
+                    dim findkey as c
+                    for each foo in cart_old
+                        findkey = foo
+                        if tbl.fetch_find(findkey) > 0 'record found
+                            tbl.change_begin()
+                            tbl.Session_id = session.sessionid
+                            tbl.Cart_id = request.variables.cart_id
+                            tbl.owner_id = session.protectedpUser.ulink
+                            tbl.change_end()
+                        end if
+                    next
+                end if
+                tbl.close()
+                exit function ' No HTML Output
+            case request.variables.cart_option = "replace" ' empty values in records for deletion later
+                query.filter = ".T."
+                query.order = "item_id"
+                tbl = table.open(DBF.table_name)
+                qdx = tbl.query_create()
+                if qdx.records_get()> 0
+                    dim findkey as c
+                    for each foo in cart_old
+                        findkey = foo
+                        if tbl.fetch_find(findkey) > 0 'record found
+                            tbl.change_begin()
+                            tbl.Session_id = ""
+                            tbl.Cart_id = ""
+                            tbl.owner_id = ""
+                            tbl.change_end()
+                        end if
+                    next
+                end if
+                tbl.close()
+                exit function ' No HTML Output
+            case request.variables.cart_option = "view"
+                if popup = 1 ' popup, must return message - no redirect
+                    shopcart_chk.html = stritran(html_exit,"[style]",style_name)
+                    shopcart_chk.html = stritran(shopcart_chk.html, "[msg]", " This would show the existing cart items in a small grid
+
+The page would have a button to select next action ")
+                    exit function
+                else
+                    shopcart_chk.RedirectURL = RedirectURL 'go to previous page
+                    exit function
+                end if
+            case request.variables.cart_option = "exit"
+                if popup = 1 ' popup, must return message - no redirect
+                    shopcart_chk.html = stritran(html_exit,"[style]",style_name)
+                    shopcart_chk.html = stritran(shopcart_chk.html,"[msg]"," Add to Cart - Action Cancelled ")
+                    exit function
+                else
+                    shopcart_chk.RedirectURL = RedirectURL 'go to previous page
+                    exit function
+                end if
+            end select
+        end if
+'-------- Set html for previous records ------
+html_prev = <<%html%
+%html%
+    shopcart_chk.html = stritran(html_prev,"[style]",style_name)
+end with
+end
+exit function
+error_chk:
+shopcart_chk.html = error_msg("",parms.popup)
+exit function
+END FUNCTION
+
+ ]]></example>
+</section>	
+
+<section>
+	<title>Shopcart_Add()</title>
+	<example><![CDATA[FUNCTION shopcart_add as P (parms as P )
+' Function MUST return some html
+shopcart_add.html = ""
+shopcart_add.RedirectURL = ""
+on error goto error_add
+shopcart_add = shopcart_parm_confirm(parms)
+if shopcart_add.html <> ""
+    shopcart_add.RedirectURL = RedirectURL
+    exit function
+end if
+shopcart_add.RedirectURL = "" ' always will show a message
+html_add = <<%html%
+%html%
+with parms
+    html_add = stritran(html_add, "[style]", style_name)
+    if input_value_missing <> "" ' some required input parameter missing
+        shopcart_add.html = stritran(html_add, "[message]", " Error- No [value] Specified ")
+        shopcart_add.html = stritran(shopcart_add.html, "[value]", input_value_missing)
+        exit function
+    end if
+    prod_desc = table.external_record_content_get(product_table, product_table_display_fld,"", "alltrim(" + product_table_id_fld + ")=\""+product_id + "\"")
+    ' Test if item exists for current session
+    filter = "prod_id=\""+product_id+"\".and.session_id=\""+session.sessionid+"\".and.unique_key_value()"
+    order = "quantity"
+    exist_val =   table.external_record_content_get(DBF.table_name, "quantity", "quantity", order, filter)
+    if exist_val <> ""'change quantity to new if changed
+        if val(exist_val) = quantity
+            message = prod_desc + "
+
+Quan " + exist_id + " Already in Shopping Cart"
+            shopcart_add.html = stritran(html_add, "[message]",message)
+            exit function
+        end if
+        query.filter = filter
+        query.order = order
+        tbl = table.open(DBF.table_name)
+        qdx = tbl.query_create() 
+        if qdx.records_get() = 1
+            tbl.change_begin()
+            tbl.Quantity = quantity
+            tbl.Open = .T.
+            tbl.Cart_id = request.variables.cart_id
+            tbl.ord_date = date()
+            tbl.Ord_time = time()
+            tbl.change_end()
+            message = prod_desc +"
+
+Quan in Shopping Cart changed to "+alltrim( str(tbl.Quantity) )
+            tbl.close()
+            shopcart_add.html = stritran(html_add,"[message]",message)
+            exit function
+        else 
+            tbl.close()
+            message = prod_desc +"
+
+Quan "+exist_val+" Already in Shopping Cart"
+            shopcart_add.html = stritran(html_add,"[message]",message)
+            exit function
+        end if
+    end if
+    tbl = table.open(DBF.table_name)
+    tbl.enter_begin()
+     if session.protectedpUser.ulink <> ""
+         tbl.Owner_id = session.protectedpUser.ulink
+    end if
+    tbl.Session_id = session.SessionID
+    tbl.Cart_id = request.variables.cart_id
+    tbl.Quantity = quantity 
+    tbl.Open = .T.
+    tbl.prod_id = product_id
+    tbl.ord_date = date()
+    tbl.Ord_time = time()
+    tbl.enter_end()
+    message = prod_desc + "
+
+Quan " + alltrim( str(tbl.Quantity) ) + " Added to Shopping Cart"
+    tbl.close()
+    shopcart_add.html = stritran(html_add,"[message]",message)
+end with
+end
+exit function
+error_add:
+shopcart_add.html = error_msg("",parms.popup)
+exit function
+END FUNCTION]]></example>
+</section>	
+
+<section>
+	<title>Shopcart_Parm_Confirm()</title>
+	<example><![CDATA[FUNCTION shopcart_parm_confirm as p (parms as P)
+shopcart_parm_confirm.html = ""
+'-------------------------------------------------------
+' Parameters include
+' style_name
+' owner_Id
+' user_type
+' session
+' session.protectedpUser.type
+' session.protectedpUser.ulink
+' request
+' request.variables.cart_id
+' DBF.table_name
+' product_table
+' product_table_display_fld
+' product_table_id_fld
+' product_id
+' popup - 0 - reg page, 1 opened by popup, return html required
+' emptycart_message .T. or .F. - True will show a message is the current cart is empty
+' quantity
+'-------------------------------------------------------
+' Set required parameters
+parmlist = <<%text%
+style_name
+owner_Id
+user_type
+session
+session.protectedpUser.type
+session.protectedpUser.ulink
+request
+request.variables.cart_id
+DBF.table_name
+product_table
+product_table_display_fld
+product_table_id_fld
+product_id
+popup
+input_value_missing
+emptycart_message
+quantity
+%text%
+with parms
+    'test if parms passed
+    for each foo in parmlist
+        if eval_valid(foo) = .F.
+            shopcart_parm_confirm.html = error_msg(w_upper( lower(foo) )+ " Parameter Missing",popup)
+            exit function
+        end if
+    next
+end with
+END FUNCTION
+]]></example>
+</section>	
+
+<section>
+	<title>Error_Msg()
+</title>
+	<example><![CDATA[FUNCTION error_msg as C(msg_text = "", prevmsg=0)
+error_msg = ""
+error_html = <<%html%
+[prevpage]
+%html%
+if prevmsg = 1
+    error_html = stritran(error_html,"[prevpage]","")
+else
+    error_html = stritran(error_html,"[prevpage]","
+  
+end if
+if msg_text = ""
+    error_msg = stritran(error_html,"err",error_text_get( error_code_get() )+" on line "+alltrim( str( error_line_number_get() ) ) )
+else
+    error_msg = stritran(error_html,"err",msg_text)
+end if
+END FUNCTION ]]></example>
+</section>	
+
+<section>
+	<title>Page Security Information</title>
+<description>Always Allowed</description>
+</section>	
+
+</sections>	
+<see>
+	<ref>Web Pages</ref>
+</see>	
+</page>

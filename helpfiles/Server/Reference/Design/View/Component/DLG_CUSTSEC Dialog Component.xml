@@ -1,0 +1,269 @@
+<page>
+	<topic>DLG_CUSTSEC Dialog Component</topic>
+<sections>
+<section>
+<title>Purpose</title>	
+<description>The DLG_CUSTSEC dialog component is used by administrators to edit customer security information.
+</description>	
+<figure><link>images/ASW_dlg_custsec.gif</link></figure>	
+</section>	
+	
+<section>
+<title>Description</title>	
+<description>The DLG_CUSTSEC dialog component contains the text controls necessary to edit a security record for a customer. 
+Control names for fields that contain data for the customer table are the field names in the table preceeded with "c_". The name of each security control in the dialog must exactly match the name of the field in the user table. A list of valid security field names can be found by using the A5WS_User_File_Field_List() function. Two other fields are recognized by the security functions used in this component, confirm_password and groups. Confirm_password is used to confirm a password entry, and groups saves the security group assignments for this user. 
+There are seven controls that have the control type set to "hidden". These controls are c_email, c_firstname, c_lastname, c_customer_id, guid, groups, and ulink. These controls are required and hold values used in the events to create labels and find and save the correct records in the tables. The guid control is empty if there is no security record found for the user. 
+There are two email fields on the dialog. One is c_email and holds the email saved in the customer table to show as a label. The other is email that is a validation email saved in the security table used to validate the users identity. These may have the same value or they may be different. The userid in this configuration is also an email address and it may match the values in the other email fields. 
+If no matching customer record if found in the Initialize event, the ulink value will be a null value and all of the security fields will be hidden. A message will display in the name label indicating no record was found.
+</description>	
+	
+</section>	
+<section>
+<title>Containers
+</title>	
+<description>ASWCUSTSEC.A5W
+</description>	
+</section>	
+<section>
+<title>Notable Grid Control Property Settings</title>	
+<cases>
+	<case>
+		<title>Label_Email</title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Row Properties > Bubble help text </description>
+			</case>
+			<case>
+				<description>Set to "E-mail address in customer file".</description>
+			</case>
+		</cases>	
+	</case>
+	<case>
+		<title>Security Label </title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Row Properties > Row label </description>
+			</case>
+			<case>
+				<description>Security Section.</description>
+			</case>
+		</cases>	
+	</case>
+	<case>
+		<title>Userid</title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Control Settings > Show/Hide Expression </description>
+			</case>
+			<case>
+				<description>ulink!= ""</description>
+			</case>
+		</cases>	
+	</case>
+	<case>
+		<title>Password</title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Control Settings > Show/Hide Expression </description>
+			</case>
+			<case>
+				<description>ulink!= ""</description>
+			</case>
+			<case>
+				<title>Property</title>
+				<description>Textbox Properties > MaxLength </description>
+			</case>
+			<case>
+				<description>Set to "60" Must large enough to hold encrypted password. </description>
+			</case>
+			<case>
+				<title>Property</title>
+				<description>Textbox Properties > Is a password field </description>
+			</case>
+			<case>
+				<description>Set to TRUE. </description>
+			</case>
+		</cases>	
+	</case>
+	<case>
+		<title>Confirm_Password</title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Control Settings > Show/Hide Expression </description>
+			</case>
+			<case>
+				<description>password!=""
+</description>
+			</case>
+			<case>
+				<title>Property</title>
+				<description>Textbox Properties > Is a password field </description>
+			</case>
+			<case>
+				<description>Set to TRUE. </description>
+			</case>
+		</cases>	
+	</case>
+	<case>
+		<title>email</title>
+		<cases>
+			<case>
+				<title>Property</title>
+				<description>Control Settings > Show/Hide Expression </description>
+			</case>
+			<case>
+				<description>ulink!=""</description>
+			</case>
+			<case>
+				<title>Property</title>
+				<description>Row Properties > Bubble help text
+</description>
+			</case>
+			<case>
+				<description>Set to "Validation E-mail. Used to validate user and send lost data to user.".</description>
+			</case>
+		</cases>	
+	</case>
+	
+	
+	
+</cases>	
+	
+	
+</section>
+
+<section>
+	<title>Notable Component Property Settings
+</title>
+<cases>
+	<case>
+		<title>Layout Options > Layout Calculation Mode</title>
+		<description>Changed to "Precalculate Layout.</description>
+	</case>
+	<case>
+		<title>Dialog Footer Layout > Freeform layout</title>
+		<description>Changed to TRUE.</description>
+	</case>
+	<case>
+		<title>Dialog Footer Layout > Dialog footer template</title>
+		<description>Changed to</description>
+		<example><![CDATA[{SubmitButton}{ResetButton} ]]></example>
+	</case>
+	
+	
+</cases>	
+	
+</section>
+
+<section>
+<title>Event Code
+</title>	
+<description>The Initialize event code finds user records from the customer table and security data and populates the controls. The events starts by setting a default value for the groups control that holds the value of security group for a customer user. 
+</description>	
+<example><![CDATA['set default group value to proper guid for 'customers' group
+CurrentForm.Controls.groups.value = a5ws_get_guid_from_group("customers",request)
+]]></example>		
+</section>
+
+<section>
+<description>If the Request.variables.c_customer_id variable has a non-null value, the script uses this value to retrieve the corresponding record from the customer table. The variable value was passed form the previous page. 
+</description>	
+<example><![CDATA[If eval_valid("Request.variables.c_customer_id ") ' Value passed to page - also used in 'ulink' 
+     if Request.variables.c_customer_id <> ""
+        query.filter = "customer_id = \""+Request.variables.c_customer_id+"\"" ) ' find the record
+        query.order = ""
+        tbl = table.open("PathAlias.ADB_Path\customer.dbf")
+        qdx = tbl.query_create()
+]]></example>		
+</section>
+
+
+<section>
+<description>If the query finds a single record, the script writes the values from the fields of the customer record to the hidden fields c_email, c_firstname, c_lastname and c_customer_id. It begins by getting a list of controls that begin with "c_", which indicate they are fields from the customer table. 
+</description>	
+<example><![CDATA[if qdx.records_get() = 1 ' got one match
+            dim controls as c
+            controls = properties_enum(CurrentForm.Controls)
+            for each foo in controls
+                if eval_valid( "tbl."+substr(foo,3) )
+                    eval("CurrentForm.Controls."+foo+".value") = alltrim( eval( "tbl."+substr(foo,3) ) )
+                end if
+            next
+]]></example>		
+</section>
+
+
+<section>
+<description>The event code then re-populates the ulink control with the customer_id from the record found and uses that value to find a security record for the user. The value is placed in a request variable to pass to the ((A5WS_Get_User_Values Function|A5WS_GET_USER_VALUES() )) function. 
+</description>	
+<example><![CDATA[CurrentForm.Controls.ulink.value = alltrim(tbl.Customer_id)
+            tbl.close()
+            request.variables.ulink = alltrim(CurrentForm.Controls.ulink.value) 'find security record by 'ulink' as we don't have a 'GUID'
+            a5ws_get_user_values(CurrentForm,request) ]]></example>		
+</section>
+
+
+<section>
+<description>Finally, If the validation email control is empty, the userid may be placed in the control as a default value. If no record was found, the ulink control set to null value. 
+</description>	
+<example><![CDATA['set validation email address to same as userid as default if empty
+            if alltrim(CurrentForm.Controls.userid.value) <> "" 
+                if alltrim(CurrentForm.Controls.email.value) = "" 
+                    CurrentForm.Controls.email.value = alltrim(CurrentForm.Controls.userid.value)
+                end if
+            end if 
+        else
+            tbl.close()
+            CurrentForm.Controls.ulink.value = "" ' set empty if no customer record found. This will hide secutity fields 
+        end if
+    end if
+end if]]></example>		
+</section>
+
+
+<section>
+<description>The Validate event code validates the security data entered, if any, and saves it if there are no errors. If the field ulink is empty, the event returns an error. The function ((A5WS_Save_User_Values Function|A5WS_SAVE_USER_VALUES() ))will return CurrentForm.Has_error = .t. if the data does not meet the security validation rules. 
+</description>	
+<example><![CDATA[if CurrentForm.Controls.ulink.value = ""
+    CurrentForm.Has_Error = .T.
+    CurrentForm.Error_Message = "Nothing to Save - Close"
+else
+    a5ws_save_user_values(CurrentForm,request) ' validate and save
+end if
+]]></example>		
+</section>
+
+
+<section>
+<description>The AfterValidate event code reloads the security values using the function ((A5WS_Get_User_Values Function|A5WS_GET_USER_VALUES() )) to show the latest changes. 
+</description>	
+<example><![CDATA[a5ws_get_user_values(CurrentForm,request)]]></example>		
+</section>
+
+
+<section>
+<description>The Activate event code is used to add the values for label_name and label_email. The dialog uses a precalculated layout. When the layout is created, no values exist for the labels. The labels must be filled every time the form runs. The Activate event will fill the values for the labels from the values in the hidden fields c_email, c_firstname, and c_lastname. If the fields are empty, a message will show indicating a customer record was not found. 
+</description>	
+<example><![CDATA[CurrentForm.Controls.label_name = alltrim(CurrentForm.Controls.c_firstname)+" "+alltrim(CurrentForm.Controls.c_lastname)
+if alltrim(CurrentForm.Controls.label_name) = ""
+    CurrentForm.Controls.label_name = "Customer Record Not Found"
+end if 
+CurrentForm.Controls.label_email = alltrim(CurrentForm.Controls.c_email)
+]]></example>		
+</section>
+	
+</sections>	
+	
+<see>
+	<ref>Web Publishing Components
+</ref>
+</see>	
+	
+	
+	
+</page>
