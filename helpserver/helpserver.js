@@ -391,6 +391,95 @@ events.loadIndex = function(callback) {
          callback(hashObj);
     });
 };
+events.extractSymbols = function(txt,title,path) {
+     var leading = [
+      { "symbol" : "*" , "replace" : "aster|"}  ,
+      { "symbol" : "$" , "replace" : "dollr|" } ,
+      { "symbol" : "@" , "replace" : "amper|" } ,
+      { "symbol" : "{" , "replace" : "lcbrc|" , "endsymbol" :  "}" , "endreplace" : "|rcbrc" } 
+     ];
+     var i , j;
+     var padText = " "+txt.toLowerCase()+" ";
+     var symbols = " " , symbol;
+     var words , word , parts;
+     if( title ) {
+         title = title.toLowerCase();
+         padText = " "+ title.trim() + padText;
+     }
+     if( path ) {
+         path = path.toLowerCase();
+         if( path.indexOf('/ref/') >= 0 ) {
+             if( path.indexOf('api/') >= 0 ) {
+                 if( title.indexOf('_') >= 0 ) {
+                     // Lets add words with underbars in title as symols (these get segmented)
+                     words = title.split(" ");
+                     for( i = 0 ; i < words.length ; ++i ) {
+                         if( words[i].indexOf('_') > 0 ) {
+                             symbols += words[i]+" ";
+                         }
+                     }
+                 }
+             }
+         }
+     } else if( !title ) {
+        words = txt.toLowerCase().split(" ");
+        for( i = 0 ; i < words.length ; ++i ) {
+            if( words[i].indexOf('_') > 0 ) {
+                symbols += words[i]+" ";
+            }
+        }         
+     }
+     for( i = 0 ; i < leading.length ; ++i ) {
+         if( padText.indexOf(" "+leading[i].symbol) >= 0 ) {
+             words = padText.split(" "+leading[i].symbol);
+             for( j = 0 ; j < words.length ; ++j ) {
+                 if( leading[i].endsymbol ) {
+                    word = words[j].split(leading[i].endsymbol);
+                    if( word.length > 1 ) {
+                        symbol = leading[i].replace + word[0] + leading[i].endreplace + " ";
+                        if( symbols.indexOf(" "+symbol) < 0 ) {
+                            symbols += symbol;
+                        }
+                    } 
+                 } else {
+                    word = words[j].split(" ")[0].split("(")[0];
+                    if( word.length > 0 ) {
+                        symbol = leading[i].replace + word + " ";
+                        if( symbols.indexOf(" "+symbol) < 0 ) {
+                            symbols += symbol;
+                        }
+                    }
+                 }
+             }
+             changed = true;
+         }
+     }
+     if( symbols.length > 1 ) {
+         words = symbols.trim().split(" ");
+         for( i = 0 ; i < words.length ; ++i ) {
+             if( words[i].indexOf(".") > 0 ) {
+                 parts = words[i].split('.');
+                 for( j = 0 ; j < parts.length ; ++j ) {
+                     symbol = parts.slice(0,j+1).join('.') + " ";
+                     if( symbols.indexOf(" "+symbol) < 0 ) {
+                         symbols += symbol;
+                     }                     
+                 }
+             } else if( words[i].indexOf("_") > 0 ) {
+                 parts = words[i].split('_');
+                 for( j = 0 ; j < parts.length ; ++j ) {
+                     symbol = parts.slice(0,j+1).join('_') + " ";
+                     if( symbols.indexOf(" "+symbol) < 0 ) {
+                         symbols += symbol;
+                     }                     
+                 }
+             }
+         }
+         symbols = symbols.split("|").join("_");
+     }
+     return symbols.trim();  
+};
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);
