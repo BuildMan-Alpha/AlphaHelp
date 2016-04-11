@@ -324,7 +324,9 @@
         </xsl:if>
         <xsl:if test="figure">
             <xsl:for-each select="figure">
-                <a xsl:use-attribute-sets="href-link" class="sectionFigure"><img xsl:use-attribute-sets="src-link" /></a>
+                <a xsl:use-attribute-sets="href-link" class="sectionFigure">
+                    <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:if test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:if> </xsl:element>
+                </a>
                 <xsl:if test="title">
                     <p>
                         <xsl:value-of select="title" />
@@ -472,11 +474,6 @@
 	<xsl:attribute-set name="ref-href-link">
 		<xsl:attribute name="href">
 			<xsl:value-of select="./@href" />
-		</xsl:attribute>
-	</xsl:attribute-set>
-	<xsl:attribute-set name="src-link">
-		<xsl:attribute name="src">
-			<xsl:value-of select="link" />
 		</xsl:attribute>
 	</xsl:attribute-set>
 </xsl:stylesheet>
