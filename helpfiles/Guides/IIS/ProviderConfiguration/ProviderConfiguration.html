@@ -1,0 +1,558 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Alpha Anywhere Application Server for IIS Provider Configuration</title>
+  <style type="text/css">
+h1 {
+color: red;
+font-weight: bold;
+font-size: 10pt;
+}
+
+h2 {
+  font-weight: bold;
+  font-size: 10pt;
+}
+
+.title {
+font-size: 11pt;
+color: red;
+font-weight: bold;
+text-align: center;
+}
+
+body {
+background: lightgray;
+margin: 3em auto;
+max-width: 50em;font-family: Tahoma;
+font-size: 9pt;
+}
+
+body div.wrapper {
+  background: white;
+  box-shadow: 1px 1px 1px 1px #888888;
+  padding: 25px;
+}
+
+p {
+margin-bottom: 10px;
+margin-top: 0px;
+line-height: 1.3;
+}
+
+img {
+  text-align:center;
+  max-width: 45em;
+  max-height: 35em;
+}
+
+li img {
+	max-width: 40em;
+}
+
+.note {
+padding: 10px;
+background-color: #f0f0f0;
+border-radius: 3px;
+}
+
+table {
+  font-size:inherit;
+  padding: 5px;
+}
+
+table.command-line-options > tbody > tr > td:nth-child(1) {
+  width: 3em;
+}
+
+.note img {
+  max-width: 40em;
+}
+
+.fixedfont {
+	font-family: monospace;
+}
+
+.italic {
+	font-style: italic;
+}
+
+
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+<meta charset="utf-8">
+<p><div class="title">Alpha Anywhere Application Server for IIS Provider Configuration</div></p>
+<h1>Overview</h1>
+<p>
+There are four extension points that Alpha Anywhere Application Server for IIS uses to handle authentication, authorization, session, and profile data.
+These are defined in ASP.NET as the following providers:
+<ul>
+  <li>
+  <a href="http://msdn.microsoft.com/en-us/library/yh26yfzy%28v=vs.140%29.aspx">MembershipProvider</a> (Authentication)
+  </li>
+  <li>
+  <a href="http://msdn.microsoft.com/en-us/library/5k850zwb(v=vs.140).aspx">RoleProvider</a> (Authorization)
+  </li>
+  <li>
+  <a href="http://msdn.microsoft.com/en-us/library/ms178581%28v=vs.140%29.aspx">SessionStateProvider</a> (Session)
+  </li>
+  <li>
+  <a href="http://msdn.microsoft.com/en-us/library/2y3fs9xs(v=vs.140).aspx">ProfileProvider</a> (Profile)
+  </li>
+</ul>
+These providers are configured in a web project profile settings that are used during publication. They use databases and/or 
+other resources to fulfill their purpose. The web project settings create genie has a page for selecting the type of 
+provider configuration your app uses. 
+
+<br/>
+<br/>
+<a href="images/security-store-type.png"><img src="images/security-store-type.png" alt="Select security store type."></img></a>
+<br/>
+<br/>
+
+There are three types:
+<ul>
+	<li>Active Directory</li>
+	<li>Specific IIS Providers</li>
+	<li>web.config <span style="font-size: smaller;">(for testing only)</span></li>
+</ul>
+Users and groups may be defined by your application and may need to be published a test, staging, or production database for 
+use by the MembershipProvider and RoleProvider. This setting is also handled in this configuration and <a href="#PublishUsersAndGroups">explained below</a>.
+</p>
+<h1>Active Directory</h1>
+<p>
+The Active Directory option will only be available if you have configured the web application's security settings to use 
+Active Directory. For details on configuring your application to use Active Directory for users and group see the 
+<a href="http://downloads.alphasoftware.com/A5V12Download/ReleaseNotes/ActiveDirectory/UsingActiveDirectory.html">
+Alpha Anywhere Application Server Active Directory Authentication and Authorization</a> document.
+</p>
+<p>
+The MembershipProvider and RoleProvider configuration is done through the Active Directory Configuration dialog in the 
+<a href="http://downloads.alphasoftware.com/A5V12Download/ReleaseNotes/ActiveDirectory/UsingActiveDirectory.html#PublishingAnApplication">Publishing An Application</a> 
+section in the document linked above. The session state and profile providers configuration are described in the <a href="#SpecificIISProviders">Specific IIS Providers</a> section below.
+</p>
+<a name="SpecificIISProviders"></a>
+<h1>Specific IIS Providers</h1>
+
+<h2>Provider Definition</h2>
+<p>
+Provider definitions can have different types of sources based on the selected provider. All providers have at least 4 types of sources:
+<ul>
+	<li>SqlServer</li>
+	<li>MySQL</li>
+	<li>Oracle</li>
+	<li>Custom</li>
+</ul>
+The SqlServer, MySQL, and Oracle providers are version specific. The versions that are selectable are based on the installed assemblies for the 
+provider. SqlServer's version is fixed at 2.0.0.0 and is already installed as part of ASP.NET. MySQL requires a version of the 
+<span style="font-weight: bold;">MySQL Connector/NET</span> to be installed.
+If none is installed Alpha Anywhere Developer Edition can install version 6.7.4. Oracle requires a version of the 
+<span style="font-weight: bold;">Oracle Data Access Components</span> to be 
+installed. The packages for MySQL and Oracle also need to be installed on the IIS server. Alpha Anywhere Application Server for IIS includes a 
+utility for installing MySql Connector/NET 6.7.4: <span class="fixedfont">A5InstallMySqlConnector.exe</span>. This utility is located in the installation folder
+which defaults to C:\Program Files (x86)\A5V12 Application Server for IIS.
+</p>
+<p>
+The Role, Session State, and Profile providers can all use the same provider definition as the Membership provider. They have the 
+additional option of: 
+<ul>
+	<li>SameAsMembershipProvider</li>
+</ul>
+</p>
+<p>
+The Session State provider has 2 additional options specific to it:
+<ul>
+	<li>LocalStateServer</li>
+	<li>StateServer</li>
+</ul>
+</p>
+<p>
+The Profile provider has one additional option specific to it:
+<ul>
+	<li>None</li>
+</ul>
+</p>
+<p>
+The default source for Role, Session State, and Profile providers is <span class="fixedfont">SameAsMembershipProvider</span>.
+</p>
+
+<p>
+The following sections define the configuration settings for each source type.
+</p>
+
+<h2>SqlServer</h2>
+<p>
+<a href="images/providerdef.png"><img src="images/providerdef.png" alt="Configure providers."></img></a>
+</p>
+<p>
+The SqlServer type uses the Microsoft SqlServer providers. These providers require a connection string to a database, and, except for the session state provider, a 
+security <a href="https://msdn.microsoft.com/en-us/library/system.web.security.sqlmembershipprovider.applicationname(v=vs.100).aspx">application name</a>.
+Additionally, you may want to publish users and groups through the membership and role providers. If you need to do this and the provider connection string 
+does not have create/update access you can define a connection string to be used at publish time that has create/update access in the Create/Publish 
+Connection String prompt. When the web profile is saved an attempt will be made to validate the database is set up for use by the provider. 
+If the database cannot be found or parts of the schema are missing you will be prompted to create and/or initialized the database.
+</p>
+<p>
+<div class="note">
+<span style="font-weight: bold;">Note</span>: Once the web project profile is saved the provider databases
+will be checked if the connection string for create/update is changed. If you want to manually check the provider databases, select the
+the profile to be checked in the profile list and then click on the "More..." button underneath the profile list. Select the "Validate Provider Databases"
+from the pop-up menu and the databases will be created/initialized if they are not found or there are missing tables.
+</p>
+<p>
+<a href="images/validate-provider-databases.png"><img src="images/validate-provider-databases.png" alt="Validate provider databases."></img></a>
+</p>
+</div>
+
+<h2>MySQL</h2>
+<p>
+<a href="images/mysql-provider-def.png"><img src="images/mysql-provider-def.png" alt="Configure MySQL providers."></img></a>
+</p>
+<p>
+The MySQL type is like the Sql Server type, but instead of validating the chosen database when the web profile is saved the MySQL
+type has an option for "Automatically generate and update schema" that can be selected. When this option is selected the MySQL
+provider will automatically generate or update the database schema when any of the providers are used. This built-in type uses
+MySQL .NET Connector 6.7.4.0. There is a utility named <span style="font-style: italic;">A5InstallMySQLConnector.exe</span> that is packaged with 
+<span style="font-weight: bold">Alpha Anywhere Developer Edition</span> and <span style="font-weight: bold">Alpha Anywhere Application 
+Server for IIS</span>. Use it to install the MySQL .NET Connector 6.7.4.0 assemblies on an IIS server and register the assemblies
+in the GAC. This utility will also be used by <span style="font-weight: bold">Alpha Anywhere Developer Edition</span> if needed
+when publishing users and roles of a web application.
+</p>
+<div class="note">
+<span style="font-weight: bold;">Note</span>: IIS Manager has a feature named ".NET Users" and ".NET Roles" that can be used
+to view, edit and add users and roles. In order to use these two features when MySQL is the configured provider the MySQL 
+assemblies need to be added to the list of "Trusted Providers" for IIS Manager. This can only  be done by editing the 
+<span style="font-family: monospace;">C:\Windows\System32\inetsrv\config\administration.config</span> file. You will need to do this from 
+an editor "Run as Administrator" or from an editor started from an administrator command prompt. Edit the file and add the 
+following 2 lines to the "trustedProviders" section:
+<br/><br/>
+<span style="font-family: monospace;">
+&lt;add type="MySql.Web.Security.MySQLMembershipProvider, MySql.Web, Version=6.7.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d" /&gt;
+<br/><br/>
+&lt;add type="MySql.Web.Security.MySQLRoleProvider, MySql.Web, Version=6.7.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d" /&gt;
+</span>
+<br/>
+<br/>
+<span style="font-weight:bold;">This does not need to be done to use MySQL providers in your web application. It is only needed to use the IIS Manager 
+".NET Users" and ".NET Roles" features.</span>
+</div>
+
+<h2>Oracle</h2>
+<p>
+<a href="images/oracle-provider-def.png"><img src="images/oracle-provider-def.png" alt="Configure Oracle providers."></img></a>
+</p>
+<p>
+The Oracle type does not generate the required schema. This must be done manually using the utilities installed with the 
+Oracle Data Access Components 12c Release 3 (Release 12.1.0.2.1 for ODAC 12c Release 3). The version of the assemblies that 
+get installed are 2.121.2.0.
+</p>
+<div class="note">
+<span style="font-weight: bold;">Note</span>: IIS Manager has a feature named ".NET Users" and ".NET Roles" that can be used
+to view, edit and add users and roles. In order to use these two features when Oracle is the configured provider the Oracle 
+assemblies need to be added to the list of "Trusted Providers" for IIS Manager. This can only  be done by editing the 
+<span style="font-family: monospace;">C:\Windows\System32\inetsrv\config\administration.config</span> file. You will need to do this from 
+an editor "Run as Administrator" or from an editor started from an administrator command prompt. Edit the file and add the 
+following 2 lines to the "trustedProviders" section:
+<br/><br/>
+<span style="font-family: monospace;">
+&lt;add type="Oracle.Web.Security.OracleMembershipProvider, Oracle.Web, Version=2.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342" /&gt;
+<br/><br/>
+&lt;add type="Oracle.Web.Security.OracleRoleProvider, Oracle.Web, Version=2.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342" /&gt;
+</span>
+<br/>
+<br/>
+<span style="font-weight:bold;">This does not need to be done to use Oracle providers in your web application. It is only needed to use the IIS Manager 
+".NET Users" and ".NET Roles" features.</span>
+</div>
+
+<h2>Custom</h2>
+<p>
+A custom provider configuration has 1 required setting: The provider class name. This is the 
+<a href="https://msdn.microsoft.com/en-us/library/system.type.assemblyqualifiedname%28v=vs.110%29.aspx">assembly qualified name</a> 
+of the class that implements the required provider interface. The assembly the class is in must be in the Global Assembly Cache on the server. 
+It should also be installed on your development machine so that it can be used to populate its storage if needed as in the case of the membership
+or role providers. It is installed on your development machine you will also be able to choose it from the <a href="#SelectProviderClassDialog">Select Provider Class dialog</a>. 
+The provider class usually has one or more parameters that can be set to configure how the provider should work. For instance, a membership provider may
+limit the number of failed password attempts. This value default to a number, but can be configured through a parameter. The "Edit provider parameters" button
+brings up a dialog for adding this parameters. Once a provider class is selected the parameters dialog will be <a href="#ParametersPrefill">pre-filled</a> with the provider's 
+public properties. Parameters can be removed, added, and changed as needed. If a provider class is not selected before using the "Edit provider parameters" dialog
+the <a href="#ParametersEmpty">list of parameters will be empty</a>. The name of the provider class is displayed under the parameters list.
+See the <a href="custom-provider-configuration.html">Custom Provider Configuration</a> document for an example of using Oracle as a customer provider.
+</p>
+<p>
+<a href="images/provider-custom-settings.png"><img src="images/provider-custom-settings.png" alt="Custom provider settings."></img></a>
+</p>
+<p>
+<a name="SelectProviderClassDialog">
+The Select Provider Class dialog has prompts for filtering the list of assemblies and an assembly's types. The filtering is applied as you type.
+</p>
+<p>
+<a href="images/provider-class.png"><img src="images/provider-class.png" alt="Select provider class."></img></a>
+</p>
+<p>
+<a name="ParametersPrefill" href="images/provider-class-parameters-prefill.png"><img src="images/provider-class-parameters-prefill.png" alt="Enter parameters required by provider class as name/value pairs with pre-filled names."></img></a>
+</p>
+<p>
+<a name="ParametersEmpty" href="images/provider-class-parameters.png"><img src="images/provider-class-parameters.png" alt="Enter parameters required by provider class as name/value pairs."></img></a>
+</p>
+
+<h2>SameAsMembershipProvider</h2>
+<p>
+This source type for role, session State, and profile providers uses the same configuration that is defined for the membership provider.
+The same provider connection string, application name, and create/publish connection string will be used. This means all role, session 
+state and profile data will be stored in the same database.
+</p>
+
+<h2>LocalStateServer</h2>
+<p>
+IIS is installed with an out of process state server named aspnet_state.exe. This is a Windows service. This service is set
+to manual start up by default. The Alpha Anywhere Application Server for IIS installation program sets this service to automatic start-up
+and ensures that it is running. The LocalStateServer setting will have IIS use this service for storing session state.
+</p>
+
+<h2>StateServer</h2>
+<p>
+This is similar to LocalStateServer. An aspnet_state.exe service is running on a remote machine and IIS will connect to that for storing
+session state. StateServer is also similar to SqlServer in that session state is stored/accessed on a separate machine which will allow
+you to set up a web farm. That is, allow you to have more than one web server process request for a single web site. Each web server 
+will point to the same session state data. However, the aspnet_state.exe service only stores session state in memory so if the aspnet_state.exe
+service is shut down or crashes the session state data cannot be recovered. The amount of session state that it can handle is also restricted
+to the amount of memory on the system. Virtual memory means that running out of memory is unlikely, but performance will degrade as physical 
+memory is exceeded. Storing session state under SqlServer persists the session state so that it is recoverable and SqlServer may scale
+better than StateServer.
+<div class="note">
+<span style="font-weight: bold;">Warning</span>: Setting up to use a remote aspnet_state.exe is not trivial. If you are not familiar with
+managing IIS and the aspnet_state.exe service then SqlServer would be the recommended way to define session state storage in a web farm configuration.
+</div>
+</p>
+
+<h2>None</h2>
+<p>
+The profile provider allows you to store persistent data for a logged in user. This is different from the Session State which is only 
+persistent for the session lifetime. If your web application does not need user profile data or already manages user profile data in 
+a different way, use None for the Profile provider source.
+</p>
+
+<a name="webConfigType"></a>
+<h1>web.config <span style="font-size: smaller;">(for testing only)</span></h1>
+<p>
+The web.config option is only appropriate for testing or proof-of-concepts where only a demonstration of users and groups is needed.
+The users and groups data is stored in the web application's web.config file which is only moderately secure, does not scale well, and 
+is not easy to maintain. This option only has a pre-set configuration.
+</p>
+
+<a name="PublishUsersAndGroups"></a>
+<h1>Publish Security Data</h1>
+<p>
+Security data (users and groups) for your application can be published to the security store that your membership and role 
+providers use when your security store type is Specific IIS Providers. Alpha Anywhere has six different modes for publishing 
+security data:
+<ul>
+	<li><span style="font-weight: bold;">Preserve</span> - Publish only if no users and roles are found in the destination. Both the user store and the role 
+	store must be empty for anything to get published. For example, if there is 1 user and no roles nothing (neither user nor roles) will get published
+	because that one user already exists.</li>
+	<li><span style="font-weight: bold;">Ignore</span> - Do not publish users or roles.</li>
+	<li><span style="font-weight: bold;">Merge</span> - Add new users and roles. Any users and roles that don't exist in the store will be added. Existing
+	users and roles remain unchanged.</li>
+	<li><span style="font-weight: bold;">Replace</span> - Replace all users and roles. Any existing users and roles are removed user and role store 
+	and then the users and roles defined in the web project are added to the users and roles store.</li>
+	<li><span style="font-weight: bold;">Merge Roles</span> - Add new roles. Any new roles defined in the web project are added to the role store.</li>
+	<li><span style="font-weight: bold;">Replace Roles</span> - Replace all roles. All roles are delete from the role store and then the roles defined
+	in the web project are added to the roles store. Note: If a role of the same name as a role that was deleted will be re-associated with any users 
+	that were members of the original role.</li>
+</ul>
+This option is set at the bottom of the genie dialog and it defaults <span style="font-weight: bold;">Preserve</span>.
+</p>
+<p>
+<a href="images/publish-security.png"><img src="images/publish-security.png" alt="Select how to publish security data."></img></a>
+</p>
+<p>
+The value you select is the default value used at publish time in the <a href="#PublishWebProject">Publish Web Project dialog</a> and the <a href="#PublishSecurityFiles">Publish Security Files dialog</a> 
+located in the <a href="#WebSecurity">Web Security dialog</a>. 
+</p>
+<p><a name="PublishWebProject" href="images/publish-web-project.png"><img src="images/publish-web-project.png" alt="Publish Web Project dialog."></img></a></p>
+<p><a name="WebSecurity" href="images/web-security.png"><img src="images/web-security.png" alt="Web security dialog."></img></a></p>
+<p><a name="PublishSecurityFiles" href="images/publish-security-files.png"><img src="images/publish-security-files.png" alt="Publish security files dialog."></img></a></p>
+
+<a name="ModifyProviderConfig"></a>
+<h1>Modify Provider Configuration</h1>
+<p>
+Once a profile is saved, the provider configuration can be modified in the Miscellaneous section of the property grid for that profile.
+</p>
+<p>
+<a href="images/modify-provider-configuration.png"><img src="images/modify-provider-configuration.png" alt="Modify provider configuration."></img></a>
+</p>
+
+<a name="ProviderConfigExample"></a>
+<h1>Provider Configuration Example</h1>
+<p>
+This example uses a remote SqlServer Express database for membership, role, and session state. This example does not
+use a profile provider. A new database for membership, roles, and session state will be created and initialized. The 
+SqlServer Express server instance already has a login defined for "AspNetDb_Test_User". This login will be added as a
+user in the new database, it will be given access to the database, and will be used in the provider connection string.
+I will use my domain account, which has sysadmin access, and integrated authentication for the create/publish 
+connection string.
+</p>
+
+<p>
+If you already have a web project profile for publishing the App Server Demo web application to an IIS server, you can use the
+"Duplicate Profile" button and then make changes to the new copy of the profile following <a href="#SqlServerExpressInstanceDuplicateProfile">these steps below</a>.
+If you haven't created a web project profile for publishing the App Server Demo web application to an IIS server follow these instructions
+for <a href="#SqlServerExpressInstance">creating a new profile</a>.
+</p>
+
+<a name="SqlServerExpressInstanceDuplicateProfile">
+<h4>Using a remote SqlServer Express instance when editing a duplicated profile</h4>
+<p>
+If you have already created a Web Project Profile by following the <a href="http://downloads.alphasoftware.com/a5v12download/private/Alpha-anywhere-application-server-for-iis/getting-started-guide.html">Getting Started Guide</a>
+instructions, you can duplicate this profile and then change the provider configuration for the duplicate profile.
+</p>
+<p>
+<a href="images/web-profile-grid.png"><img src="images/web-profile-grid.png" alt="Web profile grid with Duplicate button highlighted."></img></a>
+</p>
+<p>
+After you have duplicated the profile scroll down to the bottom of the property grid to get to the Security Store Type combobox. It will be
+set to "web.config (for testing only)" since that was the only type available in earlier versions.
+</p>
+<p>
+<a href="images/duplicate-profile.png"><img src="images/duplicate-profile.png" alt="Duplicated web profile highlighting security store type."></img></a>
+</p>
+<p>
+	<ol>
+		<li>
+			<p>
+			Change the Security Store Type to "Specific IIS Providers". This will reveal the rest of the configuration settings.
+			</p>
+			<p>
+				<a href="images/specific-iis-providers.png"><img src="images/specific-iis-providers.png" alt="Specific IIS providers selected."></img></a>
+			</p>
+		</li>
+		<li>
+			<p>
+			Click on the Membership Provider Connection String's "..." button to create a connection string. Enter your server name then
+			enter "AspNetDb_Test_User" in the user prompt and enter the password for that user. (Or use an existing SqlServer user.)
+			</p>
+			<p>
+			This example creates a new database. Since this user does not have access to create a database you cannot create the database 
+			from this dialog. If you want to test the connection make sure that the database name is blank so that the Test Connection won't attempt
+			to connect to a database that doesn't exist yet. Once you have tested the connection enter "AspNetDb_Test" into the Database prompt and 
+			then click OK to save the connection string.
+			</p>
+			<p>
+			<a href="images/connection-string-dialog.png"><img src="images/connection-string-dialog.png" alt="Connection string dialog."></img></a>
+			</p>
+		</li>
+		<li>
+			<p>Back in the property grid, leave the Membership Provider Application Name value set to "/".<p>
+		</li>
+		<li>
+			<p>Click the "Use a Different Connection String for Membership Provider Create/Publish" to check it.<p>
+		</li>
+		<li>
+			<p>Click on the Membership Provider Create/Publish Connection String's "..." button to create a connection string. It will
+			default to the provider connection string.</p>
+		</li>
+		<li>
+			<p>Click on the Use Windows Authentication check-box and then OK to save the connection string. If you are not using Windows authentication
+				enter the credentials for a user with permission to create databases such as the "sa" user.
+			</p>
+			<p>
+			<a href="images/connection-string-dialog-integrated.png"><img src="images/connection-string-dialog-integrated.png" alt="Connection string dialog with Use Windows Authentication checked."></img></a>
+			</p>
+			<p>
+			Click OK to save the connection string.
+			</p>
+		</li>
+		<li>
+			<p>
+			Back in the property grid, skip the Role Provider Type and Session State Provider Type prompts leaving them set to 
+			SameAsMembershipProvider. Change the Profile Provider Type to "None".
+			</p>
+			<p>
+			<a href="images/completed-grid.png"><img src="images/completed-grid.png" alt="Completed changes to profile's property grid."></img></a>
+			</p>
+		</li>
+		<li>
+			<p>
+			Click OK to save the changes to the profile. Since the database doesn't exist yet you will be prompted to create and initialize the database.
+			</p>
+			<p>
+			<a href="images/missing-schema-prompts.png"><img src="images/missing-schema-prompts.png" alt="Prompts for missing schema."></img></a>
+			</p>
+		</li>
+		<li>
+			<p>
+			Now you can publish using this new profile. See the <a href="#PublishWebProject">Publish Web Project dialog</a> to do this.
+			</p>
+		</li>
+	</ol>
+</p>
+
+<a name="SqlServerExpressInstance">
+<h4>Using a remote SqlServer Express instance when creating a new profile</h4>
+<p>
+This example will revise the steps in the Application Server Demo publish example in the 
+<a href="http://downloads.alphasoftware.com/a5v12download/private/Alpha-anywhere-application-server-for-iis/getting-started-guide.html">Alpha Anywhere Application Server for IIS Getting Started Guide</a>.
+That example uses the "web.config <span style="font-size: smaller;">(for testing only)</span>" option. "web.config" was the only option before this provider configuration UI was implemented.
+Follow all the steps in the Getting Started Guide until you get to the Security Store Configuration genie page. 
+Once you have completed the security store configuration steps, continue with the Getting Started Guide finishing the steps for 
+publishing Application Server Demo web application.
+</p>
+
+<h4>Security Store Configuration Genie Page</h4>
+<p>
+<ol>
+	<li>
+		<p>Click on the smart button to bring up the Create SQL Connection String dialog.</p>
+		<p><a href="images/connection-string-smart-button.png"><img src="images/connection-string-smart-button.png" alt="Connection string smart button."></img></a></p>
+	</li>
+	<li>
+		<p>Enter your server name, "AspNetDb_Test_User" in the user prompt and then the password for that user. (Or use an existing SqlServer user.)</p>
+		<p><a href="images/connection-string-dialog.png"><img src="images/connection-string-dialog.png" alt="Connection string dialog."></img></a></p>
+	</li>
+	<li>
+		<p>This example creates a new database. Since this user does not have access to create a database you cannot create the database 
+	from this dialog. If you want to test the connection make sure that the database name is blank so that the Test Connection won't attempt
+	to connect to a database that doesn't exist yet. Once you have tested the connection enter "AspNetDb_Test" into the Database prompt.</p>
+	</li>
+	<li><p>Click OK to create the connection string.</p></li>
+	<li><p>Back on the Genie page, leave the default value of "/" in the Security application name prompt.</p></li>
+	<li>
+		<p>Click on the "Use a different connection string than the provider configuration above." This will copy the provider connection
+	string into the Create/Publish connection string prompt. Click on the smart button to bring up the Create SQL Connection String dialog.</p>
+		<p><a href="images/create-publish-connection-string-section.png"><img src="images/create-publish-connection-string-section.png" alt="Create/publish connection string section."></img></a></p>
+	</li>
+	<li><p>Click on the Use Windows Authentication check-box and then OK to save the connection string. If you are not using Windows authentication
+	enter the credentials for a user with permission to create databases such as the "sa" user.</p>
+		<p><a href="images/connection-string-dialog-integrated.png"><img src="images/connection-string-dialog-integrated.png" alt="Connection string dialog with Use Windows Authentication checked."></img></a></p>
+	</li>	
+	<li>
+		<p>When the connection string is saved the database schema will be validated. Since the database doesn't exist yet you will
+	be prompted to create and initialize it.</p>
+		<p><a href="images/create-and-initialize-prompt.png"><img src="images/create-and-initialize-prompt.png" alt="Prompt for create and initialize provider database."></img></a></p>
+	</li>
+	<li>
+		<p>For the Role and Session State tabs keep the source set to "SameAsMembershipProvider". For the Profile tab, change the source to None.</p>
+		<p><a href="images/profile-none.png"><img src="images/profile-none.png" alt="Set profile provider source to None."></img></a></p>
+	</li>
+	<li>
+		<p>Since the role provider and session state provider use the "SameAsMembershipProvider" source, the database schema for the role and session state provider
+		won't be validated until the profile is saved. You will get the following 2 prompts:</p>
+		<p><a href="images/prompts-for-missing-schema.png"><img src="images/prompts-for-missing-schema.png" alt="Prompts for missing schema."></img></a></p>
+	</li>
+	<li>
+		<p>Now you can continue with the rest of the instructions in the
+		<a href="http://downloads.alphasoftware.com/a5v12download/private/Alpha-anywhere-application-server-for-iis/getting-started-guide.html">Getting Started Guide</a>
+		for publishing the App Server Demo web application to an IIS server.</p>
+	</li>
+</ol>
+</p>
+
+</div>
+</body>
+</html>
