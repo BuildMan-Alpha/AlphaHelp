@@ -1,0 +1,299 @@
+<page>
+	<topic>CHECKOUTCOMP.A5W</topic>
+<description>The CHECKOUTCOMP.A5W is the 3rd page in the checkout process. The customer provides credit card payment information on this page.
+</description>	
+<sections>
+<section>
+<title>Discussion</title>	
+<description>We built the CHECKOUTCOMP.A5W page using an HTML editing program. The page illustrates what you can do without using a component to display data. The values in various fields are populated with session variables. The page includes an optional section to require a password if the customer information indicates this is a new customer. The page has client side validation using JavaScript, using the standard Alpha Five a5_html_csv.js JavaScript file.
+CHECKOUTCOMP.A5W contains the NAV_MAIN navigation component.
+</description>	
+	
+</section>	
+<section>
+	<title>Links</title>
+<description>The CHECKOUTUSER.A5W page displays the CHECKOUTCOMP.A5W page.
+</description>	
+</section>	
+
+
+<section>
+	<title>Page Source</title>
+	<description>The page script begins by checking the status of several protected variables. If session.protectedchkoutprogress does not exist, it means that the first checkout page was not completed. If session.protectedchkoutprogress is less than 2, it means that the second checkout page was not completed. In both cases, the user is redirected to CHECKOUTCART.A5W.</description>
+	<example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
+    response.redirect("checkoutcart.a5w")
+    end
+elseif session.protectedchkoutprogress < 2
+    response.redirect("checkoutcart.a5w")
+    end
+end if
+]]></example>
+</section>
+
+<section>
+	<description>If session.protectedchkout is FALSE (.F.), it means there were no values passed from page 2. If session.protectedchkout.first_name is NULL, the required first_name field was not entered. In both cases, the user is redirected to CHECKOUTCART.A5W.
+</description>
+	<example><![CDATA[if eval_valid("session.protectedchkout") = .F. 'no values passed from page 2
+    response.redirect("checkoutcart.a5w")
+    end
+elseif session.protectedchkout.first_name = "" 'no values passed from page 2 (first_name was required)
+    response.redirect("checkoutcart.a5w")
+    end
+end if ]]></example>
+</section>
+
+<section>
+	<description>The a5w_include("loggedinvalues.a5w") statement runs the code on the LOGGEDINVALUES.A5W page. This page creates and sets the values of session.protectedpUser.userid, session.protectedpUser.type, and session.protectedpUser.name.
+</description>
+	<example><![CDATA[a5w_include("loggedinvalues.a5w")
+]]></example>
+</section>
+
+<section>
+	<description>After the user clicks the submit button ("Complete and Ship Order"), the following code checks to see if each variable that should be returned from the page exists. The names of the variables are listed in page_vars. The FOR EACH ... NEXT loop goes through this list and appends the variables that exist to the session.protectedchkout dot variable.
+</description>
+	<example><![CDATA[page_vars = <<%text%
+password
+total
+delivery_by
+pay_method
+cc_number
+cc_name
+cc_expmth
+cc_expyr
+confirm_email
+print_inv
+%text%
+for each var in page_vars
+    if eval_valid(var) = .T.   'variable value was returned to page on submit
+        eval("session.protectedchkout." + var) = eval(var)
+    else
+        eval("session.protectedchkout." + var) = "" ' no value passed to page, set blank
+    end if
+next]]></example>
+</section>
+
+<section>
+	<description>If the confirm variable does not exist, this code creates it and assigns it a NULL value.
+</description>
+	<example><![CDATA[if eval_valid("confirm") = .F.
+    confirm = ""
+end if]]></example>
+</section>
+
+<section>
+	<description>The following code creates a blank error message in error_msg, then evaluates the values placed into session.protectedchkout. The script checks the value of session.protectedchkout.cc_number with CCVALID() and checks that the expiration month ( session.protectedchkout.cc_expmth ) and year session.protectedchkout.cc_expyr are not in the past. If there are no errors, the code sets the value of session.protectedchkout.cc_expire and session.protectedchkoutprogress., and redirects the user to PROCESSING.HTM.
+</description>
+	<example><![CDATA[error_msg = " "
+if eval_valid("submit")
+    if ccvalid(session.protectedchkout.cc_number) = .F.
+        if error_msg = " "
+            error_msg = "Invalid Credit Card Number"
+            session.protectedchkout.cc_number = ""
+        end if
+    end if
+    if session.protectedchkout.cc_expyr + session.protectedchkout.cc_expmth < left( cdate(date() ), 6)
+        if error_msg = " " 'only show first error
+            error_msg = "Invalid Credit Card Expiration date"
+        end if
+    end if
+    if error_msg = " "
+        session.protectedchkout.cc_expire = session.protectedchkout.cc_expmth + "-" + session.protectedchkout.cc_expyr
+        session.protectedchkoutprogress = 3
+        response.redirect("processing.htm")
+        end
+    end if
+end if]]></example>
+</section>
+
+<section>
+	<description>The current "cart" (or order) is identified by the session cookie that contains cart_id. This code prepares the shopping cart data for display on the page. It retrieves order items from the shop_cart_values set, which links the product and specials tables to the shop_cart table with the product_id linking key. Each invoice line item total requires a selling price. This selling price can come from either the product or specials table. If the item is on "special", the price come from the linked record in the specials table. Otherwise, it comes from the product table.
+First, get the records for this order. If there are no items, return to CHECKOUTCART.A5W.
+</description>
+	<example><![CDATA[query.filter = "Cart_Id = \"" + cart_id + "\" .and. Quantity > 0"
+query.order = ""
+tbl = table.open("PathAlias.ADB_Path\shop_cart_values.set")
+qdx = tbl.query_create()
+if qdx.records_get()= 0 ' no items in cart, go back to page 1 of check out
+    tbl.close()
+    response.redirect("checkoutcart.a5w")
+    end
+end if
+]]></example>
+</section>
+
+<section>
+	<description>If the query found records, the following code computes totals. The script steps through the records, placing a count of records into cart_kount. The script determines where to get the price by examining the values of the Sale_Price and Sale_Until fields in the specials table. If Sale_Price is not zero and Sale_Until contains a NULL value or a date in the future, the item is on special. Otherwise, the price will come from the product table.
+</description>
+	<example><![CDATA[tbl1 = table.get("shop_cart") ' get pointer to parent
+tbl2 = table.get("product") ' get pointer to child
+tbl3 = table.get("specials") ' get pointer to child
+cart_kount = 0 ' counter for number of records
+cart_total = 0 ' total value in cart
+while .not. tbl.fetch_eof()
+    cart_kount = cart_kount + 1
+    if (tbl3.Sale_Price > 0) .and. (tbl3.Sale_Until >= date().or. cdate(tbl3.Sale_Until) = "") ' product is on special
+        cart_total = cart_total + (tbl3.Sale_Price * tbl1.Quantity)
+    else
+        cart_total = cart_total + (tbl2.Retail * tbl1.Quantity)
+    end if
+    tbl.fetch_next()
+end while
+tbl.close()
+]]></example>
+</section>
+
+<section>
+	<description>The code computes the text ( item_kount ) that says how many items are in the order.
+</description>
+	<example><![CDATA[if cart_kount = 1
+    item_kount = "1 Item"
+else
+    item_kount = alltrim( str(cart_kount) )+" Items"
+end if
+]]></example>
+</section>
+
+<section>
+	<description>Next, the script determines the customer's choice of shipping method. The ship_list variable will contain the list of shipping alternatives. Each entry is composed of two strings: ship_code and delivery_by separated by a pipe (|) character.
+</description>
+	<example><![CDATA[ship_list = table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "alltrim(ship_code) + \"|\" + alltrim(delivery_by)", "sort_ord")
+if session.protectedchkout.delivery_by = "" ' no value set / passed from page
+    session.protectedchkout.delivery_by = "0008" ' current default is 'UPS Ground'
+end if
+]]></example>
+</section>
+
+<section>
+	<description>The A5_HTML_LIST_POPULATE() converts ship_list into the format required for a drop-down list on the page and stores the result in ship_drop.
+</description>
+	<example><![CDATA[ship_drop = a5_html_list_populate(ship_list, session.protectedchkout.delivery_by, 3)
+]]></example>
+</section>
+
+<section>
+	<description>This code calculates the shipping cost with a lookup into the shipping_types table. It composes a filter using ship_code and session.protectedchkout.delivery_by and returns the base_price field.
+</description>
+	<example><![CDATA[ship_cost = val(table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "base_price", "", "ship_code = \"" + session.protectedchkout.delivery_by + "\"") )
+]]></example>
+</section>
+
+<section>
+	<description>There is no tax table available, therefore the tax is set to 0. A developer could use a technique comparable to the shipping cost lookup to return a tax value.
+</description>
+	<example><![CDATA[sales_tax = 0
+]]></example>
+</section>
+
+<section>
+	<description>The script computes the total_sale value.
+</description>
+	<example><![CDATA[total_sale = cart_total + ship_cost + sales_tax
+]]></example>
+</section>
+
+<section>
+	<description>This code prepares some values for display using the current values in the session variables.
+</description>
+	<example><![CDATA[bill_address = alltrim(session.protectedchkout.addr1) + if(session.protectedchkout.addr2 = "", "", "
+" + alltrim(session.protectedchkout.addr2) )
+ship_address = alltrim(session.protectedchkout.ship_to_address) + if(session.protectedchkout.saddr2 = "", "", "
+" + alltrim(session.protectedchkout.saddr2) )
+bill_city_state = alltrim(session.protectedchkout.city) + " " + alltrim(session.protectedchkout.state) + " "+alltrim(session.protectedchkout.zip)
+ship_city_state = alltrim(session.protectedchkout.ship_to_city) + " " + alltrim(session.protectedchkout.ship_to_state) + " " + alltrim(session.protectedchkout.ship_to_zip)
+confirm_email_chked = if(session.protectedchkout.confirm_email = "true", "checked=\"checked\"", "")
+print_inv_chked = if(session.protectedchkout.print_inv="true", "checked=\"checked\"", "")
+]]></example>
+</section>
+
+<section>
+	<description>Next, the script prepares and formats the values for the credit card year list box and stores the HTML code in ccyear_drop.
+</description>
+	<example><![CDATA[ccyears = cyear( date() ) ' current year
+chkyear = year( date() )
+for i = 1 to 10
+    ccyears = ccyears + crlf()+ alltrim( str(chkyear + i) )
+    next
+ccyear_drop = a5_html_list_populate(ccyears,session.protectedchkout.cc_expyr, 3)
+]]></example>
+</section>
+
+<section>
+	<description>This code creates and formats the month list for the credit card month list box and stores them in ccmth_drop. The credit card year list starts with the current year and month 
+</description>
+	<example><![CDATA[cc_mths = <<%text%
+01|January
+02|February
+03|March
+04|April
+05|May
+06|June
+07|July
+08|August
+09|September
+10|October
+11|November
+12|December
+%text%
+if eval_valid("session.protectedchkout.cc_expmth") =.F.
+    session.protectedchkout.cc_expmth = padl(alltrim(str(month(date() ) ) ),2,"0")
+elseif session.protectedchkout.cc_expmth = ""
+    session.protectedchkout.cc_expmth = padl(alltrim(str(month(date() ) ) ),2,"0")
+end if 
+session.protectedchkout.cc_expmth = padl(alltrim(str(month(date() ) ) ),2,"0")
+ccmth_drop = a5_html_list_populate(cc_mths, session.protectedchkout.cc_expmth, 3)
+]]></example>
+</section>
+
+<section>
+	<description>This code creates and formats the contents of the credit type list box and stores the HTML code in cctype_drop.
+</description>
+	<example><![CDATA[cc_types = <<%text%
+MCard
+Visa
+Amex
+%text%
+cctype_drop = a5_html_list_populate(cc_types,session.protectedchkout.pay_method,3)]]></example>
+</section>
+
+<section>
+	<description>The location = "" statement clears any highlighted selection on the menu. The style_name = "shopcart" statement sets the style of the navigation component. The pgstyle = tmpl_NAV_MAIN.style_name statement saves the style of the navigation component in pgstyle.
+</description>
+	<example><![CDATA[with tmpl_NAV_MAIN
+    location = "" 'could set current tab HERE
+    style_name = "shopcart" 'could override style HERE
+    componentName = "NAV_MAIN"
+end with
+pgstyle = tmpl_NAV_MAIN.style_name
+]]></example>
+</section>
+
+<section>
+	<description>This part of the page creates a Javascript function.
+</description>
+	<example><![CDATA[ ]]></example>
+</section>
+
+<section>
+	<description></description>
+	<example><![CDATA[ ]]></example>
+</section>
+
+<section>
+	<description>The remainder of the page displays the page you see above. </description>
+	<example><![CDATA[ ]]></example>
+</section>
+
+<section>
+	<title>Page Security Information
+</title>
+	<description>Always Allowed
+</description>
+
+	
+	
+</sections>	
+	<see>
+		<ref>Web Pages</ref>
+	</see>
+</page>

@@ -1,0 +1,260 @@
+<page>
+	<topic>CheckOutCompPayPal.A5W</topic>
+<description>The CheckOutCompPayPal.A5W page is a variation of the CHECKOUTCOMP.A5W page that illustrates a technique for using PayPal for electronic payments.
+</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+<description>We built the CheckOutCompPayPal.A5W page using an HTML editing program. The page illustrates what you can do without using a component to display data. The values in various fields are populated with session variables. The page includes an optional section to require a password if the customer information indicates this is a new customer. The page has client side validation using JavaScript, using the standard Alpha Five a5_html_csv.js JavaScript file.
+CheckOutCompPayPal.A5W contains the NAV_MAIN navigation component.
+</description>	
+	
+</section>	
+<section>
+	<title>Links</title>
+<description>The CHECKOUTUSER.A5W page displays the CheckOutCompPayPal.A5W page.</description>	
+	
+</section>	
+<section>
+	<title>Page Source</title>
+<description>The page script begins by checking the status of several protected variables. If session.protectedchkoutprogress does not exist, it means that the first checkout page was not completed. If session.protectedchkoutprogress is less than 2, it means that the second checkout page was not completed. In both cases, the user is redirected to CHECKOUTCART.A5W.
+</description>	
+	<example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
+    response.redirect("checkoutcart.a5w")
+    end
+elseif session.protectedchkoutprogress < 2
+    response.redirect("checkoutcart.a5w")
+    end
+end if]]></example>
+</section>		
+
+<section>
+
+<description>If session.protectedchkout is FALSE (.F.), it means there were no values passed from page 2. If session.protectedchkout.first_name is NULL, the required first_name field was not entered. In both cases, the user is redirected to CHECKOUTCART.A5W.
+</description>	
+	<example><![CDATA[if eval_valid("session.protectedchkout") = .F. 'no values passed from page 2
+    response.redirect("checkoutcart.a5w")
+    end
+elseif session.protectedchkout.first_name = "" 'no values passed from page 2 (first_name was required)
+    response.redirect("checkoutcart.a5w")
+    end
+end if]]></example>
+</section>		
+
+<section>
+
+<description>The a5w_include("loggedinvalues.a5w") statement runs the code on the LOGGEDINVALUES.A5W page. This page creates and sets the values of session.protectedpUser.userid, session.protectedpUser.type, and session.protectedpUser.name.
+</description>	
+	<example><![CDATA[a5w_include("loggedinvalues.a5w")]]></example>
+</section>		
+
+<section>
+
+<description>After the user clicks the submit button ("Complete and Ship Order"), the following code checks to see if each variable that should be returned from the page exists. The names of the variables are listed in page_vars. The FOR EACH ... NEXT loop goes through this list and appends the variables that exist to the session.protectedchkout dot variable.</description>	
+	<example><![CDATA[page_vars = <<%text%
+total
+delivery_by
+print_inv
+%text%
+for each var in page_vars
+    if eval_valid(var) = .T.   'variable value was returned to page on submit
+        eval("session.protectedchkout." + var) = eval(var)
+    else
+        eval("session.protectedchkout." + var) = "" ' no value passed to page, set blank
+    end if
+next]]></example>
+</section>		
+<section>
+	<description>If the confirm variable does not exist, this code creates it and assigns it a NULL value.
+</description>
+<example><![CDATA[if eval_valid("confirm") = .F.
+    confirm = ""
+end if
+]]></example>	
+</section>
+
+<section>
+	<description>This code determines whether to display the PayPal button. If the customer ID is NULL, the script must show the submit button first in order to enter a new user record. Otherwise, no submit button is needed.
+</description>
+<example><![CDATA[if session.protectedchkout.customerid = ""
+    show_paypal = .F.
+else
+    show_paypal = .T.
+end if
+]]></example>	
+</section>
+
+<section>
+	<description>The following code creates a blank error message in error_msg, then evaluates the values placed into session.protectedchkout. If the submit button was pressed and if the customerid variable is NULL, this is a new customer. The user will be redirected to the CHECKOUTREGISTER.A5W page to enter their userid and password to register into the system. 
+</description>
+<example><![CDATA[error_msg = " "
+if eval_valid("submit")
+    if session.protectedchkout.customerid = ""
+        response.redirect("checkoutregister.a5w?pg="+substr(request.script_name,at("/",request.script_name,-1)+1) ) 'redirect to page to check user registration
+        end
+    end if
+]]></example>	
+</section>
+
+<section>
+	<description>If there is no error, the PayPal button may appear.
+</description>
+<example><![CDATA[if error_msg = " " ' no errors detected, ok to show PayPal button
+        show_paypal = .T.
+    end if
+end if]]></example>	
+</section>
+
+<section>
+	<description>The script then checks the value of show_paypal and session.protectedchkoutprogress to determine whether to go to the next page. It then sets the values of the paypal_acct (your email address from your PayPal merchant account), paypal_this (the current page), and paypal_next (the next page) variables. If it is not prepared to display the PayPal button, it redirects the user to PROCESSING.HTM.
+</description>
+<example><![CDATA[if show_paypal = .T.
+    session.protectedchkoutprogress = 3
+    paypal_acct = "company@email.com"
+    paypal_this = "http://" + request.host + request.script_name
+    paypal_next = "http://" + request.host + substr(request.script_name, 1, at("/", request.script_name, -1) ) + "processing.htm"
+else
+    paypal_acct = ""
+    paypal_this = ""
+    paypal_next = ""
+end if]]></example>	
+</section>
+
+<section>
+	<description>The current "cart" (or order) is identified by the session cookie that contains cart_id. This code prepares the shopping cart data for display on the page. It retrieves order items from the shop_cart_values set, which links the product and specials tables to the shop_cart table with the product_id linking key. Each invoice line item total requires a selling price. This selling price can come from either the product or specials table. If the item is on "special", the price come from the linked record in the specials table. Otherwise, it comes from the product table.
+First, get the records for this order. If there are no items, return to CHECKOUTCART.A5W.
+</description>
+<example><![CDATA[query.filter = "Cart_Id = \"" + cart_id + "\" .and. Quantity > 0"
+query.order = ""
+tbl = table.open("PathAlias.ADB_Path\shop_cart_values.set")
+qdx = tbl.query_create()
+if qdx.records_get()= 0 ' no items in cart, go back to page 1 of check out
+    tbl.close()
+    response.redirect("checkoutcart.a5w")
+    end
+end if ]]></example>	
+</section>
+
+<section>
+	<description>If the query found records, the following code computes totals. The script steps through the records, placing a count of records into cart_kount. The script determines where to get the price by examining the values of the Sale_Price and Sale_Until fields in the specials table. If Sale_Price is not zero and Sale_Until contains a NULL value or a date in the future, the item is on special. Otherwise, the price will come from the product table.
+</description>
+<example><![CDATA[tbl1 = table.get("shop_cart") ' get pointer to parent
+tbl2 = table.get("product") ' get pointer to child
+tbl3 = table.get("specials") ' get pointer to child
+cart_kount = 0 ' counter for number of records
+cart_total = 0 ' total value in cart
+while .not. tbl.fetch_eof()
+    cart_kount = cart_kount + 1
+    if (tbl3.Sale_Price > 0) .and. (tbl3.Sale_Until >= date().or. cdate(tbl3.Sale_Until) = "") ' product is on special
+        cart_total = cart_total + (tbl3.Sale_Price * tbl1.Quantity)
+    else
+        cart_total = cart_total + (tbl2.Retail * tbl1.Quantity)
+    end if
+    tbl.fetch_next()
+end while
+tbl.close()]]></example>	
+</section>
+
+<section>
+	<description>The code computes the text ( item_kount ) that says how many items are in the order.
+</description>
+<example><![CDATA[if cart_kount = 1
+    item_kount = "1 Item"
+else
+    item_kount = alltrim( str(cart_kount) )+" Items"
+end if]]></example>	
+</section>
+
+<section>
+	<description>Next, the script determines the customer's choice of shipping method. The ship_list variable will contain the list of shipping alternatives. Each entry is composed of two strings: ship_code and delivery_by separated by a pipe (|) character.
+</description>
+<example><![CDATA[ship_list = table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "alltrim(ship_code) + \"|\" + alltrim(delivery_by)", "sort_ord")
+if session.protectedchkout.delivery_by = "" ' no value set / passed from page
+    session.protectedchkout.delivery_by = "0008" ' current default is 'UPS Ground'
+end if
+]]></example>	
+</section>
+
+
+<section>
+	<description>The A5_HTML_LIST_POPULATE() converts ship_list into the format required for a drop-down list on the page and stores the result in ship_drop.
+</description>
+<example><![CDATA[ship_drop = a5_html_list_populate(ship_list, session.protectedchkout.delivery_by, 3)]]></example>	
+</section>
+
+<section>
+	<description>This code calculates the shipping cost with a lookup into the shipping_types table. It composes a filter using ship_code and session.protectedchkout.delivery_by and returns the base_price field.
+</description>
+<example><![CDATA[ship_cost = val(table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "base_price", "", "ship_code = \"" + session.protectedchkout.delivery_by + "\"") ) 
+session.protectedchkout.ship_cost = ship_cost
+]]></example>	
+</section>
+
+
+<section>
+	<description>There is no tax table available, therefore the tax is set to 0. A developer could use a technique comparable to the shipping cost lookup to return a tax value.
+</description>
+<example><![CDATA[sales_tax = 0]]></example>	
+</section>
+
+
+<section>
+	<description>The script computes the total_sale value.
+</description>
+<example><![CDATA[total_sale = cart_total + ship_cost + sales_tax
+]]></example>	
+</section>
+
+
+<section>
+	<description>This code prepares some values for display using the current values in the session variables.
+</description>
+<example><![CDATA[bill_address = alltrim(session.protectedchkout.addr1) + if(session.protectedchkout.addr2 = "", "", "
+" + alltrim(session.protectedchkout.addr2) )
+ship_address = alltrim(session.protectedchkout.ship_to_address) + if(session.protectedchkout.saddr2 = "", "", "
+" + alltrim(session.protectedchkout.saddr2) )
+bill_city_state = alltrim(session.protectedchkout.city) + " " + alltrim(session.protectedchkout.state) + " "+alltrim(session.protectedchkout.zip)
+ship_city_state = alltrim(session.protectedchkout.ship_to_city) + " " + alltrim(session.protectedchkout.ship_to_state) + " " + alltrim(session.protectedchkout.ship_to_zip)
+print_inv_chked = if(session.protectedchkout.print_inv="true", "checked=\"checked\"", "")
+]]></example>	
+</section>
+
+
+<section>
+	<description>The location = "" statement clears any highlighted selection on the menu. The style_name = "shopcart" statement sets the style of the navigation component. The pgstyle = tmpl_NAV_MAIN.style_name statement saves the style of the navigation component in pgstyle.
+</description>
+<example><![CDATA[with tmpl_NAV_MAIN
+    location = "" 'could set current tab HERE
+    style_name = "shopcart" 'could override style HERE
+    componentName = "NAV_MAIN"
+end with
+pgstyle = tmpl_NAV_MAIN.style_name
+]]></example>	
+</section>
+
+<section>
+	<description>When you click the Complete Order button, this code displays a confirmation message. Uncomment this section to activate PayPal
+</description>
+<example><![CDATA[<!-- 
+<%a5 if show_paypal = .T. %>
+	<%a5 ?paypal_acct %>
+	<%a5 ?alltrim(str(cart_total,12,2) )%>
+	<%a5 ?alltrim( str(ship_cost,12,2) )%> 
+	<%a5 ?paypal_next %> 
+	<%a5 ?paypal_this %>
+	<%a5 end if %>>-->]]></example>	
+</section>
+
+<section>
+	<title>Page Security Information</title>
+<description>Always Allowed</description>	
+</section>
+
+
+	
+</sections>	
+<see>
+	<ref>Web Pages</ref>
+</see>
+	
+</page>

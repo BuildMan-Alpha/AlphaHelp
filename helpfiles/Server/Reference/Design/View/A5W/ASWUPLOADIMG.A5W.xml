@@ -1,0 +1,180 @@
+<page>
+	<topic>ASWUPLOADIMG.A5W</topic>
+<description>The ASWUPLOADIMG.A5W page allows an administrator to upload images to the server to add to the product table.
+</description>	
+<sections>
+	<section>
+		<title>Discussion</title>
+	<description>The ASWUPLOADIMG.A5W page uses a process described in Uploading Files to the Application_Server to upload images to the server. Images are allowed in png, bmp, and jpg formats. Xbasic code on the page checks the file for proper format, converts the image to jpg, and then add the image to the proper product record as an image file reference field. The page includes the GRD_PRODIMG grid component to show the current image for a specific product record. 
+Two parameters are passed in the page URL. A filter expression is included to filter the GRD_PRODIMG grid to show a single record. The ASWUPLOADIMG.A5W page also receives the pid parameter in the calling URL. pid must be a valid value from the product_ID field. For example: aswuploadimg.a5w?pid=P003&grd_prodimg_filter=Product%5Fid%3D%22P003%22. Note: The filter expression in encoded with URLENCODE() to replace characters are not allowed within URLs. pid is saved in a hidden field so it will be available when the page is submitted. 
+Much of the page was created in another HTML editing program. The page was built by inserting to GRD_PRODIMG grid on a new empty page. The Xbasic code that tests the values and saves the image was added to page above the  section that loads and runs the component code. Most of the code below that section was deleted and replaced with the html code from the other HTML editing program. Finally the code that shows the grid was added in the correct location on the new page.
+The page HTML uses embedded  strings to add values for the page URL, an error message, pid, and the code to show the grid. 
+</description>	
+	</section>
+<section>
+	<title>Links</title>
+<description>The GRD_INTPROD grid component opens the ASWUPLOADIMG.A5W from a link in the detail section.</description>	
+	
+</section>	
+<section>
+	<title>Edits to the Page Source</title>
+	<description>When you look at ASWPACKREINDEX.A5W with the Source tab of the HTML Editor, you will see a large amount of HTML and Xbasic code. The HTML Editor placed almost all of it there automatically, as we used the WYSIWYG tab to place the tables, text, graphics, and components on the page. There are a few interesting exceptions, where we changed the page code through the Source tab.
+Initially, the page checks for a valid pid value. If the pid argument is missing or is NULL, control goes back to ASWPRODUCTS.A5W
+</description>
+	<example><![CDATA[if eval_valid("pid") = .F.
+    response.redirect("aswproducts.a5w")
+    end
+elseif pid = ""
+    response.redirect("aswproducts.a5w")
+    end
+end if 
+]]></example>
+</section>
+<section>
+	
+	<description>Next, the script checks if any submit buttons have been pressed. If the clear button is pressed, the variable clear will have a value. The existing image saved in the record is replaced with a default image. </description>
+	<example><![CDATA[dim msg as c = ""
+dim FlagImageSaved as l = .F.
+if eval_valid("clear") clear existing images, reload defaults
+    pid = alltrim(pid)
+    if file.exists("[PathAlias.ADB_Path]\Images\\"+ pid +".jpg")
+        file.remove("[PathAlias.ADB_Path]\Images\\"+ pid +".jpg")
+        FlagImageSaved = .T.
+    end if 
+]]></example>
+</section>
+	
+	<section>
+	
+	<description>If the submit button named cmd is pressed the variable cmd will have a value. The code tests if a file was uploaded and checks if the file extension was jpg, bmp, or png. If no file was uploaded or the file does not have the correct extension, an error message is created. 
+</description>
+	<example><![CDATA[elseif eval_valid("cmd")
+    if FileToUpload.filename <> ""
+        dim ext as c
+        ext = ut(file.filename_parse(FileToUpload.filename,"e"))
+        if inlist(ext,".JPG",".BMP",".PNG") = .F.
+            msg = "File must be an image. Valid images are JPG, PNG and BMP"
+]]></example>
+</section>
+	
+	<section>
+	
+	<description>The code then tries to create a file on the server from the uploaded file. The pid value is tested for correct format. If the file could not be saved on the server, or pid had an incorrect format, an error message is created. 
+</description>
+	<example><![CDATA[elseif eval_valid("cmd")
+    if FileToUpload.filename <> ""
+        dim ext as c
+        ext = ut(file.filename_parse(FileToUpload.filename,"e"))
+        if inlist(ext,".JPG",".BMP",".PNG") = .F.
+            msg = "File must be an image. Valid images are JPG, PNG and BMP"
+        else    
+         dim fn as C  save raw file
+            fn = "[PathAlias.ADB_Path]\images\remove" + ext
+            file.from_blob(fn, FileToUpload.data)
+            if file.exists(fn)
+                pid = alltrim(pid)
+                if left(pid,1) = "P" .and. len(pid) = 4
+                else
+                    file.remove(fn)
+                    msg = "File could not be saved. No product Id provided"
+                    pid = ""
+                end if             
+            else
+                msg = "Error. File was not be saved."
+            end if 
+]]></example>
+</section>
+	
+	<section>
+	
+	<description>If no errors were found, the msg variable is empty. The code then converts the image to jpg format is needed and tries to save the file to the \images folder. If the image file is saved, a variable FlagImageSaved is set to TRUE. 
+</description>
+	<example><![CDATA[if msg = ""
+                dim bmp_data as b
+                select
+                 case ext = ".jpg"
+                     dim jpg_data as b
+                         jpg_data = file.to_blob(fn)
+                    case ext = ".png"
+                        dim png_data as b
+                        png_data = file.to_blob(fn)
+                        bmp_data = png_to_bitmap(png_data)
+                         jpg_data = bitmap_to_jpeg(bmp_data,100)
+                    case ext = ".bmp"
+                        bmp_data = file.to_blob(fn)
+                         jpg_data = bitmap_to_jpeg(bmp_data,100)
+                end select
+                file.From_blob("[PathAlias.ADB_Path]\images\\" + pid + ".jpg",jpg_data)
+                if file.exists(fn)
+                    file.remove(fn)
+                end if 
+                FlagImageSaved = .T.
+            end if 
+        end if 
+    end if 
+end if
+]]></example>
+</section>
+	
+	<section>
+	
+	<description>If the image file was created and pid has a value, the image name is saved in the product record as an image file reference field..
+</description>
+	<example><![CDATA[if FlagImageSaved = .T. .and. pid <> ""
+    img_path = "[PathAlias.ADB_Path]\Images\\"
+    rel_path = "Images\\"
+    def_image = "noimage"
+    tbl = table.open("[PathAlias.ADB_Path]\product.dbf")
+    tbl.order("product_id")
+    if tbl.fetch_find(pid)> 0
+        tbl.change_begin()
+        if file.exists("[PathAlias.ADB_Path]\Images\\"+ pid +".jpg")
+            tbl.picture = "=filename_decode(\""+rel_path+ pid +".jpg\")"
+        else
+            tbl.picture = "=filename_decode(\""+rel_path+ def_image+".jpg\")"
+        end if 
+        tbl.change_end()
+    end if
+    tbl.close() 
+end if 
+]]></example>
+</section>
+	
+	<section>
+	
+	<description>The page html has a style added for the buttons on the page.
+</description>
+	<example><![CDATA[.button {
+    width: 200px;
+} ]]></example>
+</section>
+	
+	<section>
+	
+	<description>The new page HTML code was added to the page. 
+</description>
+	<example><![CDATA[<form action=" <%a5 ? request.request_uri %> " method="post" enctype="multipart/form-data">
+		<td align="middle" class="aswFormHeaderFont">Images for This Product </td>
+		<td align="middle">Enter Image File Name to upload </td>
+		<%a5 ?msg %>
+		<input type="file" name="FileToUpload" size="50" >
+		<input name="cmd" type="submit" class="button" value="Upload Image to Record">
+			<input name="clear" type="submit" class="button" value="Remove Images from Record">
+		<%a5 ?pid %>
+	
+	 ]]></example>
+</section>
+	
+	<section>
+	
+	<description>Finally, the row to show the grid was added along with the other HTML for the page.</description>
+	<example><![CDATA[<%A5 ?x_grd_prodimg.Output.Body.Grid_HTML %>
+		onclick=window.close() href="#">Close
+	 ]]></example>
+</section>
+	
+	
+	
+</sections>	
+	
+</page>

@@ -1,0 +1,118 @@
+<page>
+	<topic>CHECKOUTUSER.A5W</topic>
+	
+<description>The CHECKOUTUSER.A5W page is the second step in the checkout process. It allows the customer to enter shipping and billing information.
+</description>	
+<sections>
+	
+<section>
+	<title>Discussion</title>
+<description>The CHECKOUTUSER.A5W page contains the NAV_MAIN navigation and DLG_UCHKOUT dialog component. The page has two extra buttons on the left side of the page. The top button causes code in the dialog's Validate event to read the user's billing and shipping information from the customer table and fill in the form's fields. The dialog's AfterValidate code saves the dialog values to protected session variables. It also saves any edits made to an existing customer record.</description>	
+	
+	
+</section>	
+<section>
+	<title>Links</title>
+<description>The CHECKOUTCART.A5W page displays the CHECKOUTUSER.A5W page. Errors can cause the CHECKOUTCOMP.A5W page to redirect back to the CHECKOUTUSER.A5W page.
+</description>	
+	
+</section>
+<section>
+	<title>Page Source</title>
+<description>The first part of the page script checks the value of session.protectedchkoutprogress. If FALSE (.F.), the user is redirected to CHECKOUTCART.A5W. If the value of session.protectedchkoutprogress is less than 1, the user has not finished the first checkout page, and is redirected to CHECKOUTCART.A5W.
+</description>	
+	<example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
+    response.redirect("checkoutcart.a5w")
+    end
+elseif session.protectedchkoutprogress < 1
+    response.redirect("checkoutcart.a5w")
+    end
+end if]]></example>
+</section>	
+<section>
+<description>The a5w_include("loggedinvalues.a5w") statement runs the code on the LOGGEDINVALUES.A5W page. This page creates and sets the values of session.protectedpUser.userid, session.protectedpUser.type, and session.protectedpUser.name. If the user type is internal, they are redirected back to the CHECKOUTCART.A5W page as internal users can not check out a shopping cart. Various messages that are shown on the left side of the page are created based on information about the logged user. 
+</description>	
+	<example><![CDATA[a5w_include("loggedinvalues.a5w")
+if session.protectedpUser.type = "I" ' internal user, no access
+    response.redirect("checkoutcart.a5w")
+    end
+else
+    if session.protectedpUser.ulink = "" ' no user link, can't get user record
+        msg1 = "Already a Registered User?"
+        msg2 = ""
+        button1 = ""
+        msg3 = "You can log in now"
+        msg4 = "Login Now"
+    else
+        if session.protectedpUser.name = ""
+            msg1 = "Welcome !"
+            msg3 = "You can log in now if you are not the current user"
+        else
+            msg1 = "Welcome "+alltrim(session.protectedpUser.name)+"!"
+            msg3 = "Log out now if you are not "+alltrim(session.protectedpUser.name)+""
+        end if 
+        msg2 = "You can add your information by selecting the option below."
+        button1 = ""
+        msg4 = "Logout Now"
+    end if 
+end if ]]></example>
+</section>
+<section>
+<description>This code initializes several session variables.
+</description>	
+	<example><![CDATA[session.enteruserdata = "" ' used by dialog to populate dialog
+session.targetURL = "" ' reset to no value
+session.dataclear = .F. ' do not clear data]]></example>
+</section>
+<section>
+<description>This code checks if the user clicked the Clear Entries button. If so, the login cookie is cleared and the login values are reset. If the user clears the current user information, it indicates they are going to enter different user information. Therefore the current user is automatically logged out to force the current shopping cart and sale to be credited to the correct user.
+Execution skips forward to runpage and the page appears.
+</description>	
+	<example><![CDATA[if eval_valid("clearbutton")
+    a5ws_logoutuser(session,request,response) ' logout user
+    a5w_include("loggedinvalues.a5w") 'reload user values
+    session.dataclear = .T.
+    goto runpage
+end if]]></example>
+</section>
+<section>
+<description>If the user clicks the "Add My Information" button under "You can add your information by ...", the code checks for the existence of adduser. If no one is logged in, this button action is invalid and a login must be forced. The code does this by checking if session.protectedpUser.ulink has a value. If not, it knows no one is logged on and sets a value for logon to force the next code to evaluate and force a logon
+Otherwise, the script storessession.protectedpUser.ulink in session.enteruserdata. If the user clicks the "Login Now " button under "Already a Registered User?", the code redirects the user to LOGIN.A5W and adds the current page URL in a variable named "np". The login code will redirect back to the page in "np" after login. 
+</description>	
+	<example><![CDATA[if eval_valid("adduser") ' adduser button pushed
+    if session.protectedpUser.ulink = "" ' no user logged on, force logon
+        logon = "Here"
+    else ' ok to add user data
+        session.enteruserdata = alltrim(session.protectedpUser.ulink)
+        goto runpage ' ok to skip next code 'if' section
+    end if
+end if
+if eval_valid("logon") ' either selected or forced logon
+    response.redirect("login.a5w?np="+substr(request.script_name,at("/",request.script_name,-1)+1)) 'go to logon page
+    end
+end if
+runpage:]]></example>
+</section>
+<section>
+<description>The DLG_UCHKOUT dialog component has client side validation applied. The validation checks for required values in certain fields before the user can exit the page. If the user clicks the Clear Entries button to clear the entered values, the validation is applied as the button is actually a submit button. A JavaScript action is added to the Clear Entries button to call a JavaScript function named setdummy() that enters blank spaces in the required fields. The validation will see the fields as having a value and allow the button action to continue. 
+The ship_same checkbox control on the DLG_UCHKOUT dialog component also has a JavaScript function If the user checks the box, the billing information will be added to the shipping information controls. If they uncheck the checkbox, the shipping values are cleared. This JavaScript is added to the page section rather than attached in a file. 
+</description>	
+	
+</section>
+<section>
+	<title>Page Security Information</title>
+<description>Always Allowed
+</description>	
+
+</section>
+
+
+</sections>	
+	
+<see>
+	<ref>Web Pages</ref>
+</see>	
+	
+	
+	
+</page>
