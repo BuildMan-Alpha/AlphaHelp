@@ -180,6 +180,9 @@
         <xsl:if test="note">
            <div class="sectionNote" > <xsl:value-of select="note" /> </div>
         </xsl:if>
+        <xsl:if test="warning">
+           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
+        </xsl:if>
 		<xsl:if test="video">
 			<xsl:for-each select="video">
 				<li>
@@ -336,6 +339,9 @@
         </xsl:if>
         <xsl:if test="note">
            <div class="sectionNote" > <xsl:value-of select="note" /> </div>
+        </xsl:if>
+        <xsl:if test="warning">
+           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
         <xsl:if test="video">
             <li>
