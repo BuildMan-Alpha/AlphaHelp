@@ -1,0 +1,83 @@
+<page>
+	
+	<topic>ASWSENDEMAIL.A5W</topic>
+<description>The application administrator would use the ASWSENDEMAIL.A5W page to send an email, presumably to someone in the customer table.
+</description>	
+
+<sections>
+<section>
+	<title>Discussion</title>
+	<description>The ASWSENDEMAIL.A5W page contains the DLG_IEMAIL dialog component. The Validate and AfterValidate events of the dialog contains all of the code necessary to send an email. The code tests for a valid email profile before sending the message. The dialog uses the Corporate style sheet, which is different from the main page.</description>
+	
+</section>	
+<section>
+	<title>Links</title>
+	<description>The Customers > Send Email entry of the NAV_INT navigation component displays the ASWSENDEMAIL.A5W page.
+</description>
+	
+</section>	
+<section>
+	<title>Edits to the Page Source
+</title>
+	<description>When you look at ASWSALESHIST.A5W with the Source tab of the HTML Editor, you will see a large amount of HTML and Xbasic code. The HTML Editor placed almost all of it there automatically, as we used the WYSIWYG tab to place the tables, text, graphics, and components on the page. There are a few interesting exceptions, where we changed the page code through the Source tab.
+The location = "Customers" statement causes the Customers entry of the menu to be highlighted.
+</description>
+	<example><![CDATA[with tmpl_NAV_INT
+    location = "Customers"
+    componentName = "NAV_INT"
+end with
+]]></example>
+</section>	
+<section>
+	<description>The A5W_INCLUDE() statement is in the top row of the table. It loads TOPPAGE.A5W and displays a standard page header.</description>
+	<example><![CDATA[<%a5 a5w_include("toppage.a5w") 
+ %>]]></example>
+</section>		
+<section>
+	<title>The Validate Event</title>
+	<description>The Validate event of the dialog component uses EMAIL_PROFILE_VALID()to determine the user has a valid email profile.
+</description>
+	<example><![CDATA[if email_profile_valid()= .F.
+    CurrentForm.Has_Error = .T.
+    CurrentForm.Error_Message = " Email Profile Not Defined"
+end if
+]]></example>
+</section>		
+<section>
+	<title>The AfterValidate Event
+</title>
+	<description>The AfterValidate event fires only if CurrentForm.Has_Error is set to FALSE. If the EMAIL_SEND() function returns 0 (zero), the script sets the CurrentForm.Has_Error property to TRUE. Otherwise, it erases the controls in preparation for sending another email.
+</description>
+	<example><![CDATA[if email_send(CurrentForm.Controls.sendto, CurrentForm.Controls.subject, CurrentForm.Controls.body,"",CurrentForm.Controls.cc, CurrentForm.Controls.bcc) = 0 'not sent
+    CurrentForm.Has_Error = .T.
+    CurrentForm.Error_Message = " Error: Email Not Sent"
+else
+    CurrentForm.Controls.sendto = ""
+    CurrentForm.Controls.cc = ""
+    CurrentForm.Controls.bcc = ""
+    CurrentForm.Controls.subject = ""
+    CurrentForm.Controls.body = ""
+end if
+]]></example>
+</section>		
+<section>
+	<title>Page Security Information
+</title>
+	<cases>
+		<case>
+			<description>Login Required
+</description>
+		</case>
+		<case>
+			<description>Groups Allowed > Accounting, Administrators, Clerical, Marketing 
+</description>
+		</case>
+	</cases>
+</section>		
+
+</sections>
+<see>
+	<ref>Web Pages</ref>
+</see>	
+	
+</page>

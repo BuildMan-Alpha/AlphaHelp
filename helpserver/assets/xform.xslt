@@ -180,6 +180,9 @@
         <xsl:if test="note">
            <div class="sectionNote" > <xsl:value-of select="note" /> </div>
         </xsl:if>
+        <xsl:if test="warning">
+           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
+        </xsl:if>
 		<xsl:if test="video">
 			<xsl:for-each select="video">
 				<li>
@@ -324,7 +327,9 @@
         </xsl:if>
         <xsl:if test="figure">
             <xsl:for-each select="figure">
-                <a xsl:use-attribute-sets="href-link" class="sectionFigure"><img xsl:use-attribute-sets="src-link" /></a>
+                <a xsl:use-attribute-sets="href-link" class="sectionFigure">
+                    <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:if test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:if> </xsl:element>
+                </a>
                 <xsl:if test="title">
                     <p>
                         <xsl:value-of select="title" />
@@ -334,6 +339,9 @@
         </xsl:if>
         <xsl:if test="note">
            <div class="sectionNote" > <xsl:value-of select="note" /> </div>
+        </xsl:if>
+        <xsl:if test="warning">
+           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
         <xsl:if test="video">
             <li>
@@ -472,11 +480,6 @@
 	<xsl:attribute-set name="ref-href-link">
 		<xsl:attribute name="href">
 			<xsl:value-of select="./@href" />
-		</xsl:attribute>
-	</xsl:attribute-set>
-	<xsl:attribute-set name="src-link">
-		<xsl:attribute name="src">
-			<xsl:value-of select="link" />
 		</xsl:attribute>
 	</xsl:attribute-set>
 </xsl:stylesheet>
