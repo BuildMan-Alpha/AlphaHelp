@@ -298,7 +298,7 @@ events.addPageSourceComment = function(page) {
     page = page.replace(".xml_html",".xml");
     return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
 }
-events.extractSymbols = function(txt) {
+events.extractSymbols = function(txt,title,path) {
      var leading = [
       { "symbol" : "*" , "replace" : "aster|"}  ,
       { "symbol" : "$" , "replace" : "dollr|" } ,
@@ -309,6 +309,33 @@ events.extractSymbols = function(txt) {
      var padText = " "+txt.toLowerCase()+" ";
      var symbols = " " , symbol;
      var words , word , parts;
+     if( title ) {
+         title = title.toLowerCase();
+         padText = " "+ title.trim() + padText;
+     }
+     if( path ) {
+         path = path.toLowerCase();
+         if( path.indexOf('/ref/') >= 0 ) {
+             if( path.indexOf('api/') >= 0 ) {
+                 if( title.indexOf('_') >= 0 ) {
+                     // Lets add words with underbars in title as symols (these get segmented)
+                     words = title.split(" ");
+                     for( i = 0 ; i < words.length ; ++i ) {
+                         if( words[i].indexOf('_') > 0 ) {
+                             symbols += words[i]+" ";
+                         }
+                     }
+                 }
+             }
+         }
+     } else if( !title ) {
+        words = txt.toLowerCase().split(" ");
+        for( i = 0 ; i < words.length ; ++i ) {
+            if( words[i].indexOf('_') > 0 ) {
+                symbols += words[i]+" ";
+            }
+        }         
+     }
      for( i = 0 ; i < leading.length ; ++i ) {
          if( padText.indexOf(" "+leading[i].symbol) >= 0 ) {
              words = padText.split(" "+leading[i].symbol);
