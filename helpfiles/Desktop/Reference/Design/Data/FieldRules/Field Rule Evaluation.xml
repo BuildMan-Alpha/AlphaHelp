@@ -1,0 +1,61 @@
+<page>
+	<topic>Field Rule Evaluation</topic>
+<sections>
+<section>
+	<description><![CDATA[Before a record is saved to the table with either the <TBL>.ENTER_END() or <TBL>.CHANGE_END() methods, the validation field rules for each field must be satisfied. If a field value violates any validation rule, a run-time error occurs. The field's validation rules are checked every time you assign a value to it. The validation rules that are evaluated are:
+]]></description>
+	<cases>
+		<case>
+			<description>Minimum and maximum value
+</description>
+		</case>
+		<case>
+			<description>Uniqueness
+</description>
+		</case>
+		<case>
+			<description>Cross-file validation
+</description>
+		</case>
+		<case>
+			<description>Custom validation
+</description>
+		</case>
+		
+	</cases>
+	
+</section>	
+<section>
+	<description>For example, the following script changes a field to the value you enter through the UI_GET_NUMBER() function:
+</description>
+	<example><![CDATA[dim tbl as P
+dim value as C
+tbl = table.current()
+value = ui_get_number("Enter Value","How many hours? ","100","999")
+if (value = "") then
+    end
+end if
+commit_flag = .T.
+tbl.change_begin()
+ON ERROR GOTO rule_error
+tbl.time = val(value)
+tbl.change_end(commit_flag)
+parent.resynch()
+end
+rule_error:
+    ui_msg_box("Error","Value too small")
+    commit_flag = .F.
+    RESUME NEXT]]></example>
+	
+</section>
+<section>
+	<description>The validation expression for this field is "TIME > = 100", so any number below 100 will cause a run-time error that will be intercepted by the error handling routine ('rule_error'). The error handler cancels the Change operation by setting the commit_flag to FALSE (.F.).
+</description>
+	<note>Anytime you enter or change a record through Xbasic you must account for the possibility of a field rule violation. If the values you are assigning to fields might possibly violate a field rule, you must add an error handling routine to recover from the run-time error that might occur. Without the error handler, script execution will be halted before the .ENTER_END()or .CHANGE_END() methods are reached, and the session will be stuck in either Enter or Change mode. You must then close the session and reopen it to restore the mode.</note>
+	
+</section>	
+	
+</sections>	
+	
+	
+</page>

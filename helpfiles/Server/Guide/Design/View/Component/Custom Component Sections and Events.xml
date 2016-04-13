@@ -1,0 +1,411 @@
+<page>
+  <topic>Custom Component Sections and Events</topic>
+ <sections>
+   
+   <section>
+
+     <description>Let's go over the Sections and Events of the Custom Component Builder. We'll skip the Overview section, as we looked at it sufficiently in the previous article in this series. When we come to a section used by our Demo component, we'll go over the relevant code.</description>
+ 
+   </section>
+   
+      <section>
+     <title>Properties</title>
+     <description>The properties grid, which allows either the developer or the user to easily adjust the appearance and operation of the component, has five groups: Component Properties, CSS, Arguments, Javascript, and Other.
+</description>
+
+<cases>
+  <case>
+     <title>Component Properties
+</title>
+     <description>The four generic component properties are the Style name, Style overrides, Font size, and Master Template. The Style name refers to a standard Alpha Five web Grid style, such as GlassBlue. When a custom component is linked from or called from a Grid, the component will typically be inherited from the Grid, so specifying the style here is mostly for standalone usage.
+Style overrides are rarely needed in Custom Components, unless they have Tabs, Accordions, pop-up Windows, or Lists of their own. The Font size property can override the size of text elements, either all text elements or only those in grid style classes.
+The Master Template allows you to wrap the component in HTML of your choosing. This can be useful for creating borders or adding text and images that belong to the component without being inside the working body of the component.</description>
+
+    
+  </case>
+   <case>
+     <title>CSS</title>
+     <description>You can define local CSS definitions for your component, additional Grid styles in addition to the primary style, and linked CSS files needed by your component. You might need linked CSS files if you are building a custom component around a third-party widget which uses its own CSS.
+</description>
+
+    
+  </case>
+   <case>
+     <title>Arguments</title>
+     <description>Arguments can be set at run-time, which is what you want for a component linked from a Grid. They can also be bound to a page, session, or cookie variable. Arguments can only bind to a constant or a single variable or field; you can not create an expression or combine fields in the argument binding dialog.
+How can you create an expression or combine fields? It depends on the kind of database you are using.
+In a DBF database, you can define a computed field in the database that gets its value from an expression using one or more other fields in the database.
+If you need an argument to be bound to a value that is a formatted combination of fields from a SQL database, you can create a SQL expression in your parent Grid's query string, such as
+</description>
+     <example><![CDATA[SELECT Firstname+' '+Lastname AS Fullname FROM customers
+]]></example>
+    
+  </case>
+   <case>
+
+     <description>You don't need to display this SQL expression field in your grid for it to be available for argument binding — it can be in a hidden column.
+</description>
+
+    
+  </case>
+   <case>
+     <title>Javascript
+</title>
+     <description>Javascript linked files are necessary when you are using third-party Javascript libraries other than the ones supplied by default in Alpha Five. You can optionally specify the name of an initialization function to be called for each library after a vertical bar character, for example
+</description>
+     <example><![CDATA[js/fancybox/jquery.fancybox-x.y.z.js|bindFancyBox
+]]></example>
+    
+  </case>
+   <case>
+
+     <description>Remember that Javascript is case-sensitive. bindfancybox will not match bindFancyBox.
+</description>
+ 
+    
+  </case>
+   <case>
+     <title>Other
+</title>
+     <description>Language definitions let you define language-dependent substitutions for fields within ... tags. Our Demo component has two such placeholder tags, as we can see by clicking the Refresh List of Placeholders button in the Language Definitions dialog. If we set
+</description>
+     <example><![CDATA[txt1=some substituted value for txt1
+txt2=a different substituted value for txt2
+]]></example>
+    
+  </case>
+   <case>
+ 
+     <description>and save the component, the next time we run it we'll see "some substituted value for txt1" at the bottom of the grid when it first renders, and "a different substituted value for txt2" at the top of the grid after pressing Next.
+
+</description>
+
+    
+  </case>
+   <case>
+
+     <description>If we define multiple languages for substitution, we can set the Active Language for testing purposes. The active language can be overriden at runtime using the session.__protected__activeLanguage variable.
+</description>
+    
+    
+  </case>
+    <case>
+
+     <description>Sometimes a component may need to insert markup into the HEAD section of its page. This may be JavaScript library references, CSS, or metatags. This markup can be specified in the Head section tags area.
+</description>
+    
+    
+  </case>
+    <case>
+
+     <description>Some JavaScript libraries and other third-party widgets assume that they are single or isolated instances. If you have trouble running multiple copies of your control on a page, check Component must run in IFrame and each copy of your component will have its own environment. When you do this you give up the ability to run in Working Preview mode and on the desktop, but your component will still work in Live Preview and published in a Web application.
+</description>
+    
+    
+  </case>
+    <case>
+
+     <description>The Other properties dialog allows you to set the values of properties for which a builder (i.e. property grid) is not available, primarily for testing purposes. Since, unlike a User-defined Component, a Custom Component has no builders of its own, this can be any property you add to the Xbasic code of the component. Such properties can be set by other components that are aware of them, or by your Xbasic code, for example in one of your server events or in a callback.
+</description>
+    
+    
+  </case>
+
+  
+   <case>
+
+     <description>Defining properties looks something like this:
+</description>
+     <example><![CDATA[dim wp.CenterLat as N = default 0
+dim wp.CenterLng as N = default 0
+]]></example>
+    
+  </case>
+   <case>
+    
+     <description>In the Other properties dialog, you could override these two arguments (for testing purposes) with:
+</description>
+     <example><![CDATA[tmpl.CenterLat = 42.478606
+tmpl.CenterLng = -71.201289]]></example>
+    
+  </case>
+   
+</cases>
+
+
+
+   </section>
+
+   
+      <section>
+     <title>Javascript Functions
+</title>
+     <description>The Javascript Functions dialog is a Javascript editor. You can define Javascript functions here that are called from your HTML events or from your inline Javascript code.</description>
+
+   </section>
+   
+      <section>
+     <title>Xbasic Functions</title>
+     <description>The Xbasic Functions dialog is an Xbasic editor. You can define Xbasic functions here that are called from your inline Xbasic code.
+</description>
+   <note>You may also place Xbasic functions in your project database as long as they are compiled into an AEX file for publication to the web. </note>
+   </section>
+   
+      <section>
+ 
+     <description>In our Demo component, we have two functions in this area. renderTable does the grunt work of creating the HTML table for a lightweight grid:
+</description>
+     <example><![CDATA[function renderTable as c ( e as p)
+dim recordsPerPage as n
+recordsPerPage = 5 
+dim logicalRecNo as n    
+dim filter as c 
+filter = "bill_state_region = :componentArg_whatstate"
+'filter = ".t."
+dim args as sql::arguments
+args = e.arguments
+filter = replace_arguments_in_string(filter,args)
+dim t as p
+t = table.open("customer") 
+dim itbl as p
+itbl = t.query_create("",filter)
+dim totalRecords as n 
+totalRecords = itbl.records_get()
+dim totalPages as n 
+totalPages = round_up((totalRecords/recordsPerPage),0)
+ 
+if e._pageNumber = -1 then 
+  e._pageNumber = totalPages 
+  e._state.pageNumber = totalPages
+end if 
+'make sure user can't navigate past last page
+e._pageNumber = min(totalPages,e._pageNumber)
+ 
+if e._pageNumber = 1 then 
+  logicalRecNo = 1 
+else
+  logicalRecNo =  ((e._pageNumber - 1) * recordsPerPage) + 1
+end if 
+ 
+t.LogicalRecord_Set(logicalRecNo)
+dim html as c   
+ph = a5_Generate_HTML_Table(t,e.tmpl.style_name,recordsPerPage)
+e.html = ph.htmlTable
+t.close()
+end function ]]></example>
+   </section>
+   
+      <section>
+  
+     <description>This code replaces the componentArg_whatstate argument in the filter, opens the customer table, applies a query using the filter, figures out where we are in the table, sets the page and logical record state, and then calls the Xbasic library function a5_Generate_HTML_Table to generate the actual HTML table markup.
+
+The other function defined here, Navigate, is used as a call-back function by the four navigation buttons:
+</description>
+     <example><![CDATA[Function Navigate as c (e as p)
+ 
+  dim direction as c 
+  direction = Request.Variables._direction
+  if direction = "Next" then 
+    e._pageNumber = val(e._state.pageNumber) + 1
+  else if direction = "First" then 
+    e._pageNumber = 1 
+  else if direction = "Prev" then 
+    e._pageNumber = val(e._state.pageNumber) - 1
+    if e._pageNumber &lt; 1 then 
+      e._pageNumber = 1 
+    end if
+  else if direction = "Last" then 
+    e._pageNumber = -1 
+  end if 
+ 
+  e._state.pageNumber = e._pageNumber
+  renderTable(e)
+  dim div as c 
+  div = "tbl"
+  dim jscmd as c   
+  dim html as c 
+  html = js_escape(e.html)
+  Navigate = "$('" + div + "').innerHTML = 'this is a callback &lt;a5:r&gt;txt2&lt;/a5:r&gt; - page will be set to - "+html+" ';" 
+end function
+]]></example>
+   </section>
+   
+      <section>
+ 
+     <description>This code changes the page number state, calls into renderTable to recalculate the HTML for the page, and then manipulates the contents of the DIV "tbl" to print a message.
+</description>
+    
+   </section>
+   
+      <section>
+     <title>Server-side Events
+</title>
+     <description>A Custom Component supports three server-side events:
+</description>
+   <cases>
+     <case>
+       <description>onInitialRender 
+</description>
+     </case>
+     <case>
+       <description>onComponentInitialize 
+</description>
+     </case>
+     <case>
+       <description>onComponentExecute 
+</description>
+     </case>
+     
+   </cases>
+   </section>
+   
+      <section>
+
+     <description>The events fire in this order:
+</description>
+      <cases>
+     <case>
+       <description>when component is run initially: onComponentInitialize, onComponentExecute, and finally onInitialRender 
+</description>
+     </case>
+     <case>
+       <description>When an ajax callback is made: onComponentExecute 
+</description>
+     </case>
+   
+   </cases>
+   </section>
+   
+      <section>
+
+     <description>What this means is that for components where nothing needs to be done in the onComponentExecute event (such as generic updates during callbacks no matter what callback function is used), there is also no need for the onComponentInitialize event. Our example only uses the onInitialRender event.
+
+If you did have code that needed to run in every callback as well as at initialization, you might want to split up the code that needs to run before the onComponentExecute call from the code that needs to run after it.
+Our Demo component runs the following code in the onInitialRender event.
+</description>
+     <example><![CDATA[function onInitialRender as p (e as p)
+ 
+'debug(1)
+e._pageNumber = 1    
+renderTable(e)
+e._state.pageNumber = "1"
+ 
+'wrap table in a div with buttons.
+e.html = "&lt;div id=\"tbl\"&gt;" + e.html + "&lt;/div&gt;"
+e.html = e.html + &lt;&lt;%html%
+&lt;br&gt;
+&lt;a5:r&gt;txt1&lt;/a5:r&gt; -- this should get replaced &lt;/br&gt;
+&lt;br&gt;
+&lt;button class="{component.style}Button" 
+onclick="Component.Object}.ajaxCallback('','','Navigate','','_direction=First');"&gt;
+First&lt;/button&gt;  
+&lt;button class="{component.style}Button" 
+onclick="{component.style}Button"&gt;
+Previous&lt;/button&gt;  
+&lt;button class="{component.style}Button" 
+onclick="Component.Object}.ajaxCallback('','','Navigate','','_direction=Prev');"&gt;
+Next&lt;/button&gt;  
+&lt;button class="{component.style}Button" 
+onclick="{component.style}Button"&gt;
+Last&lt;/button&gt;  
+%html%
+ 
+ 
+end function]]></example>
+   </section>
+   
+      <section>
+
+     <description>This function sets the page number to 1, calls renderTable, sets the saved page state to 1, and adds a DIV tag and some button definitions with onclick calls.
+</description>
+     
+   </section>
+   
+      <section>
+     <title>Client-side Events</title>
+     <description>There are four client-side events in a Custom Component:</description>
+    <cases>
+      <case>
+        <description>canAjaxCallback 
+</description>
+      </case>
+       <case>
+        <description>afterAjaxCallbackComplete 
+</description>
+      </case>
+       <case>
+        <description>onInitializeComplete 
+</description>
+      </case>
+       <case>
+        <description>onRenderComplete 
+</description>
+      </case>
+      
+      
+    </cases>
+   </section>
+   
+      <section>
+    <cases>
+      <case>
+        <title>canAjaxCallback </title>
+        <description>canAjaxCallback happens before an Ajax callback is executed, and can abort the callback by returning false. afterAjaxCallbackComplete happens after an Ajax callback returns, and is able to process the callback result.</description>
+      </case>
+       <case>
+        <title>onInitializeComplete</title>
+        <description>onInitializeComplete happens after all HTML and JavaScript has been emitted by the onInitialRender server-side event.</description>
+      </case>
+       <case>
+        <title>onRenderComplete</title>
+        <description>onRenderComplete happens after all JavaScript defined by the page definition has run on the client.</description>
+      </case>
+      
+      
+    </cases>
+   </section>
+   
+   
+   
+   
+      <section>
+ 
+     <description>If you use a third-party JavaScript library that needs to be initialized, you can put the initialization call, which would normally go in a body.onload() or window.onload event in a typical HTML page, in the Client-side onInitializeComplete event of the custom component. If you want to automate initialization actions on the Component, you can run the appropriate calls in the onRenderComplete and expect that, under normal conditions, any exposed Component client-side method or property will be available for your use.
+</description>
+ 
+   </section>
+   
+   <section>
+     <title>Tip: Placeholder replacement</title>
+     <description>In the renderTable() code above, we replaced a SQL argument in :argumentName form using replace_arguments_in_string. You may also find it useful to replace {argumentName} placeholders. The following code added to the onInitialRender event will do the trick:
+</description>
+     <example><![CDATA['Replace parameters with their current argument values
+e.html = replace_placeholders_with_argument_values(e.html,e.arguments)
+e.javascript = replace_placeholders_with_argument_values(e.javascript,e.arguments)
+]]></example>
+   </section>
+   
+   <section>
+     <title>Call to action</title>
+     <description>Now that you have a simple working component, you can try building your own. You will find using debug(1) statements in your Xbasic helpful (in Working Preview mode), and debugger; statements in your JavaScript.
+When you design your own custom component, think carefully about what arguments you wish to expose. A good set of arguments will make the component more useful and versatile. Creating a good default for each arguments will make it easier for your users.
+The next article in this series, Sharing and Using a Custom Component, explains how to distribute your Custom Component to users.
+</description>
+    
+   </section>
+   
+
+   
+ </sections> 
+  
+  <see>
+    <ref>Custom Components</ref>
+    <ref>Using the Custom Component JavaScript Class</ref>
+    <ref>Creating a Custom Component</ref>
+      <ref>Custom Component Sections and Events</ref>  
+        <ref>Sharing and Using a Custom Component</ref>
+          <ref>JQuery Support</ref>
+    
+  </see>
+  
+</page>

@@ -1,0 +1,380 @@
+<page>
+	<topic>CHECKOUTCALC.A5W</topic>
+<description>The CHECKOUTCALC.A5W page performs the final processing of an order. It updates tables, generates an invoice, optionally prints the invoice for the customer, and subtracts the items sold from inventory.</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+<description>The CHECKOUTCALC.A5W page does all of the processing to complete a sale. It runs in the MainFrame or body section of a frameset. The top section of the frameset loads first and shows a message that the page is processing.
+If the customer checkout process is complete and there are no errors, CHECKOUTCALC.A5W page does the processing to read the data from the shopping cart and complete a sale.
+CHECKOUTCALC.A5W includes Xbasic code to save data to the customer, invoice_header, and invoice_items tables. It also includes code to post the quantity sold to the product table to update the quantity in stock.
+This page includes sample code that illustrates how to use Authorize.Net to validate credit card or electronic check transactions.
+CHECKOUTCALC.A5W will create and send an email message if that option is selected. (deactivated in demo). Another option is to pre-build an invoice report and save it. If a report is saved, a button appears that allows the user to open the report in a separate browser window.
+</description>	
+	<note>Since this page opens within a frameset, any normal RESPONSE.REDIRECT() will just open the page defined in the body section of the frameset. Any redirect must be sent to a special page FRAMEEXIT.A5W that will 'break out' of the frameset. The name of the page to open after the 'break out' must be in the pg parameter.</note>
+</section>	
+<section>
+	<title>Links</title>
+<description>The CHECKOUTCOMP.A5W page displays the PROCESSING.HTM page, which places the CHECKOUTCALC.A5W page in the MainFrame section of its frameset.</description>	
+</section>	
+<section>
+	<description>CHECKOUTCALC.A5W in the WYSIWYG tab of the HTML Editor </description>
+	<figure><link>images/ASW_CHECKOUTCALC_A5W.gif</link></figure>
+	
+</section>	
+<section>
+	<description>CHECKOUTCALC.A5W in the Browser 
+</description>
+	<figure><link>images/ASW_CHECKOUTCALC_A5W_2.gif</link></figure>
+	
+</section>	
+
+
+
+<section>
+	<title>Edits to the Page Source</title>
+	<description>Initially, the page runs the sleep(.5) command, which pauses for .5 seconds to give the top frame time to display.
+</description>
+<example><![CDATA[sleep(.5)
+]]></example>
+	
+</section>	
+<section>
+	<description>Next, the page script tests to see if it has received proper values in the calling URL. If the cart_id argument is missing or is NULL, control goes back to CHECKOUTCART.A5W.
+</description>
+<example><![CDATA[if eval_valid("cart_id") = .F.
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif cart_id = ""
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if
+]]></example>
+	
+</section>	
+<section>
+	<description>Next, the script evaluates the protected variable session.protectedchkoutprogress. If it does not exist, the first checkout page was not completed and control goes back to CHECKOUTCART.A5W. If session.protectedchkoutprogress is less than 3 (the last page of checkout), then control goes back to CHECKOUTCART.A5W.
+</description>
+<example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif session.protectedchkoutprogress < 3
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if
+]]></example>
+	
+</section>	
+<section>
+	<description>If session.protectedchkout is FALSE (.F.), then no values were passed from page 3 of the checkout and control goes back to CHECKOUTCART.A5W. If session.protectedchkout.first_name is NULL, then the first name field is empty and control goes back to CHECKOUTCART.A5W.
+</description>
+<example><![CDATA[if eval_valid("session.protectedchkout") = .F. 'no values passed from page 3
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif session.protectedchkout.first_name = "" 'no values passed from page 3 (first_name was required)
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if
+]]></example>
+	
+</section>	
+<section>
+	<description>The code also moves the protected session.protectedchkout variable to chkout_vars before any data processing takes place, such as saving a new customer. Afterwards, it deletes session.protectedchkout.
+If the user presses the back button after the protected session variable is deleted, no session variables will exist. If the user clicks submit at this point, he or she will be sent back to the beginning of the check out process.
+Next, the page script verifies the user's input. If the customer is new, it saves a new customer record. Then, the code creates an invoice_header table record. The items in the shopping cart become records in the invoice_items table. Finally, the script sends a confirmation email and/or prints an invoice.
+</description>
+<example><![CDATA[dim chkout_vars as P
+property_recurse_assign(chkout_vars, session.protectedchkout)
+delete session.protectedchkout 'delete session variable
+]]></example>
+	
+</section>	
+<section>
+	<description>This section is for an AuthorizeNet transaction. If you are using another type of authorization, remove this section. You must supply some information to AuthorizeNet, including the AuthorizeNet supplied login and transaction key. This data should stored in a secure location - NOT ON THIS PAGE - and added when the page is run. One option is an encrypted text file in the data folder. This text file can be retrieved and decrypted at run time, and the values added to the page.
+Example code to create and retrieve a text file is saved in the "SampleAuthorizeNetCode.txt" file in the application database folder.
+Create the AuthorizeNet_transaction object and set required fields.
+</description>
+<example><![CDATA['dim x as AuthorizeNet_transaction
+'x.login = "blahblahblah"
+'x.tran_key = "aBcDeFgHiJkLmN"
+'x.amount = alltrim(chkout_vars.total)
+'x.card_num = alltrim(chkout_vars.cc_number)
+'x.exp_date = alltrim(chkout_vars.cc_expire)
+'x.type = "AUTH_CAPTURE"
+'x Include optional billing information, if desired
+'x.first_name = alltrim(chkout_vars.first_name)
+'x.last_name = alltrim(chkout_vars.last_name)
+'x.company = alltrim(chkout_vars.company)
+'x.address = alltrim(chkout_vars.addr1) + " " +alltrim(chkout_vars.addr2)
+'x.city = alltrim(chkout_vars.city)
+'x.state = alltrim(chkout_vars.state)
+'x.zip = alltrim(chkout_vars.zip)
+'x.phone = alltrim(chkout_vars.phone)
+]]></example>
+	
+</section>	
+<section>
+	<description>If you wish, include optional additional customer data.
+</description>
+<example><![CDATA['if alltrim(chkout_vars.customerid) <> "" ' existing customer
+'    x.cust_id = alltrim(chkout_vars.customerid) 'can be any string up to 20 characters
+'end if
+]]></example>
+	
+</section>	
+<section>
+	<description>Configure the email confirmations.
+</description>
+<example><![CDATA['x.email = alltrim(chkout_vars.email) 'customer email address for transaction confirmation
+'x.email_customer = .t. 'send email confirmation to customer
+'x.merchant_email = "msgboard@alphasoftware.com" 'merchant email address for transaction confirmation
+]]></example>
+	
+</section>	
+<section>
+	<description>Include optional ship-to information.
+</description>
+<example><![CDATA['x.ship_to_last_name = alltrim(chkout_vars.ship_to_name)
+'x.ship_to_address = alltrim(chkout_vars.ship_to_address)+" "+alltrim(chkout_vars.saddr2)
+'x.ship_to_city = alltrim(chkout_vars.ship_to_city)
+'x.ship_to_state = alltrim(chkout_vars.ship_to_state)
+'x.ship_to_zip = alltrim(chkout_vars.ship_to_zip)
+]]></example>
+	
+</section>	
+<section>
+	<description>Process the transaction. x.process() will return TRUE if the transaction server accepted the request and attempted to process the transaction.
+</description>
+<example><![CDATA['dim result_msg as C
+'result_msg = ""
+'if x.process()then '
+'    dim y as P
+'    y = x.result
+'    result_msg = y.Response_Reason_Text
+'    if (y.response_code = "1")     ' Authorize.Net defines response code 1 as "Approved"
+'       result_msg = ""
+'    elseif (y.response_code = "2")       'Authorize.Net defines response code 2 as "Declined"
+'       result_msg = "Transaction Declined"
+'    elseif (y.response_code = "3")       'Authorize.Net defines response code 3 as "Error"
+'       result_msg = "Transaction Error"
+'    end if
+'else    'if x.process()is false, the transaction server could not be contacted or did not respond in a timely manner
+'    result_msg = "Transaction could not be completed"
+'end if
+]]></example>
+	
+</section>	
+
+<section>
+	<description>Remove the AuthorizeNet_transaction object and respond to any error conditions.
+</description>
+<example><![CDATA['delete x ' remove AuthorizeNet object
+' If authorize.net transaction fails, show an error message on this page instead of the normal title
+' Stop processing HERE, and send user back to first page in checkout
+'if result_msg <> "" ' an error occured
+'    page_title = "Processing ERROR - "+result_msg
+'    redirect_page = "checkoutcart.a5w"
+'    PrintTarget = ""
+'    goto run_page ' skip processing section and show page
+'end if
+]]></example>
+	
+</section>	
+<section>
+	<description>The next step is to create a new record in the invoice_header table. The delivery_by value is determined by looking into the shipping_types table and filtering on the delivery code stored in chkout_vars.delivery_by variable.
+</description>
+<example><![CDATA[delivery_by = table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "alltrim(delivery_by)", "", "ship_code =\"" + alltrim(chkout_vars.delivery_by) + "\"")
+tbl2 = table.open("PathAlias.ADB_Path\invoice_header.dbf")
+tbl2.enter_begin()
+tbl2.Customer_id = alltrim(chkout_vars.customerid)
+tbl2.Date = date()
+tbl2.Sales_rep = "Web Sale"
+tbl2.Delivery_by = delivery_by
+tbl2.Pay_method = alltrim(chkout_vars.pay_method)
+tbl2.Sales_tax = 0 ' could populate from table
+tbl2.Discount = 0 ' no discount from web
+' these 2 could be left blank for security reasons
+tbl2.Cc_number = remspecial(chkout_vars.cc_number)
+tbl2.Cc_expiration = alltrim(chkout_vars.cc_expire)
+tbl2.Type = "Web"
+tbl2.Shipping = chkout_vars.ship_cost
+tbl2.enter_end()
+chkout_vars.invoice_no = tbl2.Invoice_number
+tbl2.close()
+]]></example>
+	
+</section>	
+<section>
+	<description>Next, the page script creates invoice lines from the shopping cart and erases entries to indicate that the cart has been used. The current shopping cart is identified by cart_id stored in a session cookie.
+The invoice lines are saved using a special set definition. This set links the product and specials tables to the shop_cart table records with product_id. The invoice_items table requires a selling price, which can come from either the product or specials tables. If the item is on "special", the price will come from the linked record in the specials table. Otherwise, it comes from the linked record in the product table.
+First, search for records in this cart by defining query.filter and query.order.
+</description>
+<example><![CDATA[query.filter = "Cart_Id = \"" + cart_id + "\".and. Quantity > 0"
+query.order = ""]]></example>
+	
+</section>	
+<section>
+	<description>Open the shop_cart_values set and see how many records there are. If there are no items, return control back to CHECKOUTCART.A5W.
+</description>
+<example><![CDATA[tbl3 = table.open("PathAlias.ADB_Path\shop_cart_values.set")
+qdx = tbl3.query_create()
+if qdx.records_get()= 0
+    tbl3.close()
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if]]></example>
+	
+</section>	
+<section>
+	<description>Otherwise, open the shop_cart, product, specials, and invoice_items tables.
+</description>
+<example><![CDATA[tbl4 = table.get("shop_cart")
+tbl5 = table.get("product")
+tbl6 = table.get("specials")
+tbl7 = table.open("PathAlias.ADB_Path\invoice_items.dbf")]]></example>
+	
+</section>	
+
+<section>
+	<description>Step through the records of the shop_cart_values set and add values to the invoice_items table.
+</description>
+<example><![CDATA[while .not. tbl3.fetch_eof()
+    tbl7.enter_begin()
+    tbl7.Invoice_number = chkout_vars.invoice_no
+    tbl7.Product_id = tbl4.Prod_Id
+    tbl7.Quantity = tbl4.quantity
+    if tbl6.Sale_Price > 0 .and. (tbl6.Sale_Until >=date().or. cdate(tbl6.Sale_Until) = "") ' product is on special
+        tbl7.Price = tbl6.Sale_Price
+    else
+        tbl7.Price = tbl5.Retail
+    end if
+    tbl7.enter_end()]]></example>
+	
+</section>	
+<section>
+	<description>Erase the shop_cart_values fields after they are transferred.
+</description>
+<example><![CDATA[tbl3.change_begin()'empty values in cart to 'delete' cart
+    tbl3.cart_id = ""
+    tbl3.session_id = ""
+    tbl3.open = .F.
+    tbl3.Owner_Id = ""
+    tbl3.change_end()
+    tbl3.fetch_next()
+end while
+tbl3.close()
+tbl7.close()
+]]></example>
+	
+</section>	
+<section>
+	<description>Post item sold quantities to the product table with a posting operation. We copied the code from the Post_Sales_Quantities operation and modified it.
+</description>
+<example><![CDATA[a_tbl = table.open("PathAlias.ADB_Path\product.dbf")
+post.t_db = "PathAlias.ADB_Path\invoice_items.DBF"
+post.m_key = "PRODUCT_ID"
+post.t_key = "PRODUCT_ID"
+post.m_filter = ""
+post.t_filter = "Invoice_Number =\""+alltrim(chkout_vars.invoice_no)+"\""
+post.m_count = 1
+post.m_field1 = "Qty_In_Sto"
+post.m_exp1 = "Qty_In_Sto-@Invoice_Items->Quantity"
+post.t_count = 0
+a_tbl.post()
+a_tbl.close()]]></example>
+	
+</section>	
+<section>
+	<description>Next, create the body of the email ( email_body ). Note the placeholders "invoice_number" and "shipping", which will be replaced later.
+</description>
+<example><![CDATA[email_body = <<%text%
+Thank you for shopping at Alpha Sports!
+The order below has been charged to your credit card and has been shipped.
+Invoice Number: invoice_number
+Shipping Information:
+shipping
+For more detail, log in to Alpha Sports and view your Order History.
+%text%
+]]></example>
+	
+</section>	
+
+<section>
+	<description>If the customer selected to receive an email confirmation, the script defines the email_subject and shipping variables.
+</description>
+	<example><![CDATA[if chkout_vars.confirm_email = "true"
+    email_subject = "Alpha Sports Order Confirmation"
+    shipping = alltrim(chkout_vars.ship_to_name) + crlf()+ alltrim(chkout_vars.ship_to_address)
+    if chkout_vars.saddr2 <> "" ' second address line
+        shipping = shipping + crlf()+ alltrim(chkout_vars.saddr2)
+    end if
+    shipping = shipping + crlf()+ alltrim(chkout_vars.ship_to_city) + ", " + alltrim(chkout_vars.ship_to_state) + " " + alltrim(chkout_vars.ship_to_zip)
+]]></example>
+</section>
+
+<section>
+	<description>Replace the place holders in email_body with the invoice number and shipping. Remove the comment marker to use the EMAIL_SEND() function to actually send the email.
+</description>
+	<example><![CDATA[email_body = stritran(email_body,"invoice_number", alltrim(chkout_vars.invoice_no) )
+    email_body = stritran(email_body,"shipping",shipping)
+    if chkout_vars.email <> "" ' verify an email address is available
+        ' email_send(chkout_vars.email, email_subject, email_body, "", "", "", .F.)
+    end if
+end if
+]]></example>
+</section>
+
+<section>
+	<description>If the user requested a printed invoice (actually a PDF file, which he could print), define the PrintTarget, filter, order, and filename variables. Create the PDF with the REPORT.SAVEAS() method and save the resulting URL in PrintTarget.
+</description>
+	<example><![CDATA[PrintTarget = "" 'target 'page' for report
+if chkout_vars.print_inv = "true"
+    dim filter as C
+    dim order as C
+    Filter = "Invoice_Number = " + quote(alltrim(chkout_vars.invoice_no) )
+    Order = ""
+    dim filename as C
+    filename = session.session_folder + chr(92) + "tempreport.pdf"
+    filename = report.saveas("Invoice@PathAlias.ADB_Path\invoice.set", "pdf", filter, order, filename, .f.)
+    if file.exists(filename)
+        PrintTarget = session.session_url + "tempreport.pdf?" + time("hms3")
+    end if
+end if
+redirect_page = "index.a5w"]]></example>
+</section>
+
+<section>
+	<description>After the processing is complete and the page displays, the script tests to see if PrintTarget has a non-null value. If so, the a button appears with the label "Print Your Invoice". Click this label opens the PDF file. Another button with the label "Click Here to Continue" exits from the page and loads INDEX.A5W.
+</description>
+	<example><![CDATA[
+<%a5 if PrintTarget <> "" %>		
+<input name="print_inv" type="button" id="print_inv" 
+ value="&nbsp;&nbsp;Print Your Invoice&nbsp;&nbsp;" 
+ 
+on <x> click="window.open('</span> <%a5 ?PrintTarget %>
+<%a5 end if %>		
+Click Here to Continue" on <x> click="window.location='frameexit.a5w?pg=<%a5 ?redirect_page %>'"		
+	 ]]></example>
+</section>
+
+
+
+
+
+
+
+
+
+<section>
+	<title>Page Security Information</title>
+	<description>Always Allowed
+</description>
+
+	
+</section>	
+
+	
+</sections>	
+	<see>
+		<ref>Web Pages</ref>
+	</see>
+</page>

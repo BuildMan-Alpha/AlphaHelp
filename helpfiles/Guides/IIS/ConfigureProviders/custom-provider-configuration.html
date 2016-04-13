@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta HTTP-EQUIV="MSThemeCompatible" content="Yes" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="description" content="Creating custom providers for Alpha Anywhere Application Server for IIS." />
+
+<title>Custom Provider Configuration - Alpha Anywhere Application Server for IIS</title>
+
+<style>
+html {
+	font-family: Tahoma, sans-serif;
+	font-size: 9pt;
+}
+
+h1 {
+color: red;
+font-weight: bold;
+font-size: 10pt;
+}
+
+h2 {
+  font-weight: bold;
+  font-size: 10pt;
+}
+
+.title {
+font-size: 11pt;
+color: red;
+font-weight: bold;
+text-align: center;
+}
+
+body {
+background: lightgray;
+margin: 3em auto;
+max-width: 50em;
+}
+
+body div.wrapper {
+  background: white;
+  box-shadow: 1px 1px 1px 1px #888888;
+  padding: 25px;
+}
+
+p {
+margin-bottom: 10px;
+margin-top: 0px;
+line-height: 1.3;
+}
+
+img {
+  text-align:center;
+  max-width: 45em;
+  max-height: 35em;
+}
+
+li img {
+	max-width: 40em;
+}
+
+.note {
+padding: 10px;
+background-color: #f0f0f0;
+border-radius: 3px;
+margin-bottom: 1em;
+}
+
+table {
+  font-size:inherit;
+  padding: 5px;
+}
+
+table.command-line-options > tbody > tr > td:nth-child(1) {
+  width: 3em;
+}
+
+.note img {
+  max-width: 40em;
+}
+
+.fixedfont {
+	font-family: monospace;
+}
+
+.italic {
+	font-style: italic;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+</style>
+
+</head>
+<body>
+<div class="wrapper">
+<p><div class="title">Custom Provider Configuration - Alpha Anywhere Application Server for IIS</div></p>
+
+<a name="introduction">
+<h1>Introduction</h1>
+</a>
+<div class="note">
+<span style="font-weight: bold;">Note</span>: When this article was written Oracle was not a built-in option for provider
+type. It has since been added as a built-in type along with MySQL. So while this article describes how to configure a
+custom provider using Oracle, if you need to use Oracle for your provider you can now use the built-in provider type.
+</div>
+
+<p>
+One of the benefits of using IIS as the web server for Alpha Anywhere applications is the provider architecture IIS uses. 
+You can develop an application knowing that it can be deployed to different customers with only configuration changes.
+One area where this stands out is for authentication and authorization. IIS uses a membership provider for authenticating 
+users and a role provider for authorizing users. One customer may need to use SqlServer for their security data and therefore
+need to use the SqlServerMembershipProvider and SqlServerRoleProvider. Another customer my need to use Oracle for their security 
+data and therefore need to use the OracleMembershipProvider and OracleRoleProvider. Your application can use either with a 
+configuration change. The following is a description of using an Oracle database for authenticating and authorizing users in 
+an application by configuring a custom provider in <span class="italic">Alpha Anywhere Developer Edition</span>. The same high 
+level steps are used for any other custom provider:
+
+<ol>
+	<li>
+	<a href="#install-database-drivers">Install database drivers for Alpha Anywhere Developer Edition and for IIS</a>
+	</li>
+	<li>
+	<a href="#install-schema">Install a schema for ASP.NET providers</a>
+	</li>
+	<li>
+	<a href="#create-publish-profile">Create a publish profile that uses the chosen membership and role providers</a>
+	</li>
+	<li>
+	<a href="#publish-to-iis">Publish to IIS</a>
+	</li>
+	<li>
+	<a href="#test-auth">Test Authentication and Authorization</a>
+	</li>
+</ol>
+
+There are a companion set of short videos that goes along with this document. The videos total about 15 minutes and go through 
+all these steps in this document. You should read through this document first to get proper context for the videos.
+
+<ul>
+	<li>
+	<a href="http://www.ajaxvideotutorials.com/V12Videos/CustomIISProviders1.swf">Custom provider configuration - Part 1</a>
+	</li>
+	<li>
+	<a href="http://www.ajaxvideotutorials.com/V12Videos/CustomIISProviders2.swf">Custom provider configuration - Part 2</a>
+	</li>
+	<li>
+	<a href="http://www.ajaxvideotutorials.com/V12Videos/CustomIISProviders3.swf">Custom provider configuration - Part 3</a>
+	</li>
+	<li>
+	<a href="http://www.ajaxvideotutorials.com/V12Videos/CustomIISProviders4.swf">Custom provider configuration - Part 4</a>
+	</li>
+</ul>
+
+</p>
+
+<a name="install-database-drivers">
+<h1>Install database drivers for Alpha Anywhere Developer Edition and for IIS</h1>
+</a>
+<p>
+The drivers have a pre-requisite of .NET 3.5 so make sure that is installed on the server and development machine.
+Install the 32-bit Oracle Data Access Components (ODAC) on the development machine and install both the 32-bit and 
+64-bit ODAC on the IIS server machine. The 64-bit ODAC is needed on the server machine so that you can manage 
+users and roles with the IIS Manager ".NET Users" and ".NET Roles" feature. 
+</p>
+
+<p>
+For the purpose of these instructions I am running IIS and the Alpha Anywhere Developer Edition on the same machine so 
+I installed the 32-bit and 64-bit ODAC on that machine. I chose to use the "xcopy" installers using ODAC121021Xcopy_x64.zip 
+and ODAC121021Xcopy_32bit.zip. I unzipped the 32bit.zip file into a "x32" folder and the 64bit.zip into an "x64" folder. 
+Following the instructions in the readme.htm in the zip file(s) I installed with the following command lines:
+</p>
+
+<p>
+in the x32 folder:<br/>
+<span class="fixedfont">install.bat all c:\oracle-32 odac-32</span>
+</p>
+
+<p>
+in the x64 folder:<br/>
+<span class="fixedfont">install.bat all c:\oracle-64 odac-64</span>
+</p>
+
+<p>
+I then added <span class="fixedfont">c:\oracle-32;c:\oracle-32\bin;c:\oracle-64;c:\oracle-64\bin;</span> to the beginning of my system PATH and 
+rebooted my machine to make sure everything will have that in its path.
+</p>
+
+<a name="install-schema">
+<h1>Install a schema for ASP.NET providers</h1>
+</a>
+<p>
+Follow the instructions for <a href="http://docs.oracle.com/html/E10928_01/IntroInstallation.htm#BHCFFECE">Database Server Setup</a> 
+in the <span class="italics">Oracle Providers for ASP.NET Installation</span> document to initialize a schema the Oracle providers 
+will use. You at least need schema for the Oracle Membership Provider and the Oracle Role Provider. I set up all the providers using 
+the <span class="fixedfont">InstallAllORacleASPNETProviders.sql</span> script.
+</p>
+
+<p>
+The last piece of configuration that you need to do is to allow IIS to use the Oracle providers. This is done by adding the 
+Oracle providers as "Trusted Provider" in IIS. This must be done by editing the 
+<span class="fixedfont">C:\Windows\System32\inetsrv\config\administration.config</span> file. You will need to do this from 
+an editor "Run as Administrator" or from an editor started from an administrator command prompt. Edit the file and add the 
+following 2 lines to the "trustedProviders" section:
+</p>
+
+<p class="fixedfont">
+&lt;add type="Oracle.Web.Security.OracleMembershipProvider, Oracle.Web, Version=2.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342" /&gt;
+<br/><br/>
+&lt;add type="Oracle.Web.Security.OracleRoleProvider, Oracle.Web, Version=2.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342" /&gt;
+</p>
+
+<p>
+<a href="images/administration-config.png"><img src="images/administration-config.png" alt="Configure providers."></img></a>
+</p>
+
+<p>
+The client and server are now setup to select and use Oracle membership and role providers.
+</p>
+
+<a name="create-publish-profile">
+<h1>Create a publish profile that uses the chosen membership and role providers</h1>
+</a>
+<p>
+Create a new publish profile for IIS. When you get to the <span class="bold">Security Store Configuration</span> page change the 
+Membership source to “Custom”.
+</p>
+
+<p>
+<a href="images/membership-source.png"><img src="images/membership-source.png" alt="Configure providers."></img></a>
+</p>
+
+<p>
+Create a connection string your Oracle database and give the connection string a name.
+</p>
+
+<p>
+<a href="images/connection-string-and-name.png"><img src="images/connection-string-and-name.png" alt="Configure providers."></img></a>
+</p>
+
+<div class="note">
+<span style="font-weight: bold;">Note</span>: For the purpose of this example the credentials used in the connection string has both
+read and write access to the security database. If you need to use a connection string with credentials that have read-only access to the
+security database then you will need to use the <span class="italic">Use a different connection string than the provider configuration above.</span>
+option to specify a connection string with credentials that have read-write access to the security database so that users and roles may
+be updated at publish time. If you do not need to update users and roles at publish time you do not need to specify a connection string with 
+read-write credentials.<br/><br/>
+<a href="images/read-write-connection-string.png"><img src="images/read-write-connection-string.png" alt="Connection string for publish users and roles."></img></a>
+</div>
+
+<p>
+Now select the Oracle membership provider class by clicking on the smart button on the right of the Provider class edit box. 
+The dialog may take a few seconds to display because it is loading all the class names available in the GAC. Enter "Oracle" 
+in the <span class="bold">Assembly list filter</span> prompt and then select the <span class="fixedfont">Oracle.Web Version 2.121.2.0</span>
+assembly. Be sure to select the one with <span class="fixedfont">processorArchitecture</span> set to <span class="bold">x86</span>. 
+This is required so that the IDE will be able to load the types from the assembly.
+</p>
+
+<p>
+<a href="images/select-provider-assembly-oracle.png"><img src="images/select-provider-assembly-oracle.png" alt="Configure providers."></img></a>
+</p>
+<p>
+<a href="images/select-provider-assembly-x86.png"><img src="images/select-provider-assembly-x86.png" alt="Processor architecture x86."></img></a>
+</p>
+
+<p>
+Select the <span class="fixedfont">OracleMembershipProvider</span> type in the right hand list and then select OK. The 
+provider class assembly-qualified name will be set.
+</p>
+
+<p>
+<a href="images/assembly-qualified-name.png"><img src="images/assembly-qualified-name.png" alt="Assembly qualified name."></img></a>
+</p>
+
+<p>
+Now click on the “Edit provider parameters” button to set the provider’s parameters.
+</p>
+
+<p>
+<a href="images/edit-provider-parameters-button.png"><img src="images/edit-provider-parameters-button.png" alt="Edit provider parameters."></img></a>
+</p>
+
+<p>
+A grid will display with the available parameters for the <span class="fixedfont">OracleMembershipProvider</span>.
+</p>
+<div class="note">
+<span style="font-weight: bold;">Note</span>: It is important to specify a value for the <span class="fixedfont">ApplicationName</span>
+ parameter. This value should at least be a forward slash ("/"). In the image below it is set to "/FirstOracleTest".
+</div>
+
+<p>
+<a href="images/provider-class-parameters-dialog.png"><img src="images/provider-class-parameters-dialog.png" alt="Provider class parameters dialog."></img></a>
+</p>
+
+<p>
+Note the message in the dialog that not every available parameter is listed because some are automatically set at publish 
+time from the security settings.
+</p>
+
+<p>
+Now repeat these steps for the <span class="italic">Role</span> tab. Change the Role source to Custom. Enter the connection string to 
+the database. This time choose the <span class="fixedfont">OracleRoleProvider</span> class and be sure to set it’s ApplicationName 
+parameter to the same as used for the Membership provider.
+</p>
+
+<p>
+<a href="images/role-provider-tab.png"><img src="images/role-provider-tab.png" alt="Role provider tab."></img></a>
+</p>
+
+<p>
+I will use the <span class="bold">Local State Server</span> for <span class="italic">SessionState</span> in this example. 
+To use <span class="italic">Oracle</span> for storing the session state, follow the same steps again for setting the 
+SessionState <span class="italic">State server source</span> to <span class="bold">Custom</span>, selecting the 
+<span class="fixedfont">OracleSessionStateStore</span> for the provider class, and setting any needed parameters.
+</p>
+
+<p>
+<a href="images/session-state.png"><img src="images/session-state.png" alt="Session state provider set to local state server."></img></a>
+</p>
+
+<p>
+Finally, select <span class="bold">None</span> for the <span class="italic">Profile source</span> on the <span class="italic">Profile</span> tab.
+</p>
+
+<p>
+<a href="images/profile-none.png"><img src="images/profile-none.png" alt="Profile provider set to none."></img></a>
+</p>
+
+<p>
+Save the settings by clicking on the Finish button.
+</p>
+
+<p>
+<a href="images/name-profile.png"><img src="images/name-profile.png" alt="Name profile Test Oracle Providers."></img></a>
+</p>
+
+<p>
+Now you can publish your application to IIS and have it use Oracle for authentication and authorization.
+</p>
+
+<a name="publish-to-iis">
+<h1>Publish to IIS</h1>
+</a>
+<p>
+When you publish to IIS and your application has security data there is a publish option to publish users and roles. 
+Since I have just created a new schema that does not have any users or roles in it I want to add the users and roles 
+defined in my security settings to the Oracle database. I choose the "Preserve" option which will check to see if any 
+users and roles exist. If at least one of either users or roles exist no security data is published. There are other 
+options to merge, replace, or ignore depending on your situation.
+</p>
+
+<p>
+<a href="images/publish-dialog.png"><img src="images/publish-dialog.png" alt="Publish dialog."></img></a>
+</p>
+
+<p>
+Now when I publish, the users and roles will be added to the Oracle database before my application is added to IIS.
+</p>
+
+<a name="test-auth">
+<h1>Test Authentication and Authorization</h1>
+</a>
+<p>
+Run your application and log in.
+</p>
+<p>
+Login error details will be stored in the <span class="fixedfont">Trace_AuthenticationFailure.log</span> file in the logging path. The logging path can be 
+seen from Alpha Anywhere Application Server "Logging" feature in IIS Manager.
+</p>
+
+<p>
+<a href="images/authentication-errors-log.png"><img src="images/authentication-errors-log.png" alt="IIS Manager authentication error log feature."></img></a>
+</p>
+
+</div>
+</body>
+</html>

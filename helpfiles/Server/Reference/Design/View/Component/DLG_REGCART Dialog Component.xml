@@ -1,0 +1,171 @@
+<page>
+	<topic>DLG_REGCART Dialog Component</topic>
+<sections>
+	<section>
+		<title>Description</title>
+		<description>The DLG_REGCART dialog component is used by new customers to enter security information before completing a sale. This is required before the sale can be completed. 
+</description>
+		<figure><link>images/ASW_dlg_regcart.gif</link></figure>
+	</section>
+<section>
+	<title>Discussion</title>
+<description>The DLG_REGCART dialog component contains the text controls necessary to add a security record for the user. 
+The name of each security control in the dialog must exactly match the name of the field in the user table. A list of valid security field names can be found by using the A5WS_User_File_Field_List() function. Two other fields are recognized by the security functions used in this component, confirm_password and groups. Confirm_password is used to confirm a password entry, and groups saves the security group assignments for this user. 
+There are four controls that have the control type set to "hidden". These controls are guid, groups, ulink and uservalues. These controls are required and hold values used in the events to find and save the correct records in the tables. The uservalues control contains user values passed from the CHECKOUTUSER.A5W page. 
+</description>	
+	
+</section>	
+<section>
+	<title>Containers</title>
+<description>CHECKOUTREGISTER.A5W
+</description>	
+</section>	
+
+<section>
+	<title>Notable Component Property Settings
+</title>
+<description>The dialog footer template is changed to add a row to show the case sensitive message and add an onclick event to the cancel button. The onclick event will force the page to reload. 
+</description>	
+<cases>
+	<case>
+		<title>Layout Options > Layout Calculation Mode</title>
+		<description>Changed to "Precalculate Layout".</description>
+	</case>
+	<case>
+		<title>Layout Options > Use simple style </title>
+		<description>Changed to TRUE.</description>
+	</case>
+	<case>
+		<title>Dialog Footer Layout > Freeform layout</title>
+		<description>Changed to TRUE.</description>
+	</case>
+	<case>
+		<title>Dialog Footer Layout > Dialog footer template</title>
+		<description>Changed to:</description>
+		<example><![CDATA[{SubmitButton}]]></example>
+	</case>
+	
+	
+</cases>	
+	
+</section>
+<section>
+	<title>Event Code
+</title>
+	<description>The Initialize event code sets a default value for the groups control that holds the value of security group for a customer user. If event verifies that the session variable session.protectedchkout exists and the session has not timed out. If the session has timed out, the user is redirected back to the beginning of the check out process. If the session variable exists, it contains all of the user values from the CHECKOUTUSER.A5W page. These values are converted to a property variable that is then converted to a string and encoded. The encoded value is added to the hidden field uservalues. The customer email value from the previous page is used as the default value for the userid. 
+</description>
+	<example><![CDATA['set default group value to proper guid for 'customers' group
+CurrentForm.Controls.groups.value = a5ws_get_guid_from_group("customers",request)
+dim user_values as p
+if eval_valid("session.protectedchkout") = .F. ' should always have values
+    CurrentForm.RedirectTarget = "checkoutcart.a5w"
+    end
+else
+    property_recurse_assign(user_values,session.protectedchkout)
+end if
+'prefill userid with email from previous page - email will be userid default value
+CurrentForm.Controls.userid.value = user_values.Email
+CurrentForm.Controls.uservalues.value = urlencode( property_to_string(user_values) ) ' save as encoded string
+ ]]></example>
+</section>
+<section>
+	<description>The Validate event code validates the security data entered, if any, and saves it if there are no errors. The function A5WS_SAVE_USER_VALUES()will return CurrentForm.Has_error = .t. if the data does not meet the security validation rules. 
+</description>
+	<example><![CDATA[a5ws_save_user_values(CurrentForm,request) ' validate and save 
+]]></example>
+</section>
+<section>
+	<description>The AfterValidate event code starts by converting the value in the hidden field uservalues back to to a property variable that will contain all of the customers information to be saved in the customer table. The record isn't saved in the customer table until a security record has been created in the Validate event. 
+</description>
+	<example><![CDATA[dim user_values as p
+dim value_list as c
+on error goto error_handler
+property_from_string( user_values,urldecode( alltrim(CurrentForm.Controls.uservalues.value) ) )
+value_list = properties_enum(user_values) ]]></example>
+</section>
+<section>
+	<description>The event code then verifies that values exist in the user_values variable and re-populates the session.protectedchkout variable. Firstname was a required field on the previous page and a value should exist. The code then searches for a customer record that matches the customer_id variable. This variable would have a value if this is an existing record. </description>
+	<example><![CDATA[if eval_valid("user_values.firstname") ' values saved
+    if user_values.firstname <> "" ' actual value in required field
+        if eval_valid("session.protectedchkout") = .F.
+            dim session.protectedchkout as p
+        end if
+        for each foo in value_list
+            eval("session.protectedchkout."+foo) = eval("user_values."+foo)
+        next
+        dim fLagNew as l = .T.
+        tbl = table.open("PathAlias.ADB_Path\customer.dbf")
+        if session.protectedchkout.customer_id <> "" ' check for existing customer record
+            query.order = "customer_id = \""+session.protectedchkout.customer_id+"\""
+            query.filter = ".T."
+            qdx = tbl.query_create()
+            if qdx.records_get() > 0
+                if tbl.fetch_find(session.protectedchkout.customer_id) > 0 ' find first record with cusotmer_id
+                    fLagNew = .F.
+                end if
+            end if
+        end if]]></example>
+</section>
+<section>
+	<description>If the flag is TRUE, this is a new record and a new record is saved into the customer table. If the flag is FALSE, this is an existing record and the record is edited. After the record is saved, the customer_id value for this new record is saved in a request variable. The security values are re-saved by the A5WS_SAVE_USER_VALUES() function to add this customer_id value to the security ulink field. </description>
+	<example><![CDATA[If fLagNew = .F.
+            tbl.change_begin() ' overwrite
+        else
+            tbl.enter_begin()
+        end if 
+        on error resume next ' skip any missing values
+        tbl.Firstname = alltrim(session.protectedchkout.firstname)
+        tbl.Lastname = alltrim(session.protectedchkout.lastname)
+        tbl.Company = alltrim(session.protectedchkout.company)
+        tbl.Phone = alltrim(session.protectedchkout.phone)
+        tbl.Bill_address_1 = alltrim(session.protectedchkout.Bill_address_1)
+        tbl.Bill_address_2 = alltrim(session.protectedchkout.Bill_address_2)
+        tbl.Bill_city = alltrim(session.protectedchkout.Bill_city)
+        tbl.Bill_state_region = alltrim(session.protectedchkout.Bill_state_region)
+        tbl.Bill_postal_code = alltrim(session.protectedchkout.Bill_postal_code)
+        tbl.Ship_same = convert_type(session.protectedchkout.ship_same,"L")
+        tbl.Ship_to_name = alltrim(session.protectedchkout.ship_to_name)
+        tbl.Ship_address_1 = alltrim(session.protectedchkout.ship_address_1)
+        tbl.Ship_address_2 = alltrim(session.protectedchkout.ship_address_2)
+        tbl.Ship_city = alltrim(session.protectedchkout.ship_city)
+        tbl.Ship_state_region = alltrim(session.protectedchkout.ship_state_region)
+        tbl.Ship_postal_code = alltrim(session.protectedchkout.ship_postal_code)
+        tbl.Email = alltrim(session.protectedchkout.email)
+        if FlagNew = .F.
+            tbl.change_end()
+            tbl.close()
+        else
+            tbl.enter_end()
+            session.protectedchkout.customer_id = alltrim(tbl.Customer_id)
+            tbl.close()
+        end if 
+        on error goto 0
+        request.variables.ulink = session.protectedchkout.customer_id ' reset ulink request variable to send back to 'a5ws_save_user_values'
+        a5ws_save_user_values(CurrentForm,request)]]></example>
+</section>
+<section>
+	<description>Finally, the event checks if a variable named pg was passed from the page. This variable is assigned in the page code and would contain the name of the next page in the checkout process. 
+</description>
+	<example><![CDATA[if eval_valid("request.variables.pg") ' variable 'pg' passed to dialog from page - page to go to next
+            CurrentForm.RedirectTarget = request.variables.pg
+        else
+            CurrentForm.RedirectTarget = "processing.htm" ' continue to processing page
+        end if 
+        end
+    end if 
+end if 
+CurrentForm.RedirectTarget = "checkoutcart.a5w" ' no user information found, start over
+end 
+error_handler: 
+resume next
+]]></example>
+</section>
+
+	
+</sections>	
+	<see>
+		<ref>Web Publishing Components</ref>
+	</see>
+	
+	
+</page>

@@ -1,0 +1,244 @@
+<page>
+	<topic>INVDETAIL.A5W</topic>
+<description>The INVDETAIL.A5W page displays a printable version of an invoice.
+</description>	
+
+<sections>
+<section>
+	<title>Discussion</title>
+<description>The INVDETAIL.A5W page shows the process of using Xbasic to populate a HTML page. INVDETAIL.A5W uses conventional HTML, page styles, and an Alpha Five style sheet. We originally created the page in another HTML editing program. The page uses Xbasic to populate a series of dot variables, then uses embedded  strings to display the variables on the page.
+INVDETAIL.A5W is display only. It has no objects and no code to capture values. INVDETAIL.A5W is an example of a page that could be printed using the print option of the browser.
+</description>	
+<note>Do not open this page in the WYSIWYG tab of the HTML Editor and then save it. This will result in the loss of Xbasic code, which the underlying Microsoft ActiveX control does not properly support.</note>	
+	
+</section>	
+<section>
+<title>The following links display the INVDETAIL.A5W page.
+</title>	
+<cases>
+	<case>
+		<description>The Your Account > Order History entry of the NAV_MAIN navigation component displays the SALESHIST.A5W page. Clicking a Detail button on this page displays the INVDETAIL.A5W page.
+</description>
+	</case>
+	<case>
+		<description>The GRD_INVHCP grid component calls the INVDETAIL.A5W page.
+</description>
+	</case>
+	<case>
+		<description>the Sales > Invoices entry of the NAV_INT navigation component displays the ASWINVOICES.A5W page. Clicking a Detail button displays the INVDETAIL.A5W page.
+</description>
+	</case>
+	<case>
+		<description>the Sales > Sales History entry of the NAV_INT navigation component displays the ASWSALESHIST.A5W page. The Last Sale link displays the INVDETAIL.A5W page.
+INVDETAIL.A5W in the WYSIWYG tab of the HTML Editor </description>
+<figure><link>images/ASW_INVDETAIL_A5W.gif</link></figure>
+	</case>
+	<case>
+		<description>INVDETAIL.A5W in the Browser </description>
+		<figure><link>images/ASW_INVDETAIL_A5W_2.gif</link></figure>
+		
+	</case>
+	
+	
+</cases>	
+	
+	
+</section>	
+<section>
+	<title>Page Source</title>
+	<description>The URL that loads INVDETAIL.A5W is supposed to pass the value of inv as an argument. If inv is missing or is NULL, this code displays ERRORPAGE.HTM.
+</description>
+	<example><![CDATA[if eval_valid("inv") = .F.
+    response.redirect("errorpage.htm")
+    end
+end if
+if inv = ""
+    response.redirect("errorpage.htm")
+    end
+end if]]></example>
+</section>	
+<section>
+	
+	<description>This code retrieves all the records from the invoice_header table where the invoice_number equals inv. It then copies the records field values into the flds[] array.
+</description>
+	<example><![CDATA[dim flds[1] as P
+flds.initialize_from_table("PathAlias.ADB_Path\invoice_header.dbf", "alltrim(Invoice_Number)=\"" + inv + "\"")
+if eval_valid("flds[1].invoice_number") = .F. ' no data returned, show error
+    response.redirect("errorpage.htm")
+    end
+end if
+]]></example>
+</section>	
+<section>
+	
+	<description>This code retrieves all the records from the customer table where the customer_id equals flds[1].customer_id). It then copies the records field values into the fldsc[] array.</description>
+	<example><![CDATA[dim fldsc[1] as p
+fldsc.initialize_from_table("PathAlias.ADB_Path\customer.dbf", "alltrim(Customer_Id)=\"" + alltrim(flds[1].customer_id) + "\"")
+if eval_valid("fldsc[1].customer_id") = .F. ' no data returned, show error
+    response.redirect("errorpage.htm")
+    end
+end if
+]]></example>
+</section>	
+<section>
+	
+	<description>Next, the page script sets the values of the cust_name and cust_citystate variables.
+</description>
+	<example><![CDATA[dim cust_name as C
+dim cust_citystate as C
+cust_name = alltrim(fldsc[1].firstname) + " " + alltrim(fldsc[1].lastname)
+cust_citystate = alltrim(fldsc[1].bill_city) + " " + alltrim(fldsc[1].bill_state_region) + " " + alltrim(fldsc[1].bill_postal_code)
+]]></example>
+</section>	
+<section>
+	
+	<description>This part of the script conditionally sets the values of the shipping variables.
+</description>
+	<example><![CDATA[if fldsc[1].ship_same = .T.
+    ship_name = "Same as Billing"
+    ship_address1 = " "
+    ship_address2 = " "
+    ship_citystate = " "
+else
+    ship_name = alltrim(fldsc[1].ship_to_name)
+    ship_address1 = alltrim(fldsc[1].ship_address_1)
+    ship_address2 = alltrim(fldsc[1].ship_address_2)
+    ship_citystate = alltrim(fldsc[1].ship_city) + " " + alltrim(fldsc[1].ship_state_region) + " " + alltrim(fldsc[1].ship_postal_code)
+end if]]></example>
+</section>	
+<section>
+
+	<description>The part of the code retrieves a list of items in the order from the invoice_items table and places it into item_str. If item_str is empty, it sets the values of the display variables to NULL, then skips to show_page.
+</description>
+	<example><![CDATA[item_str = set.external_record_content_get("PathAlias.ADB_Path\invoice.set", "invoice_items->product_id + \"|\" + product->description + \"|\" + invoice_items->price + \"|\" + invoice_items->quantity", "invoice_number", "alltrim(invoice_number)=\"" + inv + "\"")
+numitems = line_count(item_str)
+if numitems = 0 ' no data returned, show empty
+    dim fldsi[1] as p
+    fldsi.initialize_properties("product_id|desc|price|quan|extension","||||")
+    ext_total_disp = "" 'extended total for line items
+    disc_disp = ""'Discount to display
+    tax_disp = "" 'tax to display
+    inv_disp = ""
+    numitems = 1
+    goto show_page
+end if]]></example>
+</section>	
+<section>
+	
+	<description>If there were one or more items found in the order, this code copies them into the fldsi[] array.
+</description>
+	<example><![CDATA[dim fldsinumitems as p
+fldsi.initialize_properties("product_id|desc|price|quan|extension",item_str)
+]]></example>
+</section>	
+<section>
+	
+	<description>These lines recalculate invoice totals from items found.
+</description>
+	<example><![CDATA[ext_total = 0 ' extended total for line items
+for i = 1 to numitems
+    fld_ext = 0
+    fld_ext = val(fldsi[i].quan) * val(fldsi[i].price)
+    ext_total = ext_total + fld_ext
+    fldsi[i].price = alltrim( str(val(fldsi[i].price),12,2,"$(") ) ' convert to numeric, reconvert and format to character
+    fldsi[i].extension = alltrim( str(fld_ext,12,2,"$(B") )
+next]]></example>
+</section>	
+<section>
+
+	<description>Next, the script formats numeric variables.
+</description>
+	<example><![CDATA[if str(flds[1].discount, 12, 2) = "" 'use convert to eliminate odd values from NULL numeric
+    disc_total = 0
+else
+    disc_total = round((flds[1].discount * ext_total)*-.01, 2) ' discount to apply
+end if
+taxable_total = ext_total + disc_total ' remove discount from taxable amt (discount is negative)
+
+if str(flds[1].shipping,12,2) <> "" ' add shipping BEFORE adding tax - NOTE: If shipping is NOT taxable, add this after tax calculation
+    taxable_total = taxable_total + flds[1].shipping
+end if
+
+if str(flds[1].sales_tax, 12, 2) = "" 'use convert to eliminate odd values from NULL numeric
+    tax_total = 0
+else
+     tax_total = round((flds[1].sales_tax *taxable_total) *.01, 2) ' sales tax to apply
+end if
+inv_total = taxable_total + tax_total]]></example>
+</section>	
+<section>
+	
+	<description>Then it converts them to character variables.
+</description>
+	<example><![CDATA[ext_total_disp = alltrim( str(ext_total,12,2,"$(") ) 'extended total for line items
+if disc_total = 0
+    disc_disp = " "
+else
+    disc_disp = alltrim( str(disc_total,12,2,"$(-B") )'Discount to display
+end if
+if tax_total = 0
+    tax_disp = " "
+else
+    tax_disp = alltrim( str(tax_total,12,2,"$(B") ) 'tax to display
+end if
+inv_disp = alltrim( str(inv_total,12,2,"$(") ) 'invoice total to display
+show_page:]]></example>
+</section>	
+<section>
+
+	<description>This part of the page conditionally displays the second billing address, if it is not NULL.</description>
+	<example><![CDATA[<dl>
+<%a5 ?alltrim(cust_name) %>
+<%a5 ?alltrim(fldsc[1].bill_address_1) %>
+<%a5 if alltrim(fldsc[1].bill_address_2) <> "" %>
+<%a5 ?alltrim(fldsc[1].bill_address_2) %> 
+<%a5 end if %>
+<%a5 ?alltrim(cust_citystate) %>
+</dl>
+]]></example>
+</section>	
+
+<section>
+	
+	<description>This part of the page conditionally displays the second shipping address, if it is not NULL.
+</description>
+	<example><![CDATA[<dl>
+<%a5 ?alltrim(ship_name) %>
+<%a5 ?alltrim(ship_address1) %>
+<%a5 if ship_address2 <> "&nbsp;" %>
+<%a5 end if %>
+<%a5 ?alltrim(ship_citystate) %>
+</dl>  ]]></example>
+</section>	
+<section>
+	
+	<description>Finally, the page generates a row of data for each line item returned from the invoice_items table.
+</description>
+	<example><![CDATA[<%a5 for i = 1 to numitems %>
+		<%a5 ?alltrim(fldsi[i].product_id) %>
+<%a5 ?alltrim(fldsi[i].desc) %>		
+<%a5 ?alltrim(fldsi[i].price) %>	
+<%a5 ?alltrim(fldsi[i].quan) %>
+<%a5 ?alltrim(fldsi[i].extension) %>
+<%a5 next %>]]></example>
+</section>	
+
+
+<section>
+	<title>Page Security Information
+</title>
+<description>Login Required
+Groups Allowed > Accounting, Administrators, Clerical, Customers, Marketing
+</description>	
+	
+</section>
+
+
+</sections>
+<see>
+	<ref>Web Pages
+</ref>
+</see>
+	
+	
+</page>

@@ -3,6 +3,7 @@ var app = express();
 var options = require("./settings");
 var library = require("./assets/library");
 var Help = require('helpserver');
+var fs = require("fs");
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0)
         str = str.replace(find, replace);
@@ -56,85 +57,106 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args,description,type) {
+var outputSnippet = function(args, description, type, topic ) {
     var result = "";
-    if( args.isFolder ) {
-        if( args.format == ".xml" ) {
-            args.path = args.path + "/index.xml"; 
+    if (args.isFolder) {
+        if (args.format == ".xml") {
+            args.path = args.path + "/index.xml";
         }
     }
-    if( description ) {
-        if( args.format == ".xml" ) {
-            if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
-                description = "<![CDATA["+description+"]]>";
-                if( type == "method" ) {
-                    result =  "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
-                } else {
-                    result =  "<item><name href=\"" + args.path + "\">" + args.name + "</name><description>" + description + "</description></item>";
-                }
-        } else {
-                result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>\n<dd>" + description + "</dd>";
-        }
-    } else {
-        if( args.format == ".xml" ) {
-            if( type == "method" ) {
-                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
-            } else  {
-                result = "<item><name href=\"" + args.path + "\">" + args.name + "</name></item>";
+    if( !topic ) {
+       topic = args.name;
+       if( !topic ) {
+           topic = "Unknown";   
+       }
+    }
+    if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
+         topic = "<![CDATA[" + topic + "]]>";
+    }
+
+    if (description) {
+        if (args.format == ".xml") {
+            if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
+                description = "<![CDATA[" + description + "]]>";
+            if (type == "method") {
+                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+            } else {
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
         } else {
-            result = "<dt><a href='" + args.path + "' >" + args.name + "</a></dt>";
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>\n<dd>" + description + "</dd>";
+        }
+    } else {
+        if (args.format == ".xml") {
+            if (type == "method") {
+                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
+            } else {
+                result = "<item><name href=\"" + args.path + "\">" + topic + "</name></item>";
+            }
+        } else {
+            result = "<dt><a href='" + args.path + "' >" + topic + "</a></dt>";
         }
     }
     return result;
 }
 
-events.pageIndexer = function (args, savePage) {
+events.pageIndexer = function(args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var type = null;
-    if( args.all ) {
+    if (args.all) {
         var i;
         var methodFiles = 0;
         var nonMethodFiles = 0;
-        for( i = 0 ; i < args.all.length ; ++i ) {
+        for (i = 0; i < args.all.length; ++i) {
             var testName = args.all[i].path.toLowerCase();
             var pathEnd = testName.lastIndexOf('/');
-            if( pathEnd > 0 )
+            if (pathEnd > 0)
                 testName = testName.substring(pathEnd);
-            if( testName != '/index.xml' ) {
-                if( testName.indexOf(' method.') > 0 ) {
+            if (testName != '/index.xml') {
+                if (testName.indexOf(' method.') > 0) {
                     ++methodFiles;
                 } else {
                     ++nonMethodFiles;
                 }
-            }    
+            }
         }
-        if( methodFiles > 0 && nonMethodFiles == 0 ) {
+        if (methodFiles > 0 && nonMethodFiles == 0) {
             type = "method";
         }
-        
+
     }
-    var extensionIndex = filename.lastIndexOf(".");    
-//    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
-//        debugger;
-//    }
-    if (filename.substring(extensionIndex).toLowerCase() == ".xml" ) { //&& filename.indexOf("/index.xml") < 0) {
+    if( filename.indexOf('#') > 0 ) {
+        filename = filename.split('#')[0];
+    }    
+    var extensionIndex = filename.lastIndexOf(".");
+    //    if( filename.indexOf("/index.xml") >= 0 || filename.indexOf("/index.html") >= 0 ) {
+    //        debugger;
+    //    }
+    if (filename.substring(extensionIndex).toLowerCase() == ".xml") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function (err, data) {
+        fs.readFile(filename, "utf8", function(err, data) {
             if (err) {
                 console.log(filename + " was not found");
-                savePage(outputSnippet(args,null,type));
+                savePage(outputSnippet(args, null, type));
             } else {
                 var parseString = require('xml2js').parseString;
-                parseString(data, function (err, result) {
+                parseString(data, function(err, result) {
                     var description = null;
+                    var topic = null;
                     if (err) {
                         console.log(err + " processing file " + filename);
                     } else {
                         result = eval(result);
                         if (result) {
                             if (result.page) {
+                                if (result.page.topic) {
+                                    if (Object.prototype.toString.call(result.page.topic) === '[object Array]') {
+                                        topic = result.page.topic[0];
+                                    } else {
+                                        topic = result.page.topic;
+                                    }
+                                }
                                 if (result.page.description) {
                                     if (Object.prototype.toString.call(result.page.description) === '[object Array]') {
                                         description = result.page.description[0];
@@ -145,12 +167,42 @@ events.pageIndexer = function (args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args,description,type));
+                    savePage(outputSnippet(args, description, type , topic ));
                 });
             }
         });
+    } else if (filename.substring(extensionIndex).toLowerCase() == ".html") { //&& filename.indexOf("/index.xml") < 0) {
+        var fs = require("fs");
+        fs.readFile(filename, "utf8", function(err, data) {
+            var description = null;
+            if( !err ) {
+                var metaDataTags = data.split("<meta");
+                if( metaDataTags.length > 1) {
+                    var i;
+                    for( i = 1 ; i < metaDataTags.length ; ++i ) {
+                        var nameAttribute = metaDataTags[i].split('>')[0].split("name=");
+                        if( nameAttribute.length > 1 ) {
+                            nameAttribute =  nameAttribute[1].split('"');
+                            if( nameAttribute.length > 1 ) {
+                                if( nameAttribute[1].toLowerCase() == "description" ) {
+                                     var contentAttribute = metaDataTags[i].split("content=");
+                                     if( contentAttribute.length > 1 ) {
+                                        contentAttribute = contentAttribute[1].split('"');
+                                        if( contentAttribute.length > 1 ) {
+                                             description = contentAttribute[1];
+                                        }
+                                        break; 
+                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            savePage(outputSnippet(args, description, type));
+        });        
     } else {
-        savePage(outputSnippet(args,null,type));
+        savePage(outputSnippet(args, null, type));
     }
 };
 
@@ -187,18 +239,64 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
       dataOut += data;
    }); 
    xslt.stderr.on('data', function (data) {
-      err = data;
+      err = ''+data;
    }); 
-   xslt.on('exit', function (code) {
-      if( err ) {
-           callback(err,null);
-      } else {
-           var fs = require('fs');
-           fs.writeFile(htmlFile,dataOut,function(err) {
-               callback(err,dataOut);
-           });
-      }
-   });
+    xslt.on('exit', function(code) {
+        if (err) {
+            var fs = require('fs');
+            fs.readFile(xmlFile, "utf8",function(err2,errPage) {
+                if( err2 ) {
+                    callback(err2, null);
+                } else {
+                    var errparts = err.split(':');
+                    var index = -1;
+                    if( errparts.length > 2 ) {
+                        index = parseInt(errparts[1]);                        
+                    }   
+                    var completeErrPage = function(index) {
+                        errPage = replaceAll(errPage,"<amp>;","&amp;");
+                        errPage = replaceAll(errPage,"<","&lt;");
+                        errPage = replaceAll(errPage,">","&gt;");         
+                        errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
+                        
+                        var lines = errPage.split('\n');
+                        if( 0 <= index && index < 10000000 )
+                        {
+                            if( index < lines.length ) {
+                                lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
+                            }
+                        }
+                        for( var i = 0 ; i < lines.length ; ++i ) {
+                            lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
+                        }
+                        errPage = lines.join("\n");
+                        errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
+                        callback(null, errPage);                        
+                    };
+                    if( index < 0 ) {
+                        var parseString = require('xml2js').parseString;
+                        parseString(errPage, function(err, result) {
+                            var description = null;
+                            if (err) {
+                                var lineArg = (''+err).split('Line:');
+                                if( lineArg.length > 1 ) {
+                                    index = parseInt( lineArg[1].split('\n')[0].trim() );
+                                }
+                            }
+                            completeErrPage(index);
+                        });
+                    } else {
+                        completeErrPage(index);
+                    }
+                }
+            });
+        } else {
+            var fs = require('fs');
+            fs.writeFile(htmlFile, dataOut, function(err) {
+                callback(err, dataOut);
+            });
+        }
+    });
 };
 events.beforeRefresh = function() {
     
@@ -248,6 +346,139 @@ events.extractDescription = function(page) {
     }
     return null;
 }
+events.decorateTitle = function(title) {
+   if( title.indexOf('Api') >= 0 ) {
+       if( title == 'Api' ) {
+           title = "Server API";
+       } else if( title == "Client_Api" ) {
+           title = "Client API";
+       } else if( title == "Desktop_Api" ) {
+           title = "Desktop API";
+       }
+   }
+   return title;  
+};
+events.addPageSourceComment = function(page) {
+    page = page.replace(".xml_html",".xml");
+    return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
+}
+events.generateLocalToc = function(localNames) {
+   if( localNames.length > 1 ) { 
+        var localToc = "<div id=\"local-toc\">\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        for( var i = 0 ; i < localNames.length ; ++i ) {
+            var ln = localNames[i];
+            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content+"</a></li>\n";
+        }
+        localToc += "</ul>\n</div>";
+        return localToc;  
+   }
+   return "";
+};
+events.loadIndex = function(callback) {
+    fs.readFile(  options.repoSource+"/links.json","utf8",function(err,data) {
+         var hashObj = {};
+         var srcObj = null;
+         try {
+             srcObj = JSON.parse(data);
+         } catch(err) {            
+         }
+         if( srcObj ) {
+             for( var name in srcObj ) {
+                 var normalName = name.trim().toLowerCase();
+                 hashObj[normalName] = srcObj[name];
+             }
+         }
+         callback(hashObj);
+    });
+};
+events.extractSymbols = function(txt,title,path) {
+     var leading = [
+      { "symbol" : "*" , "replace" : "aster|"}  ,
+      { "symbol" : "$" , "replace" : "dollr|" } ,
+      { "symbol" : "@" , "replace" : "amper|" } ,
+      { "symbol" : "{" , "replace" : "lcbrc|" , "endsymbol" :  "}" , "endreplace" : "|rcbrc" } 
+     ];
+     var i , j;
+     var padText = " "+txt.toLowerCase()+" ";
+     var symbols = " " , symbol;
+     var words , word , parts;
+     if( title ) {
+         title = title.toLowerCase();
+         padText = " "+ title.trim() + padText;
+     }
+     if( path ) {
+         path = path.toLowerCase();
+         if( path.indexOf('/ref/') >= 0 ) {
+             if( path.indexOf('api/') >= 0 ) {
+                 if( title.indexOf('_') >= 0 ) {
+                     // Lets add words with underbars in title as symols (these get segmented)
+                     words = title.split(" ");
+                     for( i = 0 ; i < words.length ; ++i ) {
+                         if( words[i].indexOf('_') > 0 ) {
+                             symbols += words[i]+" ";
+                         }
+                     }
+                 }
+             }
+         }
+     } else if( !title ) {
+        words = txt.toLowerCase().split(" ");
+        for( i = 0 ; i < words.length ; ++i ) {
+            if( words[i].indexOf('_') > 0 ) {
+                symbols += words[i]+" ";
+            }
+        }         
+     }
+     for( i = 0 ; i < leading.length ; ++i ) {
+         if( padText.indexOf(" "+leading[i].symbol) >= 0 ) {
+             words = padText.split(" "+leading[i].symbol);
+             for( j = 0 ; j < words.length ; ++j ) {
+                 if( leading[i].endsymbol ) {
+                    word = words[j].split(leading[i].endsymbol);
+                    if( word.length > 1 ) {
+                        symbol = leading[i].replace + word[0] + leading[i].endreplace + " ";
+                        if( symbols.indexOf(" "+symbol) < 0 ) {
+                            symbols += symbol;
+                        }
+                    } 
+                 } else {
+                    word = words[j].split(" ")[0].split("(")[0];
+                    if( word.length > 0 ) {
+                        symbol = leading[i].replace + word + " ";
+                        if( symbols.indexOf(" "+symbol) < 0 ) {
+                            symbols += symbol;
+                        }
+                    }
+                 }
+             }
+             changed = true;
+         }
+     }
+     if( symbols.length > 1 ) {
+         words = symbols.trim().split(" ");
+         for( i = 0 ; i < words.length ; ++i ) {
+             if( words[i].indexOf(".") > 0 ) {
+                 parts = words[i].split('.');
+                 for( j = 0 ; j < parts.length ; ++j ) {
+                     symbol = parts.slice(0,j+1).join('.') + " ";
+                     if( symbols.indexOf(" "+symbol) < 0 ) {
+                         symbols += symbol;
+                     }                     
+                 }
+             } else if( words[i].indexOf("_") > 0 ) {
+                 parts = words[i].split('_');
+                 for( j = 0 ; j < parts.length ; ++j ) {
+                     symbol = parts.slice(0,j+1).join('_') + " ";
+                     if( symbols.indexOf(" "+symbol) < 0 ) {
+                         symbols += symbol;
+                     }                     
+                 }
+             }
+         }
+         symbols = symbols.split("|").join("_");
+     }
+     return symbols.trim();  
+};
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
@@ -291,14 +522,14 @@ app.use("/", function (req, res) {
             help.onSendExpress(res);
             res.send(JSON.stringify(subtoc));
         });
-    } else if (req.path == "/apihelp" || req.path == "/web/apihelp" || req.path == "/web/main/apihelp") {
+    } else if (req.path == "/apihelp" ) {
         help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
                 res.send(JSON.stringify({ error: err }));
             } else {
                 // search through the data
-                var lookFor = "/design/api/";
+                var lookFor = "api/";
                 var foundItem = null;
                 var i;
                 for (i = 0; i < data.length; ++i) {

@@ -1,0 +1,195 @@
+<page>
+	
+	<topic>ASWSEARCH.A5W</topic>
+<description>The application administrator uses the ASWSEARCH.A5W page to find the value of any field in any record in the customers, products, and invoices tables.
+</description>	
+
+<sections>
+	<section>
+		<title>Discussion</title>
+	<description>The ASWSEARCH.A5W page illustrates several advanced techniques:
+</description>	
+	<cases>
+		<case>
+			<description>Using Xbasic to populate a HTML page
+</description>
+		</case>
+		<case>
+			<description>Using user defined functions (UDFs) on a page
+</description>
+		</case>
+		<case>
+			<description>Using JavaScript to submit a page and create a cascading lookup
+</description>
+		</case>
+		
+	</cases>	
+	</section>
+	<section>
+		<description>This page uses conventional HTML, page styles, and an Alpha Five style sheet. We originally created the page in another HTML editing program. The Xbasic code populates the sub-variables of a dot variable. The dot variable carries these values to a series of user functions, which populate a series of drop down boxes.
+We used embedded  tags to add the variable values to the page in the correct locations.
+The javascript statement onchange="form1.submit();" causes the page to submit the form form1 whenever the value in the input field changes. This causes the code to repopulate the drop downs based on current selected values.
+The page uses its own unique cascading style sheet named searchpg.css.
+</description>
+	</section>
+<section>
+	<title>Links</title>
+		<description>The Search entry of the NAV_INT navigation component displays the ASWSEARCH.A5W page.
+</description>
+	</section>	
+	
+<section>
+	<title>Edits to the Page Source</title>
+	<description>This code adds a user defined function. It is used to create empty drop down list boxes.
+</description>
+	<example><![CDATA[FUNCTION clear_all_select as P ( )
+empty_option = " < Select >"
+with clear_all_select
+    optionby = empty_option
+    optionval = empty_option
+    optionrec = empty_option
+    optionfield = empty_option
+end with
+END FUNCTION
+]]></example>
+</section>	
+	
+<section>
+	<description>The A5W_INCLUDE() function adds functions of SEARCH_UDF.A5W, which behave as if they were actually defined on this page. This allows for easier editing of the functions. Included functions must appear on the page before they are called..
+</description>
+	<example><![CDATA[a5w_include("search_UDF.a5w")
+]]></example>
+</section>	
+	
+<section>
+	<description>Currselections is a hidden field which stores currently selected values. The format of this character variable is findwhat +"|"+ findby +"|"+ findrec +"|"+ findfield. These are the values for each selection before the page is submitted. Currselections is passed back to the page on every submit. parms is a dot variable used to create the drop down list for the select boxes. For example, the HTML for the options for the Find What? control are returned in parms.optionwhat. Refer to SEARCH_UDF.A5W to see how the various functions were written.
+</description>
+	<example><![CDATA[dim findwhat as c
+dim findby as c
+dim findval as c
+dim findrec as c
+dim findfield as c
+dim findvalue as c
+dim currselections as c
+dim parms as p
+if eval_valid("submit") = .T. then
+    findwhat = ""
+    findby = ""
+    findval = ""
+    findrec = ""
+    findfield = ""
+    findvalue = ""
+    currselections = findwhat +"|"+ findby +"|"+ findval +"|"+ findrec +"|"+ findfield
+    parms = clear_all_select()
+    parms.optionwhat = fill_optionwhat(currselections)
+else
+    currselections = findwhat +"|"+ findby +"|"+ findval +"|"+ findrec +"|"+ findfield
+    parms.optionwhat = fill_optionwhat(currselections)
+    parms.optionby = fill_optionby(currselections)
+    parms.optionval = fill_optionval(currselections)
+    parms.optionrec = fill_optionrec(currselections)
+    parms.optionfield = fill_optionfield(currselections)
+    findvalue = find_value(currselections)
+end if
+]]></example>
+</section>	
+	
+<section>
+	<description>The location = "Search" statement highlights the Search entry of the menu.
+</description>
+	<example><![CDATA[with tmpl_NAV_INT
+    location = "Search"
+    componentName = "NAV_INT"
+end with
+]]></example>
+</section>	
+	
+<section>
+	<description>The A5W_INCLUDE() statement is in the top row of the table. It loads TOPPAGE.A5W and displays a standard page header.</description>
+	<example><![CDATA[<%a5 a5w_include("toppage.a5w") 
+ %> ]]></example>
+</section>	
+<section>
+	<description>The majority of the page is a . The first  control saves the value of Currselections. The next five controls display lists of values that are computed by the fill_option... functions above.</description>
+	<example><![CDATA[<select 
+ name="findwhat" id="findwhat" on<x>change="form1.submit();">
+ <%a5 ? parms.optionwhat %> <span class=HTML1></select>
+  
+  ]]></example>
+</section>
+
+<section>
+	<description>Find By? </description>
+	<example><![CDATA[ <select name="findby" id="findby" on<x>change="form1.submit();">
+ <%a5 ? parms.optionby %></select>]]></example>
+	
+</section>
+ 
+ <section>
+	<description>Which Value?</description>
+	<example><![CDATA[<select 
+ name="findval" id="findval" on<x>change="form1.submit();">
+ <%a5 ? parms.optionval %>
+ </select>]]></example>
+	
+</section>
+ 
+ <section>
+	<description>Which Record?</description>
+	<example><![CDATA[<select 
+ name="findrec" id="findrec" on<x>change="form1.submit();">
+ <%a5 ?parms.optionrec %>]]></example>
+	
+</section>
+  <section>
+	<description>Show Which Field?</description>
+	<example><![CDATA[ <select 
+ name="findfield" id="findfield" on<x>change="form1.submit();">
+ <%a5 ?parms.optionfield %></select>
+ Result Value
+ <%a5 ? findvalue %>
+ <input name="Submit" type="submit" class="bigbutton" 
+ value="Clear and Start New Search"> ]]></example>
+</section>
+ 
+
+
+ 
+ 
+ <section>
+	 <title>Page Security Information
+</title>
+	<cases>
+		<case>
+			<description>Login Required
+</description>
+		</case>
+		<case>
+			<description>Groups Allowed > Accounting, Administrators, Clerical, Marketing 
+</description>
+		</case>
+		
+		
+	</cases> 
+	 
+ </section>
+
+ 
+
+
+ 
+		
+	
+	
+	
+	
+	
+	
+	
+</sections>
+<see>
+	<ref>Web Pages</ref>
+</see>
+
+
+</page>

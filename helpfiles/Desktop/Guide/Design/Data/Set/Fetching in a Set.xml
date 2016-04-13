@@ -1,0 +1,237 @@
+<page>
+	
+	<topic>Fetching in a Set</topic>
+<sections>
+<section>
+	
+	<description>When the current table is the primary table of a set, Alpha Anywhere's fetching mechanism automatically updates the record pointers in each of the sets component tables. The record pointers are synchronized according to the way in which tables are linked in the set definition.
+The current record for a set is a combination of all the records referenced by each of the sets record pointers. This record, called a composite record, contains all the fields from the primary table and all the fields from each child table.
+When fetching through a set, there is one composite record for each possible arrangement of record pointers. A one-to-one link produces one composite record; each parent record is related to one child record. In the case of a one-to-many link, one or more child records can be related to each parent record and thus one composite record exists for each parent and child combination.
+</description>
+	
+</section>	
+<section>
+	<title>The One-to-One Link
+</title>
+	<description>For example, suppose the following Inv_head table is linked one-to-one to the Customer table:
+</description>
+	<figure><link>images/atable.png</link></figure>
+</section>	
+<section>
+
+	<description>When fetching on the primary table ( Inv_head ), the composite records are as follows:
+</description>
+	<figure><link>images/atable2.png</link></figure>
+</section>	
+<section>
+	
+	<description>The diagram for this set is:
+</description>
+	<figure><link>images/Set_Relationship_1.gif</link></figure>
+<figure><link>images/atable3.png</link></figure>
+</section>	
+<section>
+	<title>The One-to-Many Link
+</title>
+	<description>When a set includes a one-to-many link, the fetching of composite records is a little different. Suppose the Inv_head table is linked one-to-many to Inv_item, a table which stores the line items for each invoice, using the Inv_ID field.
+</description>
+<figure><link>images/atable4.png</link></figure>
+</section>			
+<section>
+	
+	<description><![CDATA[When fetching through the one-to-many link, the <;TBL>.FETCH_FIRST() and <;TBL>.FETCH_NEXT() methods produce the following composite records:
+]]></description>
+<figure><link>images/atable5.png</link></figure>
+</section>	
+<section>
+<figure><link>images/atable6.png</link></figure>
+</section>		
+<section>
+	<title>Multiple One-to-Many Links at the Same Level</title>
+	<description>When a parent table is related to two child tables using two one-to-many links, the fetching and formation of composite records becomes more involved.
+Suppose a set that tracks customer charges and payments on a credit card has the following structure: 
+</description>
+	<figure><link>images/Set_Relationship_2.gif</link></figure>
+</section>	
+<section>
+	
+	<description>For each customer, there are one or more charges and one or more corresponding payments. The composite records formed by fetching through this set are as follows:</description>
+<figure><link>images/atable7.png</link></figure>
+</section>	
+<section>
+	
+	<description>Notice how the child records in each one-to-many link are fetched separately to form different composite records. While fetching the records from one link, the field values from the other link are blanked out. Once the child records from the first link are exhausted, the fetching will continue with the child records from the second link, blanking out the fields from the first. This process continues until all one-to-many links at the same level have been fetched through.
+In the diagram above, the composite records related to each parent record are divided into two groups (one for each link). The first group of composite records includes the child records from the Charges table, which is the first link. The second composite record group includes records from Payments.
+To determine which one-to-many link is currently being fetched, you can use the SCANNING() function. For example, running the following script on the credit card set:
+</description>
+	<example><![CDATA[dim tbl as P
+tbl = table.current()
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+  p = iif(scanning("PAYMENTS"),"XXX","---")
+  c = iif(scanning("CHARGES"),"XXX","---")
+  trace.writeln(c + p)
+  tbl.fetch_next()
+end while
+]]></example>
+</section>	
+<section>
+	
+	<description>produces the following output in the Trace window:</description>
+	<example><![CDATA[XXX---
+XXX---
+XXX---
+---XXX
+---XXX
+XXX---
+XXX---
+---XXX
+---XXX
+]]></example>
+</section>	
+
+<section>
+	<title>Reading Through a Set</title>
+	<description>When you fetch through a set, you need one pointer for the set and one pointer for each table in the set that you wish to read from or write to. This example reads through the AlphaSports invoice.set.
+First, create one pointer for the set, and three pointers for tables containing data to be read.
+</description>
+	<example><![CDATA[dim sptr as P
+dim itbl as P
+dim ctbl as P
+dim ptbl as P ]]></example>
+</section>	
+
+<section>
+	
+	<description>Create variables to hold field values.</description>
+	<example><![CDATA[dim invoice as C
+dim lastname as C
+dim description as C
+dim list as C
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Open the set with SET.OPEN_SESSION() (necessary when running a script from a layout) and set the values of the table pointers.</description>
+	<example><![CDATA[sptr = set.open_session("invoice")
+itbl = sptr.invoice_header
+ctbl = sptr.customer
+ptbl = sptr.product
+]]></example>
+</section>	
+
+<section>
+	
+	<description><![CDATA[Retrieve the first record with <;SET>.FETCH_FIRST() and loop with <;SET>.FETCH_NEXT() until you reach the last record. The <;SET>.FETCH_EOF() method returns FALSE and exits from the WHILE ... END WHILE loop after the script reads the last record. Note how you must use the itbl, ctbl, and ptbl table pointers to read (and write) the individual fields. The set pointer is only for navigation. CHR(9) produces a tab character. CRLF() produces a carriage return and line feed.]]></description>
+	<example><![CDATA[sptr.fetch_first()
+while .not. sptr.fetch_eof()
+    invoice = itbl.invoice_number
+    description = ptbl.description
+    lastname = ctbl.lastname
+    list = list + invoice + chr(9) + lastname + chr(9) + description + crlf()
+    sptr.fetch_next()
+end while
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Close the set and display the results.</description>
+	<example><![CDATA[sptr.close()
+ui_msg_box("Invoices", list)
+]]></example>
+</section>	
+
+<section>
+	<title>Reading Through a Filtered and Ordered Set</title>
+	<description>When you fetch through a filtered set, you need to take additional steps to apply the filter. This example reads through the AlphaSports invoice.set.
+First create the necessary variables.
+</description>
+	<example><![CDATA[dim sptr as P
+dim itbl as P
+dim ctbl as P
+dim ptbl as P
+dim invoice as C
+dim product as C
+dim lastname as C
+dim description as C
+dim list as C
+dim filter as C
+dim qry as P
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Define the set and table pointers.</description>
+	<example><![CDATA[sptr = set.open_session("invoice")
+itbl = sptr.invoice_header
+ctbl = sptr.customer
+ptbl = sptr.product
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Define the filter and order expressions. Note that the order expression processes only one field.</description>
+	<example><![CDATA[filter = "customer->lastname > 'm'"
+query.filter = "flattenquery(" + filter + ")"
+query.order = "product->description"
+]]></example>
+</section>	
+
+<section>
+	
+	<description>There are two ways to apply the filter and order expressions. This method (commented out) works when you do not know the identity of the primary table in the set.</description>
+	<example><![CDATA[' the general solution when you do not know the name of the primary table
+' -----------------------------------------------------------------------
+'dim primary_table as C
+'dim primary_ptr as P
+'primary_table = file.filename_parse(word(set.structure_get("invoice", "N" + crlf()), 1, crlf()), "n")
+'primary_ptr = eval("sptr." + primary_table)
+'qry = primary_table.query_create()
+]]></example>
+</section>	
+
+<section>
+	
+	<description>This code is simpler because we know that itbl is the primary table of the set.</description>
+	<example><![CDATA[qry = itbl.query_create()
+]]></example>
+</section>	
+
+<section>
+	
+	<description>Fetch through the set.</description>
+	<example><![CDATA[sptr.fetch_first()
+while .not. sptr.fetch_eof()
+    invoice = itbl.invoice_number
+    description = ptbl.description
+    lastname = ctbl.lastname
+    list = list + invoice + chr(9) + lastname + chr(9) + description + crlf()
+    sptr.fetch_next()
+end while]]></example>
+</section>	
+
+<section>
+	
+	<description>Clean up and display the results.</description>
+	<example><![CDATA[itbl.query_detach()
+sptr.close()
+ui_msg_box("Invoices", list)
+]]></example>
+</section>	
+
+
+	
+</sections>	
+<see>
+	<ref>Set Functions and Methods</ref>
+	<ref>Fetching Records</ref>
+	<ref>Fetching at a Particular Level in a Set</ref>
+	<ref>Navigation</ref>
+</see>	
+	
+	
+</page>

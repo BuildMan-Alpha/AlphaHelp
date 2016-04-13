@@ -1,0 +1,120 @@
+<page>
+	<topic>Fetching at a Particular Level in a Set
+</topic>
+<description>While fetching through the primary table of a set allows you to retrieve each composite record, you can also fetch only child or parent records from a specific level in the set.</description>	
+
+<sections>
+<section>
+	
+	<title>Fetching Only Child Records
+</title>
+	<description><![CDATA[If the table object pointer for a fetch method is for a child table in a one-to-many link, only those child records related to the current parent record are retrieved. The <;TBL>.FETCH_FIRST() and <;TBL>.FETCH_LAST() methods retrieve the first and last related child records, and the <;TBL>.FETCH_EOF() method returns TRUE if a <;TBL>.FETCH_NEXT() or <;TBL>.FETCH_PREV() method has tried to fetch beyond these related records.
+For example, the following script counts the number of items related to the current invoice:
+]]></description>
+<example><![CDATA['Get pointer to primary table of invoice.set
+tbl = table.current()
+count = 0
+'Get pointer to inv_item table in the set
+child_tbl = table.get("inv_item")
+child_tbl.fetch_first()
+while .NOT. child_tbl.fetch_eof()
+    count = count + 1
+    child_tbl.fetch_next()
+end while
+trace.writeln(str(count) )
+ ]]></example>	
+</section>	
+<section>
+	
+	<title>Fetching Only Parent Records With Fetch Outlining
+</title>
+	<description><![CDATA[When fetching through a set with one or more levels of one-to-many links, the number of child and grandchild records that pertain to each parent record can be numerous. This results in many composite records between each parent record.
+For example, suppose a Customer table is linked one-to-many to the Inv_head table which, in turn, is linked one-to-many to the Inv_item table. The following script counts the total number of invoice line items for all customers:
+]]></description>
+<example><![CDATA[tbl = table.current()
+count = 0
+tbl.fetch_first()
+while .NOT. tbl.fetch_eof()
+    count = count + 1
+    tbl.fetch_next()
+end while
+trace.writeln(str(count) )
+]]></example>	
+</section>	
+	
+	<section>
+	
+
+	<description><![CDATA[This script fetches a composite record for each child record at the lowest level in the set (i.e., Inv_item ).
+To fetch from one parent record to another without fetching through child records, assign the fetch outline level. The outline level indicates how far down in a set Alpha Five will retrieve multiple child records. 
+ ]]></description>
+
+</section>	
+<section>
+	<title>Outline Levels
+</title>
+	<figure><link>images/Set_Levels.gif</link></figure>
+	
+</section>
+
+<section>
+	
+
+	<description><![CDATA[The record fetching behaves as if the one-to-many tables below the outline level do not exist. For example, the following script counts the number of customers by fetching with the outline level set to 1:
+]]></description>
+<example><![CDATA[tbl = table.current()
+count = 0
+outline_level = 1
+tbl.fetch_first(outline_level)
+while .NOT. tbl.fetch_eof()
+    count = count + 1
+    tbl.fetch_next(outline_level)
+end while
+trace.writeln(str(count) )]]></example>	
+</section>	
+
+<section>
+	<description><![CDATA[Changing the outline level to 2 computes the number of invoices for all customers. The SCANNING() function is also added to avoid counting customers with no invoices:]]></description>
+<example><![CDATA[tbl = table.current()
+count = 0
+outline_level = 2
+tbl.fetch_first(outline_level)
+while .NOT. tbl.fetch_eof()
+    if scanning("INV_HEAD") then
+      count = count + 1
+    end if
+    tbl.fetch_next(outline_level)
+end while
+trace.writeln(str(count) )]]></example>	
+</section>	
+
+<section>
+	
+	<description><![CDATA[By using both an object pointer to a child table and the outline level setting, you can fetch through only the child records from a specific child table. For example, the following script counts only the number of invoices for the current customer:]]></description>
+<example><![CDATA[tbl = table.current()
+count = 0
+outline_level = 1
+inv_head_pointer = tbl.GET("INV_HEAD")
+inv_head_pointer.fetch_first(outline_level)
+while .NOT. inv_head_pointer.fetch_eof()
+    count = count + 1
+    inv_head_pointer.fetch_next(outline_level)
+end while
+trace.writeln(str(count) )]]></example>	
+</section>	
+
+
+<section>
+	
+	<description><![CDATA[Assign the outline level to the level of the table containing the parent records you want to fetch. All one-to-many child and grandchild records of that parent are skipped. One-to-one child records related to the parent and/or related to any levels above the parent are fetched. Set the outline level to 0 (the default) to include all the tables in the set.]]></description>
+	
+</section>	
+</sections>
+<see>
+	<ref>Set Functions and Methods
+</ref>
+</see>
+
+
+	
+</page>

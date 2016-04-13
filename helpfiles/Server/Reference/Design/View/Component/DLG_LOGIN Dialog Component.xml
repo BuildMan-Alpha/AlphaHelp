@@ -1,0 +1,178 @@
+<page>
+	<topic>DLG_LOGIN Dialog Component</topic>
+<description>The DLG_LOGIN dialog component contains two text box controls and two buttons.
+
+</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+<description>The DLG_LOGIN dialog component accepts user name and password to support the login process. Event code checks into the customer and user_names tables to see if the user is known. If the answer is yes, the code sets the user's access rights and saves them in a cookie using the RESPONSE.ADD_COOKIE() method.
+</description>	
+<figure><link>images/ASW_dlg_login.gif</link></figure>	
+	
+</section>	
+<section>
+	<title>Containers
+</title>
+<description>LOGIN.A5W, LOGINUSERDATA.A5W
+</description>	
+</section>
+	
+
+<section>
+	<title>Notable Grid Control Property Settings
+</title>
+	<cases>
+		<case>
+			<title>user_name</title>
+		<cases>
+			<case>
+				<title>Property:</title>
+				<description>Control Settings > Control type</description>
+				
+			</case>
+			<case>
+				<description>Set to "Textbox"</description>
+			</case>
+			
+		</cases>	
+			
+		</case>
+		<case>
+			<title></title>
+		<cases>
+			<case>
+				<title>Property:</title>
+				<description>Control Settings > Control type</description>
+				
+			</case>
+			<case>
+				<description>Set to "Textbox"</description>
+			</case>
+			<case>
+				<title>Property:</title>
+				<description>Control Settings > Validation rules
+</description>
+				
+			</case>
+			<case>
+				<description>General > Enable rules set to TRUE.
+General > Require value set to FALSE.
+</description>
+			</case>
+			<case>
+				<title>Property:</title>
+				<description>Textbox properties > Is a password field</description>
+				
+			</case>
+			<case>
+				<description>Set to TRUE.
+</description>
+			</case>
+			
+		</cases>	
+			
+		</case>
+		
+		
+		
+	</cases>
+	
+	
+</section>
+<section>
+	<title>Notable Component Property Settings
+</title>
+<cases>
+	<case>
+		<title>Submit/Reset Buttons > Submit button label</title>
+		<description>Changed from "Submit" to "Login"</description>
+	</case>
+	<case>
+		<title>Submit/Reset Buttons > Reset button label</title>
+		<description>Changed from "Reset" to "Clear"</description>
+	</case>
+	
+	
+</cases>	
+	
+	
+</section>
+<section>
+<title>Event Code
+</title>	
+<description>This Validate event code tests the user name and password for both "public" and "internal" users. The script first tests to see if the user name and password exist in the customer (public) table, then in the internal user_names table.
+In the case a true customer, his or her email address is the user name.
+All users, public and internal, have a minimum user level of 1. Customers are type "C" and internal users are type "I". This script computes the value of login_val, which is saved in a session cookie. The value of login_val is defined as: id number + | + type + | + user level. For example: "00001|I|2".
+The script first tests the values in the dialog's controls. If either is NULL, the script sets the currentform.has_error variable to TRUE (.T.), sets the error message, and exits. Otherwise, the script DIMs working variables and sets login_val to NULL.
+</description>	
+<example><![CDATA[if user_name = "" .or. password = "" then
+    currentform.has_error = .t.
+    currentform.error_message = " User name or password cannot be blank."
+else
+    dim customer_values as C
+    dim internal_values as C
+    dim login_val as C
+    login_val = ""]]></example>	
+	
+</section>
+<section>
+<description>Next, the script looks into the customer and user_names tables for matches for the user_name value.
+</description>	
+<example><![CDATA[customer_values = lookup("PathAlias.ADB_Path\customer", "email =" + quote(user_name), "alltrim(password) + \"|\" + alltrim(customer_id)")
+    internal_values = lookup("PathAlias.ADB_Path\user_names", "user_name=" + quote(user_name), "alltrim(password) + \"|\" + user_id + \"|\" + level")
+]]></example>	
+	
+</section>
+
+<section>
+<description>If the customer user name value matches, the script computes the value of login_val and displays INDEX.A5W. The access level is initially set to 1. If there is no match in the customer table, the script next checks the user_names table and checks for a match. If a match is found, the script computes login_val. In this case the user's specific access level is inserted into login_val and displays ASWINDEX.A5W. If no match is found, the script generates an error message.
+</description>	
+<example><![CDATA[if word(customer_values, 1, "|") = password then
+        login_val = alltrim(word(customer_values, 2, "|") ) + "|C|1"
+        Currentform.RedirectTarget = "index.a5w"
+    elseif word(internal_values,1,"|") = password then
+        login_val = alltrim(word(internal_values, 2, "|") ) + "|I|" + alltrim(word(internal_values, 3, "|") )
+        session.targetURL = ""
+        Currentform.RedirectTarget = "aswindex.a5w"
+    ELSE
+        currentform.has_error = .t.
+        currentform.error_message = " Invalid user name or password."
+        CurrentForm.Controls.password = ""
+    end if
+]]></example>	
+	
+</section>
+
+<section>
+<description>Finally, if the script has found a valid user entry in either table, it writes a cookie named login that contains login_val.
+</description>	
+<example><![CDATA[if login_val <> ""
+        response.add_cookie("login", login_val, 0)
+    end if
+end if]]></example>	
+	
+</section>
+
+
+<section>
+<description>The AfterValidate event returns the user to the prior page. The session.targetURL variable is only used for public pages. Its value will be blank for an internal logon.
+</description>	
+<example><![CDATA[if eval_valid("session.targetURL") = .T. then
+    if session.targetURL <> "" then
+        CurrentForm.RedirectTarget = session.targetURL
+    end if
+end if
+]]></example>	
+	
+</section>
+
+
+
+</sections>	
+	
+<see>
+	<ref>Web Publishing Components</ref>
+</see>	
+	
+</page>

@@ -1,0 +1,264 @@
+<page>
+	<topic>CheckOutCalcPayPal.A5W</topic>
+<description>The CheckOutCalcPayPal.A5W page is a variation of the CHECKOUTCALC.A5W page that illustrates a technique for using PayPal for electronic payments.
+</description>	
+<sections>
+<section>
+	<title>Discussion</title>
+<description>The CheckOutCalcPayPal.A5W page does all of the processing to complete a sale. It runs in the MainFrame or body section of a frameset. The top section of the frameset loads first and shows a message that the page is processing.
+If the customer checkout process is complete and there are no errors, CheckOutCalcPayPal.A5W page does the processing to read the data from the shopping cart and complete a sale.
+CheckOutCalcPayPal.A5W includes Xbasic code to save data to the customer, invoice_header, and invoice_items tables. It also includes code to post the quantity sold to the product table to update the quantity in stock.
+CheckOutCalcPayPal.A5W will create and send an email message if that option is selected. (deactivated in demo). Another option is to pre-build an invoice report and save it. If a report is saved, a button appears that allows the user to open the report in a separate browser window.
+</description>	
+<note>Since this page opens within a frameset, any normal RESPONSE.REDIRECT() will just open the page defined in the body section of the frameset. Any redirect must be sent to a special page FRAMEEXIT.A5W that will 'break out' of the frameset. The name of the page to open after the 'break out' must be in the pg parameter.</note>	
+</section>	
+<section>
+	<title>Links
+</title>
+<description>The CheckOutCompPayPal.A5W page displays the PROCESSING.HTM page, which replaces the CHECKOUTCALC.A5W page in the MainFrame section of its frameset.
+</description>	
+</section>
+
+<section>
+	<title>Edits to the Page Source
+</title>
+<description>Initially, the page runs the sleep(.5) command, which pauses for .5 seconds to give the top frame time to display.
+</description>	
+<example><![CDATA[sleep(.5)
+]]></example>
+</section>
+
+
+<section>
+<description>Next, the page script tests to see if it has received proper values in the calling URL. If the cart_id argument is missing or is NULL, control goes back to CHECKOUTCART.A5W.
+</description>	
+<example><![CDATA[if eval_valid("cart_id") = .F.
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif cart_id = ""
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if]]></example>
+</section>
+
+
+<section>
+<description>Next, the script evaluates the protected variable session.protectedchkoutprogress. If it does not exist, the first checkout page was not completed and control goes back to CHECKOUTCART.A5W. If session.protectedchkoutprogress is less than 3 (the last page of checkout), then control goes back to CHECKOUTCART.A5W.
+</description>	
+<example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif session.protectedchkoutprogress < 3
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if]]></example>
+</section>
+
+
+
+<section>
+<description>If session.protectedchkout is FALSE (.F.), then no values were passed from page 3 of the checkout and control goes back to CHECKOUTCART.A5W. If session.protectedchkout.first_name is NULL, then the first name field is empty and control goes back to CHECKOUTCART.A5W.
+</description>	
+<example><![CDATA[if eval_valid("session.protectedchkout") = .F. 'no values passed from page 3
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+elseif session.protectedchkout.first_name = "" 'no values passed from page 3 (first_name was required)
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if]]></example>
+</section>
+
+
+
+<section>
+<description>The code also moves the protected session.protectedchkout variable to chkout_vars before any data processing takes place, such as saving a new customer. Afterwards, it deletes session.protectedchkout.
+If the user presses the back button after the protected session variable is deleted, no session variables will exist. If the user clicks submit at this point, he or she will be sent back to the beginning of the check out process.
+Next, the page script verifies the user's input. If the customer is new, it saves a new customer record. Then, the code creates an invoice_header table record. The items in the shopping cart become records in the invoice_items table. Finally, the script sends a confirmation email and/or prints an invoice.
+</description>	
+<example><![CDATA[dim chkout_vars as P
+property_recurse_assign(chkout_vars, session.protectedchkout)
+delete session.protectedchkout 'delete session variable
+]]></example>
+</section>
+
+
+
+<section>
+<description>The next step is to create a new record in the invoice_header table. The delivery_by value is determined by looking into the shipping_types table and filtering on the delivery code stored in chkout_vars.delivery_by variable.
+</description>	
+<example><![CDATA[delivery_by = table.external_record_content_get("PathAlias.ADB_Path\shipping_types", "alltrim(delivery_by)", "", "ship_code =\"" + alltrim(chkout_vars.delivery_by) + "\"")
+tbl2 = table.open("PathAlias.ADB_Path\invoice_header.dbf")
+tbl2.enter_begin()
+tbl2.Customer_id = alltrim(chkout_vars.customerid)
+tbl2.Date = date()
+tbl2.Sales_rep = "Web Sale"
+tbl2.Delivery_by = delivery_by
+tbl2.Pay_method = "PayPal" 
+tbl2.Sales_tax = 0 ' could populate from table
+tbl2.Discount = 0 ' no discount from web
+tbl2.Type = "Web"
+tbl2.Shipping = chkout_vars.ship_cost
+tbl2.enter_end()
+chkout_vars.invoice_no = tbl2.Invoice_number
+tbl2.close()]]></example>
+</section>
+
+
+
+<section>
+<description>Next, the page script creates invoice lines from the shopping cart and erases entries to indicate that the cart has been used. The current shopping cart is identified by cart_id stored in a session cookie.
+The invoice lines are saved using a special set definition. This set links the product and specials tables to the shop_cart table records with product_id. The invoice_items table requires a selling price, which can come from either the product or specials tables. If the item is on "special", the price will come from the linked record in the specials table. Otherwise, it comes from the linked record in the product table.
+First, search for records in this cart by defining query.filter and query.order.
+</description>	
+<example><![CDATA[query.filter = "Cart_Id = \"" + cart_id + "\".and. Quantity > 0"
+query.order = ""
+]]></example>
+</section>
+
+
+
+<section>
+<description>Open the shop_cart_values set and see how many records there are. If there are no items, return control back to CHECKOUTCART.A5W.
+</description>	
+<example><![CDATA[tbl3 = table.open("PathAlias.ADB_Path\shop_cart_values.set")
+qdx = tbl3.query_create()
+if qdx.records_get()= 0
+    tbl3.close()
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
+end if
+]]></example>
+</section>
+
+
+
+<section>
+<description>Otherwise, open the shop_cart, product, specials, and invoice_items tables.
+</description>	
+<example><![CDATA[tbl4 = table.get("shop_cart")
+tbl5 = table.get("product")
+tbl6 = table.get("specials")
+tbl7 = table.open("PathAlias.ADB_Path\invoice_items.dbf")
+]]></example>
+</section>
+
+
+
+<section>
+<description>Step through the records of the shop_cart_values set and add values to the invoice_items table.
+</description>	
+<example><![CDATA[while .not. tbl3.fetch_eof()
+    tbl7.enter_begin()
+    tbl7.Invoice_number = chkout_vars.invoice_no
+    tbl7.Product_id = tbl4.Prod_Id
+    tbl7.Quantity = tbl4.quantity
+    if tbl6.Sale_Price > 0 .and. (tbl6.Sale_Until >=date().or. cdate(tbl6.Sale_Until) = "") ' product is on special
+        tbl7.Price = tbl6.Sale_Price
+    else
+        tbl7.Price = tbl5.Retail
+    end if
+    tbl7.enter_end()
+]]></example>
+</section>
+
+
+
+<section>
+<description>Erase the shop_cart_values fields after they are transferred.
+</description>	
+<example><![CDATA[tbl3.change_begin()'empty values in cart to 'delete' cart
+    tbl3.cart_id = ""
+    tbl3.session_id = ""
+    tbl3.open = .F.
+    tbl3.Owner_Id = ""
+    tbl3.change_end()
+    tbl3.fetch_next()
+end while
+tbl3.close()
+tbl7.close()
+]]></example>
+</section>
+
+
+
+<section>
+<description>Post item sold quantities to the product table with a posting operation. We copied the code from the Post_Sales_Quantities operation and modified it.
+</description>	
+<example><![CDATA[a_tbl = table.open("PathAlias.ADB_Path\product.dbf")
+post.t_db = "PathAlias.ADB_Path\invoice_items.DBF"
+post.m_key = "PRODUCT_ID"
+post.t_key = "PRODUCT_ID"
+post.m_filter = ""
+post.t_filter = "Invoice_Number =\""+alltrim(chkout_vars.invoice_no)+"\""
+post.m_count = 1
+post.m_field1 = "Qty_In_Sto"
+post.m_exp1 = "Qty_In_Sto-@Invoice_Items->Quantity"
+post.t_count = 0
+a_tbl.post()
+a_tbl.close()
+]]></example>
+</section>
+
+
+
+<section>
+<description>Next, create the body of the email ( email_body ). Note the placeholders "invoice_number" and "shipping", which will be replaced later.
+</description>	
+<example><![CDATA[email_body = <<%text%
+Thank you for shopping at Alpha Sports!
+The order below has been charged to your credit card and has been shipped.
+Invoice Number: invoice_number
+Shipping Information:
+shipping
+For more detail, log in to Alpha Sports and view your Order History.
+%text%
+]]></example>
+</section>
+
+
+
+<section>
+<description>Prepare a printed invoice (actually a PDF file). Define the PrintTarget, filter, order, and filename variables. Create the PDF with the REPORT.SAVEAS() method and save the resulting URL in PrintTarget.</description>	
+<example><![CDATA[PrintTarget = "" 'target 'page' for report
+if chkout_vars.print_inv = "true"
+    dim filter as C
+    dim order as C
+    Filter = "Invoice_Number = " + quote(alltrim(chkout_vars.invoice_no) )
+    Order = ""
+    dim filename as C
+    filename = session.session_folder + chr(92) + "tempreport.pdf"
+    filename = report.saveas("Invoice@PathAlias.ADB_Path\invoice.set", "pdf", filter, order, filename, .f.)
+    if file.exists(filename)
+        PrintTarget = session.session_url + "tempreport.pdf?" + time("hms3")
+    end if
+end if
+redirect_page = "index.a5w"]]></example>
+</section>
+
+
+<section>
+<description>After the processing is complete and the page displays, a button appears with the label "Print Your Invoice". Clicking this label opens the PDF file. Another button with the label "Click Here to Continue" exits from the page and loads INDEX.A5W.</description>	
+<example><![CDATA[<%a5 if PrintTarget <> "" %>
+	click="window.open('<%a5 ?PrintTarget %>', '', 'status=0, toolbar=0, location=0, menubar=1, resizable=1, scrollbars=1')">  
+	<%a5 end if %>
+click="window.location='frameexit.a5w?pg= '<%a5 ?redirect_page %>'">
+
+ ]]></example>
+</section>
+
+
+<section>
+	<title>Page Security Information
+</title>
+<description>Always Allowed
+</description>	
+</section>
+	
+	
+</sections>	
+<see>
+	<ref>Web Pages
+</ref>
+</see>
+	
+</page>

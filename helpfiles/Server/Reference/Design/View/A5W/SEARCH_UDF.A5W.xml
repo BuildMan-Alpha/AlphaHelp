@@ -1,0 +1,198 @@
+<page>
+	<topic>SEARCH_UDF.A5W
+</topic>
+<description>The SEARCH_UDF.A5W page contains the search code used by the ASWSEARCH.A5W page.
+</description>	
+<sections>
+<section>
+<title>Discussion</title>	
+<description>The SEARCH_UDF.A5W page contains the following functions:
+</description>	
+<cases>
+	<case>
+		<description>((|#Fill_OptionWhat__|Fill_OptionWhat()))
+</description>
+	</case>
+	<case>
+		<description>((|#Fill_OptionField__|Fill_OptionField()))
+</description>
+	</case>
+	<case>
+		<description>((|#Fill_OptionRec__|Fill_OptionRec()))
+</description>
+	</case>
+	<case>
+		<description>((|#Fill_OptionVal__|Fill_OptionVal()))
+</description>
+	</case>
+	<case>
+		<description>((|#Fill_OptionWhat__|Fill_OptionWhat()))
+</description>
+	</case>
+	<case>
+		<description>((|#Find_Value__|Find_Value()))
+</description>
+	</case>
+	
+	
+</cases>	
+	
+</section>	
+<section>
+	<note>Do not open this page in the WYSIWYG tab of the HTML Editor and then save it. This will result in the loss of Xbasic code, which the underlying Microsoft ActiveX control does not properly support.</note>
+</section>
+	
+<section>
+	<title>Links
+</title>
+<description>The ASWSEARCH.A5W page includes the SEARCH_UDF.A5W page.
+</description>	
+</section>
+
+<section>
+	<title>Fill_OptionWhat()</title>
+<description>The Fill_OptionWhat() function returns the formatted code for a list box.
+</description>	
+<example><![CDATA[FUNCTION fill_optionwhat as C(currselections as C)
+'first value is a table name
+'second value is a display value
+what_list = <<%text%
+|< Select >
+customer|Customers
+product|Products
+invoice_header|Invoices
+%text%
+'findwhat value is first value in currselections
+fill_optionwhat = a5_html_list_populate(what_list, word(currselections, 1, "|"), 3)
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Fill_OptionBy()</title>
+
+<example><![CDATA[FUNCTION fill_optionby as C (currselections as C)
+'get a list of character fields in 'findwhat' table
+by_list = "|< Select >"
+if word(currselections, 1, "|") <> "" ' a findwhat value is specified
+    fld_list = table.external_field_name_get("PathAlias.ADB_Path\\" + word(currselections, 1, "|"), "n|t")
+    for each foo in fld_list
+        if word(foo, 2, "|") = "C" 'only list character fields
+            by_list = by_list + crlf()+ word(foo, 1, "|") + "|" + w_upper(stritran(word(foo, 1, "|"), "_", " "))
+        end if
+    next
+end if
+fill_optionby = a5_html_list_populate(by_list, word(currselections, 2, "|"), 3)
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Fill_OptionVal()</title>
+
+<example><![CDATA[FUNCTION fill_optionval as C(currselections as C)
+'get a list of unique values in field in 'findwhat' table
+val_list = "|< Select >"
+if word(currselections, 1, "|") <> "" ' a findwhat value is specified
+    fld = word(currselections, 2, "|")
+    if fld <> "" ' a findby value is specified
+        val_list = val_list + crlf()+ table.external_record_content_get("PathAlias.ADB_Path\\"+ word(currselections, 1, "|"), "alltrim(" + fld + ")", fld, "alltrim(" + fld + ") <> \"\" .and. unique_key_value()")
+    end if
+end if
+fill_optionval = a5_html_list_populate(val_list, word(currselections, 3, "|"), 3)
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Fill_OptionRec()</title>
+
+<example><![CDATA[FUNCTION fill_optionrec as C(currselections as C)
+'get a list of records in field in 'findwhat' table that have findval 'value' in 'findby' field
+rec_list = "|< Select >"
+table = word(currselections, 1, "|")
+fld = word(currselections, 2, "|")
+val = word(currselections, 3, "|")
+' The next list is used to determine what to value to return and display to identify the record
+' It has the format of 'table name|identifier field|content expression
+rec_disp_list =<<%text%
+customer * customer_id * alltrim(firstname) + " " + alltrim(lastname)
+product * product_id * desc
+invoice_header * Invoice_number * Invoice_number
+%text%
+if val <> "" ' a findval value is specified, find display
+    ' populate an array to find values to return
+    delete a_disp
+    dim a_displine_count(rec_disp_list) as P
+    a_disp.initialize_properties("table * id * content", rec_disp_list)
+    content_idx = a_disp.find(lower(table), "lower(table)")
+    if content_idx > 0 ' a content_expression was found
+        ret_value = a_dispcontent_idx.content
+        id = a_dispcontent_idx.id
+        rec_list = rec_list + crlf()+ table.external_record_content_get("PathAlias.ADB_Path\\" + table, "alltrim(" + id + ") + \"|\" + alltrim(" + ret_value + ")", ret_value, "" + fld + "=\"" + val + "\"")
+    end if
+end if
+fill_optionrec = a5_html_list_populate(rec_list, word(currselections, 4, "|"), 3)
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Fill_OptionField()</title>
+
+<example><![CDATA[FUNCTION fill_optionfield as C(currselections as C)
+'get a list of character fields in 'findwhat' table
+field_list = "|< Select >"
+table = word(currselections, 1, "|")
+rec = word(currselections, 4, "|")
+if table <> "" .and. rec <> ""
+    fld_list = table.external_field_name_get("PathAlias.ADB_Path\\"+ table,"n|t")
+    for each foo in fld_list
+        if word(foo, 2, "|") = "C" 'only list character fields
+            field_list = field_list + crlf()+ word(foo, 1, "|") + "|" + w_upper(stritran(word(foo, 1, "|"), "_", " "))
+        end if
+    next
+end if
+fill_optionfield = a5_html_list_populate(field_list, word(currselections, 5, "|"), 3)
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Find_Value()</title>	
+<example><![CDATA[FUNCTION find_value as c(currselections as C)
+find_value = ""
+table = word(currselections,1,"|")
+rec = word(currselections,4,"|")
+fld = word(currselections,5,"|")
+if fld = "" .or. rec = ""
+    exit function
+end if
+if fld = ""
+    exit function
+end if
+' This list is used to identify what identifier is used for a table
+rec_find_list =<<%text%
+customer|customer_id
+product|product_id
+invoice_header|Invoice_number
+%text%
+delete a_find
+dim a_findline_count(rec_find_list) as p
+a_find.initialize_properties("table|id", rec_find_list)
+content_idx = a_find.find(lower(table), "lower(table)")
+if content_idx > 0 ' a content_expression was found
+    id = a_findcontent_idx.id
+    find_value = table.external_record_content_get("PathAlias.ADB_Path\\" + table, fld, "", "" + id + "=\"" + rec + "\"")
+end if
+END FUNCTION]]></example>
+</section>
+
+<section>
+	<title>Page Security Information</title>
+<description>Always Allowed</description>	
+
+</section>
+	
+	
+</sections>	
+<see>
+	<ref>Web Pages</ref>
+</see>	
+	
+</page>
