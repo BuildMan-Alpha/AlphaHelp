@@ -130,7 +130,7 @@
 			</p>
 			<ol>
 				<li>
-					<h4>Security data is stored differently under IIS</h4>
+					<h4>Security data is stored differently on IIS</h4>
 					<p>
 						This feature will affect most applications. Alpha Anywhere Application Server for IIS uses ASP.NET's 
 						membership and role providers for authentication and authorization. Membership and role providers are 
@@ -142,6 +142,41 @@
 						the choosen database vendor. These providers do not use the Alpha Anywhere Application Server's schema for 
 						security data. This means security data must be migrated to the schema used by the database vendor's 
 						provider. See more details in the <a href="#migrate-security-data">Migrate Security Data</a> section.
+					</p>
+				</li>
+				<li>
+					<h4>Authorization works with a slight difference on IIS</h4>
+					<p>
+					This difference is abstracted away by Alpha Anywhere. Any appliacations created with Alpha Anywhere 3.0 
+					or later do not require any change. If an application was created before Alpha Anywhere 3.0 a bulk update 
+					operation to update component security needs to be run before the application can be published to IIS. To run
+					this bulk update operation, select the web control panel, then "Edit" on the main menu, then "Bulk Operation", and
+					then "Update component security settings (if using Active Directory or IIS)". The need to run this operation will 
+					be tracked and if this operation needs to be run you will be prompted to do so at publish time.
+					</p>
+				</li>
+				<li>
+					<h4>Web server process runs under a virtual account on IIS</h4>
+					<p>
+					This difference will most notably affect file/folder access. An application pool will be set to run as 
+					<a href="http://www.iis.net/learn/manage/configuring-security/application-pool-identities">"Application Pool Identity"</a>
+					by default. This means that IIS will create	a virtual account and this account has minimal access. It will have access 
+					to read and execute from the web root and have access write to a temporary folder. If an application writes to the
+					web root, to folders outside of web root, reads files outside of the web root the application will be denied access 
+					to those folders under IIS. The virtual account must be given the needed access to these other folders, or the 
+					application needs to be changed to do the work in a different way. Instead of giving access to specific virtual 
+					account(s) access can be granted to the build in group IIS_IUSRS. This group includes all virtual accounts so 
+					this option should not be used if multiple applications on the same server should not have access to each 
+					other's files/folders.
+					</p>
+					<p>
+					Connection strings that use Windows Authentication rather than a username and password will also be affected because
+					the connection to the database will be done under the virtual account. That account or the machine the account is running
+					on needs to be given access to the database. 
+					</p>
+					<p>
+					An alternative solution for the above points is to create or set an application pool to use a specific user that does 
+					have access to files, folder, or database servers.
 					</p>
 				</li>
 			</ol>
