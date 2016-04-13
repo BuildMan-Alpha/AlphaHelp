@@ -76,8 +76,11 @@ var outputSnippet = function(args, description, type, topic ) {
 
     if (description) {
         if (args.format == ".xml") {
-            if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
-                description = "<![CDATA[" + description + "]]>";
+            if( description.indexOf ) {
+                if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0 ) {
+                    description = "<![CDATA[" + description + "]]>";                    
+                }
+            } 
             if (type == "method") {
                 result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
