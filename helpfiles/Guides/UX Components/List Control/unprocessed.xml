@@ -62,92 +62,103 @@ end if]]></example>
 end function]]></example>
             </case>
             <case>
+                <title>Server-side error message translate</title>
+                <description>Error messages returned by the database server can be quite complex and hard for users to understand. This event fires when a server side database error occurs. The event gets passed the error message. Your code in the event handler can look for patterns in the error and translate the error into a friendlier message.</description>
+                <note>If you do not define an event handler to translate the error message, then when an error occurs. a generic error message (which you can customize) is show (e.g. Record was not updated. More...). This error message has a 'more...' link in it so show the full text of the server error.</note>
             </case>
             <case>
+                <description>Shown below is the function prototype for this event handler.</description>
+                <example><![CDATA[function xb_translate as c (e as p)
+'This function is called after a server side error has occurred.
+'The e object that is passed in includes:
+'e.tmpl - the component definition
+'e.errorMessage - the server-side error message
+
+'Your function can modify the value of the e.errorMesage variable.
+end function]]></example>
             </case>
         </cases>
+    </case>
+    <case>
+        <title>Resolving Write Conflicts Programmatically - The onWriteConflict Event</title>
+    </case>
+    <case>
+        <description>
+            <p>When a record in any table on which the List is based is updated, the possibility exists that a write conflict will occur. (See the [Write Conflicts] section in the Updateable List Controls with Detail Views - Concepts topic above.)</p>
+            <p>When a write conflict occurs, you can specify that a server-side function should be called. The primary purpose of this event is to give the developer an opportunity to resolve certain types of write conflicts programmatically - and thus never bubbling the error up to the user.</p>
+            <p>For example, you (i.e. the developer), might decide that under certain circumstances if a write conflict occurs in a certain field, the server value (or the last submitted value) always wins. Alternatively, you might decide to use a completely different value for the field in conflict.</p>
+        </description>
+        <note>If you want the last submitted value for a certain field to always win, you do not need to do this in the onWriteConflict event. You can simply uncheck the 'Check for write conflicts' property for that field in the Fields pane of the List Builder.</note>
+    </case>
+    <case>
+        <description>
+            <p>The 'e' object that is passed into the onWriteConflict event handler has information in it about each dirty field in the table. The function prototype for the event handler is shown below, showing details of the properties in the 'e' object passed into the event handler:</p>
+        </description>
+        <note>The best way to see what's in the 'e' object is to put a debug(1) statement in the event handler and then run the component in the Live Preview or Working Preview pane in the builder.</note>
+        <example><![CDATA[function writeconflict as v (e as p)
+'This event is called if there are any write conflict error when synchronizing submitted data with the database.
+'The e object that is passed in includes:
+'e.tmpl - the component definition
+'e.data - an array with all of the dirty fields in a row in the List
+
+
+
+'each item in the e.data array has properties showing the original value, current value and edited value of the field.
+
+'Your event handler can set this variable to indicate that it has resolved the write conflict (and therefore no write conflict errors will be shown to the user):
+'e.resolveConflicts = .t. or .f.
+
+'if e.resolveConflicts is set to .t. then you must set this variable:
+'e.resolveConflictMethod = "method" - the options for "method" are:
+'"useMine" -- all write conflicts are resolved using the value the user submitted (overwriting the values currently stored in the database)
+'"useTheirs" -- the values that are currently in the database are accepted 'as is' and the user is NOT notified that there was a write conflict - the user's changes are lost
+'"custom" -- allows you to specify, on a field-by-field basis, how each conflict should be resolved
+
+'if you set e.resolveConflictMethod to "custom" then you MUST specify the 'resolveConflictMethod' for each field in the e.data[] array.
+'for example, assume that the e.data[] array that is passed in has 3 items in it (because the user edited 3 field values)
+'Your code might do this:
+'e.data[1].resolveConflictMethod = "useMine"
+'e.data[2].resolveConflictMethod = "useTheirs"
+'e.data[3].resolveConflictMethod = "custom"
+'e.data[3].customValue = "Value to store"
+
+'Note that for the 3rd field, the method was set to 'custom' and so the value to be stored in the field was supplied using the '.customValue' property.
+'Since fields 1 and 2 were resolved using either the 'useMine' or 'useTheirs' option, it was NOT necessary to supply a .customValue property for these fields.
+end function]]></example>
+    </case>
+    <case>
+        <title>Custom Handlers for Synchronization Tasks</title>
+        <description>
+            <p>In many cases the data for the Lists in your UX component will come from SQL databases that you can connect to directly. But in other cases you will need to call stored procedures or web services to perform CRUD operations against your data store.</p>
+            <p>In the case where you have direct access to the SQL database, Alpha Anywhere will automatically generate all of the SQL to perform the CRUD and synchronization operations. There is very little, if any, work that you have to do.</p>
+            <p>However, in the cases where you need to call web services or stored procedures, Alpha Anywhere allows you to write custom handlers to populate your Lists and synchronization the data in the Lists.</p>
+            <p>If a List's Data Source property is not set to SQL, the Detail View properties pane in the List Builder will show these options where you can specify the name of the server-side function to call to synchronize the data in the List.</p>
+        </description>
+        <figure>
+            <link>images/customsynchproperties.jpg</link>
+        </figure>
+    </case>
+    <case>
+        <description>See [this component] for a full working example. In this example the data are being read from and written back to a text file (using standard file access commands in Xbasic), but the example could just as easily be calling custom web services to perform the CRUD operations.</description>
+    </case>
+    <case>
+    </case>
+    <case>
     </case>
 </cases>
 
 
 
+<cases>
+    <case>
+    </case>
+    <case>
+    </case>
+    <case>
+    </case>
+</cases>
 
-<h4>Resolving Write Conflicts Programmatically - The onWriteConflict Event</h4>
-<p>When a record in any table on which the List is based is updated, the
-possibility exists that a write conflict will occur. (See the 
-<link href="Write Conflicts">Write Conflicts</link>
-section in the Updateable List Controls with Detail Views - Concepts
-topic above.)</p>
-<p>When a write conflict occurs, you can specify that a server-side function
-should be called. The primary purpose of this event is to give the developer an
-opportunity to resolve certain types of write conflicts programmatically - and
-thus never bubbling the error up to the user.</p>
-<p>For example, you (i.e. the developer), might decide that under certain
-circumstances if a write conflict occurs in a certain field, the server value
-(or the last submitted value) always wins. Alternatively, you might decide to
-use a completely different value for the field in conflict.</p>
-<note> If you want the last submitted value for a certain
-field to always win, you do not need to do this in the
-onWriteConflict event. You can
-simply uncheck the 'Check for write conflicts' property for that field in
-the Fields pane of the List Builder.</p>
-<p>The 'e' object that is passed into the
-onWriteConflict event handler
-has information in it about each dirty field in the table. The function
-prototype for the event handler is shown below, showing details of the
-properties in the 'e' object passed into the event handler:</p>
-
-<note> The best way to see what's in the 'e' object is to
-put a debug(1) statement in the
-event handler and then run the component in the Live Preview or Working Preview
-pane in the builder.</p>
-
-
-<p>function writeconflict as v (e as p)<br>'This event is called if there are any write conflict error when synchronizing
-submitted data with the database.<br>'The e object that is passed in includes:<br>'e.tmpl - the component definition<br>'e.data - an array with all of the dirty fields in a row in the List</p>
-
-<p>'each item in the e.data array has properties showing the
-original value, current value and edited value of the field.<br><br>'Your event handler can set this variable to indicate that it has resolved the
-write conflict (and therefore no write conflict errors will be shown to the
-user):<br>'e.resolveConflicts = .t. or .f.<br><br>'if e.resolveConflicts is set to .t. then you must set this variable:<br>'e.resolveConflictMethod = "method" - the options for "method" are:<br>'"useMine" -- all write conflicts are resolved using the value the user
-submitted (overwriting the values currently stored in the database)<br>'"useTheirs" -- the values that are currently in the database are accepted 'as
-is' and the user is NOT notified that there was a write conflict - the user's
-changes are lost<br>'"custom" -- allows you to specify, on a field-by-field basis, how each conflict
-should be resolved<br><br>'if you set e.resolveConflictMethod to "custom" then you MUST specify the 'resolveConflictMethod'
-for each field in the e.data[] array.<br>'for example, assume that the e.data[] array that is passed in has 3 items in it
-(because the user edited 3 field values)<br>'Your code might do this:<br>'e.data[1].resolveConflictMethod = "useMine"<br>'e.data[2].resolveConflictMethod = "useTheirs"<br>'e.data[3].resolveConflictMethod = "custom"<br>'e.data[3].customValue = "Value to store"<br>
-<br>'Note that for the 3rd field, the method was set to 'custom' and so the value to
-be stored in the field was supplied using the '.customValue' property.<br>'Since fields 1 and 2 were resolved using either the 'useMine' or 'useTheirs'
-option, it was NOT necessary to supply a .customValue property for these fields.<br>end function
-<br> </p>
-
-
-<h4>Custom Handlers for Synchronization Tasks</h4>
-<p>In many cases the data for the Lists in your UX component will come from SQL
-databases that you can connect to directly. But in other cases you will need to
-call stored procedures or web services to perform CRUD operations against your
-data store.</p>
-<p>In the case where you have direct access to the SQL database, Alpha Anywhere
-will automatically generate all of the SQL to perform the CRUD and
-synchronization operations. There is very little, if any, work that you have to
-do.</p>
-<p>However, in the cases where you need to call web services or stored
-procedures, Alpha Anywhere allows you to write custom handlers to populate your
-Lists and synchronization the data in the Lists.</p>
-<p>If a List's Data Source
-property is not set to SQL, the Detail View properties pane in the List Builder
-will show these options where you can specify the name of the server-side
-function to call to synchronize the data in the List.</p>
-
-<figure><link>images/customsynchproperties.jpg</link></figure>
-
-<p>See<a href="http://www.ajaxvideotutorials.com/V12Videos/ux_customHandlers_list_synchronization.zip">
-this component</link> for a full working example. In this example the data are
-being read from and written back to a text file (using standard file access
-commands in Xbasic), but the example could just as easily be calling custom web
-services to perform the CRUD operations. </p>
-
-<p>Synchronization level - This property is only shown if the List has
+<>Synchronization level<><><p>This property is only shown if the List has
 child Lists (i.e. the List contains 'hierarchical' data - each row in the List
 contains the data for its children embedded in it). The options are 
 TopParentLevel, and EachListInHierarchy. If you specify 
