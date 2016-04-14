@@ -417,6 +417,35 @@ events.loadIndex = function(callback) {
     });
 };
 
+var createBrokenLinkEmail =  function(problems) {
+    var i;
+    var message = "";
+    for( i = 0 ; i < problems.length ; ++i ) {
+        message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
+    }
+var emailcred = require("./emailcred");
+
+var nodemailer = require('nodemailer'); 
+// create reusable transporter object using the default SMTP transport 
+var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
+ 
+// setup e-mail data with unicode symbols 
+var mailOptions = {
+    from: emailcred.user, // sender address 
+    to: 'documentation@alphasoftware.com', // list of receivers 
+    subject: 'Problem with links', // Subject line 
+    text: message, 
+};
+ 
+// send mail with defined transport object 
+transporter.sendMail(mailOptions, function(error, info){
+    if(error){
+        return console.log(error);
+    }
+    console.log('Message sent: ' + info.response);
+});
+} 
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 
@@ -428,6 +457,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/", function(req, res) {
     if (req.path == "/test") {
         res.end(JSON.stringify(req.body, null, 2))
+    } else if( req.path == "/validateLinks") {
+        var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
+        validateLinks("../links.json", "../helpfiles",function(result) {
+            if( result.problems ) {
+                createBrokenLinkEmail(result.problems);
+            }
+            res.end(JSON.stringify(result, null, 2));
+        });
     } else if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/" || req.path.substring(0, 14) == "/web/main/describe/") {
         var relPath = req.path.substring(9);
         if (req.path.substring(0, 14) == "/web/describe/")
