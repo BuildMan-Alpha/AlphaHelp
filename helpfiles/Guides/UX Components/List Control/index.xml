@@ -1,3 +1,797 @@
 <page>
-    <topic>List Control</topic>
+    <topic>Building Disconnected Applications</topic>
+    <description>Overview of building disconnected applications</description>
+    <groups>
+        <group>
+            <sections>
+                <section>
+                    <title>Getting Started</title>
+                    <description><p>The following videos will give you a quick overview of building disconnected applications in the UX component:</p></description>
+                    <videos>
+                        <video>
+                            <name>Watch Video 1 - Setting up a List with a Detail View using the Quick Setup Genie</name>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_1.swf</link>
+                        </video>
+                        <video>
+                            <name>Watch Video 2 -
+                        Editing Data and Persisting Data to Local Storage</name>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_2.swf</link>
+                        </video>
+                        <video>
+                            <name>Watch Video 3 - Introduction to Hierarchical
+                                                    Data Structures</name>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_3.swf</link>
+                        </video>
+                    </videos> 
+                </section>
+                <section>
+                    <description>
+                        <p>For an in-depth example of a disconnected application that has rich a mobile interface, [watch this video]. This video is aimed at developers with a solid understanding of the UX Component who have strong Javascript and CSS skills. You can [download the component shown in the video].</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Introduction</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>The UX component allows you to build applications that work when you are 'disconnected' (i.e. you do not have an internet connection).</p>
+                        <p>While you are disconnected, you can continue editing the existing records in your application, you can enter new records, and you can mark records as deleted. When you next have a connection, you click/tap on a 'synchronize' button and the edits that you made while you were disconnected are pushed to the server and the server database is updated. You can also optionally 'pull' records from the server that were edited after your application went 'off-line'.</p>
+                    </description>
+                    <note>
+                        It is helpful to think about how an e-mail app on a mobile device operates when trying to understand how the UX component implements disconnected applications. When you use your e-mail app on your phone, your inbox shows a subset of your complete e-mail inbox. You are able to reply to e-mail messages and compose new messages regardless of whether you have a connection or not. When you click the 'send' button, if there is no connection, your replies and new messages are put into the 'out' box and then once a connection is available, the messages in the 'out' box are sent. This all 'just works' - it is completely transparent to the user.
+                    </note>
+                </section>
+                <section>
+                    <description>
+                        <p>If there are any conflicts or errors when the data are synchronized, errors are displayed in your application, allowing you to fix the data and then resubmit it to synchronize with the server database. Conflict errors (called 'write conflicts') might occur because another user edited a field in a record that you have also edited. Errors might occur because you tried to set a field to a value that was rejected by a server-side validation rule, or by the database server.</p>
+                        <p>The List controls on a UX component are the fundamental building block of disconnected applications. The data in the List control can be thought of as an 'in-memory' database that contains a subset of the master database on the server. Your application will contain functionality to edit, insert and delete data from these Lists (using the List's associated 'Detail View' - see below for more information). At any time, when you have a connection, you can synchronize the edits that you have made to the List data with the server database.</p>
+                        <p>The data in the List controls in a UX are persisted to Local Storage on your device. If your application terminates for any reason (for example, your mobile device runs out of power), the edits that you made are never lost (because they are persisted with the List data in Local storage). When your application is restarted, the Lists are all automatically reloaded from the persisted data, and all form variables are automatically reloaded. When List data is restored from Local Storage, all of the edits that you have made are also restored and you can then synchronize the edits with the server database.</p>
+                        <p>Because form variables are also persisted to Local Storage, a user can be in the middle of filling in a long form when the application terminates unexpectedly and when the application reloads the form is restored to its prior state - preserving all of the user edit.</p>
+                        <p>The data in the List controls (i.e. the 'in-memory' database) can contain a 'flat' list of rows (i.e. a list of customers), or it can contain 'hierarchical' data. For example, the data for the Customer List might also contain data for each order that the customer has placed (stored in the data as a nested array of JSON objects), and for each order, the order details (again, stored in the data as a nested array of JSON objects). In the case where the Customer List is populated with hierarchical data, the List that displays Orders for a given Customer, and the List that displays Order Details for a given Order are considered to be 'child' Lists. These child Lists get their data from the hierarchical data stored in their parent List.</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Contrasting the Alpha Anywhere Approach To Disconnected Applications with Other Approaches</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>The diagrams below show the basic architecture of the way in which Alpha Anywhere implements disconnected applications and the way many other applications implement disconnected applications.</p>
+                        <p>The approach often taken by other applications is to create a replica of a subset of the master database in an 'on-device' database. The 'on-device' database is typically implemented as a native application that runs on the device. The application on the mobile device performs its CRUD (Create, Read, Update, Delete) operations against the local replica database - not against the master database on the server. The local replica database synchronizes with the server database independently of the application. When a replication error occurs, the on-device replica database knows about the error, but the application itself does not. Therefore, special code needs to be added to the application to query the replica database to find out if there were errors and then resolve them. The approach described here cannot be used by HTML5 applications, because HTML5 applications will not be able to talk to the replica database (since this is typically a native application). So the mobile application will have to be a written as a native app, or a hybrid app that uses something like PhoneGap to communicate with the on-device replica database.</p>
+                    </description>	
+                    <figure>
+                        <title>"Other" Method</title>
+                        <link>images/othermethod.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The Alpha Anywhere approach allows you to create pure HTML5 applications that can operate in disconnected mode. That's because the data are persisted to Local Storage which is a standard HTML5 feature. The application caches edits in Local Storage, but when data are synchronized with the server, the communication is between the application and the server database (actually the communication is between the application and the application server, which in turn communicates with the server database). This is exactly how a connected application would operate - which is critically important - because it means that disconnected applications and connected applications essentially work in the same manner. This means that little or no changes have to be make to an application to make it 'disconnected'.</description>
+                    <figure>
+                        <title>Alpha Anywhere Method</title>
+                        <link>images/alphaMethod.jpg</link>
+                    </figure>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Updateable List Controls with Detail Views - Concepts</title>
+            <sections>
+                <section>
+                    <description>The List control, with its associated Detail View, is the fundamental 'building block' of a disconnected application. However Lists with Detail Views are also extremely useful even if your are building a traditional web application and have no immediate need for disconnected functionality.</description>
+                    <note>A List with an updateable Detail View provides an alterative to Data Binding for performing CRUD operations against a SQL database. See the section below [Contrasting Defining Data Binding for a UX with  Lists/Detail View] for more information.</note>
+                </section>
+                <section>
+                    <title>What is a Detail View?</title>
+                    <description>List controls on a UX component can have an associated 'Detail View'. The detail view shows data for the current row in the List.</description>
+                    <note>A special genie makes setting up a List with a Detail View very easy. The genie allows you to create a List and its associated Detail View all in a single step. See section below - [Using the List Quick Setup Genie]. There is also another genie (accessed from the Detail View pane of the List builder), that makes setting up a Detail View for an existing List very easy. See section below - [Using the Detail View - Quick Setup  Genie].</note>
+                </section>
+                <section>
+                    <description>The image below shows a List with an associated Detail View to the right of the List.</description>
+                    <figure>
+                        <link>images/listwithdetailview.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>When you select a row in the List, the corresponding Detail View is automatically updated.</p>
+                        <p>If you edit a value in the Detail View and then 'save' the data, the corresponding row in the List is updated and is marked as dirty. Notice in the image below, the small orange triangle in the top right corner of the row to indicate that the data in the List has been edited. Note that at this point, the edits have not been pushed back to the server database (i.e. the database has not yet been 'synchronized').</p>
+                    </description>
+                    <note>
+                        The Customization section in the Detail View pane in the List Builder gives you complete control over the CSS used to display dirty rows. So, if instead of the orange triangle in the top right corner of the row, you would rather use some other style, you can easily do so.
+                    </note>
+                    <figure>
+                        <link>images/detailviewedit.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>You can continue making as many edits as you want before you synchronize with the server.</p>
+                        <p>For example, the image below shows two rows that were edited (indicated by the orange triangle) and one new row that has been added (indicated by the blue triangle).</p>
+                    </description>
+                    <figure>
+                        <link>images/listDetailViewMultipleEdits.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>When the 'synchronize' button on the UX (not shown in the above image) is clicked, all of the edits are submitted to the server and if there are no errors, the orange and blue indicator icons are removed (because the data in the List rows is no longer 'dirty').</p>
+                        <p>If an error occurred when the was was being synchronized, the indicators on the corresponding List row will indicate that there was an error. For example, in the image below, we have set the value of the Lastname field to a very long value (too long to fit into the corresponding field in the server database). Therefore when we synchronized the data, the server reported an error. The List row now has a red icon (customizable in the List builder settings) indicating that there was a synchronization error on this row.</p>
+                        <p>When the user synchronizes the edits made to a List, a JSON object is send to the server. This object has just the edited rows from each List. For each row in the JSON package sent to the server, the original and updated value for each field is available. If the List is based on SQL data, Alpha Anywhere will generate the SQL CRUD statements automatically. If the List is based on a custom data source (such as a web service), then you will be responsible for writing your own server side synchronization handler. See [Custom Handlers for  Synchronization Tasks] below for information on how a custom synchronization handler can be written.</p>
+                    </description>
+                    <figure>
+                        <link>images/detailviewerror.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The actual text of the error is shown in the Detail View when the row with the error is selected:</description>
+                    <figure>
+                        <link>images/detailviewerrordetails.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Write Conflicts</title>
+                    <description>
+                        <p>A common problem with database synchronization is write conflicts. A write conflict occurs when some other user updates a record before a user has a chance to synchronize the edits that he/she has made.</p>
+                        <p>For example, say that a user did a search to retrieve all customers in Mexico (see image below). Then, the user edited the highlighted record shown below, changing the CompanyName field from 'Antonio Moreno Taqueria' to 'Anthony Moreno Taqueria'. Before this user got a chance to synchronize their edits, another user changed the field to 'Tony Morneo Taqueria'.</p>
+                        <p>When the user eventually tries to synchronize his edits, he will get a write conflict as shown below. The reason for the write conflict is that the current value in the record ('Tony Morneo Taqueria') no longer matches the original value in the record ( 'Antonio Moreno Taqueria'). (The original value in the field is stored in the List when the field is edited, and is submitted to the server when data are synchronized.)</p>
+                    </description>
+                    <note>You can turn write conflict checking on/off at the individual field level by setting the 'Check for write conflicts' property on the Fields pane in the List builder. If you uncheck this property then the last person to update a field always wins.</note>
+                    <figure>
+                        <link>images/turnwriteconflictcheckonoff.</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The image below shows how the screen would look after the user tried to synchronize his edits and a write conflict occurred.</description>
+                    <figure>
+                        <link>images/writeconflicts.gif</link>
+                    </figure>
+                    <note>In this section we discuss how the user can resolve write conflicts by making decisions about which value to use. It should be noted that the developer can also 'programmatically' resolve write conflicts by defining an onWriteConflict server-side event handler. See [Resolving Write Conflicts Programmatically] for more information.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>Once the write conflict has been reported, the user must then resolve the write conflict. Note that the edited record now has two icons. The orange icon shows that the record is dirty. The red icon shows that there was some type of synchronization error.</p>
+                        <p>When the user taps on the Write conflict message, a pop-down menu appears with options on how to resolve the conflict.</p>
+                        <p>Then menu offers two choices:</p>
+                    </description>
+                    <list>
+                        <item><description>Use mine</description></item>
+                        <item><description>Use theirs</description></item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>If the user select the 'Use theirs' option, the field will be set to the value currently stored in the database.</p>
+                        <p>If the user selects the 'Use mine' option, the user will be able to tap/click the 'Synchronize' button again to re-submit the edits to the server.</p>
+                    </description>
+                    <figure>
+                        <link>images/menu.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        If write conflicts occurred in more than one field, as shown in the image below, then the menu that is shown when the user taps on a field to resolve the write conflict is slightly different. It shows options to resolve all write conflicts in the record using either 'mine' or 'theirs' for all fields in conflict. This allows the user to resolve the conflict in one shot, without having to visit each individual field that had a conflict.
+                    </description>
+                    <figure>
+                        <link>images/writeconflict_multiple.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>Note how the options in the image below allow the user to resolve all fields with conflicts at once.</description>
+                    <figure>
+                        <link>images/resolvemultiplewriteconflicts.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Hierarchical Data</title>
+                    <description>The List control can contain hierarchical data. For example consider a UX component that has three Lists showing</description>
+                    <list>
+                        <item><description>Customers</description></item>
+                        <item><description>Orders</description></item>
+                        <item><description>OrderDetails</description></item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>When you click on a row in the Customer List, the Orders List should show the orders for the selected customer. When you click on a row in the Orders List, the OrderDetails List should show the Order Details for the selected Order. </p>
+                        <p>The hierarchy of these lists is:</p>
+                    </description>
+                    <example><![CDATA[Customers
+                        Orders
+                            OrderDetails
+                    ]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>In a traditional web application, where you can assume an internet connection, it is easy to see how, when the user clicks on a customer row, an Ajax callback can be made to populate the Orders List with just the orders for the selected Customer. Similarly, when you click on a row in the Orders List, an Ajax callback to populate the OrderDetail List can be made. The UX builder has supported this type of parent-child relationship between Lists since its initial release.</p>
+                        <p>Now consider an application designed for offline (i.e. disconnected usage).</p>
+                        <p>If the user has no connection, it is obviously not possible to make an Ajax callback to fetch the orders for the selected customer when the user clicks on a row in the Customer List. </p>
+                        <p>At the time that the data for the customer records you want to load into your application are fetched, you must also fetch the data for all orders that belong to any customer record that was fetched. Similarly, you must also fetch all OrderDetail records for any Order records that are fetched. The data for the child Lists must be 'pre-fetched' when the data for the top-most parent List in the hierarchy is fetched (the Customer List in this example).</p>
+                        <p>This is easily accomplished in the List Builder. Using the above scenario (Customers ==>Orders ==>OrderDetails), the image below shows the List Builder for the Orders List. Notice that the Has parent list property is checked, the Parent list id property has been set to the id of the List showing the customers, and the Pre-load data property has been checked.</p>
+                        <p>In addition, the fields in the Customer List and the Orders List that link the two Lists have been specified.</p>
+                    </description>
+                    <figure>
+                        <link>images/list_child_list.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Because the data for the child Lists has been pre-fetched, when the user clicks on a row in the Customer List, the Orders List can be populated (with just the orders for the selected customer) without making an Ajax callback. Similarly, when the user clicks on a row in the Orders List, the OrderDetails list can be populated.</p>
+                        <p>The data for the child Lists is actually stored in the top-most parent List. If you examine the JSON representation of the data in a row in the Customer List, you will see that the data looks similar to this:</p>
+                        <p>The text in blue below is the JSON representation of a single row in the Customers List. Notice that the object has a field for each column in the Customers List and it also includes a nested array showing the Orders for that customer. Similarly, the first row in the nested Orders array (order_number "10") has a nested array showing all of the OrderDetails for that order. There is no limit to the depth of this hierarchy of nested Lists.</p>
+                        <p>The data in the Customers List is said to be hierarchical because it contains nested data for all of its child Lists.</p>
+                    </description>
+                    <example><![CDATA[{
+    "CUSTOMER_ID": "31",
+    "FIRSTNAME": "Dean",
+    "LASTNAME": "McDonald",
+    "BILL_CITY": "North Oxford",
+    "BILL_STATE_REGION": "MA",
+    "__primaryKey": "31",
+    "__a5crc": -429214,
+    "__LIST__LISTORDERS": [
+        {
+            "order_number": "10",
+            "discount": "0",
+            "customer_id": "31",
+            "sales_rep": "Ito",
+            "pay_method": "MCard",
+            "__primaryKey": "10",
+            "*key": 0,
+            "*renderIndex": 0,
+            "*value": "10",
+            "__LIST__LISTORDERDETAILS" : [
+                 {
+                    "part_number" : "P100",
+                    "quantity" : "3"
+                 },
+         {
+                    "part_number" : "P123",
+                    "quantity" : "13"
+                 }
+            ]
+        },
+        {
+            "order_number": "23",
+            "discount": "0",
+            "customer_id": "31",
+            "sales_rep": "Johnson",
+            "pay_method": "Cash",
+            "__primaryKey": "23",
+            "*key": 1,
+            "*renderIndex": 1,
+            "*value": "23",
+            "__LIST__LISTORDERDETAILS" : [
+                 {
+                    "part_number" : "P300",
+                    "quantity" : "43"
+                 }
+            ]
+        }
+    ],
+    "*key": 28,
+    "*renderIndex": 28,
+    "*value": "31"
+}]]></example>
+                </section>
+                <section>
+                    <description>        
+                        <p>When you are working with hierarchical Lists, and you make an edit to any of the rows in a child List, the row that was edited is obviously dirty, but the parent row is also considered dirty (because one or more of its children is dirty). This is indicated in the UI by a lighter colored icon. The synchronize button for the parent List will become enabled.</p>
+                        <p>In the screenshot shown below, an edit was made to the 'Sales_rep' field in the Orders List. The row is therefore indicated as dirty by the orange icon on the top right corner of the row. But the record's parent row (customer id 31) has a much lighter icon. This indicates that the row has an 'inherited' dirty status (i.e. one of its children is dirty). If an edit was then made to any field in the row for customer 31, the light orange icon would turn to a standard orange icon (because it is really dirty, not just dirty by inheritance).</p>
+                    </description>
+                    <figure>
+                        <link>images/nestedLists_dirty.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Similarly, if the user had pressed the button to synchronize the edits and a server-side validation error was detected for the change made to the (say) the 'Sales-rep' field in the Orders List, the row with the error would have a red icon. But the parent row in the Customer List ('Customer_id' 31) would have a light red icon to indicate that there was an error in one or more of its child Lists. </p>
+                        <p>In the screenshot below the value of the 'Sales_rep' field was set to a value that was too big for the database. Therefore a server-side error occurred when the data was synchronized. Notice how the row has a dark red icon indicating that there was a synchronization error and its parent row has a light red icon to indicate that one or more of its child rows has a synchronization error.</p>
+                    </description>
+                    <figure>
+                        <link>images/inherited_server_side_errors.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>When you are working with Lists that contain hierarchical data, the data are synchronized with the server at the top-most parent level. For example if you put a button on the UX to synchronize edits in the 'OrderDetail' List, the UX will automatically traverse up the hierarchy to find the top-most List and the synchronization will be performed on the Customer List (which will automatically synchronize edits in all child Lists).</p>
+                        <p>In this example, a single customer record and all of the nested orders for that customer, and nested OrderDetail for each Order are considered to be a single 'logical' record (even though there might be several physical records represented by this 'logical' record). Synchronization takes place at the logical record level.</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Synchronizing Data</title>
+                    <description>Alpha Anywhere defines two types of synchronization:</description>
+                    <list>
+                        <note><description>client-to-server </description></note>
+                        <note><description>server-to-client</description></note>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>Client-to-server synchronization takes please when the user has made edits to the data in a List control that has a Detail View (these edits are typically made while the user does not have an internet connection) and then clicks a button on the UX to push (i.e. synchronize) the edits from the client (i.e. the mobile device) back to the server so that the server database can be updated with the edits that the user has made.</p>
+                        <p>When a client-to-server synchronization takes place, a JSON object that contains just the edited rows is sent to the server. If the Lists are based on a SQL data source, then SQL statements are automatically computed in order to update the tables that the Lists being synchronized are based on. If the Lists are not based on a SQL data source, then you will need to write your own synchronization handlers to persist the edits. See [Custom Handlers for Synchronization Tasks] for more information.</p>
+                        <p>If it the user has edited a lot of data while disconnected, you can choose to synchronize the data in batches. See [Synchronizing Data in Batches] for more information.</p>
+                        <p>Server-to-client synchronization takes place when the user clicks a button on the UX to request and incremental refresh of the data in the Lists. An increment refresh differs from a full refresh in that only records that have been edited, or added on the server (since the Lists on the UX were initially populated) are sent to the client (i.e. the mobile device). Any records that were deleted on the server are deleted from the client. You can perform an incremental refresh at any time that you have a connection, but you can only perform a full refresh if there are no unsynchronized edits in the Lists.</p>
+                        <p>When a server-to-client synchronization takes place, the filters that was used when the List was initially populated are honored. For example, assume that at the start of his day, while still at the office where a connection is available, a salesperson enters a search to retrieve all customer records for (say) Lexington, MA (the town in which he will be making sales calls that day). Assume also that the UX has child Lists that display the customer orders and order details (see the section on [Hierarchical Data]). The search criteria that the salesperson uses is:</p>
+                    </description>
+                    <example><![CDATA[City = 'Lexington' and State = 'MA']]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Later in the day, when the salesperson has a good connection, he clicks a button on the UX to perform an incremental refresh. This initiates a server-to-client synchronization and all of the records on the server for customers in Lexington  MA that have been edited since the salesperson executed the initial search are sent to the client to update the Lists on the device. Included in the package sent to the client will be all edits made to any orders for the selected customers, or any order details for any order for the selected customers. Stated differently, the Customer List, Orders List and OrderDetail List will all be updated to refresh the edits that have taken place on the server.</p>
+                        <p>For more information on server-to-client synchronization see the [{dialog.object}.refreshListsIncremental()] method.</p>
+                    </description>
+                    <note>The List Builder allows you to set synchronization policies. You can specify that every time the user saves edits made to the List Detail View, the edits should immediately be synchronized with the server (i.e. a client-to-server synchronization should be performed). You can also specify that every time a client-to-server synchronization is performed that a server-to-client synchronization should be performed. Since a server-to-client synchronization is much more expensive (in terms of server load and bandwidth requirements) than a client-to-server synchronization, you should carefully consider your use case before turning on this option.</note>
+                </section>
+                <section>
+                    <cases>
+                        <case>
+                            <title>Synchronizing Data in Batches</title>
+                            <description>
+                                <p>If a user has edited a large number of records while you were disconnected, then when he synchronizes data, you might want to submit the data to the server in batches (say 10 rows at a time). This will allow you to show progress to the user. In additional to showing progress, an abort button will, optionally, also be shown. This will allow a user to stop sending additional batches of data to the server. The abort button will not prevent a batch that has already been sent from being processed on the server.</p>
+                                <p>You can specify the batch size in the List builder.</p>
+                                <p>If you specify a value greater than 0 for the batch size, you can then specify the name of a Placeholder control where the progress display will be shown and you can also specify other properties, such as whether the user can abort (i.e. cancel sending additional batches after starting the synchronization process).</p>
+                            </description>
+                            <figure>
+                                <link>images/synchProgress.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Transactions</title>
+                            <description>
+                                <p>Alpha Anywhere automatically wraps certain CRUD statements in transactions so that if any statement in the transaction fails, the transaction is rolled back. All updates for a 'logical' record are wrapped in a transaction. A 'logical' record is a parent record and all of its child, grandchild, great-grandchild, etc. records.</p>
+                                <p>To understand which CRUD statements get wrapped in transactions, consider the following scenario:</p>
+                            </description>
+                            <cases>
+                                <case>
+                                    <description>A UX component has a 'Customer' List and an 'Orders' List which is configured as a 'child' of the customer List. The customer List is configured to 'pre-fetch' the orders data - which means that each record in the customer List has embedded in it all of the orders for that customer.</description>
+                                </case>
+                                <case>
+                                    <description>Assume that the user edits the customer record for customer 'A1' and also edits one or more of the order records for this customer. For example, say that order 'O1' and 'O2' are edited. When making the edit to order 'O2' assume that the user enters a value in the 'Quantity' field that violates some rule in the database.</description>
+                                </case>
+                                <case>
+                                    <description>User edits the customer record for customer 'A2' and enters a new order for this customer.</description>
+                                </case>
+                            </cases>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Now the user clicks the synchronize button. The JSON package that is sent to the server has the data for the two dirty customer records ('A1' and 'A2'). Each customer record includes the dirty orders for that customer.</p>
+                                <p>On the server, Alpha Anywhere takes the JSON package and converts it into SQL statements. Here is the sequence of steps on the server:</p>
+                            </description>
+                            <steps>
+                                <step>
+                                    <description>A new transaction is started because the server is now processing the first 'logical' record (customer 'A1').</description>
+                                </step>
+                                <step>
+                                    <description>The SQL UPDATE statement for the edit to customer 'A1' is computed and then executed. This statement executes successfully.</description>
+                                </step>
+                                <step>
+                                    <description>Next, the SQL UPDATE statement for the edit to order 'O1' is computed and then executed. This statement executes successfully.</description>
+                                </step>
+                                <step>
+                                    <description>Next, the SQL UPDATE statement for the edit to order 'O2' is computed and then executed. This statement fails because the database rejects the value in the Quantity field. As a result of this failure, the transaction is rolled back. This means that the edit to customer 'A1' is undone and the edit to order 'O1' is also undone. At this point, the server is done processing all of the edits to the first 'logical' record.</description>
+                                </step>
+                                <step>
+                                    <description>Next, and new transaction is started because the server is now processing the second 'logical' record (customer 'A2').</description>
+                                </step>
+                                <step>
+                                    <description>The SQL UPDATE statement for customer 'A2' is computed and then executed. This statement succeeds.</description>
+                                </step>
+                                <step>
+                                    <description>Next the SQL INSERT statement for the new order that was entered for customer 'A2' is computed. This statement also succeeds. Note that the SQL INSERT will automatically set the linking field in the record that is created to point to customer 'A2' since this order record is a child of customer 'A2'.</description>
+                                </step>
+                                <step>
+                                    <description>The transaction is then committed making the edit to customer 'A2' and the entry of the new order for customer 'A2' permanent changes to the database.</description>
+                                </step>
+                            </steps>
+                        </case>
+                        <case>
+                            <description>So, in this scenario, the edits to customer 'A1' and order 'O1' got rolled back because of the error when updating order 'O2'. However, the edit to customer 'A2' and the new order for customer 'A2' got committed because customer 'A1' and 'A2' are different 'logical' records.</description>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>How to Define a List Detail View</title>
+            <sections>
+                <section>
+                    <description>To specify that a List has an associated 'Detail View', check the 'Has detail view' property on the 'List Properties' pane in the List Builder.</description>
+                    <figure>
+                        <link>images/listbuilder_hasdv.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>When you check the 'Has detail view' property, a new Pane in the Builder is shown.</description>
+                    <figure>
+                        <link>images/listbuilder_dvprops.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                    <p>For a detailed explanation of the properties available in the Detail View 
+                    pane see the section below [List Detail View Properties].</p>
+                    <p>There are two different genies available for quickly setting up a List 
+                    with a Detail View.</p>
+                    </description>
+                    <list>
+                        <item>
+                            <description>The List Control - Quick Setup Genie can be used when you add a new List control to a UX. This genie quickly create a new List with an optional Detail View part and optional Search Part.</description>
+                        </item>
+                        <item>
+                            <description>The Detail View - Quick Setup Genie can be used if you have an existing List control that does not yet have a Detail View part and you want to add a Detail View to the List.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>Both of these genies are described below.</description>
+                </section>
+                <section>
+                    <title>Using the List Control - Quick Setup Genie</title>
+                    <description>When you add a new List control to a UX component, the 'New Control' dialog will have a 'List Control - Quick Setup Genie' button. This genie will allow you to set up a List control, with an optional associated Detail View part and an optional Search Part. </description>
+                    <note> This button will only be visible if you have selected the 'Create a single new control' radio button.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>Using the genie, you can configure a List control for disconnected CRUD operations against a SQL database in just a few steps. </p>
+                        <p>The genie even allows you to configure a parent-child relationship between the Lists that you add to the UX. For example, if your UX has a list for the Customer data, when you use the genie to add a List for the Orders data, you can specify that the Orders List is a child of the Customer List.</p>
+                    </description>
+                    <figure>
+                        <link>images/listquicksetupgenie.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>When you click this button an genie opens:</description>
+                    <figure>
+                        <link>images/listquicksetupgenie.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>You can save the settings that you enter into the Genie for reuse in the future. This can make setting up a new List with an associated Detail View and Search Part extremely easy.</description>
+                </section>
+                <section>
+                    <title>Using the Detail View - Quick Setup Genie</title>
+                    <description>
+                        <p>The Detail View - Quick Setup Genie is designed to allow you to add a Detail View to an existing List control that does not currently have a Detail View.</p>
+                        <p>The purpose of the Genie is to automatically add controls to the UX component that will display the Detail View, to bind these controls to the corresponding fields in the List, and to add buttons to the UX for the various Detail View actions (such as Save, Delete, New Record, Synchronize, etc.).</p>
+                    </description>
+                    <note> This genie differs from the List Quick Setup Genie, which builds a List control (with optional Detail View and Search parts) from scratch.</note>
+                </section>
+                <section>
+                    <description>To use this genie, open the List Builder. Enable the Detail View by checking the Has Detail View property on the List Properties pane. Then go to the Detail View pane and click the Detail View - Quick Setup Genie at the bottom of the screen.</description>
+                    <figure>
+                        <link>images/search_quicksetupgenie.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>Clicking the genie button opens this dialog:</description>
+                    <figure>
+                        <link>images/detailview_quicksetupgeniedialog.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Detail View Actions</title>
+                    <description>The Detail View has a number of associated actions that can be invoked from buttons you add to the Detail View. For examples you would typically add buttons to perform these actions:</description>
+                    <list>
+                        <item>
+                            <name>Save</name>
+                            <description>save the edits you have made back to the List. (You can optionally set a 'Synchronization preference' in the List builder to indicate that when edits are saved back to the List they should also be synchronized with the server, but by default, the edits are not synchronized).</description>
+                        </item>
+                        <item>
+                            <name>Synchronize</name>
+                            <description>synchronize all of the edits that have been  made to the List with the server.</description>
+                        </item>
+                        <item>
+                            <name>Reset</name>
+                            <description>undo any edits made to the Detail View before they  have been saved.</description>
+                        </item>
+                        <item>
+                            <name>New Record</name>
+                            <description>add a new record.</description>
+                        </item>
+                        <item>
+                            <name>Delete Record</name>
+                            <description>mark the current row in the List as deleted.  (The record will only be physically deleted when the data are synchronized. You can specify that deletes should be 'hard' - record is physically deleted, or 'soft' - a field in the record is set to indicate that the record should be considered to be deleted.)</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>You can optionally add other buttons that invoke other actions. A genie makes it easy to do this. </p>
+                        <p>In the 'Defined Control' section of the UX Builder toolbox select the 'List-Detail View-Buttons' item.</p>
+                    </description>
+                    <figure>
+                        <link>images/definedcontrolstoolbox.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>This will open a genie that allows you to select the buttons you want for the Detail View:</description>
+                    <figure>
+                        <link>images/listdetailviewbuttons.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>Each of the buttons you select will invoke a List method when clicked. The corresponding List methods for each of the buttons is shown below. Also shown is the enable expression that is defined for each button if you use the Detail View button genie to create the buttons. The enable expressions ensure that a particular button is only enabled when appropriate. For example, if the List does not have any edits, then it would not be appropriate to enable the 'Synchronize' button.</description>
+                    <cases>
+                        <case>
+                            <title>Detail View Buttons</title>
+                            <cases>
+                                <case>
+                                    <title>Save</title>
+                                    <description>Save edits made to the Detail View back to the List.</description>
+                                    <list>
+                                        <name>Method Called</name>
+                                        <description><![CDATA[<listObject>.updateListFromUXControls()]]></description>
+                                        <name>Enable Expression for Button</name>
+                                        <description><![CDATA[(dialog.listDetailView.SPECIFY_LIST_NAME.isDirty = true) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>New Record</title>
+                                    <description>Start editing a new record. Default values for a new record are filled into the Detail View.</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[<listObject>.newDetailViewRecord()]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.listDetailView.SPECIFY_LIST_NAME.isDirty = false) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Delete Record</title>
+                                    <description>Marks the selected record in the List as deleted. (If the selected row is a new record, the row is physically removed from the List --- not marked as deleted).</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[<listObj>.deleteRow({prompt:true});]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.listDetailView.SPECIFY_LIST_NAME.mode <>'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Undo Edits</title>
+                                    <description>Undo edits made in the Detail View (before the edits have been saved back to the List).</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[<listObj>.resetForm({prompt: true})]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.listDetailView.SPECIFY_LIST_NAME.isDirty = true) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Undo Row Edits</title>
+                                    <description>Undo the edits made to the selected List row.</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[<listObj>.resetRow()]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.listRow.SPECIFY_LIST_NAME.isDirty = true) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Synchronize</title>
+                                    <description>Pushes all edits made to the List back to the server to synchronize with the server database</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[{dialog.object}.saveListEdits('SpecifyListName',{rows: 'allRows'})]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.list.SPECIFY_LIST_NAME.isDirty = true) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Synchronize Current Row</title>
+                                    <description>Same as 'Synchronize' but only synchronizes edits in the current row.</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[{dialog.object}.saveListEdits('SpecifyListName',{rows: 'current'})]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.list.SPECIFY_LIST_NAME.isDirty = true) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Synchronize All</title>
+                                    <description>Synchronizes data from ALL Lists on the UX component - user will not have to press Synchronize buttons for each List.</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[{dialog.object}.synchronizeLists()]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.hasDirtyLists = true)]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Refresh List Data - Incremental</title>
+                                    <description>Performs an 'incremental' refresh of the List data. Server is queried to find records that have been edited since the List was initially populated. Only edited and new records are sent to the browser. This might be a substantially smaller payload than the original payload to populate the List. Rows in the List that have been edited are not updated.</description>
+                                    <note>To perform an incremental refresh on all Lists use <![CDATA[{dialog.object}refreshListsIncremental()]]></note>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[{dialog.object}.refreshListData('SpecifyListName',{mode: 'incremental'})]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title>Refresh List Data</title>
+                                    <description>Refreshes all of the data in the List. You can only perform a full refresh is the List is 'clean'  (i.e. has no edits that have not yet been synchronized).</description>
+                                    <list>
+                                        <item>
+                                            <name>Method Called</name>
+                                            <description><![CDATA[{dialog.object}.refreshListData('SpecifyListName');]]></description>
+                                        </item>
+                                        <item>
+                                            <name>Enable Expression for Button</name>
+                                            <description><![CDATA[(dialog.list.SPECIFY_LIST_NAME.isDirty = false) AND (dialog.listDetailView.SPECIFY_LIST_NAME.mode <> 'search')]]></description>
+                                        </item>
+                                    </list>
+                                </case>
+                            </cases>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <title>List Detail View Properties</title>
+                    <description>
+                        <p>This section describes key properties in the List Builder for configuring the List's Detail View.</p>
+                        <p>To turn on the List Detail View, check the 'Has Detail View' property on the 'List Properties' pane.</p>
+                        <p>You can also specify here if the List data should be persisted to Local Storage - needed if you are building a UX that should work when it is disconnected.</p>
+                    </description>
+                    <figure>
+                        <link>images/list_dv_props_1.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                     <description>Once you have check the 'Has Detail View' property, a new pane is added to the List Builder. The 'Detail View' pane allows you to configure all aspects of the List's Detail View.</description>
+                    <figure>
+                        <link>images/list_detailview_pane.jpg</link>
+                    </figure>
+               </section>
+                <section>
+                    <description>This key properties in this dialog are described below:</description>
+                    <cases>
+                        <case>
+                            <title>Detail view type</title>
+                            <description>
+                                <p>Options are 'FieldMap' and 'Container'. The 'Container' option allows you to specify the name of a container control on the UX. Any controls in the container that have the same name as a column in the List are automatically mapped to the List. So, for example, if the List has a column called 'Lastname' and the container has a control called 'Lastname', the value in the 'Lastname' control will automatically be set to the value in the List row. The 'FieldMap' option requires you to explicitly map controls on the UX to fields in the List.</p>
+                                <p>When you open the 'FieldMap' dialog you can map List control columns to controls in the UX by double-clicking on a row in the dialog, or selecting the 'Auto-map' hyperlink to automatically map all controls that have the same name as List columns.</p>
+                                <p>A useful feature in the 'FieldMap' dialog is the 'Create new UX controls for all un-mapped fields' hyperlink. Use this button when you find that there is no existing control on the UX to which you can bind a specific List column. All of the controls in the dialog that do not have an explicit mapping will be set to <![CDATA[<Create New UX Control>]]>, and then when you close the dialog, new controls will automatically be added to the UX and the field map will be appropriately updated.</p>
+                            </description>
+                            <figure>
+                                <link>images/fieldmapdialog.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Ajax callback to refresh row on select</title>
+                            <description>By default, when you click on a row in the List, the Detail View is populated using the data that is already in the List. It is not necessary to make an Ajax callback to retrieve any data. However, you can optionally check this property and every time you click on a row in the List, an Ajax callback is made to the server to get the latest data for that row. If you are building an application that must work in disconnected mode, you should not check this property.</description>
+                        </case>
+                        <case>
+                            <title>Synchronization Policy</title>
+                            <description>
+                                <p>Allows you to set properties that control when data is synchronized with the server. Two type of synchronization actions are defined: Client-to-server (i.e. synch-push) - this is when edits made on the client (i.e. a mobile device) are 'pushed' to the server to update the server database. Server-to-client (i.e. synch-pull) - this is when edits that were made to the server database (after the data was initially retrieved from the server and stored on the mobile device) are sent to the client to update the stored data.</p>
+                                <p>The 'Perform client-to-server synchronization whenever the user saves edits to a row in a List' property allows you to specify that every time the user saves a record in the Detail View the edits should be pushed immediately to the server. If this option is checked, then the List Detail View will behave like a standard web application that immediately executes CRUD operations on the server.</p>
+                                <p>The 'Perform a server-to-client synchronization whenever a client-to-server synchronization is performed' property allows you to do a synch-pull every time a synch-push is done. Be cautious about checking this property. Depending on the size of the Lists in your application, checking this application might make your application feel sluggish whenever the user does a synch-push operation. Rather than doing an automatic synch-pull, you might prefer to allow users to manually execute a synch-pull operation using the {dialog.object}refreshListsIncremental() method.</p>
+                            </description>
+                            <figure>
+                                <link>images/synchpolicy.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Auto-commit detail view on row-select</title>
+                            <description>When you have made edits to any field in the Detail View, you cannot give focus to a different row in the List before you have saved your changes. That's because if you do give focus to a different row in the List, any unsaved edits would be lost. Therefore, the List prevents the focus row from changing if there are unsaved edits. If you check this option, then the List will automatically save any edits you have made to the Detail View before the focus row is changed. If a client-side validation error is detected and the Detail View edits cannot be saved, the focus row will not be changed.</description>
+                        </case>
+                        <case>
+                            <title>Synchronization batch size</title>
+                            <description>
+                                <p>By default, when you synchronize data with the server (to commit any edits that were made on the client to the server database), all of the edited rows in the List are submitted to the server at once. If the user can potentially edit a large number of rows while they are disconnected, you might want to submit the data to the server in batches. If the batch size is set to 0 (the default value), all of the edited data are submitted at once. If you set a value that is greater than 0, additional properties are shown allowing you to set properties of the batch.</p>
+                                <p>Background Information - Understanding why Synchronizing in Batches is Important: When data are synchronized, an Ajax callback is made to the server. At this point the client (i.e. the browser) starts to wait for a response from the server, while continuing to execute other tasks (i.e. it does not 'block' while it is waiting for the response). If the response has not been received within a specified time (the setting for Ajax callback timeouts), the callback is considered to have failed and the browser will stop waiting for a response from the server and the onAjaxCallbackFailed client-side event will fire (allowing you to inform the user of the problem).</p>
+                                <p>If the reason that the response from the server was not received within the specified timeout interval is simply that a lot of data was submitted to the server and it is taking time for the server to process all of the edits, then the server will successfully complete the task, but its response to the client (telling the client that the data was successfully synchronized and marking the edited rows in the List as 'clean') will never be received by the client. As a result, the next time the user synchronizes edits, the previously submitted data will be submitted again (even though these records have actually been successfully synchronized). So, but setting a non-zero batch size you can ensure that the server will be able to process each batch well within the time allowed by the callback timeout.</p>
+                            </description>
+                            <note>When you synchronize data you can dynamically set the batch size with a property set in the .saveListEdits() method. For example: <![CDATA[{dialog.object}.saveListEdits('LISTCUSTOMERS',{rows: 'allRows', batchSize: 10});]]></note>
+                        </case>
+                        <case>
+                            <title>Placeholder for progress display</title>
+                            <description>
+                                <p>Allows you to specify a placeholder where the progress should be displayed. When data are synchronized in batches, a progress control (implemented as a slider) shows how many batches have been synchronized. There are numerous client-side events that fire (see below) that allow you to replace the built-in control with your own control. </p>
+                            </description>
+                            <note>To insert a placeholder in the UX, select the [Placeholder] control in the Other Controls section of the UX toolbox on the left of the screen.</note>
+                        </case>
+                        <case>
+                            <title>Synchronization progress properties</title>
+                            <description>Opens a dialog (shown below) that allows you to customize the built-in progress display. You can control whether the user can cancel the operation mid-stream. It is important to note that if the user cancels the operation before all batches have been send, the data in the batch that is currently being processed on the server will still continue to synchronize. All that is achieved by cancelling is that you stop submitting additional batches to the server.</description>
+                            <figure>
+                                <link>images/batchsize1.jpg</link>
+                            </figure>
+                            <figure>
+                                <link>images/batchsize2.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>When data are submitted in batches, a number of client-side events (shown below) are fired. This gives you a great deal of control over the process, including the option to implement your own progress display rather that using the built-in progress control.</description>
+                            <figure>
+                                <link>images/batch3.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Table properties</title>
+                            <description>This dialog is allows you to set properties for the table(s) that the List is based on. These properties are used when CRUD operations (Create, Read, Update, Delete) are performed on the List tables. See [Table Properties for List Detail View] below for more information.</description>
+                        </case>
+                        <case>
+                            <title>Client-side Events</title>
+                            <description>The List exposes a large number of client-side events that are specific to Lists with a Detail View. Click the smart field for the Events property to open a builder for client-side List Detail View events.</description>
+                            <figure>
+                                <link>images/client_side_dv_events_smartfield.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Show a fade out message after List data are synchronized</title><description>After records have been synchronized, you can display a 'fade-out' message to the user to show confirmation that the records were synchronized.</description>
+                            <figure>
+                                <link>images/fadeoutmessage.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If you have hierarchical Lists (e.g. Customers -- Orders -- OrderDetails), the fade out message is only shown for the top list in the hierarchy (e.g. Customers in this example).</p>
+                                <p>You can customize the fade out message by defining an Xbasic function that will compute the fade out message. The Xbasic function gets passed an e object that contains count information about the number of records that were submitted, the number that were updated, insert, deleted and how many records had errors.</p>
+                                <p>In the case of hierarchical Lists, the object that is passed to the Xbasic function that computes the custom message includes counts for 'logical' records. For example, say that your List hierarchy is Customers -- Orders -- OrderDetails and the user edits two different OrderDetails records for the same Order. This counts as a single logical record, even though two physical records were submitted and updated.</p>
+                            </description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                </section>
+                <section>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link href="http://youtu.be/ILMjGkxxuV4">watch this video</link>
+        <link href="http://downloads.alphasoftware.com/a5v12Download/OfflineDemo1.zip">download the component shown in the video</link>
+        <link href="#Contrasting Defining Data Binding for a UX with Lists/Detail View">Contrasting Defining Data Binding for a UX with Lists/Detail View</link>
+        <link href="#Using the List Control - Quick Setup Genie">Using the List Quick Setup 
+Genie</link>
+        <link href="#Using the Detail View - Quick Setup Genie">Using the Detail View - Quick Setup  Genie</link>
+        <link href="#Custom Handlers for Synchronization Tasks">Custom Handlers for  Synchronization Tasks</link>
+        <link href="#Resolving Write Conflicts Programmatically - The onWriteConflict Event">Resolving Write Conflicts Programmatically</link>
+        <link href="#Custom Handlers for Synchronization Tasks">Custom Handlers for
+Synchronization Tasks</link>
+        <link href="#Synchronizing Data in Batches">Synchronizing Data in Batches</link>
+        <link href="Hierarchical Data">Hierarchical Data</link>
+        <link href="UX Component Methods">{dialog.object}.refreshListsIncremental()</link>
+        <link href="List Detail View Properties">List Detail View Properties.</link>
+        <link href="Table Properties for List Detail View">Table Properties for List Detail View</link>
+        <link></link>
+        <link></link>
+    </links>
 </page>
