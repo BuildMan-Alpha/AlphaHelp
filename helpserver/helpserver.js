@@ -336,6 +336,7 @@ events.beforeRefresh = function() {
     var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
     validateLinks("../links.json", "../helpfiles",function(result) {
         if( result.problems ) {
+            console.log("Found problems with links.json - sending an email.")
             createBrokenLinkEmail(result.problems);
         }
     });    
