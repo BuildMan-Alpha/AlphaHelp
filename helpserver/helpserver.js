@@ -108,10 +108,21 @@ var outputSnippet = function(args, description, type, topic ) {
     if (description) {
         if (args.format == ".xml") {
             if( description.indexOf ) {
-                if( description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0 ) {
-                    description = "<![CDATA[" + description + "]]>";                    
+                if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
+                    description = "<![CDATA[" + description + "]]>";
                 }
-            } 
+            } else if( description.p ) {
+                if( description.p.length > 0 ) {
+                    try  {
+                        description = description.p[0];
+                        if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
+                            description = "<![CDATA[" + description + "]]>";
+                        }
+                    } catch( err2 ) {
+                        
+                    }
+                }
+            }
             if (type == "method") {
                 result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
