@@ -1515,6 +1515,789 @@ end if]]></example>
                     </figure>
                 </section>
                 <section>
+                    <title>Persisting Variables</title>
+                    <description>
+                        <p>Variables are persisted whenever a 'trigger' event occurs. For some controls (e.g. Radiobutton,. Checkbox, Slider, etc.), the 'trigger' is when the value in the control is changed. For textbox and textarea controls, the 'trigger' is when the control is blurred (i.e. loses focus) and the value in
+                        the field has changed.</p>
+                        <p>You can also manually trigger the event by calling the UX component's {dialog.object}.persistVariablesToLocalStorage() method.</p>
+                        <p>When variables are persisted to Local Storage various client-side events are fired. </p>
+                        <p>The onBeforePersistControlValuesToLocalStorage event fires first. This event fires before the variables are persisted. Its purpose is to allow you to specify any additional data that you want to persist along with the variable values. Your code can set the e.userData property. Thevalue you set in this property will be available when the onRestoreVariablesFromLocalStorage fires.</p>
+                        <p>The localStorageEncryption event fires next. The event allows you to add your own encrypting to the JSON data that is about to be stored to Local Storage. The event handler gets the JSON data in the e.data property and the event handler can set e.data to the encrypted string.</p>
+                        <p>When the component is loaded if the 'Restore variables from Local Storage' setting is true (see [Local Storage Settings] below), then the previously persisted variable values (if any) will be restored.</p>
+                        <p>The onRestoreVariablesFromLocalStorage event will fire after the data has been restored. This event handler can access the e.userData property which was optionally defined when the onBeforePersistControlValuesToLocalStorage event was fired.</p>
+                        <p>If the 'Restore variables from Local Storage' property is set of false, you can still manually restore persisted variables by calling the UX component's {dialog.object}._restoreVariablesFromLocalStorage() method.</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Local Storage Settings</title>
+                    <description>You can control what gets persisted to Local Storage by setting properties in the UX component as shown below.</description>
+                    <figure>
+                        <link>images/LOCALSTORAGE_PROPS2.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <list>
+                        <item>
+                            <name>Namespace</name>
+                            <description>
+                                <p>In order to manage the keys in Local Storage, you specify a 'namespace'. All keys for this component will use the namespace as a prefix. If you specify <![CDATA[<Default>]]> or leave the namespace blank, a system generated namespace will be used. In addition to the namespace specified here, all keys will also include 'ALPHA_' in the namespace. This allows for easy identification of keys in Local Storage that are tied to any UX application. For example, if you set the 'namespace' property to 'orderApp', the key that stores the data for a List called 'Orders' will be 'ALPHA_orderAPP.LIST.ORDERS'.</p>
+                                <p>You can specify an optional 'friendly name' and 'description' for the namespace. The friendly name, description, version and a datestamp are automatically persisted to a key called 'ALPHA_namespace._INFO' any time any UX data are persisted to Local Storage.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>Persist variable values</name>
+                            <description>Check this property to persist to Local Storage the value of all variables on the UX. (A 'variable' is associated with each data entry control on the UX. For example, a textbox, radiobutton, checkbox, slider, etc. all have an associated 'variable' that contains the current 'value' for the control.)</description>
+                        </item>
+                        <item>
+                            <name>Persist component state</name>
+                            <description>(Not currently implemented) Stores in Local Storage information such as what Panel in a Panel Navigator currently has focus, what Panels in a Panel Layout are currently visible, etc.</description>
+                        </item>
+                        <item>
+                            <name>Working Preview testing mode</name>
+                            <description>When you are in Working Preview you can specify that the local file system on your computer should be used for storing data that would otherwise be put in the browser's Local Storage. The benefit of this is to allow you to easily see what's being stored in Local Storage because you can simply examine the contents of the files in the specified folder on your computer.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <note>Using the 'Filesystem' option for Local Storage is significantly slower than using the browser Local Storage.</note>
+                </section>
+                <section>
+                    <list>
+                        <item>
+                            <name>Restore variables from Local Storage</name>
+                            <description>If this property is checked, then when the component is re-loaded, any variable whose value was persisted to Local Storage will be restored.</description>
+                        </item>
+                        <item>
+                            <name>Restore data in List controls from Local Storage</name>
+                            <description>If this property is checked the data in the List controls are restored when the component is reloaded. (Only the Lists that you indicated should be persisted to Local Storage are restored. Each List has its own setting to indicate if it is persistable. See below for more information.)</description>
+                        </item>
+                    </list>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Managing Local Storage</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>Local Storage is a shared resource and it is limited. The exact limitation is a function of your device. In order to free up storage space for an application on a device, it might be necessary to delete storage being used by some other application that you are no longer using.</p>
+                        <p>You can add a pre-defined control to your UX to manage Local Storage. This control is primarily intended for use by developers while they are designing the application. It is not ideal for the users of your application.</p>
+                        <p>To insert the 'Local Storage Manager' into your component, select the control from the 'Defined Controls' section in the UX toolbox.</p>
+                    </description>
+                    <figure>
+                        <link>images/localstoragemgr1.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>This will insert a List control into the component that will allow you to see all of the keys in Local Storage, the keys for this component (i.e. app), all keys (excluding keys for this app), etc. You can see how much space each key is consuming and you can peek at the data in the key. You can also delete keys.</p>
+                        <p>The image below is showing the keys in Local Storage for an component where the 'Namespace' property has been set to 'app1'</p>
+                    </description>
+                    <figure>
+                        <link>images/localstoragemgr2.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>If you tap on the Show button you can see up to the first 1,000 bytes of data in the key:</description>
+                    <figure>
+                        <link>images/localstoragemgr3.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Methods for Managing Local Storage</title>
+                    <description>The UX component has several methods that make it easy for developers to add functionality to their components to manage the data in Local Storage.</description>
+                    <note> These methods cannot be used in Working Preview if you have configured your component to use the file system for Local Storage.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>The {dialog.object}._ls_getData() function returns an object with information about the keys stored in Local Storage.  The method takes a flag to indicate which keys in Local Storage to return information on.</p>
+                        <p>The object that is returned has these properties</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>data</name>
+                            <description>An array with information about each key found. The array has an object for each key found. The object has a key and size property indicating the key name of the item and the size in bytes of the item.</description>
+                        </item>
+                        <item>
+                            <name>size</name>
+                            <description>the total size in bytes of all keys found</description>
+                        </item>
+                        <item>
+                            <name>keyCount</name>
+                            <description>the number of keys that were found.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>Example:</description>
+                    <example><![CDATA[//pass in the 'a' flag to get info on All keys
+var obj = {dialog.object}._ls_getData('a')
+console.log('Number of keys: ' + obj.keyCount);
+console.log('Number of bytes: ' + obj.size);
+var data = JSON.stringify(obj.data);
+console.log('Data: ' + data);]]></example>
+                </section>
+                <section>
+                    <description>The following flags can be used:</description>
+                    <list>
+                        <item>
+                            <name-title>Flag</name-title>
+                            <description-title>Meaning</description-title>
+                        </item>
+                        <item>
+                            <name>a</name>
+                            <description>All keys in Local Storage</description>
+                        </item>
+                        <item>
+                            <name>aa</name>
+                            <description>All keys created by UX components. Keys that are added to Local Storage all have 'ALPHA_' as a prefix. Only keys that have this prefix are returned.</description>
+                        </item>
+                        <item>
+                            <name>t</name>
+                            <description>All keys for this UX component. These keys all start with 'ALPHA_' followed by the namespace for the component (e.g. ALPHA_NS1). NOTE: The namespace for the component is specified in the UX component properties - Local Storage section.</description>
+                        </item>
+                        <item>
+                            <name>o</name>
+                            <description>All other keys  (i.e.excluding keys for this UX component). (Same as using the 'a' flag, then removing keys returned for the 't' flag).</description>
+                        </item>
+                        <item>
+                            <name>oa</name>
+                            <description>All UX component keys, but excluding keys for this component. (Same as using the 'aa' flag, then removing keys returned for the 't' flag).</description>
+                        </item>
+                        <item>
+                            <name>v:t</name>
+                            <description>Key used to persist variables for this UX component. NOTE: The UX component allows you to specify that variables in a component should be persisted to Local Storage (See Local Storage section in UX properties).</description>
+                        </item>
+                        <item>
+                            <name>v:a</name>
+                            <description>All UX component keys that store persisted variables (for any UX component, not just this component).</description>
+                        </item>
+                        <item>
+                            <name>v:o</name>
+                            <description>All UX components keys that store persisted variables, excluding this UX component (Same as using 'va' and then removing 'vt').</description>
+                        </item>
+                        <item>
+                            <name>lists:t</name>
+                            <description>All of the List components in this component that are persisted to Local Storage. NOTE: Not every List in a UX component is persisted to Local Storage. Each List in a UX has its own setting (defined in the List Builder) to control whether it is persisted.</description>
+                        </item>
+                        <item>
+                            <name>lists:a</name>
+                            <description>All of the List components (from any UX component) that are persisted to Local Storage.</description>
+                        </item>
+                        <item>
+                            <name>lists:o</name>
+                            <description>All of the List components, excluding the Lists in this component. (Same as using 'lists:a' and then removing 'lists:t')</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>Once you have retried the array of information using the {dialog.object}._ls_getData() method, you might want to delete the keys listed in the array. You can pass in the object returned by the {dialog.object}._ls_getData() method to the {dialog.object}._ls_deleteKeys() method.</p>
+                        <p>For example:</p>
+                    </description>
+                    <example><![CDATA[//delete all keys in local storage for other UX components
+var obj = {dialog.object}._ls_getData('o');
+{dialog.object}._ls_deleteKeys(obj);]]></example>
+                </section>
+                <section>
+                    <cases>
+                        <case>
+                            <title>Namepsace Information Key</title>
+                            <description>    
+                                <p>Each UX component that persists data to Local Storage automatically stores a key in Local Storage with information about the UX component every time the UX component persists data to Local Storage.</p>
+                                <p>The special key is name:</p>
+                            </description>
+                            <example><![CDATA[ALPHA_<your component namespace>._INFO]]></example>
+                        </case>
+                        <case>
+                            <description>The data in the key contains these properties:</description>
+                            <list>
+                                <item>
+                                    <name>lastUsed</name>
+                                    <description>the last date that information for this namespace was written to Local Storage. This will allow you to write routines that delete keys for infrequently used applications.</description>
+                                </item>
+                                <item>
+                                    <name>friendlyName</name>
+                                    <description>the component 'friendly name' - specified in the UX builder - Local Storage section.</description>
+                                </item>
+                                <item>
+                                    <name>description</name>
+                                    <description>the component 'description' - specified in the UX builder - Local Storage section.</description>
+                                </item>
+                                <item>
+                                    <name>version</name>
+                                    <description>the component 'version' - specified in the UX builder - Local Storage section.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>For example, here is some data that might be stored in the ._INFO key for a particular UX component:</description>
+                            <example><![CDATA[{
+    "lastUsed": "2014-07-26T14:27:41.122Z",
+    "friendlyName": "Expense Reporting",
+    "description": "An application to capture expenses.",
+    "version": 1
+}]]></example>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Client-side Events</title>
+            <sections>
+                <section>
+                    <title>Client-side Events for Lists with a Detail View</title>
+                </section>
+                <section>
+                    <description>
+                        <p>If a List has a Detail View, there are a large number of client-side events that are exposed.</p>
+                        <p>To define these client-side events, click the smart field for the Events property (on the Detail View pane in the List Builder) to open a builder for client-side List Detail View events.</p>
+                    </description>
+                    <figure>
+                        <link>images/client_side_dv_events_smartfield.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The builder shows all of the client-side events for Lists with Detail Views.</description>
+                    <figure>
+                        <link>images/list_dv_props6.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The key client-side events are summarized below:</description>
+                    <list>
+                        <item>
+                            <name>canUpdateList</name>
+                            <description>Fires when the user tries to update the List with edits that have been ade to the List Detail View. If function returns false, action is cancelled. The data object is passed in as a member of the e object. If you set properties in e.data, you can overrride the values that the user entered.</description>
+                        </item>
+                        <item>
+                            <name>canSynchronizeList</name>
+                            <description>
+                                <p>Fires when the user tries to synchronize the data in the List (by making an Ajax callback). If function returns false, action is cancelled. The data object is passed in as a member of the e object. If you set properties in e.data, you can override the values from the List that will be submitted to the server. You can prevent the data in a particular row in the List from being synchronized by setting the ._isDirty property of the row data to false. For example to prevent the data in row 2 (zero based) from being synchronized, use this code:</p>
+                                <p><![CDATA[e.data[2]._isDirty = false;]]></p>
+                                <p>The data passed into the e object includes batchSize, totalDirtyRows and startingRow. If all data is not being submitted in batches, batchSize is 0. To test if this is the first batch in a job test for <![CDATA[batchSize > 0 and  startingRow = 1]]></p>
+                            </description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <list>
+                        <item>
+                            <name>afterSynchronizeList</name>
+                            <description>Fires after the data in the List has been synchronized. Data passed into the event handler includes: hasErrors, recordsWithErrors, recordsSubmitted, recordsUpdate, recordsInserted, recordsDeleted, recordsWithServerSideValidationErrors, recordsWithWriteConflictErrors, recordsWithDatabaseErrors,l istId</description>
+                        </item>
+                        <item>
+                            <name>afterRefreshListIncremental</name>
+                            <description>Fires after an incremental refresh is performed on a List (to retrieve records from the server that were added/updated/deleted after the List control was initially populated). Data passed into the event handler includes: rowsUpdated, rowsInserted, rowsDeleted,l istId.</description>
+                        </item>
+                        <item>
+                            <name>canResetRow</name>
+                            <description>Fires when the user tries to undo edits to a row of data in the List. If function returns false, action is cancelled.</description>
+                        </item>
+                        <item>
+                            <name>canUndoEdits</name>
+                            <description>Fires when the user tries to undo edits to the List Detail View form. If function returns false, action is cancelled.</description>
+                        </item>
+                        <item>
+                            <name>afterResetRow</name>
+                            <description>Fires after the user has undone edits to a row of data in the List.</description>
+                        </item>
+                        <item>
+                            <name>afterUndoEdits</name>
+                            <description>Fires after the user has undone edits to the List Detail View.</description>
+                        </item>
+                        <item>
+                            <name>canNewRecord</name>
+                            <description>Fires when the user tries to go to a new Detail View record. If function returns false, action is cancelled.</description>
+                        </item>
+                        <item>
+                            <name>afterNewRecord</name>
+                            <description>Fires after the new record has been displayed in the DetailView form</description>
+                        </item>
+                        <item>
+                            <name>afterListRowSelectCancelled</name>
+                            <description>Fires when user tries to select a new row in a List and the action is cancelled because the Detail View for the current List, or any child List, is dirty.  If your event handler sets e.handled = true, the system message will be suppressed. A typical use for this event is to give focus to the dirty Detail View. For example, say you have hierarchical data with customers, orders and orderDetails. If the user has edited the Detail View for the orderDetail list and then clicks on a different row in the customer List, the action will be cancelled and this event will fire. If the Detail View for the orderDetail List is in another Panel, this event can give focus to the Panel so that the user can save the dirty Detail View record.</description>
+                        </item>
+                        <item>
+                            <name>afterSynchronizeListBatch</name>
+                            <description>If the List is being synchronized in batches, fires when a batch is completed. If the function returns false, the next batch (if any) will not be sent. The data in the e object that is passed in will allow you to create your own progress counter. The e object includes these properties: totalDirtyRows, batchSize, startingRow and pctComplete. NOTE: If you want to execute code at the start of the batched job, see the canListSynchronize event.</description>
+                        </item>
+                        <item>
+                            <name>beforeSynchronizeListBatchStart</name>
+                            <description>If the List is being synchronized in batches, fires before the first batch is send to the server.</description>
+                        </item>
+                        <item>
+                            <name>afterSynchronizeListBatchEnd</name>
+                            <description>If the List is being synchronized in batches, fires after the last batch in the job has completed.</description>
+                        </item>
+                        <item>
+                            <name>canCancelBatch</name>
+                            <description>If the List is being synchronized in batches, fires if the user clicks the 'Cancel' button to stop sending batches of records to the server to synchronize. If the function returns false, then the synchronization is not cancelled.</description>
+                        </item>
+                        <item>
+                            <name>afterCancelBatch</name>
+                            <description>If the List is being synchronized in batches, fires after the user has clicked the 'Cancel' button to stop sending batches of records to the server to synchronize.</description>
+                        </item>
+                        <item>
+                            <name>modeChanged</name>
+                            <description>Fires when the List mode changes. Modes are 'enter', 'edit' and 'search'. 'search' applies only if the List has a Search Part and the Search Part is set to QueryByForm mode.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>The following two events are defined in Fields pane of the List Builder (because the events are defined at the individual field level):</description>
+                    <list>
+                        <item><name>onDetailView Populate Javascript</name></item>
+                        <item><name>onListUpdate Javascript</name></item>
+                    </list>
+                </section>
+                <section>
+                    <description>These properties allow you to transform the data before it is displayed in the Detail View and before the Detail View is saved back to the List. The code you you specify in these two properties must 'return' the transformed value. For example:</description>
+                    <example><![CDATA[return this._value.toUpperCase()]]></example>
+                </section>
+                <section>
+                    <description>The Javascript for both of these properties can refer to</description>
+                    <example><![CDATA[this._value]]></example>
+                </section>
+                <section>
+                    <description>to get the default value that the Detail View control should be populated with when the user clicks on a Detail View row and to get the default value that the List should be updated with when the user clicks the Save button to save the Detail View back to the List.</description>
+                </section>
+                <section>
+                    <title>Client-side Events for Lists with a Search Part</title>
+                    <description>The following client-side events are specific to Lists with a Search Part. These events are defined on the 'List Properties' pane in the List builder (by clicking the 'More events...' property)</description>
+                    <list>
+                        <item>
+                            <name>afterSearchComplete</name>
+                            <description>Fires after the user submits the List's Search Part to execute a search of the records in the List. The 'searchMode' parameter is either 'search ' or 'clear' - user cleared existing Search Part filter. 'searchWhere' indicates where the search will be performed. It is either 'clientSide', or 'serverSide'</description>
+                        </item>
+                        <item>
+                            <name>beforeSearch</name>
+                            <description>Fires before the user submits the List's Search Part to execute a search of the records in the List. The 'searchMode' parameter is either 'search ' or 'clear' - user cleared existing Search Part filter. 'searchWhere' indicates where the search will be performed. It is either 'clientside', or 'serverside'. The 'listIsDirty' property indicates if the List is dirty (has unsynchronized edits). If the 'listIsDirty' property is true and the 'searchWhere' property is true, you can display a message telling the user that server-side searches are not permitted. If your event returns false, the system error message will then be suppressed.</description>
+                        </item>
+                        <item>
+                            <name>onSearchResultTooLarge</name>
+                            <description>Typically used in mobile applications when you want to ensure that the user is not trying to retrieve too much data from the server. Fires if the user executes a server-side search that returns too many records. Allows you to display UI telling the user to enter more restrictive search criteria. The maximum allowed search size is set in the List builder, but can be overwritten by properties set in the <![CDATA[<listObject>.searchList()]]> method.</description>
+                        </item>
+                        <item>
+                            <name>onSearchResultTooLargeForLocalStorage</name>
+                            <description>If the List is set to persist to Local Storage this event will fire if the user peformed a server-side search that retrieved more records than could be stored in Local Storage. You can use this event to instruct the user to enter more restictive search criteria.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Client-side Events for Lists that Persist Data to Local Storage</title>
+                    <description>
+                        <p>The following client-side events are specific to Lists that have been set to store their data to Local Storage. These events are defined on the 'List Properties' pane in the List builder (by clicking the 'More events...' property)</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>onBeforePersistToLocalStorage</name>
+                            <description>Fires before the List is persisted to Local Storage. You can optionally set the e.userData property to any object and the data in e.userData will be persisted along with the List data.</description>
+                        </item>
+                        <item>
+                            <name>onPersistToLocalStorage</name>
+                            <description>Fires after the List is persisted to Local Storage. The 'success' parameter (logical value - true/false) indicates if the data was successfully saved to Local Storage, or not. The 'mode' parameter indicates what List action (e.g. 'populate', 'append', 'udate', etc.) triggered the event.</description>
+                        </item>
+                        <item>
+                            <name>onRestoreFromLocalStorage</name>
+                            <description>Fires after the List data has been restored from Local Storage. The e.userData property contains any data that was set in the onBeforePersistToLocalStorage event.</description>
+                        </item>
+                    </list>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Client-side Expressions</title>
+            <sections>
+                <section>
+                    <description>There are several system fields that can be used in client-side expressions (show/hide, enable, etc.) For example</description>
+                    <example><![CDATA[dialog.listDetailView.LIST1.mode = 'enter']]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>The 'mode' system field can be 'enter', 'edit' or 'search'.</p>
+                        <p>In the above example, 'LIST1' is the name (i.e. variablename) for the List.</p>
+                        <p>Other system fields specific to Lists with a Detail View or Search Part are:</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name-title>Name</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>dialog.listDetailView.SPECIFY_LIST_NAME.isDirty</name>
+                            <description>Indicates whether any field in the List's Detail View has been edited. After the edits in the current List row are saved back to the List, this flag will be reset to false.</description>
+                        </item>
+                        <item>
+                            <name>dialog.listRow.SPECIFY_LIST_NAME.isDirty</name>
+                            <description>Indicates if the current row in the List has been edited. This flag is set to true after edits in a Detail View have been saved back to the List.</description>
+                        </item>
+                        <item>
+                            <name>dialog.list.SPECIFY_LIST_NAME.isDirty</name>
+                            <description>Indicates if any row in the List has been edited. When this flag is true, it indicates that the List has data that needs to be synchronized.</description>
+                        </item>
+                        <item>
+                            <name>dialog.hasDirtyLists</name>
+                            <description>Indicates if the UX component has any Lists that have been edited. When this flag is true, it indicates that the UX has one or more Lists with data that needs to be synchronized.</description>
+                        </item>
+                        <item>
+                            <name>dialog.listDetailView.SPECIFY_LIST_NAME.mode</name>
+                            <description>Indicates the Detail View mode. Can be 'enter' - entering a new record, 'edit' - editing an existing record, or 'search' - (Only applies if the List has a Search Part which has been configured as 'Query by Form') indicates that the Detail View is being used to enter search criteria rather than editing field values.</description>
+                        </item>
+                    </list>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Deleting Records</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>When records are delete in a List's Detail View, the record is initially simply marked as deleted. It is not physically deleted until the List is synchronized. At any time before the List is synchronized you can undelete the record by calling the List object's .resetRow() method.</p>
+                        <p>Two types of 'deletes' are supported - 'hard' and 'soft'. A 'hard' delete will physically delete the record from the database. A 'soft' delete will simply set the value is a special field to 1 to indicate that the record has been 'deleted' (actually it would be more accurate to say that the record has been 'marked as deleted').</p>
+                        <p>When you configure the Table Properties for the Detail View, you can specify if you want to perform 'hard' or 'soft' deletes.</p>
+                        <p>A common use case for 'soft' deletes is when working with a tables that have relationships. For example consider a database that has tables for 'customers', 'orders' and 'orderDetails'. If you attempt to delete a customer record without first deleting all orders for that customer, the delete will fail (assuming the database has been configured with foreign keys).  Rather than having to worry about implementing logic to first delete all customer orders, it is simpler to just set a flag field in the customer record.</p>
+                        <p>When the List is displayed, it will automatically filter our records that have been marked as deleted.</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Contrasting Defining Data Binding for a UX with Lists/Detail View</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>Prior to this version of Alpha Anywhere, when you wanted to perform CRUD (create, read, update, delete) operations on a SQL database you would typically set the Data Binding properties of the UX (as shown in the image below). </p>
+                        <p>Setting the Data Binding properties for a UX involved specifying which table or tables the UX was 'bound' to, and then mapping control on the UX to fields in the bound tables.</p>
+                        <p>Having done that you would then define a Save Submitted Data to Table(s) action in the UX's AfterDialogValidate server-side event. (See image below). You would also (optionally) define a Load Primary Keys for Parent Table action in the onDialogInitialize event.</p>
+                    </description>
+                    <figure>
+                        <link>images/databindingUXLevel.jpg</link>
+                    </figure>
+                    <figure>
+                        <link>images/server-side_actions_saverecord.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>Alternatively, you could use Action Javascript actions to perform CRUD operations on 'unbound' tables. These action (shown below) can be thought of as using 'ad-hoc' data binding.</description>
+                    <figure>
+                        <link>images/unboundcrudactions.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>A List with an updateable Detail View also allows you to perform CRUD operations against a SQL database, and therefore represents an alternative to the above techniques.</description>
+                    <note>It is possible to continue to use Data Binding along with Lists with updateable Detail Views.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>If you define Data Binding using the Data Binding pane in the UX builder (see image at top of section), you are said to be defining the data binding at the 'UX level'. When you define the data binding at the UX level your UX can only perform CRUD actions against a single set of linked tables (i.e. the tables that the UX is data bound to).</p>
+                        <p>However, if you use Lists with Detail View to perform your CRUD actions, then you can update multiple independent sets of tables. That's because you can have multiple Lists on the UX, each with its own 'data binding' definition (i.e. the data binding is done at the 'List' level)</p>
+                        <p>Choosing whether to create a UX that does CRUD operations against a SQL database by defining data binding at the UX level, or by creating a List with an updateable Detail View is a matter of personal preference. Both methods have their advantages.</p>
+                        <p>However, if you want to build an application that can be used while disconnected, then you must use the List with Detail View method.</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Configuring a List Control for Disconnected Applications</title>
+            <sections>
+                <section>
+                    <description>When you are building an application for disconnected usage there are certain List control properties that must be carefully considered. These are:</description>
+                    <cases>
+                        <case>
+                            <title>Pagination</title>
+                            <description>
+                                <p>The 'pagination' option for the List should not be checked. With pagination turned on, you only load one 'page' of data into the List at a time. You then go back to the server each time a new 'page' of data is requested. Since the application is designed for disconnected usage, you will not be able to go back to the server to get more data.</p>
+                                <p>For a disconnected application, you want to load all of the 'relevant data' into the List while you have a connection (i.e. before you go offline). If all of the 'relevant' data turns out to be a large number of rows, then you will want to turn on the 'list virtualization' feature to improve the List performance (see below). </p>
+                                <p>You can add a Search Part to the List to allow the user to search for the 'relevant data' that they want to have available when they are disconnected (see below).</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title>List virtualization</title>
+                            <description>If your List has a large number of rows in it, turn on virtualization (on the List Properties pane in the List Builder). With List virtualization, the List performance is substantially improved because only a subset of the List rows are rendered.</description>
+                            <figure>
+                                <link>images/listvirtualizationsetting.gif</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>Search Part</title>
+                            <description>
+                                <p>By adding a Search Part to the List and checking the 'Delay populate till active search' property, you allow the user to search for 'relevant' data while they have a connection (i.e. before they go offline).</p>
+                                <p>If the user enters search criteria that are not sufficiently restrictive and tries to load too much data into a List your application should display an error and inform the user to enter more restrictive search criteria. See [Setting Search Result Maximums] for information on how to specify the maximum search size and what events can be used to display  feedback to the user should they try to load too many records onto their mobile device.</p>
+                            </description>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Miscellaneous Topics</title>
+            <sections>
+                <section>
+                    <title>Preventing Duplicate Synchronization Commands</title>
+                    <description>
+                        <p>When you are working with disconnected data in a List control there is a small possibility of a synchronization request being submitted to the server more than once - resulting in the possibility of duplicate records in the database.</p>
+                        <p>To understand how this might happen, consider what happens when the user clicks the 'Synchronize' button on a device to synchronize edits that were made while offline.</p>
+                    </description>
+                    <steps>
+                        <step>
+                            <description>A JSON packet containing all of the edits that were made to the List (including any child Lists) is sent to the server.</description>
+                        </step>
+                        <step>
+                            <description>The server processes the updates.</description>
+                        </step>
+                        <step>
+                            <description>After the server has completed processing the updates, the server sends a response back to the client indicating which rows were successfully synchronized and which rows have errors. This response will set the 'dirty' state of each row in the List that had been edited back to 'clean'.</description>
+                        </step>
+                    </steps>
+                </section>
+                <section>
+                    <description>
+                        <p>Obviously, in order for the server to receive the synchronization request, the user must have a connection. But suppose that AFTER the user sends a synchronization request to the server, but BEFORE the server completes the work and can send a response back to the client looses connectivity.</p>
+                        <p>The server will continue processing the updates to the server and will do all of the synchronization requests contained in the package sent from the client. The server does not know that the client is now offline and so, after it completes all of the work, it will send a response to client indicating which rows were successfully synchronized. However, since the client is now offline, the client will not receive this message from the server. This means that all of the rows on the client that were edited are still marked as 'dirty' (even though the server has successfully applied all of the edits).</p>
+                        <p>Now assume that the client gets its connection back and the user clicks the 'Synchronize' button again. The client will send a JSON package to the server and this package will include all of the updates that were previously sent to the server.</p>
+                        <p>In order to protect against this possibility, a special server-side log can be used to prevent synchronization commands from being executed more than once.</p>
+                        <p>In order to turn on the server-side synchronization log, edit the List control and on the Detail View pane, check the Use server-side synchronization log table property.</p>
+                    </description>
+                    <figure>
+                        <link>images/synclog.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Before you can check this property however, you must first define the setting for the Synchronization Log Table. To define these settings, click the Project Properties button when the Web Projects Control Panel has focus.</p>
+                        <p>Scroll to the Offline Data Synchronization Log Table Settings section and set the properties for the table. You can map this table to an existing table in your SQL database or Alpha Anywhere can create a new table for you with the correct table structure.</p>
+                    </description>
+                    <figure>
+                        <link>images/offlinesynctableproperties.jpg</link>
+                    </figure>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>METHODS</title>
+            <sections>
+                <section>
+                    <title>UX Component Methods</title>
+                    <description>The following are new methods for the UX component. These methods apply to UX components that contain Lists which have Detail Views.</description>
+                </section>
+                <section>
+                    <cases>
+                        <case>
+                            <title>{dialog.object}.countRecordsToSynch(listId)</title>
+                            <description>Returns an object with properties showing the number of records that have not yet been synchronized with the server. The object has these properties: count, updatedRecords, newRecords, deletedRecords. 'count' is all dirty records (edits, inserts and deletes), 'updatedRecords' is all records that were edited, 'newRecords' is records that were added and 'deletedRecords' is records that were deleted.</description>
+                            <example><![CDATA[var o = {dialog.object}.countRecordsToSynch(listOrders);
+alert('You have ' +  o.count + ' records to synchronize');]]></example>
+                            <note>If the listId is a child List of a parent List that has pre-fetched data, the counts from the top-level List are returned. For example, if your UX as a List for 'Customers' and 'Orders' and the data for 'Orders' has been pre-fetched in the 'Customer' List, requesting the count of records to be synched for the 'Orders' list will return the count for the 'Customer' list since data for pre-fetched child Lists are synchronized at the parent List level.</note>
+                        </case>
+                        <case>
+                            <title>{dialog.object}._getDirtyLists()</title>
+                            <description>Returns an array of the Lists that are dirty. See also ._hasDirtyLists().</description>
+                        </case>
+                        <case>
+                            <title>{dialog.object}._getListForDetailViewControl(colName)</title>
+                            <description>If the specified colName is in the Detail View of any List control on the UX, returns the name of the List control.</description>
+                            <example><![CDATA[var listName = {dialog.object}._getListForDetailViewControl('state');]]></example>
+                        </case>
+                        <case>
+                            <title>{dialog.object}._hasDirtyLists()</title>
+                            <description>Returns true if any List on the UX is dirty. See also ._getDirtyLists().</description>
+                        </case>
+                        <case>
+                            <title>{dialog.object}._isControlInListDetailView(colName)</title>
+                            <description>Returns true if the colName is inside the Detail View of any List control on the UX.</description>
+                            <example><![CDATA[var flag = {dialog.object}._isControlInListDetailView('firstname');]]></example>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.persistListToLocalStorage(ListId)</title>
+                            <description>Manually persist List data and state to Local Storage (assuming the List properties have been set to allow persistence to Local Storage). Normally this method is not needed because the List is automatically persisted to Local Storage any time the List contents is changed (by adding, deleting or editing data in the List).</description>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.refreshListData() Method - Incremental Refresh Option</title>
+                            <description>The .refreshListData() method makes an Ajax callback to refresh the data shown in a List control. By default, the Ajax callback computes a new set of data to show in the List, sends that data back to the client, completely repopulating the List.</description>
+                            <note>If the List has any unsynchronized edits you cannot execute the .refreshListData() method.</note>
+                        </case>
+                        <case>
+                            <description>You can specify that you want to perform an 'incremental' refresh, rather than a 'full' refresh. The syntax is:</description>
+                            <example><![CDATA[{dialog.object}.refreshListData(listId,{mode: 
+'incremental'});
+{dialog.object}.refreshListData(listId,{mode: 'full'});]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If the optional second argument is omitted, a full refresh is assumed.</p>
+                                <p>In the case of an 'incremental' refresh, only data for rows that have been edited or added to the the database since the time the List was initially populated are sent to the client. In addition, a list of keys that have been deleted is also sent to the client. This may result in a substantially smaller payload being sent back to the client - especially if only a few rows have been edited or added. The size of the payload is important in mobile applications.</p>
+                                <p>The main benefit of this option is the reduction on the response payload. There is a small cost in terms of the load placed on the server, as the server has to determine which records have changed. </p>
+                                <p>Also, the payload of the initial request from the client to the server to request a refresh is slightly larger because a list of primary keys and their CRC values has to be sent to the server.</p>
+                            </description>
+                            <note>In order to use the 'incremental' refresh option, you must set the Include CRC in List data property to true.</note>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.refreshListsIncremental()</title>
+                            <description>
+                                <p>Performs an incremental refresh on all Lists. This method simply executes the standard {dialog.object}.refreshListData() method, passing in the optional {mode: "incremental"} parameter to the method.</p>
+                                <p>An incremental refresh differs from a full refresh in that only rows that were edited on the server after the List was initially populated are sent to the client. An incremental refresh can only be done if the List's Include CRC in List data property has been checked.</p>
+                            </description>
+                            <figure>
+                                <link>images/listcrcproperty.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.saveListEdits(listId [,options])</title>
+                            <description>
+                                <p>Synchronizes edits that have been made to the List (and any of its child Lists). By default, edits from all dirty rows in the List are submitted to the server. You can optionally specify that just the edits for the currently selected row should be submitted to the server (by passing in {rows: 'current'} in the optional options parameter.</p>
+                                <p>If the List is based on a SQL data source, the data are automatically saved to the table(s) on which the List is based. Alpha Anywhere automatically generates the necessary SQL CRUD statements from the submitted data.</p>
+                                <p>If the List is not based on a SQL data source (for example the Data Source property of the List is set to 'Custom', 'Static', 'Javascript', etc.), then you must write your own synchronization handler to persist the submitted data. See [Custom Handlers for Synchronization Tasks] for more information.</p>
+                                <p>When you submit multiple dirty rows of data you can choose to submit all rows at once, or you can submit data in batches. The batch size can be specified in the List properties, or you can override the setting in List properties by specifying an option in the JSON options passed in as the second parameter to the method. For example:</p>
+                            </description>
+                            <example><![CDATA[{dialog.object}.saveListEdits('LISTCUSTOMERS',{rows: 'allRows', batchSize: 10});]]></example>
+                        </case>
+                        <case>
+                            <description>
+                            <p>When you submit data in batches, the first batch is submitted, then once that batch is synchronized a subsequent callback is triggered to submit the next batch, and so on, until all of the dirty rows have been submitted. The user can cancel before all batches have been submitted. If the user does cancel, the current batch that is being processed will continue to process, but once this batch completes, no further batches will be sent to the server. For more information on synchronizing in batches, see the section [Synchronizing Data in Batches].</p>
+                            <p>Behind the scenes, this method does this:</p>
+                            </description>
+                        </case>
+                        <case>
+                            <steps>
+                                <step>
+                                    <description>calls the List's .harvestList() method to get all of the dirty data to 
+                                submit to the server</description>
+                                </step>
+                                <step>
+                                    <description>makes an Ajax callback and submits the List data</description>
+                                </step>
+                                <step>
+                                    <description>performs server-side validation of the submitted data.</description>
+                                </step>
+                                <step>
+                                    <description>if server-side errors are found, compute the necessary Javascript to return information about the errors to the List so that the Detail View controls can be decorated with the appropriate error messages.</description>
+                                </step>
+                                <step>
+                                    <description>if any write conflicts were found on the server (because another user had edited any of the records that were edited in the List), compute the necessary Javascript to return information about the conflicts to the user so that she may resolve them.</description>
+                                </step>
+                                <step>
+                                    <description>computes an Ajax response to refresh the rows in the List that were updated and remove the 'dirty' flags from List rows that were previously marked as 'dirty'.</description>
+                                </step>
+                            </steps>
+                        </case>
+                        <case>
+                            <description>
+                                <p>When the List edits are pushed to the server, you can optionally specify that any edits that were made on the server (presumably, by other users) should be pushed back to the List.</p>
+                                <p>When you configure the List control you can set the synchronization policy to control whether 'server-to-client' synching should take place.</p>
+                                <p>Since 'server-to-client' synching is a more expensive operation than 'client-to-server' synching, you might want to turn this option off and instead provide a menu choice to the client to explicitly do a 'server-to-client' synch. To do an explicit 'server-to-client' synch, you can all this method:</p>
+                            </description>
+                            <note>When you specify the 'incremental' mode any rows in the List that are dirty will not be refreshed.</note>
+                            <example><![CDATA[{dialog.object}.refreshListData(listId,{mode: 'incremental'});]]></example>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.submitListDataAndMediaFiles(listName,XbasicFunctionName,ajaxObject,objUpload)</title>
+                            <description>
+                                <p>Submit edited rows in a List to a server, but first upload media files to a server or to Amazon S3.</p>
+                                <p>This is a very advanced method intended for users who want to write their own code to process data that was edited in a List.</p>
+                                <p>The method submits the dirty rows in the List to the server and then calls the specified Xbasic function to process the submitted data.</p>
+                                <p>However, and most importantly, before the data in the List are submitted to the server, the media files (images, videos and audio files) in the dirty List rows are first uploaded to a target server ( either the Alpha server, or Amazon S3). If there are errors in uploading any of the media files, the List row with the error is not submitted to the server.</p>
+                                <p>The method arguments are:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>ListName</name>
+                                    <description>Name of the List to submit. List must have 'Detail View' turned on, although it is not required that Detail View controls actually be defined on the UX component.</description>
+                                </item>
+                                <item>
+                                    <name>XbasicFunctionName</name>
+                                    <description>Name of the Xbasic function to call once the data has been uploaded to the server. The List data that was submitted is available in the 'e' object that is passed into the Xbasic function. See e._listData.</description>
+                                </item>
+                                <item>
+                                    <name>ajaxObject</name>
+                                    <description>(optional) - a JSON object that defines properties for the Ajax callback that is made to the server. Allows you to define handlers for various conditions such as 'deviceOffline', 'ajax callback error', etc.</description>
+                                </item>
+                                <item>
+                                    <name>objUpload</name>
+                                    <description>(required) - a JSON object that defines settings for the where the media files are to be uploaded.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Here is an example for the ajaxObject parameter:</description>
+                            <example><![CDATA[var ajaxObject = {
+    errorFunction: function() { alert('failed ajax'); },
+    onComplete: function() { alert('ajax done');},
+    deviceOfflineFunction: function() { alert('offline '); }
+}]]></example>
+                        </case>
+                        <case>
+                            <description>Here is an example for the objUpload parameter defining settings for uploading the media files to the Alpha Anywhere server:</description>
+                            <example><![CDATA[var objUpload = {
+    target: 'alphaanywhere',
+    showProgress: true,
+    onComplete: function(array) {},
+    onMediaUploadErrors: function(array) {
+
+            alert('there were media upload errors');
+
+    },
+    xbasicAfterFileUploaded: 'xbAfterUpload',
+    progress: {
+        color: '#9fa1e8',
+        width: '300px',
+        individualProgress: false,
+        showTotalProgress: true,
+        allowCancel: false,
+        progressElement: '{dialog.componentname}.V.R1.PLACEHOLDER_1'
+    }
+}]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>In this example, the media files are being uploaded to the Alpha Anywhere server and after each media file has been uploaded, the Xbasic function specified by the xbasicAfterFileUploaded property is called to persist the uploaded file to the target location on the Alpha server. In the above example, the Xbasic function is called 'xbAfterUpload'</p>
+                                <p>Here is an example Xbasic function for the xbasicAfterFileUploaded handler:</p>
+                            </description>
+                            <example><![CDATA[function xbAfterUpload as v (e as p)
+dim extension as c
+extension = file.filename_parse(e.fileInfo.fileName,"e")
+dim targetFileName as c
+dir_create_recurse("c:\mydata")
+targetFileName = "c:\mydata" + chr(92) + e.fileInfo.FileName
+Request.variables.file.SaveToFile(targetFileName)
+'THIS NEXT LINE IS CRITICALLY IMPORTANT --
+
+'IT UPDATES THE 'ARRAY' WITH THE DIRTY RECORDS FROM THE LIST
+
+'WITH THE FILENAMES OF THE MEDIA FILES ON THE ALPHA SERVER.
+
+e.javascript = "array[" + e.arrayIndex + "].targetFileName = '" + js_escape(targetFilename) + "';"
+end function]]></example>
+                        </case>
+                        <case>
+                            <description>Here is an example for the objUpload parameter defining settings for uploading the media files to Amazon S3:</description>
+                            <example><![CDATA[var objUpload = {
+    target: 's3',
+
+    s3: {
+        connectionString: 'alphamediacapture',
+        protectedRead: false,
+        template: 'https://alphamediacapture.s3.amazonaws.com/__name__'
+    },
+    showProgress: true,
+    onComplete: function(array) {},
+    onMediaUploadErrors: function(array) {
+
+            alert('there were media upload errors');
+
+    },
+    progress: {
+        color: '#9fa1e8',
+        width: '300px',
+        individualProgress: false,
+        showTotalProgress: true,
+        allowCancel: false,
+        progressElement: '{dialog.componentname}.V.R1.PLACEHOLDER_1'
+    }
+}]]></example>
+                        </case>
+                    </cases>
                 </section>
                 <section>
                 </section>
@@ -1544,6 +2327,9 @@ Synchronization Tasks</link>
         <link href="Using the Search Part - Quick Setup Genie">Search Part - Quick Setup Genie</link>
         <link href="Setting Search Field Properties">Setting Search Field Properties</link>
         <link href="List Methods - Search Part">List Methods - Search Part</link>
-        <link href="Local Storage Settings">Local Storage Settings</link>                       
+        <link href="Local Storage Settings">Local Storage Settings</link>
+        <link href="Setting Search Result Maximums">Setting Search Result Maximums</link>
+        <link href="Custom Handlers for Synchronization Tasks">Custom Handlers for Synchronization Tasks</link>
+        <link href="Synchronizing Data in Batches">Synchronizing Data in Batches</link>
     </links>
 </page>
