@@ -3,7 +3,6 @@
 	<meta http-equiv="last-modified" content="3/18/2016@12:53 EDT" />
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-        <meta name="description" content="Guide to migrating to Alpha Anywhere Application Server for IIS." />
 		<link rel="stylesheet" type="text/css" href="theme.css" />
 		<title>IIS Migration Guide</title>
 	</head>
@@ -69,10 +68,6 @@
 		border-radius: 3px;
 	}
 
-	ol li ol {
-		list-style-type: lower-latin;
-	}
-	
 	table {
 		font-size:inherit;
 		padding: 5px;
@@ -134,7 +129,7 @@
 			</p>
 			<ol>
 				<li>
-					<h4>Security data is stored differently on IIS</h4>
+					<h4>Security data is stored differently under IIS</h4>
 					<p>
 						This feature will affect most applications. Alpha Anywhere Application Server for IIS uses ASP.NET's 
 						membership and role providers for authentication and authorization. Membership and role providers are 
@@ -146,128 +141,6 @@
 						the choosen database vendor. These providers do not use the Alpha Anywhere Application Server's schema for 
 						security data. This means security data must be migrated to the schema used by the database vendor's 
 						provider. See more details in the <a href="#migrate-security-data">Migrate Security Data</a> section.
-					</p>
-					<p>
-						This also affects how you develop and maintain an application with security. When users and groups are defined 
-						in the Web Security settings in Alpha Anywhere Developer Edition there are two options for storing the users and
-						groups: DBF and SQL Database. When SQL Database is selected, users and groups of a production application
-						can be mananged through the Alpha Anywhere Developer Edition or by pages in the application that are usually
-						restricted administrator level users.
-						This is no longer the case with IIS since a deployed application's security data is stored in IIS provider 
-						specific database tables. The users and groups stored in the DBF or SQL Database are published to the IIS provider
-						specific database tables at application publish time or by way of the "Publish Security Files" feature in the 
-						Alpha Anywhere Developer Edition Web Security control panel. Day to day user management (such as adding users, 
-						disabling users, resetting passwords, and adding users to groups) needs to be done by administrator level pages 
-						in the application. Alpha Anywhere Developer Edition has built-in security components that can be used for 
-						creating pages for managing users. An application can also use methods and properties on the 
-						<a href="http://downloads.alphasoftware.com/a5v12Download/ReleaseNotes/ContextObject/context.html#Security">Context.Security object</a>
-						for managing users and groups within the application.
-					</p>
-				</li>
-				<li>
-					<h4>Authorization works with a slight difference on IIS</h4>
-					<p>
-					This difference is abstracted away by Alpha Anywhere. Any appliacations created with Alpha Anywhere 3.0 
-					or later do not require any change. If an application was created before Alpha Anywhere 3.0 a bulk update 
-					operation to update component security needs to be run before the application can be published to IIS. To run
-					this bulk update operation, select the web control panel, then "Edit" on the main menu, then "Bulk Operation", and
-					then "Update component security settings (if using Active Directory or IIS)". The need to run this operation will 
-					be tracked and if this operation needs to be run you will be prompted to do so at publish time.
-					</p>
-				</li>
-				<li>
-					<h4>Web server process runs under a virtual account on IIS</h4>
-					<ol>
-						<li>
-							<h5>File/folder access</h5>
-							This difference will most notably affect file/folder access. An application pool will be set to run as 
-							<a href="http://www.iis.net/learn/manage/configuring-security/application-pool-identities">"Application Pool Identity"</a>
-							by default. This means that IIS will create	a virtual account and this account has minimal access. It will have access 
-							to read and execute from the web root and have access write to a temporary folder. If an application writes to the
-							web root, to folders outside of web root, reads files outside of the web root the application will be denied access 
-							to those folders under IIS. The virtual account must be given the needed access to these other folders, or the 
-							application needs to be changed to do the work in a different way. Instead of giving access to specific virtual 
-							account(s) access can be granted to the build in group IIS_IUSRS. This group includes all virtual accounts so 
-							this option should not be used if multiple applications on the same server should not have access to each 
-							other's files/folders.
-						</li>
-						<li>
-							<h5>Connection strings that use Windows Authentication</h5>
-							Connection strings that use Windows Authentication rather than a username and password will also be affected because
-							the connection to the database will be done under the virtual account. That account or the machine the account is running
-							on needs to be given access to the database. 
-						</li>
-						<li>
-							<h5>Mapped drives to shares</h5>
-							Mapped drive settings are stored in a user's profile. An application pool by default does not load the user's profile.
-							Additionally, a virtual account's user profile is very impractical and some times impossible to set. This means mapped
-							drives won't be available for an application. Use UNC paths instead.
-						</li>
-						<li>
-							<h5>Regional settings</h5>
-							Regional settings are another user account setting. When Windows is first set up on a machine the default system 
-							regional settings are configured. New user accounts inherit this setting. The application pool's virtual account 
-							is created at the time the application pool is create and inherits regional settings from the original system
-							regional settings. Windows may have originally been installed with English (United States) as the default regional 
-							settings, so the virtual account will have its regional settings set to English (United States). This will happen
-							even if an application pool is created by a user that has regional settings set to something else like Dutch (Belgium).
-							To have a virtual account set to a different regional setting when it is created, you must change the default
-							regional settings for system and new user accounts. Go to the Windows Control Panel "Clock, Language, and Region" 
-							settings, click on the "Region" item, and then click on the "Administrative" tab. This tab has a "Copy settings..."
-							button which can be used to copy the current user's regional settings to be the default for system accounts and new
-							user accounts. Once this is done, a application will run with the expected regional settings.
-							<p>
-							<a href="images/default-regional-settings.png"><img src="images/default-regional-settings.png" alt="Windows regional settings dialog copy settings button."></img></a>
-							</p>
-						</li>
-					</ol>
-
-					An alternative solution to the above items is to manual create or set an application pool to use a specific user 
-					that already has access to files, folder, or database servers. You may also need to set the application pool to 
-					"Load User Profile" in the application pool's advanced settings dialog. 
-
-					<p>
-					<a href="images\load-user-profile.png"><img src="images\load-user-profile.png" alt="Load user profile set to true."></img></a>
-					</p>
-					IIS publish will not overwrite an existing application pool so you can specify the application
-					pool name in the publish profile so your application will use this manually created application pool.
-					<div class="sectionNote">
-					If you do choose to create an application pool manually it must 
-					be configured correctly to work with Alpha Anywhere Application Server for IIS. Here are the required settings. 
-					They can be set in the application pool's "Advanced Settings" dialog. <br /><br />
-						<ul>
-							<li><span style="font-weight: bold;">.NET Framework Version</span> must be set to <span style="font-weight: bold;">v4.0</span>.</li>
-							<li><span style="font-weight: bold;">Enable 32-Bit Appliations</span> must be set to <span style="font-weight: bold;">true</span>.</li>
-							<li><span style="font-weight: bold;">Start Mode</span> should be set to <span style="font-weight: bold;">AlwaysRunning</span> (this will allow for quicker initial response from IIS).</li>
-							<li><span style="font-weight: bold;">Maximum Worker Processes</span> should be set to at least <span style="font-weight: bold;">5</span>.</li>
-						</ul>
-					</div>
-				</li>
-				<li>
-					<h4>Password recovery is not supported on IIS</h4>
-					<p>
-					The security configuration Data Recovery option "Lost password action" "Recover Password" is not supported
-					on IIS.
-					<a href="images/recover-password.png"><img src="images/recover-password.png" alt="Recover password configuration option."></img></a>
-					</p>
-				</li>
-				<li>
-					<h4>Password reset when user forgot security question answer</h4>
-					<p>
-					Alpha Anywhere Application Server for IIS does not directly manipulate security data in a database. It instead uses
-					an API that third party providers like SqlServer and MySQL must implement. This created a need for an API that is
-					available to an application developer to reset a user's password when the security configuration "Lost password action"
-					is set to "Reset Password", an answer to a security question is required, and the user has forgotten the answer
-					to the security question. Use the 
-					<a href="http://downloads.alphasoftware.com/a5v12Download/ReleaseNotes/ContextObject/context.html#Security-AdministrativeResetPassword">Context.Security.AdministrativePasswordReset()</a> 
-					method to do this. An a5w page or component that uses this method should only be accessible to administrator level 
-					users.
-					</p>
-				</li>
-				<li>
-					<h4>Legacy components are not supported on IIS</h4>
-					<p>
-					<a href=""><img src="" alt=""></img></a>
 					</p>
 				</li>
 			</ol>
