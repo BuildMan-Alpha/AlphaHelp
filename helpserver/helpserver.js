@@ -14,6 +14,37 @@ var events = {};
 var tocData = { altTocs : [] , defaultPathMetadata : [] };
 options.library = library;
 
+var createBrokenLinkEmail =  function(problems) {
+    var i;
+    var message = "";
+    for( i = 0 ; i < problems.length ; ++i ) {
+        message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
+    }
+var emailcred = require("./emailcred");
+
+var nodemailer = require('nodemailer'); 
+// create reusable transporter object using the default SMTP transport 
+var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
+ 
+// setup e-mail data with unicode symbols 
+var mailOptions = {
+    from: emailcred.user, // sender address 
+    to: 'documentation@alphasoftware.com', // list of receivers 
+    subject: 'Problem with links', // Subject line 
+    text: message, 
+};
+ 
+// send mail with defined transport object 
+transporter.sendMail(mailOptions, function(error, info){
+    if(error){
+        return console.log(error);
+    }
+    console.log('Message sent: ' + info.response);
+});
+} 
+
+
+
 var collectAltToc = function(books) {
     if( books && books.length > 0 ) {
         var i;
@@ -76,8 +107,22 @@ var outputSnippet = function(args, description, type, topic ) {
 
     if (description) {
         if (args.format == ".xml") {
-            if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0)
-                description = "<![CDATA[" + description + "]]>";
+            if( description.indexOf ) {
+                if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
+                    description = "<![CDATA[" + description + "]]>";
+                }
+            } else if( description.p ) {
+                if( description.p.length > 0 ) {
+                    try  {
+                        description = description.p[0];
+                        if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
+                            description = "<![CDATA[" + description + "]]>";
+                        }
+                    } catch( err2 ) {
+                        
+                    }
+                }
+            }
             if (type == "method") {
                 result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
@@ -299,7 +344,13 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
     });
 };
 events.beforeRefresh = function() {
-    
+    var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
+    validateLinks("../links.json", "../helpfiles",function(result) {
+        if( result.problems ) {
+            console.log("Found problems with links.json - sending an email.")
+            createBrokenLinkEmail(result.problems);
+        }
+    });    
 };
 events.extractTitle = function(page) {
     var topicStart = page.indexOf("<topic>");
@@ -479,6 +530,47 @@ events.extractSymbols = function(txt,title,path) {
      }
      return symbols.trim();  
 };
+events.postProcessContent = function(data) {
+    if( data.indexOf("*[")) {
+        var metaDescriptionPos = data.indexOf('<meta name="description"');
+        if( metaDescriptionPos >= 0 ) {
+            var contentSearch = 'content="'+data.substring(metaDescriptionPos).split('"')[3]+'"';
+            var contentReplace = contentSearch.split("*[").join("").split("]*").join();
+            if( contentSearch != contentReplace ) {
+                data = data.split(contentSearch).join(contentReplace);
+            }
+        }
+        var items = data.split("*[");
+        var i;
+        var newData = items[0];
+        for( i = 1 ; i < items.length ; ++i ) {
+            var emph = items[i];
+            var endPos = emph.indexOf(']*'); 
+            if( endPos > 0 ) {
+                var remainder = emph.substring(endPos+2);
+                emph = emph.substring(0,endPos);
+                var typeSeparator = emph.indexOf(':');
+                var snippet = "<b>"+emph+"</b>";
+                if( typeSeparator > 0 ) {
+                    var typeName = emph.substring(0,typeSeparator);
+                    if( typeName.indexOf(' ') < 0 ) {
+                        emph = emph.substring(typeSeparator+1);
+                        snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
+                    } 
+                }
+                newData += snippet + remainder;
+            } else if( emph.length > 0 || (i+1) >= items.length ) {
+                newData += "*["+emph;
+            } else {
+                ++i;
+                newData += "*["+emph+item[i];
+            }
+        }
+        data = newData;
+    }
+    return data;
+};
+
 
 options.events = events;
 //--------------------------------------------------------------------------------------------

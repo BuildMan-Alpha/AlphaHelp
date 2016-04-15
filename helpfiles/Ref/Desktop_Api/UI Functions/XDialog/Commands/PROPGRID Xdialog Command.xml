@@ -1,0 +1,179 @@
+<page>
+	<topic>{PROPGRID}</topic>
+<syntax>{PROPGRID= Width, Height PropGrid }</syntax>	
+
+<arguments>
+<argument>
+	<name>Width</name>
+	<description>Numeric. An integer value for the maximum number of characters to display on one line. The actual number displayed may be less because of word wrap.</description>
+</argument>	
+<argument>
+	<name>Height</name>
+	<description>Numeric. Optional. Default = 1. The number of rows to display. This may be a fractional number, such as 1.25.</description>
+</argument>	
+<argument>
+	<name>PropGrid</name>
+	<description>Pointer. A pointer variable with one of the properties shown below.</description>
+</argument>	
+	
+	
+</arguments>
+
+<sections>
+	<section>
+		<title>PropGrid Properties</title>
+		<cases>
+			<case>
+				<title>.Settings</title>
+				<description>Pointer</description>
+			</case>
+			<case>
+				<title>.Def</title>
+				<description>Character. A CR-LF delimited list of the categories and items in the property grid. Refer to Property Grid Formatting.</description>
+			</case>
+			<case>
+				<title>.Object</title>
+				<description>Pointer. Provides access to the Property Grid methods.</description>
+			</case>
+		</cases>
+	</section>
+
+<section>
+	<title>Description</title>
+<description>The {PROPGRID} command displays the type of control displayed below. The control provides a mechanism for displaying many prompts and accepting many inputs from the user. 
+</description>	
+<figure><link>images/XD_Property_Grid.gif</link></figure>	
+</section>
+<section>
+	<title>Property Grid Formatting
+</title>
+<description>A CR-LF delimited list defines the structure and contents of the property grid. Each entry is on its own line. Entries may:
+</description>	
+<cases>
+	<case>
+		<description>define the beginning and name of a category
+</description>
+	</case>
+	<case>
+		<description>define the state of a category
+</description>
+	</case>
+	<case>
+		<description>define the name of an item within a category
+</description>
+	</case>
+	<case>
+		<description>define the variable that will contain the user's input
+</description>
+	</case>
+	
+</cases>	
+</section>
+<section>
+	<description>Define a category with the following 2 character sequence at the beginning of a new line "^^". The name of the category follows these 2 characters. For example: ^^CategoryName.
+The end of a category is defined by the beginning of a new category or the end of the .Def list.
+Define the open/closed state of a category by placing one of the following two statements immediately after the category definition.
+</description>
+	<example><![CDATA[state=opened
+state=closed
+]]></example>
+</section>
+<section>
+	<description>Define the name of an item with the following 2 character sequence at the beginning of a new line "++". The name of the item follows these 2 characters. For example: ++ItemName.
+Define the variable that will accept the user's input to an item by placing a statement in the following format immediately after the item definition: var= OutputVariable . ItemName. For example:
+</description>
+	<example><![CDATA[var=output.Item4]]></example>
+</section>
+<section>
+	<title>Example</title>
+	<description>Create the variables for the Property Grid object.</description>
+	<example><![CDATA[dim pg as P
+dim pg.settings as P
+dim pg.def as C
+dim pg.object as P
+dim output as P
+dim output.Item1 as C = ""
+dim dlg_title as C]]></example>
+</section>
+<section>
+	<description>Create the variables to display and respond to the list boxes in this example.
+</description>
+	<example><![CDATA[dim itemList as C = comma_to_crlf("Item,Item2,Item3,Item4,Item5,Item6,Item7,Item8,Item9")
+dim TargetItem as C = "Item"
+dim categoryList as C = comma_to_crlf("Category,Category2,Category3")
+dim TargetCategory as C = "Category"
+dim dlg_title as C
+]]></example>
+</section>
+<section>
+	<description>Define the structure of the property grid.</description>
+	<example><![CDATA[pg.def = <<%str%
+^^Category
+state=opened
+++Item
+var=output.Item1
+++Item2
+var=output.Item2
+++Item3
+var=output.Item3
+^^Category2
+state=closed
+++Item4
+var=output.Item4
+++Item5
+var=output.Item5
+++Item6
+var=output.Item6
+^^Category3
+state=closed
+++Item7
+var=output.Item7
+++Item8
+var=output.Item8
+++Item9
+var=output.Item9
+%str%]]></example>
+</section>
+<section>
+	<description>Define the structure of the property grid.
+</description>
+	<example><![CDATA[dlg_title = "PropGrid Example"
+ui_modeless_dlg_box(dlg_title,<<%dlg%
+{can_exit=close}
+{propgrid=100,20pg};
+{region}
+Set focus to: |.20TargetItem^=itemList;
+Expand/Contract: |.20TargetCategory^=categoryList;
+{endregion};
+{lf};
+<10&Close!close>;
+%dlg%,<<%code%]]></example>
+</section>
+<section>
+	<description>Respond to events.
+</description>
+	<example><![CDATA[if a_dlg_button = "setfocus" then
+    a_dlg_button = ""
+    pg.object.SetFocus(TargetItem)
+    'give focus to the Propgrid object
+    ui_dlg_ctl_goto(dlg_title,"{propgrid")
+        
+else if a_dlg_button = "Toggle"
+    a_dlg_button = ""
+    dim currentExpandState as l
+    currentExpandState = pg.object.IsExpanded(TargetCategory)
+    pg.object.ExpandItem( TargetCategory, .not. currentExpandState)
+else if a_dlg_button = "Close"
+    a_dlg_button = ""
+    ui_modeless_dlg_close(dlg_title)
+end if
+%code%)]]></example>
+</section>
+</sections>
+
+<see>
+	<ref>PropertyGrid</ref>
+</see>	
+	
+	
+</page>

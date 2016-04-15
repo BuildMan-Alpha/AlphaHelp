@@ -11,7 +11,17 @@
                 <xsl:for-each select="links/link">
                     <xsl:choose>
                         <xsl:when test="./@href">
-                            <a href="{./@href}"><xsl:value-of select="." /></a>
+                            <xsl:choose>
+                                <xsl:when test="./@target">
+                                    <a href="{./@href}"><xsl:value-of select="." target="./@target"/></a>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <a href="{./@href}"><xsl:value-of select="." /></a>
+                                </xsl:otherwise>
+                           </xsl:choose>
+                        </xsl:when>
+                        <xsl:when test="./@target">
+                            <a><xsl:value-of select="." target="./@target"/></a>
                         </xsl:when>
                         <xsl:otherwise>
                             <a><xsl:value-of select="." /></a>
@@ -287,9 +297,7 @@
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
-            <p class="A5">
-                <a name="section_{title}"><xsl:value-of select="title" /> </a>
-            </p>
+            <p class="A5"><a name="section_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></p>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
