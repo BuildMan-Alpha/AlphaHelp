@@ -460,6 +460,47 @@ transporter.sendMail(mailOptions, function(error, info){
 });
 } 
 
+events.postProcessContent = function(data) {
+    if( data.indexOf("*[")) {
+        var metaDescriptionPos = data.indexOf('<meta name="description"');
+        if( metaDescriptionPos >= 0 ) {
+            var contentSearch = 'content="'+data.substring(metaDescriptionPos).split('"')[3]+'"';
+            var contentReplace = contentSearch.split("*[").join("").split("]*").join();
+            if( contentSearch != contentReplace ) {
+                data = data.split(contentSearch).join(contentReplace);
+            }
+        }
+        var items = data.split("*[");
+        var i;
+        var newData = items[0];
+        for( i = 1 ; i < items.length ; ++i ) {
+            var emph = items[i];
+            var endPos = emph.indexOf(']*'); 
+            if( endPos > 0 ) {
+                var remainder = emph.substring(endPos+2);
+                emph = emph.substring(0,endPos);
+                var typeSeparator = emph.indexOf(':');
+                var snippet = "<b>"+emph+"</b>";
+                if( typeSeparator > 0 ) {
+                    var typeName = emph.substring(0,typeSeparator);
+                    if( typeName.indexOf(' ') < 0 ) {
+                        emph = emph.substring(typeSeparator+1);
+                        snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
+                    } 
+                }
+                newData += snippet + remainder;
+            } else if( emph.length > 0 || (i+1) >= items.length ) {
+                newData += "*["+emph;
+            } else {
+                ++i;
+                newData += "*["+emph+item[i];
+            }
+        }
+        data = newData;
+    }
+    return data;
+};
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 
