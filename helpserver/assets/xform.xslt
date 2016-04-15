@@ -297,9 +297,7 @@
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
-            <p class="A5">
-                <a name="section_{title}"><xsl:value-of select="title" /> </a>
-            </p>
+            <p class="A5"><a name="section_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></p>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
