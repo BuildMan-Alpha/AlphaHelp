@@ -410,6 +410,7 @@ events.generateLocalToc = function(localNames) {
             var ln = localNames[i];
             var lvlName = ln.name.toLowerCase().split('_')[0];
             var parentNode = false;
+            var lastTagState = '';
             if( lvlName == 'group' ) {
                 lvlName = 1;
             } else if( lvlName == 'section' ) {
@@ -419,8 +420,9 @@ events.generateLocalToc = function(localNames) {
             }
             if( lastLvl > 0 && lvlName != lastLvl ) {
                 if( lvlName > lastLvl ) {
-                    returnLevel.push("</ul>"+pendingEnd);
-                    pendingEnd = "<ul>";        
+                    returnLevel.push("</ul></div>"+pendingEnd);
+                    pendingEnd = "<ul>";
+                    lastTagState = '<div class="in-page-closed">';  
                 } else {
                     while( lvlName < lastLvl && returnLevel.length > 0 ) {
                         if( pendingEnd.length > 0 ) {
@@ -434,10 +436,23 @@ events.generateLocalToc = function(localNames) {
             lastLvl = lvlName;
             if( pendingEnd.length > 0 ) {
                 localToc += pendingEnd;
+                localToc = localToc.replace('~ITEMTAG~',lastTagState);
             }
-            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content;
+            if( returnLevel.length > 0 ) {
+                for( var j = 0 ; j < returnLevel.length ; ++j ) {
+                    localToc += "  ";
+                }
+            }
+            localToc += "<li>~ITEMTAG~<a href=\"#"+ln.name+"\" >"+ln.content;
             pendingEnd = "</a></li>\n";
         }
+        while( returnLevel.length > 0 ) {
+            if( pendingEnd.length > 0 ) {
+                localToc += pendingEnd;
+            }
+            pendingEnd = returnLevel.pop();
+        }     
+        localToc = localToc.replace('~ITEMTAG~','');
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
         return localToc;  
