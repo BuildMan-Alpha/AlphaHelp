@@ -1,0 +1,209 @@
+<page>
+	<topic>Printing a Dialog as PDF</topic>
+	<description>This example shows how to accept user input into a dialog component and then print a PDF version of the resulting document.
+</description>
+<sections>
+<section>
+	<note>The Printing a Dialog as PDF topic describes a technique available to Alpha Anywhere database users.</note>
+	
+	
+</section>	
+<section>
+	<title>Creating the Dialog
+</title>
+<steps>
+	<step>
+		<description>Create a new dialog web component based on the AlphaSports database.
+</description>
+	</step>
+	<step>
+		<description>Display the Form > Controls page.
+</description>
+	</step>
+	<step>
+		<description>Add the "Firstname", "Lastname", "Company", and "Bill_City" fields to the dialog as textboxes.
+</description>
+	</step>
+	<step>
+		<description>Add the "Bill_State_Region" field to the dialog as a drop down listbox.
+</description>
+	</step>
+	<step>
+		<description>Select the "Bill_State_Region" control and click the [dot_img] in the DropDownBox Properties > Choices field to display the Define Choices dialog.
+</description>
+<cases>
+	<case>
+		<description>1. Select "Dynamic" in the Define Choices > List Type list.
+</description>
+	</case>
+	<case>
+		<description>2. Select "Variable" in the Data Source > Data source type list.
+</description>
+	</case>
+	<case>
+		<description>3. Enter "session.states" in the Data Source > Variable name field.
+</description>
+	</case>
+	<case>
+		<description>4. Click OK.
+</description>
+	</case>
+	
+	
+</cases>
+	</step>
+	<step>
+		<description>Set the Row Properties > Hide row selection to "True" for the "Firstname", "Lastname", "Bill_City", and "Bill_State_Region" controls.
+</description>
+	</step>
+	<step>
+		<description>Set the Textbox Properties > Size selection to 10 for the "Firstname" control, 10 for the "Lastname" control, and 15 for the "Bill_City" control.
+</description>
+	</step>
+	<step>
+		<description>Select the "Company" control.
+</description>
+<cases>
+	<case>
+		<description>1. Set the Row Properties > Freeform layout selection to "True" for the "Company".
+</description>
+	</case>
+	<case>
+		<description>2. Click the [dot_img] in the Row Properties > Freeform template field to display the Freeform Column Layout dialog.
+</description>
+	</case>
+	<case>
+		<description>3. Enter the following HTML code and click OK.
+</description>
+<example><![CDATA[This is to certify that {Firstname} {Lastname} (First Name, Last Name) of {Company} (Company) located in {City} (City), {State} (State) is a customer in good standing with AlphaSports on {Today}.]]></example>
+	</case>
+	<case>
+		<description>4. Change the Row Properties > Row label field to AlphaSports
+Customer
+Certificate.
+</description>
+	</case>
+	<case>
+		<description>5. Change the Row Properties > Cell in line style field to vertical-align: top;.
+</description>
+	</case>
+	<case>
+		<description>6. Change the Row Properties > Row label in line style field to font-family: Verdana; font-size: 12pt;.
+</description>
+	</case>
+	
+	
+</cases>
+	</step>
+	<step>
+		<description>Display the Form > Properties page.
+</description>
+	</step>
+	<step>
+		<description>Click the [dot_img] in the Server Events > Declarations field to display the Form Events dialog.
+</description>
+	</step>
+	<step>
+		<description>Enter the following Xbasic code to create the session.states variable that populates the "bill_state_region" drop down list:
+</description>
+<example><![CDATA[dim session.states as C]]></example>
+	</step>
+	<step>
+		<description>Select the "Initialize" event from the Event list.
+</description>
+	</step>
+	<step>
+		<description>Enter the following Xbasic code to assign data to the session.states variable and set a default value for the "Today" control.
+</description>
+<example><![CDATA[session.states = crlf()+ cstates("a" + crlf())
+CurrentForm.Controls.Today = date()]]></example>
+	</step>
+	<step>
+		<description>Select the "AfterValidate" event from the Event list.
+</description>
+	</step>
+	<step>
+		<description>Enter the following Xbasic script. This script saves the values in the dialog controls to the customer table. It then reads the customer_id value of this new record and uses that value to filter the LAYOUT.SAVEAS() function. This function uses the Certificate report of the customer table to create a PDF version of the dialog. This script runs when you click the Submit button.
+</description>
+<example><![CDATA[dim tbl as P
+dim id as C
+tbl = table.open("PathAlias.ADB_Path\customer")
+tbl.enter_begin(.t.)
+tbl.company = company
+tbl.firstname = firstname
+tbl.lastname = lastname
+tbl.bill_city = city
+tbl.bill_state_region = state
+tbl.enter_end(.t.)
+tbl.fetch_last()
+id = tbl.customer_id
+tbl.close()
+Report.saveas("certificate@PathAlias.ADB_Path\customer.ddd", "pdf", "Customer_ID = " + s_quote(id), "", session.session_folder + "\certificate.pdf", .f.)
+response.redirect(session.session_url + "certificate.pdf?" + time("hms03"))
+]]></example>
+	</step>
+	<step>
+		<description>Save the dialog as  "AlphaSports_Customer". The dialog component should look something like the following. 
+</description>
+<figure><link>images/WPT_Dialog_to_PDF.gif</link></figure>
+	</step>
+	<step>
+		<description>Close the Dialog Builder.
+</description>
+	</step>
+	<step>
+		<description>Place the dialog component on a A5W page named "AlphaSports_Customer".
+</description>
+	</step>
+	
+	
+</steps>	
+	
+	
+</section>	
+<section>
+	
+	<title>Creating the Certificate Report
+</title>
+<steps>
+	<step>
+		<description>Display the Reports tab of the Control Panel.
+</description>
+	</step>
+	<step>
+		<description>Click New, select "customer" in the Data Source list, select Start from a blank report, and click OK.
+</description>
+	</step>
+	<step>
+		<description>Draw a RTF object on the Detail section of the new report. Create content that looks like the following. For more information about working with RTF objects on reports, see Working with Rich Text Fields and Working with Conditional Rich Text Fields. 
+</description>
+<figure><link>images/WPT_Dialog_to_PDF_3.gif</link></figure>
+	</step>
+	<step>
+		<description>Save the new report as "Certificate".
+</description>
+	</step>
+	
+</steps>	
+	
+	
+</section>
+<section>
+	
+	<description>After publishing the page, entering data, and clicking submit. You should see something like the following in Adobe Acrobat. 
+</description>
+<figure><link>images/WPT_Dialog_to_PDF_2.gif</link></figure>	
+	<note>If you have a problem viewing the PDF file, make sure that you have installed Adobe Acrobat and have associated it with the PDF file type.</note>
+</section>
+	
+	
+</sections>	
+	
+<links>
+	<link href="images/Web_Properties_button.gif">dot_img</link>
+	
+	
+</links>	
+	
+	
+</page>
