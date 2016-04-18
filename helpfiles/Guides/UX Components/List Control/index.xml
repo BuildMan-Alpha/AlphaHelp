@@ -2300,6 +2300,859 @@ end function]]></example>
                     </cases>
                 </section>
                 <section>
+                    <cases>
+                        <case>
+                            <title>Lists with Hierarchical Data </title>
+                            <description>
+                                <p>If you have Lists with hierarchical data, when you synchronize any List in the hierarchy, all of the Lists in the hierarchy are synchronized. The data sent back to the server by default includes the top level parent record and only the dirty child records. However, when synchronizing hierarchical data you can optionally submit all child records to the server (including records that were not edited).</p>
+                                <p>To indicate that you want to submit all child records, not just dirty child records, set the 'allChildRecords' flag in optional arguments, as shown below:</p>
+                            </description>
+                            <example><![CDATA[{dialog.object}.saveListEdits('LIST',{rows: 'allRows', allChildRecords: true});]]></example>
+                            <note>It only makes sense to submit all child records to the server if you have defined a custom synchronization handler. The option to define a custom synchronization handler is only available if the List data source is set to Custom or Static.</note>
+                        </case>
+                        <case>
+                            <description>For example, say you have this hierarchy:</description>
+                            <content><![CDATA[Customer List</br>&nbsp;&nbsp;&nbsp;Orders List</br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OrderDetails List</br>]]></content>
+                        </case>
+                        <case>
+                            <description>
+                                <p>In other words, the OrderDetails List specifies that the Orders List is its  parent, and the Orders List specifies that the Customer List is its parent, and the two child Lists (Orders and OrderDetails) specify that their data is pre-loaded.</p>
+                                <p>In this example, the Customer List will contain all of the data for its child Lists.</p>
+                                <p>When you synchronize edits at any level in the hierarchy, the 'logical' record is submitted to the server. The 'logical' record is the top-level parent record, and all of the child records. As mentioned above, by default, the 'logical' record only includes leaf node child records that are dirty. However, if you set the allChildRecords flag to true then the composite record that is submitted to the server is the complete record (including clean child records).</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title>{dialog.object}.synchronizeLists([options])</title>
+                            <description>
+                                <p>Synchronizes all Lists. This method just calls the .saveListEdits() method for each List on the component. See .saveListEdits() for more information.</p>
+                                <p>The options options object is described in the section covering the .saveListEdits() method.</p>
+                            </description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <title>List Methods - Detail View Part</title>
+                    <description>There are several List methods available for a List that has a Detail View part. In order to invoke any of these methods, your Javsascript code must first get a pointer to the List object. For example:</description>
+                    <example><![CDATA[var listObj = {dialog.object}.getControl('LIST1');
+listObj.nameOfListMethodToInvoke();]]></example>
+                </section>
+                <section>
+                    <description>The following List methods can be used for Lists that have a Detail View part:</description>
+                    <cases>
+                        <case>
+                            <title><![CDATA[<listObj>.addTableRow(data [,options])]]></title>
+                            <description>
+                                <p>Adds a new row of data to a List that has a Detail View. By default, the new row is added at the end of the List, but you can add the new row (i.e. insert the row) at any position by setting options.</p>
+                                <p>Where:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>data</name>
+                                    <description>An object with the values in the List that you want to set.</description>
+                                </item>
+                                <item>
+                                    <name>options</name>
+                                    <description>An object with optional settings.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>The options object can contain these properties:</description>
+                            <list>
+                                <item>
+                                    <name>options.setFocusToTargetRow</name>
+                                    <description>true/false - If true, then focus will be given to the target row. The default for this property is false.</description>
+                                </item>
+                                <item>
+                                    <name>options.insertRow</name>
+                                    <description>true/false -- default false. Set to true if you want to insert at a specified position in the List rather than at the end. (Requires build 4444 or above)</description>
+                                </item>
+                                <item>
+                                    <name>options.insertPosition</name>
+                                    <description>If options.insertRow is true, specify where in the List the new row should be inserted. options.insertPosition can either be a number or a string. If it is a number, it represents a zero based row number in the List where the new record will be inserted. If it is a string it represents the List value where the new row will be inserted.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Example:</description>
+                            <example><![CDATA[//create a data object with values for the columns in the List you want to edit
+var data = {};
+data.FIRSTNAME = 'Cecelia';
+data.LASTNAME = 'Longwood';
+
+//define optional settings
+var ops = {};
+ops.setFocusToTargetRow = true;
+
+//get a pointer to the List control and then call the .addTableRow() method
+var lObj = {dialog.object}.getControl('CUSTOMERLIST')
+lObj.addTableRow(data,ops);
+
+//insert the new row at position 3 (zero based)
+var ops = {};
+ops.setFocusToTargetRow = true;
+ops.insertRow = true;
+ops.insertPosition = 3;
+lObj.addTableRow(data,ops);]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Contrast the .addTableRow() method with the List object's .appendRows()
+                                method.</p>
+                                <p>The .addTableRow() method is the programmatic equivalent of the user entering some values into the List Detail view controls and then clicking on the Save button to save their changes back to the List. When the user does this, the List becomes dirty and the edits that have been made to the list can be synchronized
+                                with the server.</p>
+                                <p>The .appendRows() method is a low level method that adds the data to the List, but this method does not add the necessary information to the List to cause the List row that was added to become dirty. The new row cannot be synchronized with the server.</p>
+                            </description>
+                            <note>To programmatically update a table row see the .updateTableRow() method.</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.deleteRow(options)]]></title>
+                            <description>Marks the current row in the List as deleted. The row is not physically removed from the List until the data are synchronized. If the current row is a new record, then the row is immediately removed from the List.</description>
+                            <list>
+                                <item>
+                                    <name>options</name>
+                                    <description>a JSON object with these properties:</description>
+                                </item>
+                                <item>
+                                    <name>prompt</name>
+                                    <description>true/false - prompt for confirmation. Default is true.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.detailViewIsDirty()]]></title>
+                            <description>Returns true/false if the controls that show the Detail View are dirty or not.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.disableDetailView([flag])]]></title>
+                            <description>disables all of the controls in the Detail View. If flag is false, enables all controls.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.fieldIsDirty(field [, rowNumber])]]></title>
+                            <description>Returns true if the specified field is dirty. If the rowNumber is not passed in the currently selected row is used. For new records, the field is considered dirty if it is not blank.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.harvestListRow([zeroBasedRowNum])]]></title>
+                            <description>gets a JSON object of the data in the row. If row is an existing row, the object includes an _oldData object with the original values in the row. If the optional row number is not passed in, the current row is harvested.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.harvestList([flagPrimaryKeysOnly])]]></title>
+                            <description>
+                                <p>Gets an array of JSON objects for each row in the list that is either dirty, or a new row;</p>
+                                <p>You can optionally pass in a flag (true/false) to indicate that you want an array of primary keys for the dirty rows.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.listIsDirty()]]></title>
+                            <description>Returns true if the List control has any dirty rows. A 'dirty' row is an edited row, or new row that has not yet been committed on the serever side. See also {dialog.object}._hasDirtyLists()</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.listRowIsDirty([zeroBasedRowNum])]]></title>
+                            <description>Returns true if the current row in the List is dirty. You can optionally specify a zero based row number.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.listRowIsNew([zeroBasedRowNum])]]></title>
+                            <description>Returns true if the current row in the List is a new row. You can optionally specify a zero based row number.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.newDetailViewRecord()]]></title>
+                            <description>Sets all of the controls in the List Detail view to their 'new record' value and unselects the current row in the List.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.populateUXControls()]]></title>
+                            <description>populates UX controls with data from the List. This method is internal - it is called automatically when the onSelect event fires if the List has a Detail View.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.resetForm([options])]]></title>
+                            <description>
+                                <p>Resets the Detail View form. Options is an optional JSON object with these properties:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>prompt</name>
+                                    <description>true/false - if true, prompts for confirmation before resetting the form</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.resetRow([options])]]></title>
+                            <description>Resets a List row that has been edited to its original values. If the row has been marked as deleted, then 'un-deletes' the row. Options is an optional JSON object with these properties:</description>
+                            <list>
+                                <item>
+                                    <name>prompt</name>
+                                    <description>true/false - if true, prompts for confirmation before resetting the form.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.setRowClean([zeroBasedRowNum])]]></title>
+                            <description>Sets the row state to clear. If row num is not specified, current row.</description>
+                            <example><![CDATA[var lObj = {dialog.object}.getControl('list1');
+lObj.setRowClean();]]></example>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.setServerSideError(flag [, zeroBasedRowNum [, errorObject]])]]></title><description>
+                                <p>Used internally to put information about server side errors into the List's data object.</p>
+                                <p>Sets the data object ._hasServerSideError flag to true or false;</p>
+                                <p>If flag is true then also sets the data object's .serverSideErrors object to the passed in errorObject</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.updateListFromUXControls()]]></title>
+                            <description>Updates the data in the List with edits made in the List's Detail View controls.</description>
+                            <example><![CDATA[var lObj = {dialog.object}.getControl('list1');
+lObj.updateListFromUXControls();]]></example>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.updateTableRow(primaryKeyOrRowNumber,data [,options])]]></title>
+                            <description>
+                                <p>Updates data in a row in a List that has a Detail View.</p>
+                                <p>Where:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>primaryKeyOrRowNumber</name>
+                                    <description>The primary key value or row number (zero based) of the row you want to update. If this argument is a string then it is assumed to be a primary key value. If it is a number, then it is assumed to be a row number. The primary key of the List is specified in the List builder.</description>
+                                </item>
+                                <item>
+                                    <name>data</name>
+                                    <description>An object with the values in the List that you want to set.</description>
+                                </item>
+                                <item>
+                                    <name>options</name>
+                                    <description>An object with optional settings.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>The options object can contain these properties:</description>
+                            <list>
+                                <item>
+                                    <name>options.setFocusToTargetRow</name>
+                                    <description>true/false - If true, then focus will be given to the target row. The default for this property is false.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Example:</description>
+                            <example><![CDATA[//create a data object with values for the columns in the List you want to edit
+var data = {};
+data.FIRSTNAME = 'Cecelia';
+data.LASTNAME = 'Longwood';
+
+//specify the primary key of the row to update
+var primaryKey = '1234';
+
+//define optional settings
+var ops = {};
+ops.setFocusToTargetRow = true;
+
+//get a pointer to the List control and then call the .updateTableRow() method
+var lObj = {dialog.object}.getControl('CUSTOMERLIST')
+lObj.updateTableRow(primaryKey,data,ops);]]></example>
+                        </case>
+                        <case>
+                            <description>
+                            <p>Contrast the .updateTableRow() method with the List object's .updateRow() method.</p>
+                                <p>The .updateTableRow() method is the programmatic equivalent of the user entering some values into the List Detail view controls and then clicking on the Save button to save their changes back to the List. When the user does this, the List becomes dirty and the edits that have been made to the List can be synchronized with the server.</p>
+                                <p>The .updateRow() method is a low level method that updates the data in a row, but this method does not add the necessary information to the List to cause the List row that was edited to become dirty. It does also not add the ._oldData object to the List to store the original values that were in the List row before it was edited. The changes that were made to the List cannot be synchronized with the server.</p>
+                            </description>
+                            <note>To programmatically add a table row see the .addTableRow() method.</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._ClearServerSideErrors([zeroBasedRowNum])]]></title>
+                            <description>Used internally. Clears error messages from the Detail View controls.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._debugListData()]]></title>
+                            <description>shows the contents of the data object for the current row in the List. You must have specified a placeholder for the debug information.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._getControlsInDv()]]></title>
+                            <description>Returns an array of all of the controls in the Detail View. Only controls that actually exit are returned. For example, say you specified that the Detail View is all of the controls in a container called 'CONTAINER_1' and one of the controls in this container is called 'SHIPPING_ADDRESS', but the List does not have a field called 'SHIPPING_ADRESS'. The array of controls returned by this function will not include the 'SHIPPING_ADDRESS' control.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._getListFieldFromControl()]]></title>
+                            <description>Takes the name of a Detail View control and returns the field name in the List that the control is mapped to.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._getRoute()]]></title>
+                            <description>
+                                <p>For use with Lists that contain hierarchical data. Gets an array of objects with the current row primary key value (default) or row number in all Lists in the hierarchy. Each object in the array has two properties: list an row. 'list' is the name of the List, and row is the current (zero based) row number that is selected. </p>
+                                <p>For example, say you have three Lists - CUSTOMERS, ORDERS, ORDERDETAILS.</p>
+                            </description>
+                            <example><![CDATA[var lObj = {dialog.object}.getControl('CUSTOMERS');
+var route = lObj._getRoute()]]></example>
+                        </case>
+                        <case>
+                            <description>This will return an array that might look like this:</description>
+                            <example><![CDATA[[
+    {list: 'CUSTOMERS', row: 'ALFKI'},
+    {list: 'ORDERS', row: '11063',
+    {list: 'ORDERDETAILS', row: '11063|||27'}
+]]]></example>
+                        </case>
+                        <case>
+                            <description>To use row numbers:</description>
+                            <example><![CDATA[var route = lObj._getRoute('rowNumber');]]></example>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._hasClientSideError()]]></title>
+                            <description>returns true if any control in the List Deail View has a client-side validation error.</description>
+                            <note>The placeholders that you specify for the Global Error Message and the Fade-out Message will consume space in the Layout. You can wrap then in a NoFloat container and set the  float property of the container iself to .f. so that they don't consume space.</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._logicalRow2PhysicalRow()]]></title>
+                            <description>Takes the logical row number (the value of the *key property in the data object - also the same as the row number in the data when it is loaded - before any client side sorting/filtering) and converts to a physical row number in the current sorted/filtered client side view of the data.</description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._setRoute(routeArray)]]></title>
+                            <description>For use with Lists that contain hierarchical data. Sets the selected row on each List in the routeArray. See ._getRoute() method for more details.</description>
+                            <note> If you don't pass in a routeArray to the method, the method will look for a value in the <![CDATA[<listObj>]]> '__currentRoute' property. This property is automatically set when you call the {dialog.object}.saveListEdits() method.</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>._showServerSideErrors([zeroBasedRowNum])]]></title>
+                            <description>Used internally. Paints error messages on the Detail View controls using information stored in the List data .serverSideErrors object.</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <title>List Methods - Search Part</title>
+                    <description>There are several List moethods available for a List that has a Search part. In order to invoke any of these methods, your Javascript code must first get a pointer to the List object. For example:</description>
+                    <example><![CDATA[var listObj = {dialog.object}.getControl('LIST1');
+listObj.nameOfListMethodToInvoke();]]></example>
+                </section>
+                <section>
+                    <description>The following List methods can be used for Lists that have a Search part:</description>
+                    <cases>
+                        <case>
+                            <title><![CDATA[<listObj>.searchModeOn()]]></title>
+                            <description>
+                                <p>If the List Search Part is set to 'QueryByForm' then turns search mode on.</p>
+                                <p>Example:</p>
+                            </description>
+                            <example><![CDATA[var lobj = {dialog.object}.getControl('LIST1');
+lobj.searchModeOn();]]></example>
+                            <note>The search mode can be displayed by adding a Label control to the UX and setting the control's client-side calculated expression to dialog.listDetailView.LISTNAME.mode where 'LISTNAME' would be replaced by the actual List name (in capitals).</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.searchModeOff()]]></title>
+                            <description>
+                                <p>If the List Search Part is set to 'QueryByForm' then turns search mode off.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.searchList([options])]]></title>
+                            <description>Submits the Search Part to search the List.  You can specify if the search should be performed client-side, server-side or 'auto'.</description>
+                            <list>
+                                <item>
+                                    <name>options</name>
+                                    <description>An optional JSON format string that indicates where the search should be performed (client-side or server-side). In the case of server-side search, you can set additional optional properties.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>The JSON options object has the following optional properties:</description>
+                            <list>
+                                <item>
+                                    <name>searchMode</name>
+                                    <description>Can be set to clientSide, serverSide or auto. The 'auto' option performs a server-side search if the List is not 'dirty' (i.e. does not have any unsynchronized edits). Otherwise, it performs a client-side search.</description>
+                                </item>
+                                <item>
+                                    <name>maxRows</name>
+                                    <description>In the case of a server-side search, indicates the maximum number of rows that the search is allowed to return. This property overrides the property that is set in the List Builder on the Search Part pane.</description>
+                                </item>
+                                <item>
+                                    <name>maxPayload</name>
+                                    <description>In the case of a server-side search, indicates the maximum payload that the search is allowed to return. This property overrides the property that is set in the List Builder on the Search Part pane.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Example:</description>
+                            <example><![CDATA[{dialog.object}.getControl('LIST1').searchList({searchMode : 'auto', maxRows: 30});]]></example>
+                            <note>The beforeSearch client-side event fires before the search is performed. This event exposes the searchWhere property that tells you where the search will be performed.</note>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.clearSearchList([options])]]></title>
+                            <description>
+                                <p>Removes any filter previously applied by submitting the Search Part.</p>
+                                <p>See .searchList() method for information about options.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title><![CDATA[<listObj>.queryByFormClearControls()]]></title>
+                            <description>Removes the search criteria from the Detail View form when the List is in 'search' mode.</description>
+                        </case>
+                        <case>
+                            <title>Search Events</title>
+                            <list>
+                                <item>
+                                    <name>beforeSearch</name>
+                                    <description>
+                                        <p>Fires before the search is executed. The 'e' object passed into the event has these properties:</p>
+                                        <p>searchMode - 'search' (user is performing a search) or 'clear' - user is clearing a previously applied search and searchWhere - 'clientSide' or 'serverSide'.</p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>afterSearchComplete</name>
+                                    <description>
+                                        <p>Fires after the search has executed. The 'e' object passed into the event has these properties:</p>
+                                        <p>searchMode - 'search' (user is performing a search) or 'clear' - user is clearing a previously applied search and recordsInQuery - a count of the number of records found by the search.</p>
+                                    </description>
+                                </item>
+                            </list>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Videos</title>
+            <sections>
+                <section>
+                    <title>Introduction to the List Control Detail View</title>
+                    <description>
+                        <p>The List control can have an associated Detail View. The Detail View allows you to see details for the currently selected row in the List. The Detail View can be updateable, allowing you to update data that is in the List.</p>
+                        <p>In this video we show how you can add a Detail View to a List. We show two different genies that you can use - one for setting up a List with a Detail View, and another for adding a Detail View to an existing List.</p>
+                    </description>
+                    <note>Lists with Detail Views are the essential building block for applications that can work while you are disconnected. For more information about the features of Lists with Detail Views, see the videos in the 'UX Component - Disconnected Applications' category. Even if you do not need to build mobile applications that work while disconnected, the information regarding Lists and Detail Views in these videos will be relevant.</note>
+                    <videos>
+                        <video>
+                            <name>Watch Video - Part 1</name>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_detailView1.swf</link>
+                        </video>
+                        <video>
+                            <name>Watch Video - Part 2</name>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_detailView2.swf</link>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Contrasting Data Binding at the UX Level with Data Binding at the List Level to Update a SQL Database</title>
+                    <description>
+                        <p>When you want to update data in a SQL database using a UX component you previously could define Data Binding properties for the UX component, then define a server-side action that loaded the primary keys of the records you wanted to edit and another server-side action to save the edits back to the SQL database.</p>
+                        <p>Now, using a List control with an updateable Detail View, you can perform edits on a SQL database using the List and its associated Detail View.</p>
+                        <p>In this video we contrast the two methods of performing CRUD (create, read, update, delete) operations on a SQL database using Data Binding and List controls.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_crud_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_crud_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Contrast Data Binding List Components]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>List Control Search Part </title>
+                    <description>
+                        <p>The List control has a built-in Search Part that allows you to perform searches on the database that is used to populate the List. (This is very much like the Search Part in a Grid component).</p>
+                        <p>The Search Part in the List can be configured in three different ways:</p>
+                        <p>- individual fields for the Search Part (allowing the user for example to enter criteria in a Name, City or Country field)</p>
+                        <p>- a single keyword field (allowing the user to enter criteria in a single field then then searching for matches in multiple fields)</p>
+                        <p>- query by form (allowing the List's Detail View to be used to enter the search criteria)</p>
+                        <p>In this video we show how the various options can be used to search a List.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_searchPart_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_searchPart_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_searchPart_3.swf</link>
+                            <name>Watch Video - Part 3</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_searchPart_4.swf</link>
+                            <name>Watch Video - Part 4</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Search Part List Components]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Introduction to Building Disconnected Applications</title>
+                    <description>
+                        <p>You can build applications that are designed to work when you are disconnected. The UX component and the List control are the fundamental building blocks of these types of applications.</p>
+                        <p>In this video overview we show how a UX component is built using a List control with an associated Detail View to display and edit data, how the data in the List is persisted to Local Storage and then how the edits made to the List data are synchronized with the server. We also show how your disconnected data can be 'hierarchical' - i.e. a list of customers, with orders for each customer and order details for each order.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_1.swf</link>
+                            <name>Watch Video 1 - Setting up a List with a Detail View using the Quick Setup Genie</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_2.swf</link>
+                            <name>Watch Video 2 - Editing Data and Persisting Data to Local Storage</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_disconnected_introduction_3.swf</link>
+                            <name>Watch Video 3 - Introduction to Hierarchical Data Structures</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Editing Data While Offline and then Synchronizing the Data</title>
+                    <description>
+                        <p>When you build an application for disconnected operation, the List control is the basic building block for the application. The List control is used as the 'offline' data storage. The data in the List control can be thought of as an in-memory table. Edits to this data are persisted to Local Storage and then are pushed to the server to synchronize with the server database when a connection is available.</p>
+                        <p>In this video we look at how data in the List are edited and then synchronized with the server database.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_editing_data_whileOffline.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Editing Data While Offline - Behind the Scenes - What Data are Stored in the List</title>
+                    <description>
+                        <p>In order to get a better understanding of how the data in a List control are stored to support disconnected operation, this video shows how you can debug into the internal data that is stored in the List when the user edits, enters and deletes records.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_dataObjectForEachRow.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Disconnected Synchronization Errors - Validation Errors</title>
+                    <description>
+                        <p>When a user synchronizes edits to data that were made while they were offline, there is the possibility of synchronization errors.</p>
+                        <p>These errors can typically result because the user entered a value in a field that was rejected by some server-side validation logic, because of a write conflict, or because the database rejected the edit.</p>
+                        <p>In this video we show how synchronization errors that result from server-side validation errors and database errors are handled.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_serversidevalidation_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_serversidevalidation_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Disconnected Synchronization Errors - Write Conflicts</title>
+                    <description>
+                        <p>When a user synchronizes edits that were made while they were offline, there is the possibility that some other user edited and then synchronized the same data before the user had a chance to synchronize his/her edits.</p>
+                        <p>If this happens a write conflict will occur and the user will be notified that the synchronize operation could not be completed. The user will have to choose how to resolve the conflict. The developer also has the option of handling write conflict errors programmatically.</p>
+                        <p>In this video we show how write-conflict errors are handled.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_write_conflict1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_write_conflict2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_write_conflict3.swf</link>
+                            <name>Watch Video - Part 3</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Disconnected Application Synchronization Events</title>
+                    <description>
+                        <p>When data in a List control is synchronized with the server database there are a number of events that fire (on both the client-side and the server-side) that give you a lot of control over the process and allow you to inject custom code to be executed.</p>
+                        <p>In this video we discuss some of the events that fire when data are synchronized.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_synch_events.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Disconnected Application Custom Synchronization Handlers</title>
+                    <description>
+                        <p>When the user synchronizes a List that is based on a SQL database, Alpha Anywhere automatically generates the SQL statements to perform the various CRUD (create, read, update, delete) operations.</p>
+                        <p>However, if your List is based on a custom datasource (for example, a web service), then you must write your own functions to handle synchronization of the data.</p>
+                        <p>In this video we show an example of how custom handlers can be written to synchronize data.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/xb_customSync_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/xb_customSync_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Custom Synchronization Handlers List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Disconnected Application Incremental Refresh</title>
+                    <description>
+                        <p>After a List has been populated with data from the server you can perform incremental refreshes on the List data to retrieve any edits that have been made to server data. Unlike a full refresh, only rows that have been edited are sent to the client, resulting in a much smaller payload being sent to the client compared to a full refresh of the List data.</p>
+                        <p>You can also set a 'synchronization policy' in the List definition to specify that every time edits to the List data are synchronized with a server an incremental refresh of the List should also be performed.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_incrementalRefresh.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Geographic Data - Capturing Location Information when the User Edits Data</title>
+                    <description>
+                        <p>You can configure a List so that every time the user enters a new record, or edits a record, the user's location will be stored. This allows you to create applications where you capture the location of the device at the time a record was edited or entered.</p>
+                        <p>In this video we show how this is done.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_captureLocation.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_captureLocation2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Capturing Location Information on Edit List Component]</p>
+                        <p>[Schema for MySQL Table Used in Capturing Local Information on Edit List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Geographic Data - Capturing Location Information when the User Synchronizes Data</title>
+                    <description>
+                        <p>In a previous video we show how location information can be captured at the time the user edits a record in the List. But you can also capture location information at the time the user synchronizes the data.</p>
+                        <p>In this video who show how to configure the List to submit location information at the time the user synchronizes the List.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_captureLocationAtSynchTime.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Capturing Location Information on Sync List Component]</p>
+                        <p>[Schema for MySQL Table Used in Capturing Location Information on Sync List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Geographic Data - Geocoding Data</title>
+                    <description>
+                        <p>In order to perform geography searches on your data (for example, find all records that are within 5 miles of my current location), you need to geocode the data in your table. For example, if you have captured the address for the record, when the record is synchronized, you can make a call to a geocoding service to get the latitude/longitude for the record. Then when the record is written to the database you can also compute the location field value so that geography searches are possible.</p>
+                        <p>In this video we discuss the features that the List control exposes to support working with geographic data.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_geocodedataonsynch.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Geocoding Data List Component]</p>
+                        <p>[Schema for MySQL Table Used in Geocoding Data List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Disconnected Applications - Setting Default Values for Fields in New Records</title>
+                    <description>
+                        <p>When you enter a new record in a List with a Detail View you might want to set default values for certain of the fields in the Detail View.</p>
+                        <p>The List builder allows you to execute Javascript code to compute the default value for each field in the List. This allows for sophisticated computations for the default value, including setting the default value for a field to the value that was just entered into the previously entered record.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_definingDefaultValueForNewRecord.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Synchronizing Data in Batches in Disconnected Applications</title>
+                    <description>
+                        <p>If the user has made a large number of edits while they were offline you might want to synchronize the data in batches, rather than sending all of the edits to the server at once.</p>
+                        <p>In this video we show how you can configure the synchronization process so that data are sent to the server in batches.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_batchSynch.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Sync in Batches List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Delaying Populate List Till Active Search</title>
+                    <description>
+                        <p>In an application designed for disconnected usage, the user will typically load a subset of the database onto their mobile device while they have connection.</p>
+                        <p>This is usually done by adding a Search Part to the primary List control in the component and specifying the the List should not be populated until the user has performed a search to retrieve the 'records of interest'. </p>
+                    </description>
+                    <note>TIP: For more information on how to set up the Search Part for a List control see the video titled 'List Control Search Part'.</note>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_search_delayPopulate.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Settings Maximum Number of Records that a Search Can Return</title>
+                    <description>
+                        <p>In an application designed for disconnected usage, the List controls in the UX component hold the data that will be available while the user is offline. These Lists are populated when the user does a search to retrieve the 'records of interest' that they want to have available to them while they are on-line.</p>
+                        <p>Since the amount of data that can be held on a mobile device is limited, you will typically want to ensure that the user does not enter search criteria that retrieve too many records.</p>
+                        <p>In this video we show how you can set limits on how large a result a user search is permitted to return.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_search_settingMaxSize.swf</link>
+                            <name>Watch Video</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Persisting Data to Local Storage</title>
+                    <description>When you build an application for disconnected operation you need to be sure that the data in the application is persisted to Local Storage so that edits that are made to any data are not lost if the application is restarted before the user has had a chance to synchronize the data with the server.</description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_3.swf</link>
+                            <name>Watch Video - Part 3</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
+                </section>
+                <section>
+                    <title>Working with Hierarchical Data in Disconnected Applications</title>
+                    <description>
+                        <p>The data for disconnected applications are stored in List controls. In many types of applications the data you need to work with is hierarchical. For example, you might have a list of customers. Each customer has orders and each order has order details.</p>
+                        <p>In a connected application, you can make an Ajax callback to the server when a user selects a different customer to fetch to orders for that customer. However, in a disconnected application you cannot make callbacks to the server, so when the user selects a customer, the orders for that customer must already have been retrieved from the server so that the data can be shown without making an Ajax callback.</p>
+                        <p>The List control can easily be populated with hierarchical data. In this video we explain how a List control is populated with a customers, each customers' orders, and each order's details.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_hierarchicaldata_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_hierarchicaldata_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>In this follow on video we show how new records can be added to child tables and how the new records are automatically linked to their parent. In the video we show how a new order is added for the selected Customer record and then how new order detail records are added for the new order. When the data are synchronized, the linking fields are automatically filled in - the customer Id is filled into the new order record and the order id is filled into the new order detail records.</description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_hierarchicaldata_3.swf</link>
+                            <name>Watch Video - Part 3</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>
+                        <p>[Download Hierarchical Data List Component]</p>
+                        <p>Date Added: 2014-09-07</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Managing Local Storage in Disconnected Applications</title>
+                    <description>
+                        <p>When you build an application that is designed for offline use (i.e. a disconnected application), the data in the List controls, and the variables in the UX component are persisted to Local Storage.</p>
+                        <p>In this video we show how you can manage the data in Local Storage using the built-in Local Storage manager and using methods of the UX component.</p>
+                    </description>
+                    <videos>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_manage_localStorage_1.swf</link>
+                            <name>Watch Video - Part 1</name>
+                        </video>
+                        <video>
+                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_manage_localStorage_2.swf</link>
+                            <name>Watch Video - Part 2</name>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <description>Date Added: 2014-09-07</description>
                 </section>
             </sections>
         </group>
@@ -2308,13 +3161,11 @@ end function]]></example>
         <link href="http://youtu.be/ILMjGkxxuV4">watch this video</link>
         <link href="http://downloads.alphasoftware.com/a5v12Download/OfflineDemo1.zip">download the component shown in the video</link>
         <link href="#Contrasting Defining Data Binding for a UX with Lists/Detail View">Contrasting Defining Data Binding for a UX with Lists/Detail View</link>
-        <link href="#Using the List Control - Quick Setup Genie">Using the List Quick Setup 
-Genie</link>
+        <link href="#Using the List Control - Quick Setup Genie">Using the List Quick Setup Genie</link>
         <link href="#Using the Detail View - Quick Setup Genie">Using the Detail View - Quick Setup  Genie</link>
         <link href="#Custom Handlers for Synchronization Tasks">Custom Handlers for  Synchronization Tasks</link>
         <link href="#Resolving Write Conflicts Programmatically - The onWriteConflict Event">Resolving Write Conflicts Programmatically</link>
-        <link href="#Custom Handlers for Synchronization Tasks">Custom Handlers for
-Synchronization Tasks</link>
+        <link href="#Custom Handlers for Synchronization Tasks">Custom Handlers for Synchronization Tasks</link>
         <link href="#Synchronizing Data in Batches">Synchronizing Data in Batches</link>
         <link href="Hierarchical Data">Hierarchical Data</link>
         <link href="UX Component Methods">{dialog.object}.refreshListsIncremental()</link>
@@ -2331,5 +3182,16 @@ Synchronization Tasks</link>
         <link href="Setting Search Result Maximums">Setting Search Result Maximums</link>
         <link href="Custom Handlers for Synchronization Tasks">Custom Handlers for Synchronization Tasks</link>
         <link href="Synchronizing Data in Batches">Synchronizing Data in Batches</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_crud_compare.zip">Download Contrast Data Binding List Components</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/list_searchPart.zip">Download Search Part List Components</link>
+        <link hret="http://www.ajaxvideotutorials.com/V12Videos/ux_customHandlers_list_synchronization.zip">Download Custom Synchronization Handlers List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_geography.zip">Download Capturing Location Information on Edit List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/mysql_schema_geogTable.zip">Schema for MySQL Table Used in Capturing Local Information on Edit List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_captureLocationOnSynch.zip">Download Capturing Location Information on Sync List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/mysql_schema_geogTable.zip">Schema for MySQL Table Used in Capturing Location Information on Sync List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_geocode.zip">Download Geocoding Data List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/mysql_schema_geocodeexample.zip">Schema for MySQL Table Used in Geocoding Data List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_synch_in_batches.zip">Download Sync in Batches List Component</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_cust_order_details.zip">Download Hierarchical Data List Component</link>
     </links>
 </page>
