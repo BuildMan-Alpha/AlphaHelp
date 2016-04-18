@@ -406,6 +406,7 @@ events.generateLocalToc = function(localNames) {
         var lastLvl = -1;
         var pendingEnd = "";
         var returnLevel = [];
+        var lastTagPos = -1;
         for( var i = 0 ; i < localNames.length ; ++i ) {
             var ln = localNames[i];
             var lvlName = ln.name.toLowerCase().split('_')[0];
@@ -421,7 +422,7 @@ events.generateLocalToc = function(localNames) {
             if( lastLvl > 0 && lvlName != lastLvl ) {
                 if( lvlName > lastLvl ) {
                     returnLevel.push("</ul></div>"+pendingEnd);
-                    pendingEnd = "<ul>";
+                    pendingEnd = "<ul>\n";
                     lastTagState = '<div class="in-page-closed">';  
                 } else {
                     while( lvlName < lastLvl && returnLevel.length > 0 ) {
@@ -434,25 +435,26 @@ events.generateLocalToc = function(localNames) {
                 }
             }
             lastLvl = lvlName;
+            if( lastTagState.length > 0 && lastTagPos > 0 ) {
+                localToc = localToc.substring(0,lastTagPos) + lastTagState + localToc.substring(lastTagPos);
+            }
             if( pendingEnd.length > 0 ) {
                 localToc += pendingEnd;
-                localToc = localToc.replace('~ITEMTAG~',lastTagState);
             }
             if( returnLevel.length > 0 ) {
                 for( var j = 0 ; j < returnLevel.length ; ++j ) {
                     localToc += "  ";
                 }
             }
-            localToc += "<li>~ITEMTAG~<a href=\"#"+ln.name+"\" >"+ln.content;
-            pendingEnd = "</a></li>\n";
+            localToc += "<li>";
+            lastTagPos = localToc.length;
+            localToc += "<a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
+            pendingEnd = "</li>\n";
         }
         while( returnLevel.length > 0 ) {
-            if( pendingEnd.length > 0 ) {
-                localToc += pendingEnd;
-            }
+            localToc += pendingEnd;
             pendingEnd = returnLevel.pop();
-        }     
-        localToc = localToc.replace('~ITEMTAG~','');
+        }
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
         return localToc;  
