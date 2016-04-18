@@ -403,10 +403,42 @@ events.addPageSourceComment = function(page) {
 events.generateLocalToc = function(localNames) {
    if( localNames.length > 1 ) { 
         var localToc = "<div id=\"local-toc\">\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        var lastLvl = -1;
+        var pendingEnd = "";
+        var returnLevel = [];
         for( var i = 0 ; i < localNames.length ; ++i ) {
             var ln = localNames[i];
-            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content+"</a></li>\n";
+            var lvlName = ln.name.toLowerCase().split('_')[0];
+            var parentNode = false;
+            if( lvlName == 'group' ) {
+                lvlName = 1;
+            } else if( lvlName == 'section' ) {
+                lvlName = 2;
+            } else {
+                lvlName = 3;
+            }
+            if( lastLvl > 0 && lvlName != lastLvl ) {
+                if( lvlName > lastLvl ) {
+                    returnLevel.push("</ul>"+pendingEnd);
+                    pendingEnd = "<ul>";        
+                } else {
+                    while( lvlName < lastLvl && returnLevel.length > 0 ) {
+                        if( pendingEnd.length > 0 ) {
+                            localToc += pendingEnd;
+                        }
+                        pendingEnd = returnLevel.pop();
+                        --lastLvl;
+                    }
+                }
+            }
+            lastLvl = lvlName;
+            if( pendingEnd.length > 0 ) {
+                localToc += pendingEnd;
+            }
+            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content;
+            pendingEnd = "</a></li>\n";
         }
+        localToc += pendingEnd;
         localToc += "</ul>\n</div>";
         return localToc;  
    }
