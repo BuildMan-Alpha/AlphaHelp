@@ -411,7 +411,7 @@ events.generateLocalToc = function(localNames) {
             var ln = localNames[i];
             var lvlName = ln.name.toLowerCase().split('_')[0];
             var parentNode = false;
-            var lastTagState = '';
+            var lastTagState = ' class="leaf"';
             if( lvlName == 'group' ) {
                 lvlName = 1;
             } else if( lvlName == 'section' ) {
@@ -421,9 +421,9 @@ events.generateLocalToc = function(localNames) {
             }
             if( lastLvl > 0 && lvlName != lastLvl ) {
                 if( lvlName > lastLvl ) {
-                    returnLevel.push("</ul></div>"+pendingEnd);
+                    returnLevel.push("</ul>"+pendingEnd);
                     pendingEnd = "<ul>\n";
-                    lastTagState = '<div class="in-page-closed">';  
+                    lastTagState = ' branch="true" class="closed"';  
                 } else {
                     while( lvlName < lastLvl && returnLevel.length > 0 ) {
                         if( pendingEnd.length > 0 ) {
@@ -446,9 +446,9 @@ events.generateLocalToc = function(localNames) {
                     localToc += "  ";
                 }
             }
-            localToc += "<li>";
+            localToc += "<li";
             lastTagPos = localToc.length;
-            localToc += "<a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
+            localToc += "><div><a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
             pendingEnd = "</li>\n";
         }
         while( returnLevel.length > 0 ) {
