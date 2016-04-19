@@ -402,11 +402,12 @@ events.addPageSourceComment = function(page) {
 };
 events.generateLocalToc = function(localNames) {
    if( localNames.length > 1 ) { 
-        var localToc = "<div id=\"local-toc\" onclick=\"localToClickHandler(event)\" >\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        var localToc = "<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
         var lastLvl = -1;
         var pendingEnd = "";
         var returnLevel = [];
         var lastTagPos = -1;
+        var isTree = false;
         for( var i = 0 ; i < localNames.length ; ++i ) {
             var ln = localNames[i];
             var lvlName = ln.name.toLowerCase().split('_')[0];
@@ -423,7 +424,8 @@ events.generateLocalToc = function(localNames) {
                 if( lvlName > lastLvl ) {
                     returnLevel.push("</ul>"+pendingEnd);
                     pendingEnd = "<ul style=\"display:none\">\n";
-                    lastTagState = ' branch="true" class="closed"';  
+                    lastTagState = ' branch="true" class="closed"'; 
+                    isTree = true;
                 } else {
                     while( lvlName < lastLvl && returnLevel.length > 0 ) {
                         if( pendingEnd.length > 0 ) {
@@ -457,6 +459,10 @@ events.generateLocalToc = function(localNames) {
         }
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
+        if( isTree )
+            localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
+        else
+            localToc = "<div id=\"local-toc\">\n" + localToc;
         return localToc;  
    }
    return "";
