@@ -402,7 +402,7 @@ events.addPageSourceComment = function(page) {
 };
 events.generateLocalToc = function(localNames) {
    if( localNames.length > 1 ) { 
-        var localToc = "<div id=\"local-toc\">\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        var localToc = "<div id=\"local-toc\" onclick=\"localToClickHandler(event)\" >\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
         var lastLvl = -1;
         var pendingEnd = "";
         var returnLevel = [];
@@ -422,7 +422,7 @@ events.generateLocalToc = function(localNames) {
             if( lastLvl > 0 && lvlName != lastLvl ) {
                 if( lvlName > lastLvl ) {
                     returnLevel.push("</ul>"+pendingEnd);
-                    pendingEnd = "<ul>\n";
+                    pendingEnd = "<ul style=\"display:none\">\n";
                     lastTagState = ' branch="true" class="closed"';  
                 } else {
                     while( lvlName < lastLvl && returnLevel.length > 0 ) {
@@ -448,7 +448,7 @@ events.generateLocalToc = function(localNames) {
             }
             localToc += "<li";
             lastTagPos = localToc.length;
-            localToc += "><div><a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
+            localToc += "><a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
             pendingEnd = "</li>\n";
         }
         while( returnLevel.length > 0 ) {
