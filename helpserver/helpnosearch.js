@@ -402,12 +402,67 @@ events.addPageSourceComment = function(page) {
 };
 events.generateLocalToc = function(localNames) {
    if( localNames.length > 1 ) { 
-        var localToc = "<div id=\"local-toc\">\n<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        var localToc = "<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
+        var lastLvl = -1;
+        var pendingEnd = "";
+        var returnLevel = [];
+        var lastTagPos = -1;
+        var isTree = false;
         for( var i = 0 ; i < localNames.length ; ++i ) {
             var ln = localNames[i];
-            localToc += "<li><a href=\"#"+ln.name+"\">"+ln.content+"</a></li>\n";
+            var lvlName = ln.name.toLowerCase().split('_')[0];
+            var parentNode = false;
+            var lastTagState = ' class="leaf"';
+            if( lvlName == 'group' ) {
+                lvlName = 1;
+            } else if( lvlName == 'section' ) {
+                lvlName = 2;
+            } else {
+                lvlName = 3;
+            }
+            if( lastLvl > 0 && lvlName != lastLvl ) {
+                if( lvlName > lastLvl ) {
+                    returnLevel.push("</ul>"+pendingEnd);
+                    pendingEnd = "<ul style=\"display:none\">\n";
+                    lastTagState = ' branch="true" class="closed"'; 
+                    isTree = true;
+                } else {
+                    while( lvlName < lastLvl && returnLevel.length > 0 ) {
+                        if( pendingEnd.length > 0 ) {
+                            localToc += pendingEnd;
+                        }
+                        pendingEnd = returnLevel.pop();
+                        --lastLvl;
+                    }
+                }
+            }
+            lastLvl = lvlName;
+            if( lastTagState.length > 0 && lastTagPos > 0 ) {
+                localToc = localToc.substring(0,lastTagPos) + lastTagState + localToc.substring(lastTagPos);
+            }
+            if( pendingEnd.length > 0 ) {
+                localToc += pendingEnd;
+            }
+            if( returnLevel.length > 0 ) {
+                for( var j = 0 ; j < returnLevel.length ; ++j ) {
+                    localToc += "  ";
+                }
+            }
+            localToc += "<li";
+            lastTagPos = localToc.length;
+            localToc += "><a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
+            pendingEnd = "</li>\n";
         }
+        while( returnLevel.length > 0 ) {
+            localToc += pendingEnd;
+            pendingEnd = returnLevel.pop();
+        }
+        localToc += pendingEnd;
         localToc += "</ul>\n</div>";
+        if( isTree )
+            localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
+        else
+            localToc = "<div id=\"local-toc\">\n" + localToc;
         return localToc;  
    }
    return "";
@@ -484,9 +539,33 @@ events.postProcessContent = function(data) {
                 if( typeSeparator > 0 ) {
                     var typeName = emph.substring(0,typeSeparator);
                     if( typeName.indexOf(' ') < 0 ) {
-                        emph = emph.substring(typeSeparator+1);
+                        if( typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps' ) {
+                             typeName = "link"; // implicit link....
+                        } else {     
+                             emph = emph.substring(typeSeparator+1);
+                        }
                         snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
-                    } 
+                        if( typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink' ) {
+                            var linkdef = help.lookupLink(emph);
+                            if( !linkdef ) { // If no symbolic match, lets see if we have a symbolic value
+                                var uriParts = emph.split(':');
+                                if( uriParts.length > 1 ) {
+                                    if( uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps' ) {
+                                        linkdef = emph;
+                                    } 
+                                }
+                            }
+                            if( linkdef ) {
+                                if( typeName == "link" ) {
+                                    snippet = '<a href="'+linkdef+'">'+emph+"</a>";
+                                } else if( typeName == "extlink" ) {
+                                    snippet = '<a href="'+linkdef+'" target="_blank" >'+emph+"</a>";
+                                } else {
+                                    snippet = '<a href="'+linkdef+'" target="_blank" class="emphasize-'+typeName+'">'+emph+"</a>";
+                                }
+                            }
+                        } 
+                    }
                 }
                 newData += snippet + remainder;
             } else if( emph.length > 0 || (i+1) >= items.length ) {
