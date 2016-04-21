@@ -10,6 +10,7 @@ var async = require('async');
 fs.readFile("../links.json", "utf8", function (err2, linksData) {
     var links = JSON.parse(linksData), link;
     var usedNames = {};
+    var changed = false;
     for (link in links) {
         usedNames[link.toLowerCase()] = links[link];
     }
@@ -35,6 +36,7 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                             } else {
                                 usedNames[topic.toLowerCase()] = pathName;
                                 links[topic] = pathName;
+                                changed = true;
                             }
                         }
                     }
@@ -45,6 +47,14 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
             callbackLoop();
         }
     }, function () {
-        //console.log(JSON.stringify(links,null,"  "));
+        if( changed ) {
+            fs.writeFile("../links.json",JSON.stringify(links,null,"  "),function(errW) {
+               if( errW ) {
+                   console.log("Err writing links "+errW);
+               } else {
+                   console.log("links updated");
+               }
+            });
+        }
     });
 });
