@@ -614,9 +614,33 @@ events.postProcessContent = function(data) {
                 if( typeSeparator > 0 ) {
                     var typeName = emph.substring(0,typeSeparator);
                     if( typeName.indexOf(' ') < 0 ) {
-                        emph = emph.substring(typeSeparator+1);
+                        if( typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps' ) {
+                             typeName = "link"; // implicit link....
+                        } else {     
+                             emph = emph.substring(typeSeparator+1);
+                        }
                         snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
-                    } 
+                        if( typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink' ) {
+                            var linkdef = help.lookupLink(emph);
+                            if( !linkdef ) { // If no symbolic match, lets see if we have a symbolic value
+                                var uriParts = emph.split(':');
+                                if( uriParts.length > 1 ) {
+                                    if( uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps' ) {
+                                        linkdef = emph;
+                                    } 
+                                }
+                            }
+                            if( linkdef ) {
+                                if( typeName == "link" ) {
+                                    snippet = '<a href="'+linkdef+'">'+emph+"</a>";
+                                } else if( typeName == "extlink" ) {
+                                    snippet = '<a href="'+linkdef+'" target="_blank" >'+emph+"</a>";
+                                } else {
+                                    snippet = '<a href="'+linkdef+'" target="_blank" class="emphasize-'+typeName+'">'+emph+"</a>";
+                                }
+                            }
+                        } 
+                    }
                 }
                 newData += snippet + remainder;
             } else if( emph.length > 0 || (i+1) >= items.length ) {
