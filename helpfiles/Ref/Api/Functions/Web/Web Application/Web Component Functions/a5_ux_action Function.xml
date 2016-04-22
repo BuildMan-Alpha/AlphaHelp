@@ -18,6 +18,218 @@
    <description>Perform an action on the UX during an ajax callback. actionType is: 'ajaxListAction' (default), 'populateControlsFromTable'</description>
 
 
+
+<sections>
+    <section>
+        <title>Summary of Actions that Can Be Performed</title>
+       <description>The a5_ux_action() Xbasic function is a utility function that can be used in an Ajax callback to generate the Javascript commands to perform certain actions on a UX component.
+The purpose of this command is to allow you to consolidate several actions that would normally be performed by distinct Ajax callbacks into a single Ajax callback.
+The actions that can be performed by this utility function are:
+</description> 
+       <cases>
+           <case>
+               <description>List Control Action
+</description>       
+           </case>
+            <case>
+               <description>Filter List</description>       
+           </case>
+            <case>
+               <description>Refresh List</description>       
+           </case>
+            <case>
+               <description>Refresh row(s) by key value</description>       
+           </case>
+            <case>
+               <description>Append row(s) by key value</description>       
+           </case>
+            <case>
+               <description>Refresh Data Series</description>       
+           </case>
+            <case>
+               <description>Set UX into 'New Record' mode</description>       
+           </case>
+            <case>
+               <description>Populate Controls with Data from a Table</description>       
+           </case>
+            <case>
+               <description>Refresh choices in a dropdownbox control</description>       
+           </case>
+           
+           
+       </cases> 
+    </section>
+    <section>
+        <title>List Control Action:Filter List</title>
+        <description>Filters/sorts the data in a List control.
+This action is equivalent to the {dialog.object}.filterList() method.
+Example:
+</description>
+        <example><![CDATA[Function myAjaxCallback as c (e as p)
+
+    dim ops as p
+    ops.Action = "Filter"
+    ops.filter = "country = :country and city = :city"
+    ops.order = "companyname desc"
+
+    'the arguments are specified in a crlf() delimited string. 
+    'syntax is argumentValue|||type|argumentName
+    ops.parameters = "UK|||c|country" + crlf() + "London|||c|city"
+
+    'specify the id of the list to filter
+    ops.listId = "list1"
+
+    dim xb as c
+    xb = a5_UX_Action(e,ops,"ajaxListAction")
+
+    myAjaxCallback = xb 
+
+end function 
+]]></example>
+        
+    </section>
+    <section>
+        <title>List Control Action: Refresh List</title>
+  <description>Refreshes the data in a List control.
+This action is equivalent to the {dialog.object}.refreshListData() method.
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    ops.Action = "Refresh"
+    ops.listId = "list1"
+    dim xb as c
+    xb = a5_UX_Action(e,ops,"ajaxListAction")
+    myAjaxCallback  = xb 
+end function 
+]]></example> 
+        
+    </section>
+    <section>
+        <title>List Control Action:Refresh Row(s) by key value
+</title>
+         <description>Refreshes data in one or more rows of a List control.
+This action is equivalent to the {dialog.object}._listRefreshRecordsByKey() mehod.
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    'primary keys to refresh (case sensitive!)
+    ops.primaryKey = "EASTC,GALED,FURIB"
+    ops.listId = "list1"
+    ops.action = "refreshRowByKey"
+
+    'if the record to be refreshed is not currently in the list, 
+    'should it be added to to the list?
+    ops.appendRowsNotInList = .f.
+
+    dim xb as c
+    xb = a5_UX_Action(e,ops,"ajaxListAction")
+    myAjaxCallback = xb
+end function 
+]]></example> 
+    </section>
+      <section>
+        <title>List Control Action:Append row(s) by key value
+</title>
+         <description>Appends data to a List control.
+This action is equivalent to the {dialog.object}._listFetchRecordsByKey() method.
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    'primary keys to fetch and add to list (case sensitive!)
+    ops.primaryKey = "EASTC,GALED,FURIB"
+    ops.listId = "list1"
+    ops.action = "appendRowByKey"
+    dim xb as c
+    xb = a5_UX_Action(e,ops,"ajaxListAction")
+    myAjaxCallback = xb
+end function 
+]]></example> 
+    </section>
+      <section>
+        <title>Refresh Data Series
+</title>
+         <description>Refreshes one or more data series. All controls that are bound to the data series are refreshed.
+This action is equivalent to the {dialog.object}.refreshDataSeries() method.
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    ops.Action = "refreshDataSeries"
+    ops.seriesNames = "series1,series2,series3"
+    dim xb as c
+    xb = a5_UX_Action(e,ops,"ajaxListAction")
+    myAjaxCallback = xb 
+end function 
+]]></example> 
+    </section>
+        <section>
+        <title>Set UX into 'New Record' mode
+</title>
+         <description>This action is equivalent to the {dialog.object}.newRecord() method
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    myAjaxCallback = a5_UX_Action(e,ops,"NewRecord")
+end function ]]></example> 
+    </section>
+        <section>
+        <title>Populate Controls with Data From a Table
+</title>
+         <description>(Applies only if the UX has been data bound). Populates controls on the UX with data from the data bound tables for a specified primary key value.
+This action is equivalent to the {dialog.object}.populateControlsFromTable() method.
+Example:
+</description>      
+       <example><![CDATA[Function myAjaxCallback as c (e as p)
+    dim ops as p
+    ops.primaryKey = "ALFKI"  'case sensitive!
+    dim js_getRecord as c 
+    
+    ops.__dtfmt = e.rtc._state.__dtfmt
+    dim js as c 
+    js = a5_UX_Action(e,ops,"populateControlsFromTable")
+    myAjaxCallback = js 
+end function 
+]]></example> 
+    </section>
+        <section>
+        <title>Refresh choices in a dropdownbox control</title>
+         <description>This action is equivalent to the {dialog.object}.refreshDropdownBoxChoices() method.
+Example:
+</description>      
+       <example><![CDATA[function myAjaxCallback as c (e as p)
+    dim js as c 
+    dim ops as p
+    'name of dropdowncontrol to refresh
+    ops.controlName = "CITIES"
+    'if the control is in a repeating section should just the current instance
+    'be repopulated
+    ops.currentRepeatingSectionRowOnly = .f.
+    
+    'filter for query
+    ops.filter = "country = :whatcountry"
+    'argument value - format is value|||type|argumentName
+    ops.arguments = "USA|||c|whatCountry"
+
+    'value in dropdownbox to select after it has been populated
+    ops.selectedValueAfterPopulate = ""
+
+    js = a5_ux_action(e,ops,"refreshDropDownBox") 
+    myAjaxCallback = js 
+
+end function ]]></example> 
+    </section>
+      
+</sections>
+
+
+
+
+
+
 <terms>web application,components,ajax,function,pointer</terms>
 
 
