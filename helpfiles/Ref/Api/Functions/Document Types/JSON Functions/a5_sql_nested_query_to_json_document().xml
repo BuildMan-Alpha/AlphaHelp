@@ -246,8 +246,9 @@ p = a5_sql_nested_query_to_json_document(ops,args)
 	
 </section>
 <section>
-<title>Example 3 - Three level query where each query is in a different database (the connection string is specified for each query). 
-</title>
+<title>Example 3 - Three level query </title>
+<description>A three level query, where each query is in a different database (the connection string is specified for each query). 
+</description>
 	<example><![CDATA['since each query specifies its own connection string, the flagUseSubSelects flag must 
 'be set to .f.
 
@@ -302,11 +303,73 @@ ops.sql = <<%txt%
 	
 </section>
 
+<section>
+	<title>Eliminating Key Values
+</title>
+<description>By default, the JSON that is created shows the parent key value in the child data. For example in the example JSON shown below (which shows a customer, and all of their orders), the 'CustomerID' property is shown n each item in the 'orders' array. This is really not necessary.
+</description>	
+<example><![CDATA[ = {
+    "customer": [
+        {
+            "CustomerID": "BLONP",
+            "CompanyName": "Blondesddsl pï¿½re et fils",
+            "ContactName": "Frï¿½dï¿½rique Citeaux",
+            "orders": [
+                {
+                    "OrderID": "10265",
+                    "CustomerID": "BLONP",
+                    "EmployeeID": "2",
+                    "OrderDate": "07/25/1996 12:00:00 00 am",
+                    "ShipVia": "1",
+                    "Freight": "55.28",]]></example>	
+	
+</section>
 
+<section>
+<description>In order to suppress parent key values in child records, you can set the 'sparse' property to .t. in the object you pass into the a5_sql_nested_query_to_json_document() function. For example:
+</description>	
+<example><![CDATA[dim ops as p
+ops.sparse = .t.
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers', name: 'customer' }
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+%txt%]]></example>	
+	
+</section>
+<section>
+	<title>Preserving Data Types in the JSON 
+</title>
+<description>You can use the convertToText property in the options that you pass in to control whether the generated JSON converts all data to strings, or preserves data types.
+For exmaple:
+</description>	
+<example><![CDATA[ops.convertToText = .f.
+p = a5_sql_nested_query_to_json_document(ops,args)]]></example>	
+	
+</section>
 
+<section>
+<description>would result in JSON that looked like this:
+</description>	
+<example><![CDATA[ "customer": [
+                {
+                    "customerId": "GREAL",
+                    "companyName": "Great Lakes Food Market",
+                    "orders": [
+                                    {
+                                        "orderid": 10528,
+                                        "orderdate": new Date(1997,05,06,00,00,0),
+                                        "value": 10528,
+                                        ........]]></example>	
+	
+</section>
 
+<section>
+<description>Notice that the 'orderDate, orderId, and value properties are typed.
+</description>	
 
-
+	
+</section>
 
 
 
