@@ -91,6 +91,231 @@ This function is inspired by NoSQL databases that return a JSON document with a 
 	
 ]]></example>
 </section>
+
+
+<section>
+	<title>options.SQL parameter:</title>
+	<description>Example:</description>
+	<example>options.sql = <<%txt%
+{sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
+    {sql:'select * from orders', name: 'orders', parentKey: 'cId', key: 'cId'}
+%txt%
+</example>
+	
+</section>
+<section>
+	<description>Notice that the options.sql property is a CRLF delimited string of JSON strings in this format:
+</description>
+	<example>options.SQL = <<%txt%
+{JSON string 1}
+    {JSON string2}
+%txt%
+</example>
+	
+</section>
+
+<section>
+	<description>The fact that {JSON string 2} is indented (using a single Tab character NOT spaces) is significant. The indentation indicates that this query is an immediate child of the query in the line above it.
+You can have multiple levels of indentation. and multiple queries with the same parent, for example:
+</description>
+	<example>options.SQL = <<%txt%
+{JSON string 1}
+    {JSON string2}
+        {JSON string 3}
+    {JSON string 4}
+%txt%</example>
+	
+</section>
+
+<section>
+	<description>In the above example, the SQL query defined by {JSON string 3} is a child of {JSON string2}. The query defined by {JSON string 1} has two child queries. A real world example of an hierarchy that would be defined using the above structure might be:
+</description>
+	<example>Customers
+`    Orders
+            OrderDetails
+    Payments
+</example>
+	
+</section>
+
+<section>
+	<description>The individual JSON strings each have these properties
+</description>
+	<cases>
+		<case>
+			<description>sql - The actual SQL statement to execute
+</description>
+		</case>
+		<case>
+			<description>name - An arbitrary name. Must be unique. This name is used for the child records in the JSON document that is returned.
+</description>
+		</case>
+		<case>
+			<description>parentKey  - Only required for child queries. Defines the field in the child SQL statement that joins the child query with the parent query.
+</description>
+		</case>
+		<case>
+			<description>key - Only required for child queries. Defines the field in the child's parent SQL query that joins the child query with the parent query.
+</description>
+		</case>
+		
+	</cases>
+</section>
+
+<section>
+<title>Example 1 - Simple two level query
+</title>
+	<example>dim ops as p
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+%txt%
+dim args as sql::Arguments
+args.add("whatCountry","France")
+p = a5_sql_nested_query_to_json_document(ops,args)
+?p.data
+
+ = {
+    "customer": [
+        {
+            "CustomerID": "BLONP",
+            "CompanyName": "Blondesddsl pï¿½re et fils",
+            "ContactName": "Frï¿½dï¿½rique Citeaux",
+            "ContactTitle": "Marketing Manager",
+            "Address": "24, place Klï¿½ber",
+            "City": "Strasbourg",
+            "Region": null,
+            "PostalCode": "67000",
+            "Country": "France",
+            "Phone": "88.60.15.31",
+            "Fax": "88.60.15.32",
+            "image": null,
+            "imageThumb": null,
+            "orders": [
+                {
+                    "OrderID": "10265",
+                    "CustomerID": "BLONP",
+                    "EmployeeID": "2",
+                    "OrderDate": "07/25/1996 12:00:00 00 am",
+                    "RequiredDate": "08/22/1996 12:00:00 00 am",
+                    "ShippedDate": "08/12/1996 12:00:00 00 am",
+                    "ShipVia": "1",
+                    "Freight": "55.28",
+                    "ShipName": "Blondel pï¿½re et fils",
+                    "ShipAddress": "24, place Klï¿½ber",
+                    "ShipCity": "Strasbourg",
+                    "ShipRegion": null,
+                    "ShipPostalCode": "67000",
+                    "ShipCountry": "France"
+                },
+                {
+                    "OrderID": "10297",
+                    "CustomerID": "BLONP",
+                    "EmployeeID": "5",
+                    "OrderDate": "09/04/1996 12:00:00 00 am",
+                    "RequiredDate": "10/16/1996 12:00:00 00 am",
+                    "ShippedDate": "09/10/1996 12:00:00 00 am",
+                    "ShipVia": "2",
+                    "Freight": "5.74",
+                    "ShipName": "Blondel pï¿½re et fils",
+                    "ShipAddress": "24, place Klï¿½ber",
+
+                    truncated for brevity......
+
+</example>
+	
+</section>
+<section>
+<title>Example 2 - Simple three level query
+</title>
+	<example>dim ops as p
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+        {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId'}
+%txt%
+
+
+dim args as sql::Arguments
+args.add("whatCountry","France")
+p = a5_sql_nested_query_to_json_document(ops,args)
+
+</example>
+	
+</section>
+<section>
+<title>Example 3 - Three level query where each query is in a different database (the connection string is specified for each query). 
+</title>
+	<example>'since each query specifies its own connection string, the flagUseSubSelects flag must 
+'be set to .f.
+
+ops.flagUseSubSelects = .f.
+ops.sql = <<%txt%
+{sql: 'select * from customers where country = :whatCountry ', name: 'customer' , connectionString: '::Name::northwind'}
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', connectionString: '::Name::northwind2'}
+        {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId' , connectionString: '::Name::northwind2'}
+%txt%
+dim args as sql::Arguments
+args.add("whatCountry","France")
+p = a5_sql_nested_query_to_json_document(ops,args)
+
+</example>
+	
+</section>
+
+<section>
+	<title>Limiting the Number of Child Records
+</title>
+<description>If you want to limit the number of records retrieved at any level in the hierarchy, you can.
+To limit the number of records at the top level of the hierarchy, you would simply use the FIRST clause in your SQL select statement. However, for child queries, using the FIRST clause in the SQL will not work (because you want the FIRST n records within EACH parent group, not the FIRST n records in ALL parent groups).
+To limit the number of records in a child query, you use the 'limit' property in the JSON object that defines the query.
+For example in the code shown below we are fetching the first 5 orders for each customer:
+</description>	
+<example><![CDATA[dim ops as p
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers', name: 'customer' }
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+%txt%
+]]></example>
+<note>If you do use a FIRST clause in a child SQL statement, the SQL statement is automatically parsed and the FIRST clause is removed and converted into a 'limit' property in the JSON definition. So, the following two objects are actually equivalent:</note>
+	
+</section>
+<section>
+	<example><![CDATA[dim ops as p
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers', name: 'customer' }
+    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+%txt%
+
+
+dim ops as p
+ops.connectionString = "::Name::northwind"
+ops.sql = <<%txt%
+{sql: 'select * from customers', name: 'customer' }
+    {sql: 'select FIRST 5 * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+%txt%]]></example>
+	
+	
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </sections>
 <see>
 	<ref href="/Api/Functions/Document Types/JSON Functions/a5_merge_json_into_template().xml">a5_merge_json_into_template()</ref>
