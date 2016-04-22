@@ -4,27 +4,99 @@
    <arguments>
      <argument>
          <name>nodeService</name>
-         <description>Character</description>
+         <description>Name of the node service to run.</description>
      </argument>
      <argument>
          <name>pData</name>
-         <description>Pointer</description>
+         <description>Pointer to parameters</description>
      </argument>
      <argument>
          <name>flagRestartNode</name>
-         <description>Logical</description>
+         <description>Restart the node server for the project on this invokation</description>
      </argument>
      <argument>
          <name>flagShowCommandWindow</name>
-         <description>Logical</description>
+         <description>Show the command window for the node service handler (allows developer to see feedback using console.log() in the handler).</description>
      </argument>
      <argument>
          <name>flagAllowDebug</name>
-         <description>Logical</description>
+         <description>Enable node debugger (requires that the node debugger be launched)</description>
      </argument>
    </arguments>
    <description>Call a node service from Xbasic</description>
-   
+<sections>
+<section>
+<description>
+<p>
+Calls node service for a web project. The web project must include a 'node_services' folder with the named node service.
+If the service is not present in the project, you will receive an error from node.
+</p>
+<p>
+Below is an example call - it assumes a node service called 'eval' that reads javascript to execute from a 'content' property, then returns the result.
+</p>
+</description>
+<example>
+dim req as p
+dim req.content as c = "1+1"
+? node_request("eval",req)
+= {"_id":"d18fa451-5c15-4cbf-8085-92fe24890e4d","error":"command eval was not recognized for command d18fa451-5c15-4cbf-8085-92fe24890e4d","result":null}
+</example>
+</section>
+
+<section>
+<description>
+<p>
+Add a node_services to the projects 'node' subfolder - save a file called 'eval.js' that has the following contents.
+</p>
+<p>
+The node service handler consumes a 'packet' that contains the parameters for the command.  In this case, the 
+parameter required is called "content", and gets evaluated, data is returned in a result parameter.
+</p>
+</description>
+<example>
+exports.handler = function(packet,response,sendResponse) {
+	var e;
+	var attachments = null;
+	try {
+	    response.result = eval(packet.content);
+	    if( Buffer.isBuffer(response.result) ) {
+	    	attachments = [{ name : 'data' , type : 'binary' , data : response.result }];
+	    	response.result = 'binary data in attachment';	    	
+	    }
+	} catch( e ) {
+	    response.error = e.message;
+	}
+	sendResponse(response,attachments);
+};
+</example>
+</section>
+<section>
+<description>
+With 'node_services/eval.js' defined, now our example should work, notice that the result of
+evaluation is in a field called 'result', notice also that 'error' is blank.
+</description>
+<example>
+dim req as p
+dim req.content as c = "1+1"
+? node_request("eval",req)
+= {"_id":"d21a4938-d8bd-455f-9e82-e70bcc675316","error":"","result":2}
+</example>
+</section>
+<section>
+<description>
+An example of a valid request with a handled error would be to pass a javascript expression that is invalid.
+</description>
+<example>
+dim req as p
+dim req.content as c = "1+"
+? node_request("eval",req)
+= {"_id":"4bee3d41-7816-4f0c-8b3f-ca853fa2ef0c","error":"Unexpected end of input","result":null}
+</example>
+</section>
+
+
+
+</sections>
    
 <terms>xbasic,function,logical,pointer</terms>
    

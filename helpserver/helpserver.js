@@ -621,13 +621,35 @@ events.postProcessContent = function(data) {
                         }
                         snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
                         if( typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink' ) {
-                            var linkdef = help.lookupLink(emph);
-                            if( !linkdef ) { // If no symbolic match, lets see if we have a symbolic value
-                                var uriParts = emph.split(':');
+                            var isURI = function(sample) {
+                                var uriParts = sample.split(':');
                                 if( uriParts.length > 1 ) {
                                     if( uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps' ) {
-                                        linkdef = emph;
-                                    } 
+                                        return true;
+                                    }
+                                }
+                                return false;                                
+                            }
+                            var linkdef = emph;
+                            var atSignPos = linkdef.indexOf("@");
+                            if( atSignPos > 0 ) {
+                                if( linkdef.substring(0,7) != "mailto:" ) {
+                                    linkdef = linkdef.substring(atSignPos+1);
+                                    if( linkdef ) {
+                                        if( !isURI(linkdef) ) {
+                                            linkdef = help.lookupLink(linkdef);
+                                        }
+                                        if( linkdef ) {
+                                            emph = emph.substring(0,atSignPos);
+                                        }
+                                    }
+                                }
+                            } else {
+                                linkdef = help.lookupLink(linkdef);
+                            }
+                            if( !linkdef ) { // If no symbolic match, lets see if we have a symbolic value
+                                if( isURI(emph) ) {
+                                    linkdef = emph;
                                 }
                             }
                             if( linkdef ) {
