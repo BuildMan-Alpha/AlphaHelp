@@ -12,6 +12,27 @@ var replaceAll = function(str, find, replace) {
     return str;
 };
 
+fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
+     if(!err && contents ) {
+        console.log(contents);
+        fs.unlink("../generated/helpserver_error.log");
+     } 
+});
+
+// report error from node..
+process.on('uncaughtException', function (err) {
+    try {
+        var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
+        fs.writeFile( "../generated/helpserver_error.log" , nodeErrorLog , function(err2) {
+            process.exit(1);			
+        });
+    } catch(err2) {		 
+        console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
+        console.error(err.stack);
+        process.exit(1);
+    }
+});
+
 // Check for required folders...
 if (!fs.existsSync(options.generated)) {
     fs.mkdirSync(options.generated);
