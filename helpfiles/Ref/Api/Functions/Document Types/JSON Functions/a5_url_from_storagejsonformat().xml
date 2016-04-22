@@ -22,21 +22,28 @@ The a5_url_fromStorageJSONformat() Function takes a JSON definition, such as "{c
 
 	<sections>
 		<section>
+			
+			<description>The a5_url_fromStorageJSONformat() Function generates a signed URL to download a file from Amazon S3 storage. The a5_url_from_storageJSONformat() function can be used to display/download a file from storage (e.g. Amazon S3) directly, with very little load on the Alpha server. The purpose of the function is to take a JSON string that defines the address of an object in storage (e.g. Amazon S3) and to generate a signed URL that can be used to download the object directly to the client from storage without having to first download the object to the Alpha server and then have the Alpha server send the file to the client.
+</description>
+			
+		</section>
+		<section>
 			<description>
 				The JSON string format that defines the address of an object in storage is:
 			</description>
-			<example>
-			<![CDATA[	{cs: 'storage connection string', object: 'name of object', source: 'vendor'}]]>
-			</example>
+			<example><![CDATA[{cs: 'storage connection string', object: 'name of object', source: 'vendor'}]]></example>
+			<note>Currently the only vendor supported is Amazon S3 so vendor must be set to 'S3'</note>
 		</section>
+<section>
+	<note>The storage connection string is defined by selecting the Tools, Storage Connection Strings menu when the Web Projects Control Panel has focus. When you define storage connection strings you have the option of encrypting the storage connection string. You must NOT encrypt the storage connection string or else Alpha Anywwill not be able to parse the storage connection string to determine your storage credentials.
 
+</note>
+</section>
 		<section>
 			<description>
 				For example, assume you have a named storage connection string called 'myS3bucket'. A JSON string that defines the address of an object called 'ProductPrices.pdf' would be:
 			</description>
-			<example>
-			<![CDATA[	{cs: 'myS3bucket', object: 'ProductPrices.pdf', source: 'S3'}]]>
-			</example>
+			<example><![CDATA[{cs: 'myS3bucket', object: 'ProductPrices.pdf', source: 'S3'}]]></example>
 		</section>
 
 		<section>
@@ -45,7 +52,15 @@ The a5_url_fromStorageJSONformat() Function takes a JSON definition, such as "{c
 			</description>
 			<example>
 				<![CDATA[dim address as c address =
-				<<%txt% { cs: 'myS3bucket', object: 'ProductPrices.pdf', source: 'S3' } %txt% dim url as c url=a 5_url_from_storateJSONformat(address)]]> </example>
+				<<%txt% 
+				{ 
+					cs: 'myS3bucket', 
+					object: 'ProductPrices.pdf', 
+					source: 'S3' 
+				} 
+				%txt% 
+				dim url as c 
+				url=a 5_url_from_storateJSONformat(address)]]> </example>
 		</section>
 
 
@@ -54,9 +69,35 @@ The a5_url_fromStorageJSONformat() Function takes a JSON definition, such as "{c
 				The resulting URL would look something like this (assuming that the bucket name specified in the connection string was 'myBucket'):
 			</description>
 			<example>
-				<![CDATA[https://s3.amazonaws.com/myBucket/ProductPrices.pdf?AWSAccessKeyId=key Expires=expiration&Signature=signature]]>
+				<![CDATA[https://s3.amazonaws.com/myBucket/ProductPrices.pdf?
+AWSAccessKeyId=key Expires=expiration&Signature=signature]]>
 			</example>
 		</section>
+		
+		<section>
+			<description>Where:</description>
+			<cases>
+				<case>
+					<title>key</title>
+					<description>your access key - as defined in the storage connection string</description>
+				</case>
+				<case>
+					<title>expires </title>
+					<description>indicates how long the URL can be used for (only applies if the object was uploaded to storage as 'Protected Read')</description>
+				</case>
+				<case>
+					<title>signature</title>
+					<description>a special signature based on the credentials specified in the storage connection string.
+By default, the expires property is 240 seconds. That means that if the URL is used more than 240 seconds after it was generated, Amazon S3 will return a 'permission denied' error. The a5_url_from_storageJSONformat() function takes an optional second argument where you can specify how long the URL is good for in seconds. The default value for this parameter is 240.
+
+</description>
+				</case>
+				
+			</cases>
+		</section>
+		
+		
+		
 	</sections>
 <discussion type="html">
 <![CDATA[
