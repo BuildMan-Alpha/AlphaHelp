@@ -65,6 +65,8 @@ fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
             }
             console.log('Message sent: ' + info.response);
         });
+     } else if( err ) {
+         console.log("error loading last crash log "+err);
      } 
 });
 
