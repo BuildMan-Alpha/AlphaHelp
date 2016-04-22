@@ -21,7 +21,6 @@ var createBrokenLinkEmail =  function(problems) {
         message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
     }
 var emailcred = require("./emailcred");
-
 var nodemailer = require('nodemailer'); 
 // create reusable transporter object using the default SMTP transport 
 var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
@@ -42,6 +41,46 @@ transporter.sendMail(mailOptions, function(error, info){
     console.log('Message sent: ' + info.response);
 });
 } 
+
+
+fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
+     if(!err && contents ) {
+        fs.unlink("../generated/helpserver_error.log");
+        var emailcred = require("./emailcred");
+        var nodemailer = require('nodemailer'); 
+        // create reusable transporter object using the default SMTP transport 
+        var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
+        
+        // setup e-mail data with unicode symbols 
+        var mailOptions = {
+            from: emailcred.user, // sender address 
+            to: 'documentation@alphasoftware.com', // list of receivers 
+            subject: 'Helpserver crashed', // Subject line 
+            text: contents, 
+        };
+        // send mail with defined transport object 
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error){
+                return console.log(error);
+            }
+            console.log('Message sent: ' + info.response);
+        });
+     } 
+});
+
+// report error from node..
+process.on('uncaughtException', function (err) {
+    try {
+        var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
+        fs.writeFile( "../generated/helpserver_error.log" , nodeErrorLog , function(err2) {
+            process.exit(1);			
+        });
+    } catch(err2) {		 
+        console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
+        console.error(err.stack);
+        process.exit(1);
+    }
+});
 
 
 
