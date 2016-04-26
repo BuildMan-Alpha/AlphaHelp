@@ -719,11 +719,13 @@ app.use("/", function(req, res) {
         }, 0, 20);
     } else if (req.path.substring(0, 8) == '/images/') {
         res.redirect("/help" + req.path);
-    } else if( req.path.indexOf('/favicon.ico') >= 0 ) {
-        require('fs').readFile("./assets/favicon.ico",function(err,data) {
+    } else if( (req.path+".").indexOf('/favicon.') >= 0 ) {
+        require('fs').readFile(options.assetpath + "assets/favicon.ico" ,function(err,data) {
            if( !err && data ) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);
+            } else {
+                console.log("favicon is missing"); 
             }
         });
     } else {
