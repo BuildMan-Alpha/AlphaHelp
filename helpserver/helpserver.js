@@ -798,7 +798,7 @@ app.use("/", function (req, res) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);   
             } else {
-                res.send("No favorite icon");
+                res.send("No favorite icon - "+err);
             }
         });
    } else {
