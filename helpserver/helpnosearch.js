@@ -722,7 +722,7 @@ app.use("/", function(req, res) {
     } else if( req.path.indexOf('/favicon.ico') >= 0 ) {
         require('fs').readFile("./assets/favicon.ico",function(err,data) {
            if( !err && data ) {
-                res.setHeader('Content-Type', 'image/png');
+                res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);
             }
         });
