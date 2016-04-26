@@ -793,7 +793,7 @@ app.use("/", function (req, res) {
     } else if (req.path.substring(0, 8) == '/images/') {
         res.redirect("/help" + req.path);
      } else if( req.path.indexOf('/favicon.ico') >= 0 ) {
-        require('fs').readFile("./assets/favicon.ico",function(err,data) {
+        require('fs').readFile(config.assetpath + "assets/favicon.ico",function(err,data) {
            if( !err && data ) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);   
