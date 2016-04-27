@@ -1,26 +1,69 @@
 <page>
-	<topic>Xbasic Script Context</topic>
-	<sections>
-		<section>
-			<description>When you run a script that is attached to a toolbar button, the script has the same context as the active window. The aliases this and parentform, used in a script attached to a toolbar button, refers to the active window. For example, assume that you have a toolbar with this Xbasic code attached to one of the buttons on the toolbar:</description>
-			<example><![CDATA[name = this.name()
-ui_msg_box("window name is:" , name) ]]></example>
-		</section>
-		<section>
-			<description>When you press the toolbar button, it will report the name of the window that is active.
-The following example shows code that could be attached to a Query By Form toolbar to insert the "Is not blank" search operator into the field that currently has focus:
+	<topic>Web Applications - Xbasic Modules</topic>
+	<description>The Web Projects Control Panel now has a new category called Xbasic Module.</description>
+<sections>
+<section>
+	<figure><link>images/xbasicmodules.jpg</link></figure>
+</section>	
+<section>
+	<description>An Xbasic Module is a text file with a .a5xbm extension. It is stored in the web project folder. The purpose of an Xbasic Module is to allow you to package Xbasic functions and class definitions so that they can easily be used in other Xbasic code you write.
 </description>
-			<example><![CDATA['Determine which object currently has focus
-active_object = parentform.active()
-'Get a pointer to that object
-ptr = obj(active_object)
-'Set the text property of that object
-ptr.text = "Is not blank" ]]></example>
-		</section>
-	</sections>
-	<see>
-		<ref>How to Design a Custom Toolbar</ref>
-		<ref>Toolbar Functions and Methods</ref>
+	<videos>
+		<video>
+			<description>Watch Video</description>
+			<link>http://www.ajaxvideotutorials.com/V12Videos/xbasic_modules.swf</link>
+		</video>
 		
-	</see>
+	</videos>
+</section>
+<section>
+	<note>Xbasic Modules are very similar to the concept of Node modules.
+An Xbasic Module must end with an exports command that defines which functions and classes the Module 'exports' (makes available to the calling code).
+</note>
+</section>
+<section>
+	<description>To use an Xbasic Module in your Xbasic code you use the require() function to 'register' the Module.
+The require() function can take an optional CRLF delimited string of search paths. By default the require() function will look in the Web Root (if you are running live) and in the Web Project Folder (if you are in Working Preview). If the file is not found there, it will search for the module in the \xbasic_modules folder. If you pass in a CRLF delimited string of folder names as the second parameter to the require() function, these folders will also be searched for the module.
+For example, assume you had defined the following Xbasic Module called MyXBModule.a5xbm.
+The module file was defined as follows:
+</description>
+	<example><![CDATA[function greeting as c (name as c )
+    greeting = "Hello " + ut(name) + " the time is now: " + currentDate()
+end function 
+
+function currentDate as c ()
+    currentDate = date()
+end function 
+
+exports.sayHello = greeting]]></example>
+</section>
+
+<section>
+	<description>Notice that the module defines two functions, but only the greeting() function is 'exported' (i.e. made public). Also notice that the greetings() function was exported as sayHello. This means that to the calling code the function sayHello() can be called (but not the internal greetings() function).
+
+Now assume you had define an .a5w page with this code:
+</description>
+<example><![CDATA[<%a5<br>
+						dim pxb as p<br>
+						pxb = require(&quot;myxbmodule&quot;)<br>
+						?pxb.sayHello(&quot;jim&quot;)<br>
+						%>]]></example>
+</section>
+<section>
+	<description>The Xbasic code in the .A5w page uses the require() function to register the 'myxbmodule' Xbasic Module and assigns the function to a namespace called pxb. Then, to call any of the exported functions, you must use the pxb prefix.
+Modules can be loaded recursively. For example, in the definition of a module can reference another module.
+</description>
+</section>
+
+<section>
+	<title>What is the Difference between an Xbasic Function Library and an Xbasic Module?</title>
+	<description>On the surface an Xbasic Function Library and an Xbasic Module seem similar in that they are both files in which you can define multiple Xbasic functions.
+However an Xbasic Module only makes 'public' certain of the functions and classes it defines (through use of the 'exports' keyword) and the exported functions are all in their own namespace and must be called using the namespace prefix.
+On the other hand an Xbasic Function Library must be linked into a component before any of the functions defined in the library can be called. The functions defined in the Xbasic Function Library are in the same namespace as any locally defined functions in the component itself.
+</description>
+</section>
+
+</sections>	
+	
+	
 </page>
