@@ -441,8 +441,13 @@ events.generateLocalToc = function(localNames) {
             var lastTagState = ' class="leaf"';
             if( lvlName == 'group' ) {
                 lvlName = 1;
-            } else if( lvlName == 'section' ) {
+            } else if( lvlName == 'section' || lvlName == 'section1' ) {
                 lvlName = 2;
+            } else if( lvlName.substring(0,7) == 'section' ) {
+                lvlName = parseInt(lvlName.substring(7),10) + 1;
+                if( lvlName < 2 ) {
+                    lvlName = 2;
+                }
             } else {
                 lvlName = 3;
             }

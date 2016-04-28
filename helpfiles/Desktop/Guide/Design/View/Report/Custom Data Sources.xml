@@ -1,0 +1,140 @@
+<page>
+	
+	<topic>Reports - Custom Data Sources</topic>
+<description>Previously, when you created a Report in Alpha Anywhere you could choose to base the report on a SQL data source, or a native .dbf table.
+Now you can specify that the report is based on a Custom data source. 
+</description>
+<sections><section>
+<figure><link>images/report_custom1.jpg</link></figure>
+<note>When creating 'Project reports' (Reports defined in the Web Projects Control Panel), the option to base the report on a .dbf table is not available.</note>
+
+</section>
+<section>
+	<description>When you specify a custom data source the following dialog appears:
+</description>
+	<figure><link>images/reports_custom2.jpg</link></figure>
+	
+</section>
+<section>
+	<description>You specify the name of an Xbasic function that will return the data to be printed by the report.
+The Xbasic function can return data in one of two formats:
+</description>
+	<cases>
+		<case>
+			<description>Delimited</description>
+		</case>
+		<case>
+			<description>JSON</description>
+		</case>
+		
+	</cases>
+	
+</section>
+<section>
+	<description>In both cases, the Xbasic function returns a string of data (that is either in delimited or JSON format - explained below).
+The function prototype for the Xbasic function is (assuming you specified that the Function name was myDataFunction in the Function name property in image shown above):
+</description>
+	<example><![CDATA[function myDataFunction as c (e as p)
+myDataFunction = 
+<< %txt%
+......the delimited, or JSON format data goes here
+%txt%
+
+end function ]]></example>
+</section>
+<section>
+	<description>Notice that the function takes a single input parameter, e.
+The e object that is passed into the function includes the value of any arguments that were passed into the report.
+For example, assume that you specified that the Custom Data Source uses an argument called whatCountry. Your Xbasic function can reference the value in this argument as follows:
+</description>
+	<example><![CDATA[dim country as c 
+country = argVal(e.arguments,"whatCountry")]]></example>
+</section>
+<section>
+	<title>Understanding the Format of the Delimited Data Your Custom Function Must Return
+</title>
+	<description>The delimited option allows you to return a CR-LF delimited list of data. Each row in the data that are returned represents a row of data in your report. The 'fields' in the data are typically delimited with a pipe character (e.g. |), but you are free to specify any delimiter. For example, here is how a simple Xbasic function could be defined to return some data for a report.
+</description>
+	<example><![CDATA[function myXBfunction as c (e as p)
+
+dim txt as c 
+txt = <<%txt%
+Firstname|Lastname|City
+Fred|Smith|Boston
+John|Jones|London
+%txt%
+myXBfunction = txt
+
+end function ]]></example>
+</section>
+<section>
+	<description>Notice that the first row of data in the string that is returned by the function are the field names. In this example, the field names are Firstname, LastName and City.
+The first row of data can optionally include additional information that defines the data type and size of each field. 
+For example:
+</description>
+	<example><![CDATA[function myXBfunction as c (e as p)
+
+dim txt as c 
+txt = <<%txt%
+Firstname=C20|Lastname=C30|City=C20|DOB=D|Salary=10.2
+Fred|Smith|Boston|12/6/1972|86500.00
+John|Jones|London|11/5/1982|76000.00
+%txt%
+
+myXBfunction = txt
+end function ]]></example>
+	
+</section>
+<section>
+	<description>For Character fields, the format is defined as Cw where 'w' is the size of the field. For Numeric fields, the format is defined as Nw.d where 'w' is the size of the field and 'd' is the number of decimal places.
+The following field type codes can be used:
+</description>
+<cases>
+	<case>
+		<description>C - character
+</description>
+	</case>
+	<case>
+		<description>N - numeric
+</description>
+	</case>
+	<case>
+		<description>L - logical
+</description>
+	</case>
+	<case>
+		<description>M - memo
+</description>
+	</case>
+	<case>
+		<description>D - date 
+</description>
+	</case>
+	<case>
+		<description>T - date/time
+</description>
+	</case>
+	<case>
+		<description>S - short time (time portion of a data/time field only)
+</description>
+	</case>
+	<case>
+		<description>E - exponent numeric
+</description>
+	</case>
+	<case>
+		<description>K - guid
+</description>
+	</case>
+	
+</cases>	
+</section>
+
+</sections>
+
+<see>
+	
+	<ref>Report Topics</ref>
+	
+</see>	
+</page>
