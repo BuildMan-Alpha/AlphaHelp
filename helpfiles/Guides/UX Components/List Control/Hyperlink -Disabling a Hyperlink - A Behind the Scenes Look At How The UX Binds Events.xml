@@ -1,0 +1,137 @@
+<page>
+  <topic>Hyperlink -Disabling a Hyperlink - A Behind the Scenes Look At How The UX Binds Events.xml</topic>
+  <description>A user wrote about a case where he had a hyperlink control on a UX component. The hyperlink had an click event which displayed an alert and then 'disabled' the hyperlink by calling the .setDiabled() method of the UX component. 
+</description>
+ <sections>
+   <section>
+<description>The actual code in the hyperlinks' click event was:
+</description>
+<example><![CDATA[alert('I was clicked');
+{dialog.object}.setDisabled('HYPERLINK_1');]]></example>
+   </section>
+      <section>
+<description>When running the component in the UX builder with the Mobile Simulator turned on, or on a mobile device the behavior of the component was as expected. The first time the user clicked or tapped the hyperlink the alert would display and then the next time he clicked or tapped on the hyperlink nothing would display.
+
+However, when running in a browser (or in the UX builder) with the Mobile Simulator turned off, the behavior was not as expected. Every time the user clicked the hyperlink the message displayed - the </description>
+<example><![CDATA[{dialog.object}.setDisabled('HYPERLINK_1')]]></example>
+   </section>
+      <section>
+<description>had no apparent effect. Why? Actually, there is a lot going on here behind the scenes.  First, if you run the component and then look at the source to see how the click event was bound to the hyperlink, you will see code like this:
+</description>
+<example><![CDATA[$e.add('DLG1.V.R1.HYPERLINK_1',A5.d.evnts.click,function(e) {
+    alert('click event');
+    DLG1_DlgObj.setDisabled('HYPERLINK_1');
+    },
+this,false,'DLG1.V.R1.HYPERLINK_1');]]></example>
+   </section>
+      <section>
+<description>The $e.add() function is a function in the Alpha Anywhere Javascript library that allows you to bind events to DOM elements. It is really just a wrapper around the built in Javascript .addEventListener() function, but it works with older browsers that don't support the .addEventListener() function.
+
+We only need to focus on the first three arguments passed to $e.add()
+</description>
+<cases>
+  <case>
+    <description>The first argument is the id of the element we want to add the event to. In this case, it is the id of the hyperlink control - HYPERLINK_1.
+</description>
+  </case>
+    <case>
+    <description>The second argument is the type of event, such as the 'click' event. But in this case, it does not specify the 'click' as the event. Instead it specifies A5.d.events.click. We will get back to this later.
+</description>
+  </case>
+    <case>
+    <description>The third argument is the code that we want to execute when the hyperlink is clicked.
+</description>
+  </case>
+  
+</cases>
+   </section>
+      <section>
+<description>First some background on events. The click event is fired when you click or tap on an HTML element. On a desktop browser, the event fires as soon as you click on the element. But on a mobile device there is a 300ms delay before the event fires. The reason for the delay is that the browser on the mobile device is a 'touch enabled' device and when you tap on the hyperlink it is not sure if the tap is really a tap, or just the start of some type of dragging gesture. So it waits for 300ms and then if it determines that you did not start some type of drag gesture, it decides that you really meant to fire the click event.
+
+</description>
+   </section>
+      <section>
+<description>This 300ms delay makes your apps feel unresponsive. So Alpha Anywhere implements a special 'abstractclick' event on touch enabled devices that fires immediately when the element is tapped. 
+The A5.d.events.click variable is how we allow the user to define a generic click handler, but at runtime we either bind the code to the built-in 'click' event or to the 'abstractclick' event that Alpha Anywhere implements.
+</description>
+   </section>
+   
+   <section>
+<description>So, when running in a browser that is not touch enabled, A5.d.evnts.click resolves to 'click' and when running on a browser that is touch enabled, A5.d.events.click will resolve to 'abstractclick'.
+However, when running on a browser that is not touch enabled, if you have the Mobile Simulator turned on, A5.d.events.click will resolve to 'abstractclick'.
+So getting back to the $e.add() method that the UX uses to bind the event handler to the hyperlink. If you are on a non-touch enabled device, the code that is being executed is:
+</description>
+<example><![CDATA[$e.add('DLG1.V.R1.HYPERLINK_1','click',function(e) { code to run when hyperlink is clicked }); 
+]]></example>
+   </section>
+   
+  
+      <section>
+<description>And when on a touch enabled device (or when running in the Mobile Simulator):
+</description>
+<example><![CDATA[$e.add('DLG1.V.R1.HYPERLINK_1','abstractclick',function(e) { code to run when hyperlink is clicked }); 
+]]></example>
+   </section>
+      <section>
+<description>So now that we know which event is really firing when the user clicks/taps the hyperlink, lets try to understand why disabling the hyperlink only seemed to work on a touch enabled browser (or when running in a Mobile Simulator).
+The way in which the code is 'disabling' the hyperlink control is by calling the UX component's .setDisabled() method. Here is how the .setDisabled() method is implemented internally in the Alpha Anywhere Javascript library:
+</description>
+<cases>
+  <case>
+    <description>If the element you want to disable is an Alpha Anywhere Javascript control (such as a List, SpinList, Slider, Switch, Button, etc.) the method calls the .setDisabled() method of the control. (Controls such as Lists, SpinLists, etc. all implement a .setDisabled() method).
+</description>
+  </case>
+   <case>
+    <description>If the element you want to disable is not an Alpha Anywhere Javascript control, but is just an HTML element (such as a hyperlink), the method simply sets a property (called 'disabled') on the element to true.
+</description>
+  </case>
+  
+</cases>
+   </section>
+   
+      <section>
+<description>HTML only allows you to disable form element. Form elements are input controls and buttons. A hyperlink is not an input control. There is no concept in HTML of a 'disabled' hyperlink. 
+So to be clear, the command:
+</description>
+<example><![CDATA[{dialog.object}.setDisabled('HYPERLINK_1')]]></example>
+   </section>   <section>
+<description>did nothing more than this:
+</description>
+<example><![CDATA[var ele = {dialog.object}.getPointer('HYPERLINK_1');
+//set the value of a 'disabled' property to true
+ele.disabled = true;]]></example>
+   </section>
+      <section>
+<description>We could just as easily have set the value of any other 'made up' property name. For example:
+</description>
+<example><![CDATA[ele.myFicticiousProperty = 'some value';]]></example>
+   </section>
+      <section>
+<description>In the case of the hyperlink element, the 'disabled' property is, in effect, a 'made up' property. As explained, there is no concept in HTML of a 'disabled' hyperlink.
+So, why does it appear that disabling the hyperlink works on a touch enabled browser or in the Mobile Simulator, when, as we have discussed, hyperlinks cannot be disabled?
+The reason, as it turns out, is that when Alpha Anywhere fires an abstract event on an element it checks first to see what the value of the element's 'disabled' property is. If the 'disabled' property ti set to true, it does not fire the event.
+</description>
+
+   </section>
+      <section>
+<description>In other words, when an 'abstractclick' event is fired, the event will no do anything if the element's disabled property is true.
+So now we understand what's going on here. When the component is run on a non-touch enabled device, the built-in HTML click event is bound and since hyperlinks cannot be disabled, the event fired every time the hyperlink is clicked.
+But when the component is run in a touch enabled browser (on in the Mobile Simulator), the abstract 'abstractclick' event is fired and this event does honor the value of the 'disabled' property on the element.
+</description>
+
+   </section>
+      <section>
+<description>So, how could the user have gotten this to work on both touch-enabled and non-touch browsers? Simple. Just add a line of code to the event handler:
+</description>
+<example><![CDATA[if(this.disabled) return false;
+alert('click event');
+{dialog.object}.setDisabled('HYPERLINK_1');]]></example>
+   </section>
+   <section>
+     <description>After the .setDisabled() method has been called on the hyperlink, reading the element's 'disabled' property will return true. So this.disabled will be true after the .setDisabled() method has been called.
+</description>
+   </section>
+ </sections> 
+  
+  
+</page>
