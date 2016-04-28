@@ -1,0 +1,66 @@
+<page>
+    <topic>PhoneGap Applications - Ajax Callback URL - Setting Dynamically at Runtime</topic>
+<description>When you build a PhoneGap application you have to specify the URL for Ajax callbacks in the PhoneGap genie.</description>
+ 
+<sections>
+    <section>
+        <description>When you perform any action in your PhoneGap application, the callback is made to the server address specified in the URL for Ajax callbacks property in the PhoneGap genie.
+However, you might be building an app where you don't know what server the app will be running on (i.e. you don't know what server the app will be making its Ajax callbacks to) and so you would like to be able to set the URL for Ajax callbacks after the app has loaded.
+Here is how this can be done.
+</description>
+        
+    </section>
+     <section>
+        <description>First, when you specify the URL for Ajax callbacks, set the URL to some placeholder value. For example:
+</description>
+         <example><![CDATA[replaceMe]]></example>
+    </section>
+     <section>
+        <description>Next, put a textbox on your UX component where the user can enter the address of the server to which they will be making callbacks. For example, assume that this text box is called: ServerAddress.
+Then put a button on the UX to set the callback URL. The callback URL is a property of the UX object (i.e. {dialog.object}. It is called ajaxURL.
+</description>
+        
+    </section>
+     <section>
+        <description>Define the following Javascript for this button:
+</description>
+        <example><![CDATA[//read the server address from the serverAddress textbox
+var prefix = {dialog.object}.getValue('SERVERADDRESS');
+
+//the address should look something like this:
+//'http://www.myserver.com/folderWhereAppWasPublished/';
+//notice that the server address has a trailing forward slash
+
+//read the existing callback URL
+//it will start with 'replaceMe' since that is what you specified
+//in the PhoneGap genie
+var url = {dialog.object}.ajaxURL
+
+//replace the placeholder with the server address
+url = url.replace('replaceMe/',prefix);
+
+//set the URL
+{dialog.object}.ajaxURL = url;]]></example>
+    </section>
+     <section>
+        <description>Having done this, Ajax callbacks made to the server will now work. But what happens the next time the user loads the application? The Ajax URL will be wrong. You would want the Ajax URL to be automatically set correctly without requiring the user to go through the steps of having to enter the server address again.
+The solution to this problem is to store the callback URL in local storage and then to restore from local storage whenever the application is started.
+To do this, you would add code like this to the end of the above Javascript:
+
+</description>
+        <example><![CDATA[localStorage.setItem('AJAXCALLBACKURL',url)]]></example>
+    </section>
+     <section>
+        <description>In the onRenderComplete client-side event, you would add this code to restore:
+</description>
+        <example><![CDATA[//read url from local storage.
+var url = localStorage.getItem('AJAXCALLBACKURL');
+//if value exist, set the UX's ajaxURL property
+if(url != null) { 
+    {dialog.object}.ajaxURL = url;
+}]]></example>
+    </section>
+</sections>
+    
+    
+</page>
