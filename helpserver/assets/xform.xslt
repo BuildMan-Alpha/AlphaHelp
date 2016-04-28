@@ -109,9 +109,7 @@
                     <xsl:when test="./@background">
                         <div class="pagegroupBackground">
                                 <xsl:if test="title">
-                                    <p class="A5">
-                                        <a name="group_{title}"><xsl:value-of select="title" /> </a>
-                                    </p>
+                                    <h2><a name="group_{title}"><xsl:value-of select="title" /> </a></h2>
                                 </xsl:if>
                                 <xsl:call-template name="section-content"/>
                         </div>   
@@ -119,9 +117,7 @@
                     <xsl:otherwise>
                         <div class="pagegroup">
                             <xsl:if test="title">
-                                <p class="A5">
-                                    <a name="group_{title}"><xsl:value-of select="title" /> </a>
-                                </p>
+                                <h2><a name="group_{title}"><xsl:value-of select="title" /> </a></h2>
                             </xsl:if>
                             <xsl:call-template name="section-content"/>
                         </div>   
@@ -162,7 +158,7 @@
                         <xsl:if test="ref">
                             <xsl:choose>
                                 <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                             </xsl:choose>
                         </xsl:if>													
 					</dd>
@@ -171,10 +167,10 @@
                     <xsl:if test="name">
                         <xsl:choose>
                             <xsl:when test="./@static">
-                            <dt class="methodStatic"><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>
+                            <dt class="methodStatic"><a onclick="helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt>
                             </xsl:when>
                             <xsl:otherwise>
-                            <dt><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="name" /></a></dt>
+                            <dt><a onclick="helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt>
                             </xsl:otherwise>
                         </xsl:choose>                                            
                         <dd><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each></dd>
@@ -243,7 +239,7 @@
 						</xsl:when>
 						<xsl:otherwise>
 							<li>
-								<a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)">
+								<a onclick="helpServer.navigateClosestTopic('{normalize-space(.)}')">
 									<xsl:value-of select="." />
 								</a>
 							</li>
@@ -297,7 +293,14 @@
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
-            <p class="A5"><a name="section_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></p>
+            <xsl:choose>
+                <xsl:when test="title/@nested">
+                    <h4 class="section-level-{title/@nested}"><a name="section{title/@nested}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h4>
+                </xsl:when>
+                <xsl:otherwise>
+                    <h3 class="section-level-1"><a name="section1_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
@@ -435,7 +438,7 @@
             <xsl:if test="ref">
                 <xsl:choose>
                     <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                    <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                    <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                 </xsl:choose>
             </xsl:if>
             <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
@@ -470,7 +473,7 @@
 					<xsl:if test="ref">
                         <xsl:choose>
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic(this.innerText || this.text)"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
 					</xsl:if>
 					<xsl:if test="list">
