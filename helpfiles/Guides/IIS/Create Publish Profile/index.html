@@ -1,0 +1,212 @@
+<html>
+<head>
+	<meta http-equiv="last-modified" content="4/26/2016@15:51 EDT" />
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+        <meta name="description" content="A guide to creating a publish profile for Alpha Anywhere Application Server for IIS." />
+		<link rel="stylesheet" type="text/css" href="theme.css" />
+		<title>Create a Publish Profile</title>
+	</head>
+</head>
+<body>
+	<h1>Create a Publish Profile</h1>
+	<h2>Overview</h2>
+		<p>
+		Creating a publish profile for publishing to the Application Server for IIS is done using a Genie in the same 
+		manner as is done for creating a publish profile to the stand-alone Application Server.
+		</p>
+	<h2>Prerequisites</h2>
+		<ul>
+			<li>
+			An IIS server must be configured to allow publishing to it. See the 
+			<a href="../Installation/index.xml#group_Publish Directly to IIS">Publish Directly to IIS</a> section
+			in the <a href="../Installation/index.xml">Installation Guide</a> for details on configuring IIS to 
+			allow publishing.
+			</li>
+
+			<li>
+			If publishing to a local IIS server (IIS is running on the same machine that is running the Developer Edition) you 
+			will need to ensure that Web Deployment Agent Service is installed and running. This can be checked in the Windows 
+			services control panel:
+			<p>
+				<a href="images/services-control-panel.png">
+					<img src="images/services-control-panel.png" alt="Windows services control panel with Web Deployment Agent Service highlighted."></img>
+				</a>
+			</p>
+			If "Web Deployment Agent Service" is missing, go to the Windows Control Panel - Programs and Features, find Microsoft Web Deploy 3.5, 
+			right click and then select change. Go to the next wizard page and you'll then need to click the Change button. 
+			Make sure the Remote Agent Service feature is installed.
+			<p>
+				<a href="images/web-deploy-setup.png">
+					<img src="images/web-deploy-setup.png" alt="Microsoft Web Deploy Setup hightlighting Remote Agent Service feature."></img>
+				</a>
+			</p>
+			</li>
+		</ul>
+	<h2>Create Publish Profile Genie</h2>
+		<ol>
+			<li>
+			Open the profile dialog by clicking on the Profiles toolbar button.
+				<p>
+					<a href="images/profiles-button.png">
+						<img src="images/profiles-button.png" alt="Profiles toolbar button."></img>
+					</a>
+				</p>
+			</li>
+			<li>
+			Click on the Add New Profile button.
+				<p>
+					<a href="images/add-new-profile.png">
+						<img src="images/add-new-profile.png" alt="Add new profile button."></img>
+					</a>
+				</p>
+			</li>
+			<li>
+			Select the IIS type radio button
+				<p>
+					<a href="images/iis-publish-type.png">
+						<img src="images/iis-publish-type.png" alt="IIS publish type radio button."></img>
+					</a>
+				</p>
+			</li>
+			<li>
+			Configure IIS server publish settings
+				<p>
+					<a href="images/iis-genie-1.png">
+						<img src="images/iis-genie-1.png" alt="IIS server publish settings."></img>
+					</a>
+				</p>
+				<ul>
+					<li>
+						<h3>IIS publish type</h3>
+						The only option currently available is "Direct" which means the development machine
+						must be able to connect to the IIS server.
+					</li>
+					<li>
+						<h3>IIS management service URL</h3>
+						In most cases the IIS management service is configured with the default settings so this value is 
+						the host address to the IIS server like localhost, 127.0.0.1, or www.mysite.com. If IIS management
+						service is installed with non-default values, the entire management service URL is needed such as
+						https://www.mysite.com:8172/MsDeploy.axd.
+					</li>
+					<li>
+						<h3>Use integrated Windows authentication</h3>
+						Using the IIS management service requires an authenticated connection. Check this option to connect as the user
+						you are currently logged in as on the development machine. 
+						<a name="user-requirements">
+							<div class="sectionNote">The user that connects to the IIS management service <b>must</b> be a local machine 
+							administrator on the machine that the IIS server is installed on. Alpha Anywhere Application Server for IIS 
+							<b>must</b> also be configured to allow this user, or a group this user belongs to, to publish to IIS by way
+							of the "Direct Publishing" feature in IIS Manager. See the 
+							<a href="../Installation/index.xml#group_Publish Directly to IIS">Publish Directly to IIS</a> section in the 
+							Installation Guide for more details.</div>
+						</a>
+						<div class="sectionNote">When using integrated Windows authentication to publish to a local IIS server you must run 
+						Alpha Anywhere Developer Edition as administrator since this requires elevated privleges on the local system. To run
+						Alpha Anywhere Developer Edition with elevated privleges, right click on the Alpha Anywhere Developer Edition icon 
+						and select Run as Administrator.</div>
+					</li>
+					<li>
+						<h3>Username</h3>
+						Enter a user name that is a local machine administrator on the IIS server machine and is allowed to publish
+						to IIS (see <a href="#user-requirements">note above</a>) when integrated Windows authentication is not being used.
+					</li>
+					<li>
+						<h3>Password</h3>
+						Password for the above user name.
+					</li>
+					<li>
+						<h3>Confirm password</h3> 
+						Re-enter password.
+					</li>
+					<li>
+						<h3>Ignore HTTPS certificate errors</h3>
+						User credentails are passed to the IIS server using basic HTTP authetication. The connection is secured using HTTPS, 
+						but the default certificate that is used is a self-signed certificate which is typically not trusted. This will cause
+						publish authentication to fail unless a trusted certificate is set in the IIS management server configuration. 
+						Alternatively, check this option to ignore when a certificate is untrusted.
+						<div class="sectionWarning">
+						This option should only be selected when publishing to a non-production IIS server. A production IIS server should
+						have its IIS management service configured with an appropriate certificate.
+						</div>
+					</li>
+				</ul>
+			</li>
+			<li>
+			Configure IIS site and application settings
+				<p>
+					<a href="images/iis-genie-2.png">
+						<img id="iis-genie-2" src="images/iis-genie-2.png" alt="IIS and application settings."></img>
+					</a>
+				</p>
+				<ul>
+					<li>
+						<h3>Site name</h3>
+						Enter the site name as it is labeled in IIS Manager. This name is independent of the DNS name for the site. 
+						The initial site that IIS sets up is named "Default Web Site" and that is also the default value for this
+						setting. If the site doesn't exist, pubilsh will create the site.
+					</li>
+					<li>
+						<h3>Application name</h3>
+						More than one application can be hosted in a site. This is left blank by default to have the application published
+						as the "default" application for the site. Applications are loaded by using the application name 
+						in the requested URL's path. When no path is used in the URL and only the host name is used the "default" 
+						application is used. For example, if a user enters https://www.mysite.com/ into a browser the default page
+						for the default application will be returned. But, if a user enters https://www.mysite.com/purchasing into a 
+						browser, the default page for the "purchasing" application will be returned. In most cases the desired behavior 
+						is to have an application available by only entering the host name so leave this prompt empty.
+					</li>
+					<li>
+						<script>
+						function showAdvancedSettings(e) {
+							e.preventDefault();
+							var el = document.getElementById("iis-genie-2");
+							el.src = "images/iis-genie-2.png";
+							setTimeout(function() {
+								el.scrollIntoView(true);
+								el.src = "images/iis-publish-advanced.gif";
+							}, 0);
+						}
+						</script>
+						<h3>Advanced Settings</h3>
+						Click on <a href="" onclick="showAdvancedSettings(event);">Advanced Settings</a> to show the advanced settings.
+					</li>
+					<li>
+						<h3>Use custom physical path</h3>
+						This setting is only needed if sites and applications need to be published to specific paths on the 
+						IIS server. This is typically not needed. Any new sites will default to being stored in the path c:\inetpub.
+					</li>
+					<li>
+						<h3>Show error detail in remote responses</h3>
+						If an error occurs during a page request detailed error messages including stack traces are not sent back in the
+						response when the request comes from a remote client (a client that is not on the same machine as the IIS server).
+						The errors messages and stack traces are logged. However, during application development it may be more convenient 
+						to have this information returned in the response instead. Check this setting to allow this information to be
+						return in a response.
+						<div class="sectionWarning">Sensitive information may be included in error messages and stack traces that may
+						make the site vunerable to attack. This option should be disabled when publishing to a production server.
+						Error messages and stack traces are stored in logs so this option should not be needed on a production server. If
+						it is used on a production server, it should only be used for the needed duration and then disabled.</div>
+					</li>
+					<li>
+						<h3>Preserve web.config Elements</h3>
+						Each time an application is published a new web.config file is generated from the profile settings, web project
+						security settings, and the web project properties. This web.config file will overwrite the web.config file on 
+						the IIS server. The web.config file on the IIS server may contain configuration changes that are not accounted for
+						by the profile settings, web project security settings, or the web project properties. This could include settings
+						like HTTP redirects. These settings need to be preserved when the new web.config file is generated. This feature
+						allows that to be done.
+						<div class="sectionNote">This feature assumes familiarity with XML files, XML namespaces, and XPath.</div>
+						<p>
+							<a href="images/preserve-web-config.png">
+								<img src="images/preserve-web-config.png" alt="Preserve web.config dialog."></img>
+							</a>
+						</p>
+						To preserve settings in a web.config file on an IIS server the XPath to the element for that setting in the
+						web.config file needs to be found. 
+					</li>
+				</ul>
+			</li>
+		</ol>
+	</body>
+</html>
