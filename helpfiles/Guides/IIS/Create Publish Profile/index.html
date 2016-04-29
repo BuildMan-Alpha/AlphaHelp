@@ -194,16 +194,99 @@
 						security settings, and the web project properties. This web.config file will overwrite the web.config file on 
 						the IIS server. The web.config file on the IIS server may contain configuration changes that are not accounted for
 						by the profile settings, web project security settings, or the web project properties. This could include settings
-						like HTTP redirects. These settings need to be preserved when the new web.config file is generated. This feature
+						like HTTP redirect. These settings need to be preserved when the new web.config file is generated. This feature
 						allows that to be done.
+						
 						<div class="sectionNote">This feature assumes familiarity with XML files, XML namespaces, and XPath.</div>
+						
+						To preserve settings in a web.config file on an IIS server the XPath to the element needs to be found for that 
+						setting in the web.config file. The following example uses the HTTP redirect feature. Here is a sample web.config
+						file:
+
+						<div class="codeTable codeTableArea">&lt;configuration&gt;
+.
+.
+.
+  &lt;system.webServer&gt;
+    .
+    .
+    .
+    &lt;httpProtocol&gt;
+      &lt;customHeaders&gt;
+        &lt;remove name="X-Powered-By" /&gt;
+        &lt;add name="X-Powered-By" value="Alpha Anywhere Application Server" /&gt;
+      &lt;/customHeaders&gt;
+    &lt;/httpProtocol&gt;
+    <span class="codeLineHighlight">&lt;httpRedirect enabled="true" destination="https://www.mysite.com/" httpResponseStatus="Permanent" /&gt;</span>
+  &lt;/system.webServer&gt;
+&lt;/configuration&gt;</div>
+						The XPath to the HTTP redirect setting is <span style="font-family: monospace">/configuration/system.webServer/httpRedirect</span>.
+						This gets entered into the XPath list.
 						<p>
 							<a href="images/preserve-web-config.png">
-								<img src="images/preserve-web-config.png" alt="Preserve web.config dialog."></img>
+								<img src="images/preserve-web-config.png" alt="Preserve web.config dialog with XPath to HTTP redirect element."></img>
 							</a>
 						</p>
-						To preserve settings in a web.config file on an IIS server the XPath to the element for that setting in the
-						web.config file needs to be found. 
+						The next example demonstrates a set more complicated elements. Here's the example web.config file.
+						<div class="codeTable codeTableArea">&lt;configuration&gt;
+  <span class="codeLineHighlight">&lt;configSections&gt;
+    &lt;sectionGroup name="common"&gt;
+      &lt;section name="logging" type="Common.Logging.ConfigurationSectionHandler, Common.Logging, Version=3.3.1.0, Culture=neutral, PublicKeyToken=af08829b84f0328e"/&gt;
+    &lt;/sectionGroup&gt;
+    &lt;section name="nlog" type="NLog.Config.ConfigSectionHandler, NLog, Version=3.2.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c"/&gt;
+  &lt;/configSections&gt;</span>
+  .
+  .
+  .
+    &lt;httpProtocol&gt;
+      &lt;customHeaders&gt;
+        &lt;remove name="X-Powered-By" /&gt;
+        &lt;add name="X-Powered-By" value="Alpha Anywhere Application Server" /&gt;
+      &lt;/customHeaders&gt;
+    &lt;/httpProtocol&gt;
+  &lt;/system.webServer&gt;
+  <span class="codeLineHighlight">&lt;common&gt;
+    &lt;logging&gt;
+      &lt;factoryAdapter type="Common.Logging.NLog.NLogLoggerFactoryAdapter, Common.Logging.NLog32, Version=3.3.1.0, Culture=neutral, PublicKeyToken=af08829b84f0328e"&gt;
+        &lt;arg key="configType" value="INLINE"/&gt;
+      &lt;/factoryAdapter&gt;
+    &lt;/logging&gt;
+  &lt;/common&gt;
+  &lt;nlog <a name="custom-namespace"><span class="codeElementHighlight">xmlns="http://www.nlog-project.org/schemas/NLog.xsd"</span></a> xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+    &lt;targets&gt;
+       &lt;target name="logfile" xsi:type="File" archiveAboveSize="1000000" autoFlush="true" layout="${longdate} ${uppercase:${level}} ${message}" createDirs="true" enableFileDelete="true" fileName="c:\Temp\${date:format=yyyy-MM-dd}-pgprovider.log" /&gt;
+       &lt;target name="eventlog" xsi:type="EventLog" layout="${message}" log="Application" source="Garbio pgProvider" /&gt;
+    &lt;/targets&gt;
+    &lt;rules&gt;
+       &lt;logger name="*" minlevel="Trace" writeTo="logfile" /&gt;
+       &lt;logger name="*" minlevel="Trace" writeTo="eventlog" /&gt;
+    &lt;/rules&gt;
+  &lt;/nlog&gt;
+  &lt;runtime&gt;
+    &lt;loadFromRemoteSources enabled="true" /&gt;
+    &lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+      &lt;dependentAssembly&gt;
+        &lt;assemblyIdentity name="Common.Logging" publicKeyToken="af08829b84f0328e" culture="neutral" /&gt;
+        &lt;bindingRedirect oldVersion="0.0.0.0-3.3.1.0" newVersion="3.3.1.0" /&gt;
+      &lt;/dependentAssembly&gt;
+      &lt;dependentAssembly&gt;
+        &lt;assemblyIdentity name="NLog" publicKeyToken="5120e14c03d0593c" culture="neutral" /&gt;
+        &lt;bindingRedirect oldVersion="0.0.0.0-3.2.0.0" newVersion="3.2.0.0" /&gt;
+      &lt;/dependentAssembly&gt;
+    &lt;/assemblyBinding&gt;
+  &lt;/runtime&gt;</span>
+&lt;/configuration&gt;</div>
+
+					This example shows the need for correct ordering of XPath to elements and shows the use of a 
+					<a href="#custom-namespace">custom namespace</a> (shown in bold with a red, dashed border in the example).
+					<ol>
+						<li>
+						<h4>XPath order</h4>
+						</li>
+						<li>
+						<h4>Custom namespace</h4>
+						</li>
+					</ol>
 					</li>
 				</ul>
 			</li>
