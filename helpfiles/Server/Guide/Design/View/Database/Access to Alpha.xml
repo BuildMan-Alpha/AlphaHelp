@@ -1,0 +1,414 @@
+<page>
+	<topic>Moving an Access Application to the Web with Alpha Five
+</topic>
+<description>In this white paper, you will learn how to move a Microsoft Access desktop application to the Web with Alpha Five. You'll see how easy it can be, and when you're done you'll understand the process well enough to undertake it yourself.
+</description>	
+<sections>
+	<section>
+
+		<description>There's good news and bad news about this. First, the bad news: this is not a completely automatic process, and you will have to give it some thought. While in many cases you should be able to convert your database schema and migrate your data automatically, you will have to manually re-implement your forms, reports, and business logic. The good news is that it isn't very hard to do any of this in Alpha Five, and the better news is that it should only take a small fraction of the time that it took to implement the application originally. The best news of all is that your converted application will shine on the Web.
+
+</description>
+		
+	</section>
+	<section>
+		<description>Think about the assets in an Access application: besides the database schema and the data, you have forms, charts, queries, reports, macros, and VBA programs. Alpha Five can provide rough equivalents to all of these assets except for charts; several third-party developers, including Imagio and InfoSoft, provide chart controls that are compatible with Alpha Five.
+Let's start with the big picture.</description>
+	</section>
+	<section>
+		<title>General strategies
+</title>
+		<description>There are several considerations to bear in mind when you are moving an Access desktop database to the Web. First of all, a Web application can potentially have a very large number of total users, and a moderately large number of simultaneous users. This means that record locking and overall scalability are very important for Web applications.
+Second, a Web application incurs a delay every time there is a round trip between the browser and the Web server. This means that performance can be improved by minimizing the amount of page refresh using Ajax techniques, and that user frustration can be mitigated by displaying progress indicators for operations that can take more than a second.
+Third, a Web application incurs a delay when executing database queries and downloading the result sets. This means that techniques such as lazy loading, data pre-fetch, data paging and data caching can make a big difference in the performance of the application. This also reinforces the need to display progress indicators.
+You may have heard of people using Access databases directly from Web applications. We don't recommend this, because Access databases don't support high numbers of simultaneous users or tables with large numbers of rows very gracefully, but it can be done from Alpha Five Web applications. We don't recommend using Alpha's native DBF format database for Web applications, either, primarily for scalability reasons. Instead, we recommend using a SQL database.
+</description>
+		
+	</section>
+	<section>
+		<description>Alpha Five supports most SQL databases through ODBC drivers, including Cache, DB2, Microsoft SQL Server, MySQL, Oracle, PostgreSQL, Sybase SQL Anywhere, and Sybase SQL Server. Microsoft SQL Server is the database most frequently offered by hosting providers on Windows-based Web server accounts, so that's what we'll use for our example.
+Other SQL databases can work just as well. If you are on a budget, hosting your own database, and don't need database support, consider Microsoft SQL Server Express Edition, MySQL, and PostgreSQL, all of which are free.
+Our general plan is to migrate the schema and data first. Then, we'll build new Web forms with Alpha, using the seven Alpha Web components and HTML, based loosely on your existing Access forms.
+Since Alpha has Builders to help you to configure components quickly, it won't take nearly as long to recreate your forms in Alpha as it did to create them originally in Access. You can use Alpha Anywheres's own HTML Designer to add saved components to a Web page easily.
+</description>
+	</section>
+	<section>
+		<title>What's different about Alpha?</title>
+		<description>There are many technologies used to program Web server pages. You may be familiar with PHP, ASP, ASP.NET, or JSP. Alpha Five A5W pages are similar to these: they allow you to intermix HTML and Xbasic code on the server to process queries and forms, operate on a database, and display formatted data. Alpha Five provides 7 high-level components that you can configure and use on an A5W page along with HMTL controls and Ajax widgets.
+There are seven types of embeddable Web components in Alpha Five. They are:
+</description>
+		<cases>
+			<case>
+				<title>Dialog</title>
+				<description>The Dialog component is a form that allows you to read and write variable data and execute Xbasic scripts. It is not intended for supporting read and write transactions with tables.</description>
+			</case>
+				<case>
+				<title>Grid</title>
+				<description>The Grid component displays multiple fields from multiple records in a table format. The data can come from one or multiple tables (as long as the tables are linked one-to-one). The Grid component can be either read only or editable. When the Grid component is read only, there is an option to have an additional Detail View form that allows you to edit the fields of any selected record.</description>
+			</case>
+				<case>
+				<title>Grid Linker</title>
+				<description>The GridLinker component contains and displays multiple Grid Components, allowing you to display data from tables linked one-to-many (or parent-child) relationships.</description>
+			</case>
+				<case>
+				<title>Login</title>
+				<description>The login component provides user ID and password security for web applications.</description>
+			</case>
+				<case>
+				<title>Maintenance</title>
+				<description>The Maintenance component will pack and re-index Alpha Five tables and sets. (This is only useful when you use Alpha Five tables, and is irrelevant if all your tables are in a SQL database.)</description>
+			</case>
+				<case>
+				<title>Navigation System</title>
+				<description>The Navigation System component allows you to create horizontal toolbars with drop-down menus, or vertical menus with fly-out menus. The menus can control navigation to the various pages of your web site.</description>
+			</case>
+				<case>
+				<title>Tabbed GridLinker</title>
+				<description>The Tabbed GridLinker component organizes its grids in a tabbed structure that displays only one grid per level, but allows you to switch to any other grid in any level with a click of the mouse.</description>
+			</case>
+			
+			
+		</cases>
+	</section>
+	<section>
+		<title>Step 0: Check your database schema in Access</title>
+		<description>Before you go to the work of moving the database from Access, you should review the schema. In Access 2007, you can see a database diagram by selecting Relationships from the Database Tools ribbon:
+</description>
+<figure><link>/dl7&display</link></figure>
+	</section>
+	<section>
+
+		<description>You can view the details for any table on the diagram by right-clicking on the table and selecting Table Design:
+</description>
+		<figure><link>/dl13&display</link></figure>
+	</section>
+	<section>
+		
+		<description>What you're trying to determine at this point is whether the database schema will make sense for the Web application. There may be tables that you don't want to import at all: it would be helpful to know that before you go to the effort of importing them. There may be missing relationships, or badly normalized tables, or missing primary keys. One Access tool you can use at this point is the Analyze Table wizard on the Database Tools ribbon, which will detect some common problems.</description>
+		
+	</section>
+	<section>
+		
+		<description>If there are problems, you have two basic choices about fixing the schema: get it right in Access now, or get it right in the SQL database later, with the help of Alpha Five and any other tools you have for the SQL database. You can also combine the two. If you attempt to fix the schema in Access, make sure that you preserve a copy of your original Access database somewhere safe. We don't recommend fixing everything in Access, but you should probably fix any serious normalization problems if you can, and make sure that the data you migrate has relational integrity.</description>
+		
+	</section>
+	<section>
+		
+		<description>It's very important for SQL databases to be properly normalized; to have unique primary keys for all tables; to have foreign key constraints for all relationships; and to have indexes on all fields used as foreign keys. If none of this makes sense, you may want to refer to the Johansen book listed in the For more information section of this paper for advice on database design.
+</description>
+		
+	</section>
+	<section>
+		
+		<description>If you're still unsure about the schema, consider bringing Alpha Consulting Services in for a brief database design review. You can produce a great database application in Alpha Five even if you're not a great database designer, as long as you get help on the design. Database design is typically the hardest part of the application development lifecycle, and also the most critical to a successful application: don't feel that you have to do that part yourself.
+If you determine in Step 0 that you need to start over with a better database design, then Step 1 outlined here will not apply. Instead, you'll want to design the new schema, and then import data selectively from the Access database tables to your new SQL database design. Once this is complete, you can proceed with Step 2.
+</description>
+		
+	</section>
+	
+	<section>
+		<title>Step 1: Migrate your Access database to your SQL database
+</title>
+		<description>Before you can start working with Alpha to build a Web application, you need to import your database schema and your data to the database engine you're planning to use from the Web. We're targeting Microsoft SQL Server 2008 for this example. We'll start by discussing the generic process, which will also work for other SQL databases.
+</description>
+	
+	</section>
+	<section>
+		<title>Import and Export using Alpha Five
+</title>
+		<description>For purposes of this example, we're using the venerable Access 2003 version of the Northwind sample database, which ships with Alpha Five. Start Alpha Five, and from the Select Database dialog's Database & Tasks tab pick Create a database from imported data. In the drop-down box for Access, navigate to the northwind.mdb file installed by default in My Documents\Alpha Five V9\MDBFiles\.</description>
+		<figure><link>/dl6&display</link></figure>
+	</section>
+	<section>
+	
+		<description>Click the OK button, and then select a location and name for your new Alpha database. These choices are relatively unimportant; we'll throw away the Alpha database once we've exported it to SQL Server.
+</description>
+		<figure><link>/dl2&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>Select all the tables to import, and none of the other assets:
+</description>
+		<figure><link>/dl29&display</link></figure>
+	</section>
+	<section>
+		
+		<description>When the import operation is complete, you'll see a status screen:
+</description>
+		<figure><link>/dl35&display</link></figure>
+	</section>
+	<section>
+		
+		<description>This database import had no errors. If you encounter an error, you can go back to the Access database and fix the problem, delete the partially imported Alpha database, and try the import again. If you don't understand the error message, you might want to ask about it on the Alpha Forums. When you're done, you'll see your imported tables on the Tables/Sets tab of the Alpha Five control panel:
+</description>
+		<figure><link>/dl24&display</link></figure>
+	</section>
+	<section>
+		
+		<description>You can view the imported data in the tables using Alpha Five's default browse:
+</description>
+		<figure><link>/dl12&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>Now, we can export the tables and data to SQL Server:
+</description>
+		<figure><link>/dl18&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>At this point, we're defining the SQL database connection and the tables to export. We'll be connecting to the SQL database via AlphaDAO:
+</description>
+		<figure><link>/dl25&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>If your SQL database isn't already running, start it now. You'll have to drill down a few levels to get to the Create SQL Connection String dialog, where you can select the correct type of database, select the actual server, select or create the database, and test the connection:
+</description>
+		<figure><link>/dl17&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>It's useful at this point to save the connection string from the Connection String dialog. We used the name nwtest.
+With that done, you can open the Alpha database and the target database simultaneously in the AlphaDAO Export Genie, and select all the tables for export:
+</description>
+		<figure><link>/dl26&display</link></figure>
+	</section>
+	<section>
+		
+		<description>When you close the Genie, you'll have the opportunity to save the export operation configuration: we called it nwtest:
+</description>
+		<figure><link>/dl15&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>Now we can run the export operation, and see the results:
+</description>
+		<figure><link>/dl19&display</link></figure>
+	</section>
+	
+	<section>
+		
+		<description>Using the Alpha Five SQL Explorer, we can now view the tables in the SQL database through the nwtest connection:
+</description>
+		<figure><link>/dl9&display</link></figure>
+	</section>
+	<section>
+		<description>From the context menu that pops up on a right mouse click, we can choose to show the data in the SQL table:
+</description>
+		<figure><link>/dl5&display</link></figure>
+	</section>
+	<section>
+		<description>That data, thankfully, looks just like it did in the original Access database and the intermediate Alpha database:
+</description>
+		<figure><link>/dl33&display</link></figure>
+	</section>
+	<section>
+		<description>This is a success as far as it has gone:</description>
+		<figure><link>This is a success as far as it has gone:</link></figure>
+	</section>
+	<section>
+		<description>What's wrong with this SQL Server Management Studio database diagram? The tables are present in SQL Server, and the rows, but there are no primary keys, no foreign keys, no relations, and no indexes. If you know what you're doing, it's a matter of a few minutes to add all of these from the diagram view; if not, it might be time to ask for help from someone with SQL Server experience.
+</description>
+		
+	</section>
+	<section>
+		<title>Access-to-SQL Server specific migration
+</title>
+		<description>The main advantage of the data migration method that we just demonstrated is that it will work with any SQL database supported by Alpha Five, not just Microsoft SQL Server. However, there are two methods available from Microsoft that may capture more of the database assets for the specific case of an Access database moving to SQL Server: the Access SQL Server upsizing wizard and SSMA for Access.
+</description>
+		
+	</section>
+	<section>
+		<title>The Access SQL Server upsizing wizard
+</title>
+		<description>We'll walk through the Access SQL Server upsizing wizard very briefly. In Access 2007, open the Northwind 2007 sample, and go to the Database Tools ribbon. In the Move Data group, click on SQL Server. The upsizing wizard will open: accept the default option, Create new database, and click on Next.
+The next screen is where it may start to get hairy. The SQL Server instance you use must have SQL Server authentication mode enabled, and you must have a login that has CREATE DATABASE privilege. If you try to use an instance of SQL Server 2008, once you log in successfully you may get the baffling error message:
+</description>
+		<figure><link>/dl8&display</link></figure>
+	</section>
+	<section>
+		<description>This appears to be a bug in Access 2007, as of 12/2008. It may be fixed in SP2.
+If you use an instance of SQL Server numbered between 6.5 and 2005 and have the correct privileges, it works fairly well, and you wind up with a database that has all the tables, data, relations, primary keys, and indexes:
+</description>
+		<figure><link>/dl10&display</link></figure>
+		<figure><link>/dl27&display</link></figure>
+	</section>
+	<section>
+		<description>You don't want to change the Access application:
+</description>
+		<figure><link>/dl21&display</link></figure>
+	</section>
+	<section>
+		<description>As you can see in this diagram, the SQL Server database can be ready to go immediately after the Upsizing Wizard completes:
+</description>
+		<figure><link>/dl16&display</link></figure>
+	</section>
+	<section>
+		<description>SQL Server Migration Assistant for Access (SSMA for Access)
+The SQL Server team at Microsoft also produces an upsizing wizard of its own, called SQL Server Migration Assistant for Access (SSMA for Access). There are multiple versions of SSMA listed at http://www.microsoft.com/sqlserver/2005/en/us/migration-access.aspx. Since this page includes copious instructions, readmes, FAQs, white papers, and case studies, we won't belabor the process here. It's certainly worth trying, assuming that your Access database is in good shape.
+</description>
+		
+	</section>
+	<section>
+		<title>SSIS</title>
+		<description>If you find that you need to make significant changes to your database schema, you might want to consider using SQL Server Integration Services (SSIS).  This powerful ETL tool replaced Microsoft Data Transformation Services (DTS) starting with SQL Server 2005.  This tool is launched when you select import/export data from the database menu in SQL Server Enterprise Manager.
+You can connect to a variety of data sources, including Access:
+</description>
+		<figure><link>/dl1&display</link></figure>
+	</section>
+	<section>
+		<description>You have the option of creating your tables prior to input, or letting SSIS create new tables based on the existing Access table definitions:
+</description>
+		<figure><link>/dl32&display</link></figure>
+	</section>
+	<section>
+		<description>Additionally, there are several transformation and mapping options:
+</description>
+		<figure><link>/dl30&display</link></figure>
+	</section>
+	<section>
+		<description>This is just a brief example of how you can migrate your data using this method.  SSIS provides well-written wizards to walk you through the process, and there are numerous sources for help online.
+</description>
+		
+	</section>
+	<section>
+		<title>Step 2: Create an Alpha Five project
+</title>
+		<description>Once you have your database set, you're ready to create your Alpha Five Web application. Open Alpha Five, and create a new, empty database. We created 'web demo.adb' in 'My Documents\Alpha Five V9\web demo', but the location is not important.
+</description>
+
+	</section>
+	<section>
+		<title>Step 3: Create a connection to your SQL database
+</title>
+		<description>Select the Tools|External Databases|Database explorer menu item, and click on the '+' at the top of the window. Specify a connection string for your SQL database, using the Build button.
+</description>
+		<figure><link>/dl22&display</link></figure>
+	</section>
+	<section>
+		<description>Save the connection string under a name. We'll call it 'nw':
+</description>
+		<figure><link>/dl3&display</link></figure>
+	</section>
+	<section>
+		<description>You should now see the SQL database in the Explorer under its name:
+</description>
+		<figure><link>/dl4&display</link></figure>
+	</section>
+	
+	<section>
+		<title>Step 4: Define a grid</title>
+		<description>Open the Web Projects control panel and create a new Web component:</description>
+		<figure><link>/dl28&display</link></figure>
+	</section>
+	<section>
+		<description>Make it a Grid:</description>
+		<figure><link>/dl34&display</link></figure>
+	</section>
+	<section>
+		<description>The Grid Builder will appear when you press OK. Pick AlphaDAO and the named connection nw. You can do a lot by configuring the Grid with the Grid Builder. Play with it yourself and try different options. If you get confused, consult the Alpha Five documentation, either inside Alpha Five or online at http://support.alphasoftware.com/alphafivehelpv9/index.htm.
+We came up with this Grid based on the Northwind Customers table in the SQL Server database, and saved it as custgrid1:
+</description>
+		<figure><link>/dl31&display</link></figure>
+	</section>
+	<section>
+		<title>Step 5: Define a Web page
+</title>
+		<description>In the Web Projects control panel, create a new A5W page. The HTML designer will open. Switch to the WYSIWYG tab, and save the current page as page1.a5w.
+</description>
+		
+	</section>
+	<section>
+		<title>Step 6: Add your grid to your Web page
+</title>
+		<description>Select Insert Component from the top tool bar. Pick the custgrid1 Grid component we just saved:</description>
+		<figure><link>/dl14&display</link></figure>
+	</section>
+	<section>
+		<description>The page will look a little strange in the WYSIWYG view:
+</description>
+		<figure><link>/dl23&display</link></figure>
+	</section>
+	<section>
+		<description>Add a title to the page by typing above the Grid Component, style it as you wish, save the page, and preview the page in your browser by clicking on the lightning bolt icon on the top tool bar:</description>
+		<figure><link>/dl20&display</link></figure>
+	</section>
+	<section>
+		<description>This page is completely live. Go ahead and sort rows, search for items (try Bl*, for example), and jump to different pages.
+</description>
+		
+	</section>
+	<section>
+		<title>Step 7: Continue defining components and pages</title>
+		<description>In our example, we haven't made any of the fields on the Grid editable, we haven't turned on the detail view, and we haven't set any validation properties. You can go back to the Grid Builder at any time and change your settings using the Edit button at the top of the Web Projects control panel. You can publish your site at any time using the Publish button at the top of the Web Projects control panel. You can add defined components to multiple pages.
+You can use your existing Access forms as guides to what you might want to do in your Alpha Five Web application. You may also want to redesign the application to work better on the Web, or to take better advantage of the capabilities of Alpha Five. As you've seen, Alpha Five development goes quickly, so feel free to experiment with the application until it does what you want.
+Think about using the Alpha Five Navigation component where you would have had menus. Think about using a Grid Linker for parent-child tables, such as customers and orders. Think about using a Tabbed Grid Linker for more deeply nested relationships. Think about using the Alpha Login Component to provide role-based security for your application.
+</description>
+		
+	</section>
+	<section>
+		<title>Step 8: Add code where needed
+</title>
+		<description>As an Access developer, you're probably looking for the code. It's there, but in most cases you don't need to write it yourself. If you edit your grid component and look at the Xbasic tab, you'll see hundreds of lines of code that have been generated for you based on your graphical selections. Near the top, for example, you'll see your SQL query:
+tmpl.CS.SQL = "SELECT CustomerID,CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax FROM Customers"
+Alpha Xbasic is similar to but not identical to Access Visual Basic for Applications (VBA). Alpha Action Scripting is similar to Access Macros. Alpha Genies allow you to build code quickly, as you've already seen. You'll eventually find yourself writing a little Xbasic code, but you won't need much, and using Genies and Action Scripting will get you started gently.
+</description>
+		
+	</section>
+	<section>
+		<title>Ajax</title>
+		<description>Alpha Five V9 has Ajax support in the form of JavaScript libraries and Xbasic functions, but we will not cover Ajax in this white paper. It will be much easier to enable Ajax effects in Alpha Five V10, and doing so won't involve much effort at all. For example, a Grid built with Alpha Five V9 will automatically acquire basic Ajax capabilities when upgraded to Alpha Five V10, and you will be able to enable advanced Ajax capabilities by setting a few options in the Grid Builder.
+We hope that you've enjoyed this white paper.
+In the next section, we list a few useful sources of additional information about Alpha Five.
+</description>
+		
+	</section>
+	<section>
+		<title>For more information</title>
+	<cases>
+		<case>
+			<description>[Alpha Software Web site]</description>
+		</case>
+		<case>
+			<description>[Alpha and Access Web site]</description>
+		</case>
+		<case>
+			<description>[Alpha blog]</description>
+		</case>
+		<case>
+			<description>[Alpha forums]</description>
+		</case>
+		<case>
+			<description>[Alpha migration help]</description>
+		</case>
+		<case>
+			<description>[Alpha online documentation]</description>
+		</case>
+		<case>
+			<description>Johansen, Mark, [A Sane Approach to Database Design] (Lulu, 2008, 187 pp., $30, ISBN 978-1-4357-3338-1); this is also [available as a PDF from Alpha] for $14.
+</description>
+		</case>
+		
+	</cases>
+	</section>
+	
+</sections>	
+	<links>
+		<link href="http://www.alphasoftware.com">Alpha Software Web site</link>
+		<link href="http://www.alphafivedatabase.com/access/">Alpha and Access Web site</link>
+		<link href="http://blog.alphasoftware.com/">Alpha blog</link>
+		<link href="http://msgboard.alphasoftware.com/alphaforum/">Alpha forums</link>
+		<link href="http://www.alphafivedatabase.com/access/contact.asp">Alpha migration help</link>
+		<link href="http://support.alphasoftware.com/alphafivehelpv9/index.htm">Alpha online documentation</link>
+		<link href="http://www.amazon.com/Sane-Approach-Database-Design/dp/143573338X/ref=si3_rdr_bb_product/178-4339643-5707636">A Sane Approach to Database Design</link>
+		<link href="https://www.alphasoftware.com/shop/itemdesc.asp?PRODID=737">available as a PDF from Alpha</link>
+	</links>
+	
+</page>
