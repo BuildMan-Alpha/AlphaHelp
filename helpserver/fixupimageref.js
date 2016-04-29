@@ -1,7 +1,12 @@
 // Move images into proper location
 var fs = require("fs");
 var path = require('path');
-var baseFolder = "../helpfiles/Ref/Api/Functions/Data Type/Array Functions";
+if( process.argv.length < 3  ) {
+    console.log("node fixupimageref <folder> - move or copy ")
+    process.exit(0)
+}
+var baseFolder = process.argv[2]; //../helpfiles/Ref/Api/Functions/Data Type/Array Functions";
+baseFolder = baseFolder.split("\\").join("/")
 
 var files = { xml: [], images: [] };
 var pending = 1;
