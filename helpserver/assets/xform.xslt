@@ -199,18 +199,23 @@
         </xsl:if>
 		<xsl:if test="video">
 			<xsl:for-each select="video">
-				<li>
-					<a xsl:use-attribute-sets="href-link">
-                        <xsl:choose>
-                            <xsl:when test="name">
-                               <xsl:value-of select="name" />
-                            </xsl:when>
-                            <xsl:otherwise>
-                               <xsl:value-of select="." />
-                            </xsl:otherwise>
-                        </xsl:choose>
-					</a>
-				</li>
+                <xsl:choose>
+                    <xsl:when test="./@embedded"> <iframe  width="100%" src="{.}" frameborder="0" ></iframe> </xsl:when>
+                    <xsl:otherwise>
+                        <li>
+                            <a xsl:use-attribute-sets="href-link">
+                                <xsl:choose>
+                                    <xsl:when test="name">
+                                    <xsl:value-of select="name" />
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                    <xsl:value-of select="." />
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </a>
+                        </li>
+                    </xsl:otherwise>
+                </xsl:choose>            
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="videos">
@@ -346,14 +351,17 @@
         </xsl:if>
         <xsl:if test="figure">
             <xsl:for-each select="figure">
-                <a xsl:use-attribute-sets="href-link" class="sectionFigure">
-                    <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:if test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:if> </xsl:element>
-                </a>
-                <xsl:if test="title">
-                    <p>
-                        <xsl:value-of select="title" />
-                    </p>
-                </xsl:if>
+                <div class="figureContainer">
+                    <xsl:choose>
+                        <xsl:when test="content"><div class="sectionFigure"><xsl:value-of select="content" disable-output-escaping="yes" /></div> </xsl:when>
+                        <xsl:otherwise> <a xsl:use-attribute-sets="href-link" class="sectionFigure"> <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:if test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:if> </xsl:element> </a></xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:if test="title">
+                        <div class="figureTitle">
+                            <xsl:value-of select="title" />
+                        </div>
+                    </xsl:if>
+                </div>
             </xsl:for-each>
         </xsl:if>
         <xsl:if test="note">
@@ -363,18 +371,25 @@
            <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
         <xsl:if test="video">
-            <li>
-                <a xsl:use-attribute-sets="href-link">
+            <xsl:for-each select="video">
+                <li>
                     <xsl:choose>
-                        <xsl:when test="name">
-                            <xsl:value-of select="name" />
-                        </xsl:when>
+                        <xsl:when test="./@embedded"> <iframe  width="100%" src="{.}" frameborder="0" ></iframe> </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="." />
+                            <a xsl:use-attribute-sets="href-link">
+                                <xsl:choose>
+                                    <xsl:when test="name">
+                                        <xsl:value-of select="name" />
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="." />
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </a>
                         </xsl:otherwise>
                     </xsl:choose>
-                </a>
-            </li>
+                </li>
+            </xsl:for-each>
         </xsl:if>
 		<xsl:if test="videos">
 			<xsl:for-each select="videos/video">
