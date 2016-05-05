@@ -199,18 +199,23 @@
         </xsl:if>
 		<xsl:if test="video">
 			<xsl:for-each select="video">
-				<li>
-					<a xsl:use-attribute-sets="href-link">
-                        <xsl:choose>
-                            <xsl:when test="name">
-                               <xsl:value-of select="name" />
-                            </xsl:when>
-                            <xsl:otherwise>
-                               <xsl:value-of select="." />
-                            </xsl:otherwise>
-                        </xsl:choose>
-					</a>
-				</li>
+                <xsl:choose>
+                    <xsl:when test="./@embedded"> <iframe  width="100%" src="{.}" frameborder="0" ></iframe> </xsl:when>
+                    <xsl:otherwise>
+                        <li>
+                            <a xsl:use-attribute-sets="href-link">
+                                <xsl:choose>
+                                    <xsl:when test="name">
+                                    <xsl:value-of select="name" />
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                    <xsl:value-of select="." />
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </a>
+                        </li>
+                    </xsl:otherwise>
+                </xsl:choose>            
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="videos">
@@ -366,18 +371,25 @@
            <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
         <xsl:if test="video">
-            <li>
-                <a xsl:use-attribute-sets="href-link">
+            <xsl:for-each select="video">
+                <li>
                     <xsl:choose>
-                        <xsl:when test="name">
-                            <xsl:value-of select="name" />
-                        </xsl:when>
+                        <xsl:when test="./@embedded"> <iframe  width="100%" src="{.}" frameborder="0" ></iframe> </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="." />
+                            <a xsl:use-attribute-sets="href-link">
+                                <xsl:choose>
+                                    <xsl:when test="name">
+                                        <xsl:value-of select="name" />
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="." />
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </a>
                         </xsl:otherwise>
                     </xsl:choose>
-                </a>
-            </li>
+                </li>
+            </xsl:for-each>
         </xsl:if>
 		<xsl:if test="videos">
 			<xsl:for-each select="videos/video">
