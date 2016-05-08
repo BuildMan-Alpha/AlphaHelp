@@ -200,7 +200,7 @@
 		<xsl:if test="video">
 			<xsl:for-each select="video">
                 <xsl:choose>
-                    <xsl:when test="./@embedded"> <div class="videoPlayer"><iframe src="{normalize-space(.)}"  class="embeddedVideo" frameborder="0" ></iframe></div> </xsl:when>
+                    <xsl:when test="./@embedded"> <div class="videoPlayer"><iframe src="{normalize-space(.)}"  class="embeddedVideo" frameborder="0" >&nbsp;</iframe></div> </xsl:when>
                     <xsl:otherwise>
                         <li>
                             <a xsl:use-attribute-sets="href-link">
@@ -221,7 +221,7 @@
 		<xsl:if test="videos">
 			<xsl:for-each select="videos/video">
                 <xsl:choose>
-                    <xsl:when test="./@embedded"><div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" ></iframe> </div> </xsl:when>
+                    <xsl:when test="./@embedded"><div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" >&nbsp;</iframe> </div> </xsl:when>
                     <xsl:otherwise>
 				<li><a xsl:use-attribute-sets="href-link"><xsl:choose>
                             <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
@@ -370,7 +370,7 @@
         <xsl:if test="video">
             <xsl:for-each select="video">                
                     <xsl:choose>
-                        <xsl:when test="./@embedded"> <div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" ></iframe> </div> </xsl:when>
+                        <xsl:when test="./@embedded"> <div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" >&nbsp;</iframe> </div> </xsl:when>
                         <xsl:otherwise>
                             <li>
                             <a xsl:use-attribute-sets="href-link">
@@ -391,7 +391,7 @@
 		<xsl:if test="videos">
 			<xsl:for-each select="videos/video">
                 <xsl:choose>
-                    <xsl:when test="./@embedded"> <div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" ></iframe> </div> </xsl:when>
+                    <xsl:when test="./@embedded"> <div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" >&nbsp;</iframe> </div> </xsl:when>
                     <xsl:otherwise><li><a xsl:use-attribute-sets="href-link">
                         <xsl:choose>
                             <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
