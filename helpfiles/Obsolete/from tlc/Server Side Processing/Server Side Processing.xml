@@ -1,0 +1,197 @@
+<page>
+	<topic>Server Side Processing</topic>
+	
+<description>Tasks like generating large reports, sending batches of email, and other resource-intensive tasks are typically run on the server, to limit the burden on the mobile device or browser. </description>	
+
+<sections>
+	<section>
+		<description>The code that Alpha Anywhere uses to run these tasks is written in Xbasic, a programming language similar to Visual Basic. Most of the Xbasic code for an application is written automatically when you create your application. 
+
+However, there may be instances in which you want to include your own server-side code to add functionality that is not included in Alpha Anywhere. This can be accomplished in several ways. 
+</description>
+		
+	</section>
+	<section>
+		<description>To create your own server side code, you can: 
+</description>
+		<cases>
+			<case>
+				<description>Write your own Xbasic code.
+</description>
+			</case>
+			<case>
+				<description>Use a point-and-click interface called Action Scripting to write Xbasic for you. 
+</description>
+			</case>
+			<case>
+				<description>Use another programming language to create a .NET assembly and call the assembly from Xbasic. 
+</description>
+			</case>
+			<case>
+				<description>Use Javascript to create a Node.JS module and call the module from Xbasic.
+</description>
+			</case>
+		</cases>
+	</section>
+	<section>
+		<title>Node.JS</title>
+	<description>Node.JS is a popular program for writing server side utilities in Javascript. Alpha Anywhere now has tight integration with Node and you can now define your own Node modules that can be called from Xbasic.
+</description>	
+		<videos>
+			<video>
+				<description>Video - Part 1 | </description>
+				<link>http://www.ajaxvideotutorials.com/V12Videos/xbasic_nodeServices_1.swf</link>
+			</video>
+			<video>
+				<description>Video - Part 2 | </description>
+				<link>http://www.ajaxvideotutorials.com/V12Videos/xbasic_nodeServices_2.swf</link>
+			</video>
+			<video>
+				<description>Video - Part 3 | </description>
+				<link>http://www.ajaxvideotutorials.com/V12Videos/xbasic_nodeServices_3.swf</link>
+			</video>
+			
+			
+		</videos>
+	</section>
+	<section>
+		<description>To create a new 'Node Service' that can be called from Xbaisc, you create a new .js file in the Node_Services folder in the Alpha Anywhere executable folder. The syntax for this .js file is the syntax you would use for any Node module.
+To call a Node service from Xbasic, you:
+</description>
+
+		<cases>
+			<case>
+				<description>dim an instances of the helper::V8 object
+</description>
+			</case>
+			<case>
+				<description>construct a JSON string that defines the Node service you want to call and the parameters you wan to pass to the Node service
+</description>
+			</case>
+			<case>
+				<description>call the .NodeRequest() method of the helper::V8 object instance
+</description>
+			</case>
+			
+		</cases>
+	</section>
+	<section>
+		<description>In the following example, we have defined a trivial Node service that takes as its input two variables, 'firstname' and 'lastname' and sends back a string showing:</description>
+		<example><![CDATA[Hello firstname lastname.]]></example>
+	</section>
+	<section>
+		<description>The Node service in this example is called 'hello'. Therefore the '_command' property of the JSON command object is set to 'hello'
+You must also set an '_id' property in the JSON command object. This can be any value. Using a UUID for this value is convenient.
+</description>
+	</section>
+	<section>
+		<description>The Node service is called using the .NodeRequest() method and the result is returned as a JSON string with properties for the error text (if there was an error) and 'result' - the result of the request. The JSON response can be parsed to get Xbasic varibles, or the json_extract() function can be used to extract the 'result' property.</description>
+		<example><![CDATA[dim n as helper::V8
+dim p as p
+'generate an id for the request we are about to send to Node.
+'we just use a GUID for convenience
+p._id = api_uuidcreate()
+
+'set the _command property. This is the name of the Node service we want to call
+p._command = "hello"
+
+
+'specify any variables you want to pass to the Node service
+p.firstname = "Nellie"
+p.lastname = "Jones"
+
+'convert the Xbasic .dot variable to a JSON string.
+dim jsonCommand as c 
+jsonCommand = json_generate(p)
+
+?n.NodeRequest(jsonCommand)
+= {"_id":"id1","error":"","result":"Hello Nellie Joness"}]]></example>
+	</section>
+	<section>
+		<description>Here is how the corresponding Hello.js file is defined. This file must be in the Node_Services folder in the Alpha Anywhere executable folder. This is a standard Node module. It can 'require' any other Node modules that you have written, or that have been installed using NPM (the Node Package Manager).</description>
+		<example><![CDATA[exports.handler = function(packet,response,sendResponse) {
+    var e;
+    var attachments = null;
+    var msg = 'Hello ' + packet.firstname + ' ' + packet.lastname;
+    response.result = msg;
+    sendResponse(response,attachments);
+};]]></example>
+	</section>
+	<section>
+		<description>If you edit the .js file in the Node_Services folder after having called it, your edits will not be seen until you shutdown the Node service. The next time you call the Node service you will see a short delay as Node starts up.
+</description>
+
+	</section>
+	<section>
+		<description>To shut down the Node service you can all the .NodeShutDown() method on the helper::V8 object instance. For example, in the above example the helper::V8 object instance was called 'n', so the following command will shut Node down.
+</description>
+		<example><![CDATA[n.NodeShutdown()]]></example>
+	</section>
+	<section>
+		<note>Node.exe is automatically installed in the Alpha Anywhere executable folder when you install Node. You do not need to install Node yourself.</note>
+	</section>
+	<section>
+<title>Xbasic</title>		
+	<description>Xbasic is the server-side programming language of Alpha Anywhere, and is similar to Visual Basic and other languages. </description>	
+		<cases>
+			<case>
+				<title>Xbasic Tutorials</title>
+				<description>The Xbasic tutorial is the recommended way to get acquainted with and start programming in Xbasic. This tutorial uses a Windows desktop application as the example, but still shows you the basics for mobile and desktop/web applications.  [See more].</description>
+			</case>
+			<case>
+				<title>The Interactive Window </title>
+				<description>The Interactive Window allow you to test snippets of code before you add them to a script. See  [Using the Interactive Window].
+  </description>
+			</case>
+			<case>
+				<title>Libraries and Modules </title>
+				<description>Keeps code organized and lets you share code with multiple components. </description>
+				<cases>
+					<case>
+						<title>AEXs</title>
+						<description>let you compile your scripts and functions into a compiled file, allowing global access to functions. For details about creating AEX files, see  [Compiling Scripts and Functions]. 
+ For details on loading AEX files onto the server so that you can use them see  [Making User-Defined Functions Available to a Web Application].
+ </description>
+					</case>
+						<case>
+						<title>Xbasic Function Libraries </title>
+						<description>are a newer alternative to using AEX files for reusing Xbasic code. They can be linked into components (Grids, UXs, custom components, and tabbed UIs) in the properties section of these components. See [video]. </description>
+					</case>
+						<case>
+						<title>Modules</title>
+						<description>let you package up Xbasic functions and classes for reuse, in a method similar to the method used by Node.JS. Functions are then brought into any Xbasic code using the Require() method. (This is not to be confused with the "Module" object in Xbasic) click here to [watch the video].</description>
+					</case>
+					
+				</cases>
+			</case>
+			<case>
+				<title>Xbasic Reference Guide </title>
+				<description>includes a language reference and information about functions, expressions, operators, variables, the interactive window and more. Much of the material uses Windows desktop applications as examples, but the information also applies to mobile and desktop/web applications as well. See the [Xbasic Reference Guide].</description>
+			</case>
+			<case>
+				<title>Directory of Functions and Methods </title>
+				<description>includes links to  [organized tables of functions and methods] that are included with Xbasic. 
+ </description>
+			</case>
+			
+		</cases>
+	</section>
+	
+	
+</sections>
+
+<links>
+	<link href="http://www.alphasoftware.com/documentation/#/Server/Tutorial/Design/Platform/Xbasic/A%20Tutorial%20in%20Xbasic.html">See more</link>
+	<link href="http://documentation.alphasoftware.com/testdoc/pages/Server/Reference/Design/Platform/Xbasic/Reference/Using%20the%20Interactive%20Window.xml">Using the Interactive Window</link>
+	<link href="http://documentation.alphasoftware.com/testdoc/pages/Desktop/Guide/Design/Platform/Xbasic%20Action%20Scripting/Compiling%20Scripts%20and%20Functions.xml">Compiling Scripts and Functions</link>
+	<link href="http://documentation.alphasoftware.com/testdoc/pages/Server/Guide/Design/Platform/Xbasic/Making%20User-Defined%20Functions%20Available%20to%20a%20Web%20Application.xml">Making User-Defined Functions Available to a Web Application</link>
+	<link href="http://www.viddler.com/v/684ca43d">video</link>
+	<link href="http://www.viddler.com/v/3059c9a8">watch the video</link>
+	<link href="http://documentation.alphasoftware.com/testdoc/pages/Ref/Xbasic/index.xml">Xbasic Reference Guide</link>
+	<link href="http://documentation.alphasoftware.com/testdoc/pages/Ref/Api/Functions/Document%20Types/DBF/Index%20Functions/index.xml">organized tables of functions and methods</link>
+
+	
+</links>
+	
+	
+</page>
