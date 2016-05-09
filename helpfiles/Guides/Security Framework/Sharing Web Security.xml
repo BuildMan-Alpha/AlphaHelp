@@ -6,32 +6,18 @@
             <sections>
                 <section>
                     <description>
-                        <p>Multiple Alpha Anywhere applications can reference the same web security tables in the web security configuration. This is different from creating a [multi-tenant application], wherein separate user databases or additional information is added to a users' table to identify data in a database that belongs to the logged-in user. If web security data is stored in a SQL database, the security information can be referenced by each web application. To restrict access to specific applications for specific users, security groups can be used to determine whether or not a user has permission to access an application. Creating a group for each application for which you want to restrict user access.</p>
+                        <p>Multiple Alpha Anywhere applications can reference the same web security tables in the web security configuration. This is different from creating a [multi-tenant application], wherein separate user databases or additional information is added to a users' table to identify data in a database that belongs to the logged-in user. If web security data is1 stored in a SQL database, the security information can be referenced by multiple web applications. The security system can be utilized to limit who can acess each application. This is done by creating a group for each application and requiring users be a member of a specific group to use a specific application. Additional work is required to setup the security configuration in order to use the same web users security database in multiple apps.</p>
                     </description>
                 </section>
             </sections>
         </group>
         <group>
-            <title>Configuring Security Setup for Multiple Apps</title>
+            <title>Configuring an IIS Profile to Reference a Single Web Users Database in Multiple Applications</title>
             <sections>
                 <section>
-                    <title>Configuring Web Security to Reference a Single Web Users Database</title>
-                    <description>
-                        <p>If you are using the Alpha Anywhere Web Application Server, you can configure the security settings for each app to reference the same web users security database. The user data must be stored in a SQL Database. Mutliple applications cannot reference the same web security data if it is stored in DBF tables. (See [] to learn how </p>
-                        <p>When configuring security for your web application, the security profile must be identical in all applications that will reference the same user data. If the profiles differ between apps, the login verification process will fail.</p>
-                        <p></p>
-                        <p>Password encryption settings must be identical in all applications. If encryption is enabled in one app, it must be enabled in all apps. Additionally, the password encryption key must also be identical in all apps that reference the same web user database.</p>
-                    </description>
-                    <figure>
-                        <title>Password encryption settings must be identical in all apps that reference the same user database.</title>
-                        <link>images/userIDAndPasswordOptions.png</link>
-                    </figure>
-                </section>
-                <section>
-                    <title>Configuring an IIS Profile to Reference a Single Web Users Database</title>
                     <description>
                         <p>If you are using IIS, your IIS publishing profile can be configured to allow mutliple apps to reference the same web users security database.</p>
-                        <p>Accessing the same web user data across multiple apps is controlled through the publishing profile for each application under IIS. The membership and role provider settings must point to the same database and use the same value for the "Security application name" in the Publishing Profile.</p>
+                        <p>Accessing the same web user data across multiple apps is controlled through the publishing profile for each application under IIS. The membership and role provider settings must point to the same database and use the same value for the "Security application name" in the Publishing Profile. See the [Provider Configuration Guide] for more information about publishing profiles.</p>
                     </description>
                     <figure>
                         <title>Configuring an IIS Publishing Profile</title>
@@ -41,10 +27,71 @@
             </sections>
         </group>
         <group>
-            <title>Using Groups to Restirct Users Access to Specific Apps</title>
+            <title>Configuring Web Security to Reference a Single Web Users Database in Multiple Applications</title>
             <sections>
                 <section>
-                    <description>Groups can be used to define access privileges for each application. This requires one group or role per app that references the same user security tables.</description>
+                    <title>Setting Up Web Project Security Settings</title>
+                    <description>
+                        <p>If you are using the Alpha Anywhere Web Application Server, you can configure the security settings for each app to reference the same web users security database. The user data must be stored in a SQL Database. Mutliple applications cannot reference the same web security data if it is stored in DBF tables.</p>
+                        <p>When configuring security for your web application, the security profile must be identical in all applications that will reference the same user data. If the profiles differ between apps, the login verification process will fail.</p>
+                        <p>Password encryption settings must be identical in all applications. If encryption is enabled in one app, it must be enabled in all apps. Additionally, the password encryption key must also be identical in all apps that reference the same web user database.</p>
+                    </description>
+                    <figure>
+                        <title>Password encryption settings must be identical in all apps that reference the same user database.</title>
+                        <link>images/userIDAndPasswordOptions.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Duplicating Active Link Tables</title>
+                    <description>
+                        <p>To configure an application to reference an existing security web table, you will need to create the Active Link tables yourself. While the security framework can automatically generate the active link tables for you to communicate with the SQL Database, the framework also tries to re-create the SQL tables in the database during this process. Follow the instructions for creating Active Link tables in the [Using SQL Tables in Web Security] guide.</p>
+                        <p>You can also copy the Active Link tables between projects. You will need to find and copy all of the files that begin with "websecurity_" in the project that has the Active Link tables. They are stored in .WebProject directory alongside the components and other files for your Alpha Anywhere application. Then, move them into the .WebProject directory for your application. This is usually the *[Default.WebProject]* directory found inside the *.WebProjects folder.</p>
+                    </description>
+                    <figure>
+                        <link>images/controlPanel1.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        If you copy the Active Link tables, you need to make sure the connection string they use is configured properly. You can configure the connection string for the Active Link tables using the *[Control Panel]* (not to be confused with the Web Projects Control Panel.) Using the *[Add Tables/Sets]* tool under the File menu. Navigate to where the Active Link files are stored inside the .WebProject folder. Add all of the files that begin with "websecurity_". Once listed in the Control Panel, you can validate the connection string for the Active Link Tables. Right-click on an Active Link table on the *[ui:Tables/Sets]* tab in the Control Panel and select "Show Link Definition". Here, you can check the connection string configuration and determine the name of the AlphaDAO connection you need to create.
+                    </description>
+                    <figure>
+                        <link>images/controlPanel2.png</link>
+                    </figure>
+                    <figure>
+                        <link>images/controlPanel3.png</link>
+                    </figure>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Using Groups to Restirct User Access to Specific Apps</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>Groups can be used to define access privileges for each application. This requires one group or role per app that references the same user security tables. For example, suppose you have three applications - AppA, AppB, and AppC - for which you want to restrict access to using the same web security database for all. You can create three groups that correspond to each application: Group_A, Group_B, and Group_C. Users in Group_A have access to AppA, users in Group_B have access to AppB, and users in Group_C have access to AppC.
+                        </p>
+                    </description>
+                    <figure>
+                        <link>images/groups1.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>When configuring security access for each app, security settings for the web pages and components in the app need to be configured to require login. Login required requires you specify which groups can access the pages when the user is logged in. For all files in AppB, the logged in user would need to be in Group_B to access them. Security groups can be required to access components, pages, reports, and other files and directories.</p>
+                    </description>
+                    <figure>
+                        <link>images/groups2.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>If further security control is needed over features within each app, you can use app-specific groups to control access. EG:</description>
+                    <example>Group_A
+Group_A_report
+Group_A_maps
+Group_B
+Group_C
+Group_C_report</example>
                 </section>
             </sections>
         </group>
@@ -55,6 +102,8 @@
         <ref>Building Multi-Tenant Applications - Dynamic Connection Strings</ref>
     </see>
     <links>
-        <link href="Building Multi-Tenant Applications - Dynamic Connection Strings">multi-tenant application</link>
+        <link href="http://documentation.alphasoftware.com/index/Building Multi-Tenant Applications - Dynamic Connection Strings">multi-tenant application</link>
+        <link href="http://documentation.alphasoftware.com/index/Provider Configuration Guide">Provider Configuration Guide</link>
+        <link href="http://documentation.alphasoftware.com/index/Using SQL Tables in Web Security">Using SQL Tables in Web Security</link>
     </links>
 </page>
