@@ -888,12 +888,285 @@ Not used
 </sections>	
 	
 </group>
+<group>
+	<title>Operations</title>
+	<sections>
+		<section>
+			<description>The AlphaSportsWeb application contains the following operations not found in the AlphaSports application. Because a web application cannot directly run operations stored in an Alpha Anywhere database, we created these operations and then copied their underlying Xbasic into the ASWSALESHIST.A5W page.</description>
+			
+		</section>
+		<section>
+			<description>Operations:</description>
+			<cases>
+				<case>
+					<title>Post_Sales_Quantities</title>
+					<description>Subtracts the quantity field in the invoice_items table from the qty_in_sto field of the product table.</description>
+				</case>
+				<case>
+					<title>sales_summary_by_cust</title>
+					<description>This operation was the source of the Xbasic code that the ASWSALESHIST.A5W page runs to populate the sales_summary_cust table.</description>
+				</case>
+				<case>
+					<title>sales_summary_by_quan</title>
+					<description>This operation was the source of the Xbasic code that the ASWSALESHIST.A5W page runs to populate the sales_summary_quan table.</description>
+				</case>
+				
+			</cases>
+			
+		</section>
+		
+	</sections>
+	
+</group>
+<group>
+	<title>Variables</title>
+	<sections><section>
+	<description>The AlphaSportsWeb application depends on a number of session and property array variables.</description>
+	<cases>
+		<case>
+			<description>cart_ID</description>
+		</case>
+		<case>
+			<description>cartparms</description>
+		</case>
+		<case>
+			<description>checkout_vars</description>
+		</case>
+		<case>
+			<description>flds[]</description>
+		</case>
+		<case>
+			<description>fldsc[]</description>
+		</case>
+		<case>
+			<description>fldsi[]</description>
+		</case>
+		<case>
+			<description>session.protectedchkout</description>
+		</case>
+		<case>
+			<description>session.protectedchkoutprogress</description>
+		</case>
+		<case>
+			<description>session.protectedPuser</description>
+		</case>
+		<case>
+			<description>session.dataclear</description>
+		</case>
+		<case>
+			<description>session.enteruserdata</description>
+		</case>
+		<case>
+			<description>session.targetURL</description>
+		</case>
+		<case>
+			<description>sessionID</description>
+		</case>
+		
+	</cases>
+	</section>
+	<section>
+		<title>sessionID (C) and cart_ID (C)</title>
+	<description>
+
+The Application Server assigns each client browser a unique sessionID. This identifier remains constant between browser sessions. The application stores sessionID in the shop_cart table.
+
+The cart_id variable is unique for each browser session. The API_UUIDCREATE() function creates cart_id, which is a Universally Unique Identifier (UUID...otherwise known as a Globally unique ID or GUID). This is a 32 character (128 bit) hexadecimal string (not including dashes) that is guaranteed to be completely unique if you have a network card. The application stores cart_id in the shop_cart table and in the cart_id cookie.
+</description>	
+		
+	</section>
+	<section>
+		
+	<description>Together, cart_id and sessionID allow the customer to exit the application, then resume shopping and find previously selected (but not purchased) items in the shopping cart.</description>	
+		
+	</section>
+	<section>
+		<title>>flds[] (P), >fldsc[] (P), and fldsi[] (P)</title>
+	<description>The ASWINVDET.A5W page populates the flds[] property array with the field values of the invoice_header table record, where the invoice_number field equals the value contained in inv. The script uses the .INITIALIZE_FROM_TABLE() method. The same technique to populates the fldsc[] property array with the field values of the customer table record, where the customer_id field equals the value contained in flds[1].customer_id. Another part of the script uses .INITIALIZE_PROPERTIES() to create and initialize property variables under the fldsi[] property array.
+
+.INITIALIZE_FROM_TABLE()is a fast and easy way to extract values from a table into a format that can be manipulated, and in this case, displayed. .INITIALIZE_PROPERTIES()is a fast way to create a dot variable with default values.
+</description>	
+		
+	</section>
+	<section>
+		<title>_protectedchkoutprogress>session.protectedchkoutprogress (N)</title>
+	<description>The INDEX.A5W, CHECKOUTCALC.A5W, CHECKOUTCART.A5W, CHECKOUTCOMP.A5W, and CHECKOUTUSER.A5W pages use session.protectedchkoutprogress to control and verify the user's progression through the 3 checkout screens.
+
+The session.protectedchkoutprogress variable is protected from attempted changes from the URL query string.
+</description>	
+		
+	</section>
+	<section>
+	<cases>
+		<case>
+			<title>INDEX.A5W</title>
+			<description>When a customer arrives at either of these pages, the assumption is that he or she is ready to begin shopping. as a consequence, the script resets the session.protectedchkoutprogress variable to 0, meaning checkout has not begun.
+</description>
+		</case>
+		<case>
+			<title>PRODUCTLIST.A5W
+</title>
+			<description></description>
+		</case>
+		<case>
+			<title>CHECKOUTCART.A5W
+</title>
+			<description>When the customer has successfully added an item to a shopping cart, the script sets the checkout progress to 1.
+</description>
+		</case>
+		<case>
+			<title>CHECKOUTUSER.A5W
+</title>
+			<description>The checkout progress must be greater than or equal to 1 to display this page. When the customer has successfully entered all required information, the AfterValidate event of the DLG_UCHKOUT dialog component sets the checkout progress to 2.
+</description>
+		</case>
+		<case>
+			<title>CHECKOUTCOMP.A5W
+</title>
+			<description>The checkout progress must be greater than or equal to 2 to display this page. When the customer has successfully completed the checkout process, the script sets the checkout progress to 3.
+</description>
+		</case>
+		<case>
+			<title>CHECKOUTCALC.A5W
+</title>
+			<description>The checkout progress must be greater than or equal to 3 to display this page.
+</description>
+		</case>
+		
+	</cases>
+	</section>
+	<section>
+		<title>_protectedchkout>session.protectedchkout (P)</title>
+	<description>The session.protectedchkout dot variable holds the customer's shipping and billing field values input to the CHECKOUTUSER.A5W page.
+
+The session.protectedchkout variable is protected from attempted changes from the URL query string.
+</description>	
+<cases>
+	<case>
+		<title>INDEX.A5W</title>
+		<description>When a customer arrives at either of these pages, the assumption is that he or she is ready to begin shopping. as a consequence, the script deletes the session.protectedchkout variable, which may contain old data.
+</description>
+	</case>
+	<case>
+		<title>PRODUCTLIST.A5W
+</title>
+		<description></description>
+	</case>
+	<case>
+		<title>CHECKOUTCALC.A5W
+</title>
+		<description>The page does not display, if the session.protectedchkout variable does not exist. If the variable does exist, the script copies it values to checkout_vars and deletes session.protectedchkout.
+</description>
+	</case>
+	<case>
+		<title>CHECKOUTUSER.A5W</title>
+		<description>If the value of the session.dataclear variable is .T., the Activate event of the DLG_UCHKOUT dialog component initializes the session.protectedchkout variable.
+
+If the value of the session.enteruserdata variable it NULL, the Activate event of the DLG_UCHKOUT dialog component sets the dialog's controls with the contents of the session.protectedchkout variable.
+</description>
+	</case>
+	<case>
+		<title>CHECKOUTCOMP.A5W
+</title>
+		<description>One of the first things that the page script does is test the value of session.protectedchkout.firstname. If NULL, the customer's information is assumed to be incomplete, and control is redirected to the CHECKOUTCART.A5W page.
+Next, the script checks to see if a number of critical invoicing variables have values. If a problem is found, the script places an error message into the error_msg variable. Otherwise, the script prepares and displays the shopping cart, shipping and billing information on the page.
+</description>
+	</case>
+	
+</cases>
+		
+	</section>
+	<section>
+		<title>_protectedPuser>session.__protected.pUser (P)</title>
+	<description>This pointer variable contains information about the current logged in user. The session.protectedpUser.ulink variable is populated by the security system and contains the value saved in the ulink security field for the current logged in user. The session.protectedpUser.ulink variable is used in the component grd_invhcp to set the value for the argument :WhatCustomer. The argument is used in a filter to show only records for the current logged in user. It is also used by the LOGGEDINVALUES.A5W page to identify the current logged in user. The LOGGEDINVALUES.A5W page populates the variables session.protectedpUser.name and session.protectedpUser.type for the current logged in user. 
+
+The session.protectedpUser variable is protected from attempted changes from the URL query string.
+</description>	
+		
+	</section>
+	<section>
+		<title>checkout_vars (P)</title>
+<description>The CHECKOUTCALC.A5W script copies the session.protectedchkout data into checkout_vars, then deletes session.protectedchkout. This prevents the user from submitting the page a second time after clicking the "Back" button.</description>		
+		
+	</section>
+		<section>
+		<title>cartparms (P)</title>
+<description>The cartparms pointer variable contains the information that describes the customer's shopping session. The CHECKOUTCART.A5W and SHOPCART.A5W pages define cartparms and pass it to the shopcart_chk() function. This function checks to see if the customer has an existing cart exists from a previous session. If so, the function returns the HTML required to display the cart's contents.
+
+The SHOPCART_ADD.A5W page uses cartparms to check if a shopping cart remains from a previous session. If not, it uses shopcart_add() to create a new shopping cart containing the selected product.
+</description>		
+		
+	</section>
+		<section>
+		<title>session.dataclear (L)</title>
+<description>The CHECKOUTUSER.A5W page uses session.dataclear to indicate whether the user has pressed the "Clear" button. If so, the Activate event of the DLG_UCHKOUT dialog component erases the contents of the dialog's controls and the AfterValidate event uses it as an indication that it does not need to save the user's input.</description>		
+		
+	</section>
+		<section>
+		<title>session.enteruserdata (C)</title>
+<description>The CHECKOUTUSER.A5W page uses session.dataclear to hold the user's customer ID after he presses the "adduser" button. The Activate event of the DLG_UCHKOUT dialog component uses the session.dataclear in the filter expression that retrieves the customer's data from the customer table.</description>		
+		
+	</section>
+		<section>
+		<title>session.targetURL (C)</title>
+<description>The CHECKOUTUSER.A5W page uses session.targetURL to save the URL of the current page when it needs to temporarily redirect to LOGIN.A5W page. If the application user is classified as Internal, the Validate event of the DLG_UCHKOUT dialog component sets session.targetURL to NULL. This variable is only used on public pages.</description>			
+	</section>
+	
+	</sections>
+	
+	
+</group>
+<group>
+	<title>Adding an Item to the Shopping Cart</title>
+<sections>
+	<section>
+		
+		<description>INDEX.A5W and SPECIALS.A5W (containing the GRD_SPEC grid component), PRODUCTINFO.A5W (containing the GRD_PRODONE grid component), and PRODUCTLIST.A5W (containing the GRD_PRODS grid component) include the SHOPCART.JS JavaScript file into their pages. In each case the component has one or more image buttons that call the JavaScript add_to_cart_quan() function, passing the product_id value of the selected product. The JavaScript function opens and prompts for a quantity, and then opens another page as a popup and passes the product ID to that page in the page URL. If the prompt is cancelled or the value entered is 0, the JavaScript ends and no item is added to the cart. 
+</description>
+		
+	</section>
+	<section>
+		<description>Variations of the following code are found in the Column Properties > Freeform Template property of the "Sale Price" field of the GRD_SPEC and GRD_PRODONE grid components. Similar code is located under the Column Properties > Freeform Template property of the "Cart" field of the GRD_PRODS grid component.</description>
+		
+	</section>
+	
+<section>
+	<steps>
+		<step>
+			<description>In each case clicking the image button calls the add_to_cart_quan() function and passes the current value of product_id. We placed this code in a freeform template to allow the OnClick event of the image to run the Javascript.
+</description>
+		</step>
+		<step>
+			<description>The JavaScript function shows a prompt to specify the quantity to order and then displays the SHOPCART_ADD.A5W page in a new window. The product ID is a URL parameter,and is locally named prod_id. The quan is also added to the URL and is obtained from the prompt. There are another version of the function named add_to_cart() that does not open a prompt to select quantity. Instead, a default quantity of 1 will be assigned. 
+</description>
+		</step>
+		<step>
+			<description>The SHOPCART_ADD.A5W script tests to see if the cart_id variable (cookie) exists. If not, the script creates it.
+</description>
+		</step>
+		<step>
+			<description>Next, the script creates the cartparms pointer variable, and among other assignments, sets the cartparms.product_id variable to the product ID value received in the URL and sets the cartparms.quantity variable to the Quan value from the prompt.
+</description>
+		</step>
+		<step>
+			<description>SHOPCART_UDF.A5W adds a record to the shop_cart table, then prepares and returns the HTML code displayed on the page.
+</description>
+		</step>
+
+	</steps>
+	
+	
+</section>	
+	
+	
+</sections>	
+	
+	
+</group>
 
 
 
-Operations
-Variables
-Adding an Item to the Shopping Cart
+
 Web Publishing Components
 Web Pages
 Removing Non-essential Code
