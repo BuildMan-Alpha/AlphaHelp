@@ -9,6 +9,7 @@ fs.readFile(fileName, "utf8", function (err, data) {
     if( err ) {
         console.log("Could not load file '"+fileName+"' - error :"+err);
     } else {
+<<<<<<< HEAD
         var problems = "";
         var i , j;
         for( i = 0 ; i < data.length ; ++i ) {
@@ -26,6 +27,15 @@ fs.readFile(fileName, "utf8", function (err, data) {
             for( i = 0 ; i < problems.length ; ++i ) {
                 data = data.split(problems.substr(i,1)).join(" ");
             }
+=======
+        var  findHardSpace = data.split(3);
+        if( findHardSpace.length == 1 ) {
+            findHardSpace = data.split(160);
+        }
+        if( findHardSpace.length > 1 ) {
+            console.log("Found "+(findHardSpace.length-1)+" hard spaces");
+            data = findHardSpace.join(" ");
+>>>>>>> 925ecbcbf3ebb554c94301f51845f6c3838ebb71
             fs.writeFile(fileName,data);
             console.log("hard spaces fixed");
         } else {            
