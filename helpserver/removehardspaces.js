@@ -10,6 +10,9 @@ fs.readFile(fileName, "utf8", function (err, data) {
         console.log("Could not load file '"+fileName+"' - error :"+err);
     } else {
         var  findHardSpace = data.split(3);
+        if( findHardSpace.length == 1 ) {
+            findHardSpace = data.split(160);
+        }
         if( findHardSpace.length > 1 ) {
             console.log("Found "+(findHardSpace.length-1)+" hard spaces");
             data = findHardSpace.join(" ");
