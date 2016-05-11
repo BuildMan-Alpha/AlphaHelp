@@ -9,13 +9,27 @@ fs.readFile(fileName, "utf8", function (err, data) {
     if( err ) {
         console.log("Could not load file '"+fileName+"' - error :"+err);
     } else {
-        var  findHardSpace = data.split(3);
-        if( findHardSpace.length > 1 ) {
-            console.log("Found "+(findHardSpace.length-1)+" hard spaces");
-            data = findHardSpace.join(" ");
+        var problems = "";
+        var i , j;
+        for( i = 0 ; i < data.length ; ++i ) {
+            if( data.charCodeAt(i) < 32 ) {
+                var chr = data.substr(i,1);
+                if( chr != "\n" && chr != "\r" && chr != "\t" ) {
+                    if( problems.indexOf(chr) < 0 ) {
+                        problems += chr;
+                        console.log("found character ["+data.charCodeAt(i)+"]");
+                    }   
+                }
+            }
+        }
+        if( problems.length > 0 ) {
+            for( i = 0 ; i < problems.length ; ++i ) {
+                data = data.split(problems.substr(i,1)).join(" ");
+            }
             fs.writeFile(fileName,data);
-        } else {
-            console.log("No hard spaces were found.")
+            console.log("hard spaces fixed");
+        } else {            
+            console.log("nod hard spaces found");
         }
     }
 });
