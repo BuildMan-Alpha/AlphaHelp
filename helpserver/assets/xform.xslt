@@ -438,16 +438,16 @@
 	<xsl:template match="properties-content" name="properties-content" >
         <xsl:choose>
             <xsl:when test="./@readonly">
-                <dt class="propertyReadonly" ><xsl:value-of select="name" /></dt>
+                <dt class="propertyReadonly" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:when test="./@writeonly">
-                <dt class="propertyWriteonly" ><xsl:value-of select="name" /></dt>
+                <dt class="propertyWriteonly" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:when test="./@pseudo">
-                <dt class="propertyPseudo"><xsl:value-of select="name" /></dt>
+                <dt class="propertyPseudo" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:otherwise>
-                <dt class="propertyReadwrite" ><xsl:value-of select="name" /></dt>
+                <dt class="propertyReadwrite" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:otherwise>
         </xsl:choose> 
         <dd><xsl:value-of select="description" />
