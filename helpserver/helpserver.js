@@ -658,10 +658,12 @@ events.postProcessContent = function(data) {
                 var typeSeparator = emph.indexOf(':');
                 var snippet = "<b>"+emph+"</b>";
                 if( typeSeparator > 0 ) {
+                    var implicitType = false;
                     var typeName = emph.substring(0,typeSeparator);
                     if( typeName.indexOf(' ') < 0 ) {
                         if( typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps' ) {
                              typeName = "link"; // implicit link....
+                             implicitType = true;
                         } else {     
                              emph = emph.substring(typeSeparator+1);
                         }
@@ -683,7 +685,11 @@ events.postProcessContent = function(data) {
                                     linkdef = linkdef.substring(atSignPos+1);
                                     if( linkdef ) {
                                         if( !isURI(linkdef) ) {
-                                            linkdef = help.lookupLink(linkdef);
+                                            var newlinkdef = help.lookupLink(linkdef);
+                                            if( newlinkdef || implicitType ) {
+                                                console.log("Set linkdef to "+newlinkdef);
+                                                 linkdef = newlinkdef;
+                                            }
                                         }
                                         if( linkdef ) {
                                             emph = emph.substring(0,atSignPos);
