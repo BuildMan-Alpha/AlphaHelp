@@ -136,6 +136,7 @@
 		<xsl:if test="methods">
 			<p class="A5">Methods</p>
 			<dl class="methodsDL" >
+                <xsl:if test="methods/@nomethods"> <dt class="noMethods"><xsl:value-of select="methods" /></dt></xsl:if>
 				<xsl:for-each select="methods/method">
 				  <xsl:if test="syntax">
                     <xsl:choose>
