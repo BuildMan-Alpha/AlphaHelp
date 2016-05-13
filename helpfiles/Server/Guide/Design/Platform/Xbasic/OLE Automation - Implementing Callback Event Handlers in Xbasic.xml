@@ -1,0 +1,239 @@
+<page>
+	
+	<topic>Xbasic - OLE Automation - Implementing Callback Event Handlers in Xbasic</topic>
+<description>This topic discusses how you can write Xbasic code to handle callback events when running OLE automation code.</description>
+
+<sections>
+	
+<section>
+	
+	<description>For example, consider the following Xbasic code that uses the ADODB.CONNECTION object to connect to SQL server and then execute a SQL command.</description>
+	<example><![CDATA[dim adow as ADODBOleWrapper
+dim conn as p = ole.create("adodb.connection" )
+conn.Open("driver={SQL Server};server=LOCALHOST;database=Northwind")
+conn.Execute("select * from customers")
+conn.Close()]]></example>
+	
+</section>	
+<section>
+	<description>When this code executes, it will raise these events:</description>
+	<cases>
+		<case>
+			<description>willconnect </description>
+		</case>
+		<case>
+			<description>connectcomplete </description>
+		</case>
+		<case>
+			<description>infomessage </description>
+		</case>
+		<case>
+			<description>willexecute </description>
+		</case>
+		<case>
+			<description>executecomplete </description>
+		</case>
+		<case>
+			<description>disconnect </description>
+		</case>
+		
+	</cases>
+	
+</section>
+<section>
+	
+	<description>In order to handle these events with Xbasic code you need to pass in an optional second argument to the ole.create() method.
+
+First, to get the function prototype for the event handlers you can use this method:
+</description>
+	<example><![CDATA[dim events as c 
+events =  ole.Class_Event_Prototypes("adodb.connection")
+showvar(events)]]></example>
+	
+</section>	
+<section>
+	<description>Once you have the function prototypes, you can create an Xbasic class using this pattern:
+</description>
+	<example><![CDATA[define class ADODBOleWrapper
+'Your class code goes here
+
+implementation EventHandler as OLE::A5Events
+    'your Xbasic code to handle the callback functions goes here
+end implementation
+
+end class]]></example>
+</section>
+
+<section>
+	<description>Note that the class has a special 'implementation' section where the OLE callback handlers are defined.
+For example, let's create a real class that writes the name of the event that was raised to a property of the class (called 'traceEvents').</description>
+	<example><![CDATA[define class ADODBOleWrapper
+dim traceEvents as c
+
+function TraceEvent as v(event as c)
+self.traceEvents = self.traceEvents + event
+end function
+
+implementation EventHandler as OLE::A5Events
+function begintranscomplete as v(TransactionLevel as N,pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("begintranscomplete "+TransactionLevel+crlf())
+end function
+
+function committranscomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("committranscomplete "+crlf())
+end function
+
+function connectcomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("connectcomplete "+crlf())
+end function
+
+function disconnect as v(adStatus as a,pConnection as p)
+self.TraceEvent("disconnect "+crlf())
+end function
+
+function executecomplete as v(RecordsAffected as N,pError as a,adStatus as a,pCommand as a,pRecordset as p,pConnection as p)
+self.TraceEvent("executecomplete "+crlf())
+end function
+
+function infomessage as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("infomessage "+crlf())
+end function
+
+function rollbacktranscomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("rollbacktranscomplete "+crlf())
+end function
+
+function willconnect as v(ConnectionString as C,UserID as C,Password as C,Options as a,adStatus as a,pConnection as p)
+self.TraceEvent("willconnect "+crlf())
+end function
+
+function willexecute as v(Source as C,CursorType as a,LockType as a,Options as a,adStatus as a,pCommand as p,pRecordset as p,pConnection as p)
+self.TraceEvent("willexecute "+crlf())
+end function
+
+end implementation
+
+end class]]></example>
+</section>
+
+<section>
+	<description>As you can see, this class defined a method called TraceEvent() which writes to the 'traceEvents' property of the class instance.
+In the Implementation section, the event handlers are all defined and they call the TraceEvent() method (using self.TraceEvent() ) to write the name of the event that was just fired to 'traceEvents' property of the class instance.
+
+Now, putting this all together, we can rewrite the OLE automation code as follows:
+</description>
+	<example><![CDATA['DIM an instance of the class
+dim adow as ADODBOleWrapper
+
+'pass the class into the ole.create() call
+dim conn as p = ole.create("adodb.connection" , adow )
+conn.Open("driver={SQL Server};server=LOCALHOST;database=Northwind")
+conn.Execute("select * from customers")
+conn.Close()
+
+'show the value of the class instance 'traceEvents' property
+showvar( "Events " + crlf() +adow.traceEvents )]]></example>
+</section>
+
+<section>
+	<description>This next example is a different take on the previous example in which .open(), .execute() and .close() are implemented as methods of the class instance. 
+</description>
+	<example><![CDATA[define class ADODBOleWrapper2
+dim conn as p 
+dim traceEvents as c
+
+function TraceEvent as v(event as c)
+self.traceEvents = self.traceEvents + event
+end function
+
+implementation EventHandler as OLE::A5Events
+function begintranscomplete as v(TransactionLevel as N,pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("begintranscomplete "+TransactionLevel+crlf())
+end function
+
+
+function committranscomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("committranscomplete "+crlf())
+end function
+
+
+function connectcomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("connectcomplete "+crlf())
+end function
+
+
+function disconnect as v(adStatus as a,pConnection as p)
+self.TraceEvent("disconnect "+crlf())
+end function
+
+
+function executecomplete as v(RecordsAffected as N,pError as a,adStatus as a,pCommand as a,pRecordset as p,pConnection as p)
+self.TraceEvent("executecomplete "+crlf())
+end function
+
+
+function infomessage as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("infomessage "+crlf())
+end function
+
+
+function rollbacktranscomplete as v(pError as a,adStatus as a,pConnection as p)
+self.TraceEvent("rollbacktranscomplete "+crlf())
+end function
+
+
+function willconnect as v(ConnectionString as C,UserID as C,Password as C,Options as a,adStatus as a,pConnection as p)
+self.TraceEvent("willconnect "+crlf())
+end function
+
+
+function willexecute as v(Source as C,CursorType as a,LockType as a,Options as a,adStatus as a,pCommand as p,pRecordset as p,pConnection as p)
+self.TraceEvent("willexecute "+crlf())
+end function
+function ping as v()
+self.TraceEvent("PING "+crlf())
+end function
+
+end implementation
+
+function adodbolewrapper2 as v ()
+self.conn = ole.create("adodb.connection",self)
+end function 
+
+function Open as v( connectionString as c )
+self.conn.Open(connectionString)
+end function
+
+
+function Execute as v( sqlStatement as c )
+self.conn.Execute(sqlStatement)
+end function
+
+
+function Close as v( )
+self.conn.Close()
+end function
+end class]]></example>
+</section>
+
+<section>
+	<description>To test this example:
+</description>
+	<example><![CDATA['dim an instance of the class. this class has a constructor function
+'which will execute when the class is dimmed
+dim adow as ADODBOleWrapper2
+
+'now call the methods of the class instance
+adow.open("driver={SQL Server};server=localhost;database=Northwind")
+adow.execute("select * from customers")
+adow.close()
+
+showvar( "Events "+crlf() + adow.traceEvents )
+
+]]></example>
+</section>
+
+</sections>
+	
+	
+</page>
