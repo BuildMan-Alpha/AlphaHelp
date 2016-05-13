@@ -172,15 +172,17 @@ events.pageIndexer = function(args, savePage) {
         var methodFiles = 0;
         var nonMethodFiles = 0;
         for (i = 0; i < args.all.length; ++i) {
-            var testName = args.all[i].path.toLowerCase();
-            var pathEnd = testName.lastIndexOf('/');
-            if (pathEnd > 0)
-                testName = testName.substring(pathEnd);
-            if (testName != '/index.xml') {
-                if (testName.indexOf(' method.') > 0) {
-                    ++methodFiles;
-                } else {
-                    ++nonMethodFiles;
+            if( args.all[i].path ) {
+                var testName = args.all[i].path.toLowerCase();
+                var pathEnd = testName.lastIndexOf('/');
+                if (pathEnd > 0)
+                    testName = testName.substring(pathEnd);
+                if (testName != '/index.xml') {
+                    if (testName.indexOf(' method.') > 0) {
+                        ++methodFiles;
+                    } else {
+                        ++nonMethodFiles;
+                    }
                 }
             }
         }
@@ -568,10 +570,12 @@ events.postProcessContent = function(data) {
                 var typeSeparator = emph.indexOf(':');
                 var snippet = "<b>"+emph+"</b>";
                 if( typeSeparator > 0 ) {
+                    var implicitType = false;
                     var typeName = emph.substring(0,typeSeparator);
                     if( typeName.indexOf(' ') < 0 ) {
                         if( typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps' ) {
                              typeName = "link"; // implicit link....
+                             implicitType = true;
                         } else {     
                              emph = emph.substring(typeSeparator+1);
                         }
@@ -593,7 +597,11 @@ events.postProcessContent = function(data) {
                                     linkdef = linkdef.substring(atSignPos+1);
                                     if( linkdef ) {
                                         if( !isURI(linkdef) ) {
-                                            linkdef = help.lookupLink(linkdef);
+                                            var newlinkdef = help.lookupLink(linkdef);
+                                            if( newlinkdef || implicitType ) {
+                                                console.log("Set linkdef to "+newlinkdef);
+                                                 linkdef = newlinkdef;
+                                            }
                                         }
                                         if( linkdef ) {
                                             emph = emph.substring(0,atSignPos);

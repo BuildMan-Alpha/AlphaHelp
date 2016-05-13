@@ -1,0 +1,621 @@
+<page>
+  <topic>Creating oAuth Client Applications</topic>
+ <description>This guide includes a guide to building the UX using generated oAuth code in for stages, as well as some related topics.</description> 
+  
+  <groups><group> <title>Google Calendar Application</title>
+  <sections>
+    <section>
+     
+      <description>The starting point for accessing client code for any oAuth service like Google Calendar is to get an account at the oAuth providers site, sign in and and create an application. 
+Below is an example of the settings for an application we are calling 'Calendar Application'.
+</description>
+      <figure><link>images/oauth_creds_filled_in.PNG</link></figure>
+    </section>
+    <section>
+      <description>The site will create a client Id, client Secret. The application developer must enter a valid redirect URI. 
+The Redirect URI is the page that the Alpha Anywhere Server runs to capture the response from the oAuth server, and redirect to the session and page that initiated the request. 
+In the above example, note that two redirect URI's are provided, in this case, a LivePreview redirect URI has been added so that we can test our application in LivePreview. 
+You need also set the 'scope' your application will use. In the case of the Google Calendar Application, the scope is called https://www.googleapis.com/auth/calendar.readonly. 
+</description>
+    </section>
+    
+    </sections></group>
+    
+    <group><title>Creating a Named Resource Profile</title><sections>
+    
+     <section>
+       
+      <description>Now open the Web Control Panel "Web Project Properties", scroll down to the Resource Providers category, and click to edit. 
+</description>
+      <figure><link>images/oauth_webproject_resource_providers.PNG</link></figure>
+    </section>
+    
+    <section>
+      <description>In the 'Configure Named Resource Providers' click the 'new' button. 
+</description>
+      <figure><link>images/oauth_webproject_configure_resource.PNG</link></figure>
+      
+    </section>
+    
+      <section>
+      <description>In the New Named Resource Dialog, provide a name, and fill in the fields.
+</description>
+      <figure><link>images/oauth_webproject_new_named.PNG</link></figure>
+      
+    </section>
+    <section>
+      <steps>
+        <step>
+          <description>Call our new resource 'Google Calendar'.
+</description>
+        </step>
+            <step>
+          <description>Pick 'Google' from the drop down list of providers.
+</description>
+        </step>
+            <step>
+          <description>Copy the Client Id and Secret from your Google Developer Console Credentials Page.
+</description>
+        </step>
+            <step>
+          <description>Pop up the Test Redirect URL page - this will be require to test our provider.
+</description>
+        </step>
+            <step>
+          <description>For authorization options, pop up the editor and add option of name 'prompt' and value 'consent' this forces the authorization dialog to always show up.
+</description>
+        </step>
+            <step>
+          <description>Define calendar scope, open the scope dialog and click on the 'New' button, define a scope. 
+</description>
+          <cases>
+            <case>
+              <description>Provide a friendly name of 'calendar'
+</description>
+            </case>
+             <case>
+              <description>Provide a Scope / API Name of 'https://www.googleapis.com/auth/calendar.readonly'
+</description>
+            </case>
+             <case>
+              <description>Provide a Resource URL of 'https://www.googleapis.com/calendar/v3'
+</description>
+            </case>
+            
+          </cases>
+        </step>
+            <step>
+          <description>Click on the green 'check' icon to the left of the OK button - this will test our ability to connect to the oAuth service.
+</description>
+        </step>
+        
+        
+      </steps>
+      
+    </section>
+    
+      <section>
+
+      <figure><link>images/oauth_webproject_new_named_complete.PNG</link></figure>
+      
+    </section>
+    
+    </sections></group>
+    <group><title>Determining the REST URI needed get Events</title><sections>
+      <section>
+        
+      <description>Now that we can connect with credentials, in a browser, go to Googles Developers Console [https://developers.google.com/apis-explorer/?hl=en_US] And Type 'Calendar' in the Search box. 
+</description>
+      <figure><link>images/oauth_api_explore_calendar.PNG</link></figure>
+      
+    </section>
+    
+      <section>
+      <description>Click on the Calendar API v3 link under Services. 
+</description>
+      <figure><link>images/oauth_api_explore_calendar2.PNG</link></figure>
+      
+    </section>
+    
+      <section>
+      <description>Search for calendar.events.list , then click on the link. 
+</description>
+      <figure><link>images/oauth_api_explore_calendar_event.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>The builder for the calendar.events.list provides parameters to fill in. The calendarId corresponds to the Google id (generally your email address). 
+Fill in your email address for Google Calendar and toggle the oAuth 2.0 button (next the to red exclamation mark). 
+</description>
+      <figure><link>images/oauth_api_explore_eventlist_call.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>Scroll down to the bottom, and click on the blue Authorize and execute button. 
+This should prompt you to allow the Google API Explorer Access to your Calendar data. 
+The Request section is the text you will want to copy into Alphas REST genie, the response should show 200 OK and a json representation of the events that are on your calendar. 
+</description>
+      <figure><link>images/oauth_api_explore_eventlist_result.PNG</link></figure>
+      
+    </section>
+
+      <section>
+      <description>Note that there is an "items " array, this will be used to populate the UX list. Open the Alpha Five script editor, create a new script, and from the right click menu select the Genies... > oAuth REST Api Call... genie. 
+Select the 'Google Calendar' profile that was previously created. The genie will prompt you for credentials, then show the generated code (given a sample URI template). </description>
+      <figure><link>images/oauth_rest_genie_start.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>Provide a function name, replace myRestCall with populateEvents. Copy the URI that was generated in the Google Api Explorer into the Example URL. Change the 'email' address portion of the URI to be a placeholder '{id}'. 
+</description>
+      <figure><link>images/oauth_rest_genie_filled_in.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>Click on the 'Execute the REST call using generated code...' button, which should prompt for the id, enter your email address . Change the 'email' address portion of the URI to be a placeholder '{id}'. </description>
+      <figure><link>images/oauth_rest_genie_args.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>When you run this command, you should get the same results you got back from the Google Api Explorer. Copy the generated code into a new script, and save the script '_testEventPopulate'. 
+</description>
+      <figure><link>images/oauth_rest_genie_code1.PNG</link></figure>
+      
+    </section>
+      <section>
+      <description>Notice that the generated has our 'id' for the calendar. Generally the id for your Google calendar is your Google email address, but our production application is not going to know this, so we will need to call an API endpoint that returns a list of valid calendars for the current oAuth session. 
+</description>
+     
+      
+    </section>
+    </sections></group>
+    
+    
+    <group><title>Determining the REST URI needed to get Calendars</title><sections>
+      <section>
+        
+      <description>Go back to the Google API Explorer and find the calendar.calendarList.list API. 
+[https://developers.google.com/apis-explorer/?hl=en_US#search/%09%20calendar/calendar/v3/calendar.calendarList.list] 
+Notice that there are no required parameters, which means we don't need to know anything other than the oAuth Credentials when making this call. 
+</description>
+      <figure><link>images/oauth_rest_list_test.PNG</link></figure>
+      
+    </section>
+    
+         <section>
+      <description>Once you have confirmed that this API is returning valid calendar ids, create another new script, and this time use the calendarList.list endpoint that Google API Explorer generates. 
+</description>
+      <figure><link>images/oauth_rest_genie_getcalendars.PNG</link></figure>
+      
+    </section>
+    
+         <section>
+      <description>Execute the REST call in the genie, and if it works, save the resulting generated code to a new script called '_getCalendarIds'. 
+</description>
+      <figure><link>images/oauth_rest_genie_code2.PNG</link></figure>
+      
+    </section>
+    </sections></group>
+    <group> <title>Building the UX using generated oAuth code</title><sections>
+    <section>
+     
+    </section>
+    
+         <section>
+           <title>Stage 1 - Populate Lists Using oAuth</title>
+      <description>Now, go back to the Web Control Panel and create a new 'UX' component. 
+Insert a two listbox controls called 'lb1' and 'lb2', and a button. 
+</description>
+<cases>
+  <case>
+    <description>'lb1' will be a list to hold our Calendar Id's. 
+</description>
+  </case>
+   <case>
+    <description>'lb2' will be a list to hold the selected Calendar Id's Events. 
+</description>
+  </case>
+   <case>
+    <description>'button' will be force a login to oAuth. This will be the left untill last, when we turn on the 'production' code. 
+</description>
+  </case>
+  
+</cases>
+     
+      
+    </section>
+    <section>
+       <figure><link>images/oauth_create_ux_controls.PNG</link></figure>
+    </section>
+    
+         <section>
+      <description>Go to the Xbasic functions Section of the UX and create functions called populateList and populateEventList. 
+</description>
+<cases>
+  <case>
+    <description>populateList() wraps the GetCalendars() that we copy in from the '_getCalendarIds' script created earlier. 
+</description>
+  </case>
+   <case>
+    <description>populateEventList() wraps the populateEvents() that we copy in from the '_testEventPopulate' script created earlier. Notice that populateEventList includes a hard-coded calendarID, this needs to remain until we have built the component, because the builder for the listbox requires data to sample to get a list of field names. 
+</description>
+  </case>
+  <case>
+    
+    <example><![CDATA[function populateList as c(e as p)
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	populateList = json_extract( eventsResolve , "items" )
+    end if
+end function   
+
+function populateEventList as c(e as p)	
+	dim eventsResolve as c = populateEvents( "myname@gmail.com" ,"")
+	if eventsResolve <> " " then
+    	populateEventList = json_extract( eventsResolve , "items" )
+  end if    		
+end function   
+
+' Contents from event populate script we created 
+function populateEvents as c(id as c,YOUR_API_KEY as c)
+  dim cred as p
+  'cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+  cred = scaffoldCredentials() 'testing code...
+  if cred.hasToken = .f. then
+       exit function
+  end if
+  dim api_path as c = "/calendar/v3/calendars/"+(id)+"/events?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     populateEvents = curlResponse.GetContent()
+	else 
+		 populateEvents = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+' Contents from event get calendars script we created 
+function GetCalendars as c(YOUR_API_KEY as c)
+    dim cred as p
+    'cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+    cred = scaffoldCredentials() 'testing code...
+    if cred.hasToken = .f. then
+       exit function
+    end if
+    dim api_path as c = "/calendar/v3/users/me/calendarList?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     GetCalendars = curlResponse.GetContent()
+	else 
+		 GetCalendars = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+'Scaffold function to test credentials...
+function scaffoldCredentials as p()
+    dim cred.hasToken as l = .t.
+    dim cred.access_token as c = "ya29.TQKb1ONEccj0d5x-tuxOgEH2HzVuH0NmgUktIlzn2lptVTNGU_T5u4Ggu5Z-e2faiL0G"
+    dim cred.clientid as c = "570811586954-f2r30sniq852lc3taba6cog9e7vjtngq.apps.googleusercontent.com"
+    dim cred.resourceURL as c = "www.googleapis.com"
+    scaffoldCredentials = cred
+end function]]></example>
+  </case>
+  
+  
+</cases>
+    </section>
+    
+         <section>
+      <description>Go to the control List control 'lb1'/ List Properties and. </description>
+  <steps>
+    <step>
+      <description>Set the 'Data Source Type' to 'Custom'</description>
+    </step>
+    <step>
+      <description>Set the Custom/Xbasic function name to 'populateList' </description>
+      <figure><link>images/oauth_ux_lb1_datasource.PNG</link></figure>
+    </step>
+    <step>
+      <description>On the List Layout Tab select 'id' column, which will be the used to navigate between calendars.
+Since the List Layout Tab for Custom lists will evaluate the 'populateList', it is required that the call to populateList succeeds at this point. 
+If List Layout Tab doesn't have any available fields, then something went wrong with the oAuth REST call, which is often the case when the session expires. 
+</description>
+      <figure><link>images/oauth_ux_lb1_listlayout.PNG</link></figure>
+    </step>
+    
+  </steps>
+    </section>
+    
+         <section>
+      <description>Go to the control List control 'lb2'/ List Properties and.
+</description>
+     <steps>
+       <step>
+         <description>Set the 'Data Source Type' to 'Custom'
+</description>
+       </step>
+         <step>
+         <description>Set the Custom/Xbasic function name to 'populateEventList'
+</description>
+       </step>
+         <step>
+         <description>On the List Layout Tab select 'kind,id,status,summary and description' columns .
+</description>
+<figure><link>images/oauth_ux_lb2_listlayout.PNG</link></figure>
+       </step>
+       
+     </steps>
+      
+    </section>
+    
+         <section>
+      <description>At this point, go to Working Preview and you should see both the list Populating off the Scaffold 'id' and credentials that we have provided.
+</description>
+      <figure><link>images/oauth_ux_first_preview.PNG</link></figure>
+      
+    </section>
+    
+         <section>
+           <title>Stage 2 - Link the second List contents to the first.</title>
+      <description>Now that both the lists have been built, we will now add an event to 'lb1' to update the second list.
+</description>
+  <cases>
+    <case>
+      <description>Open List Properties for 'lb1', and click on the 'List Events...' button on the button of the List Build Dialog.
+Add an 'onClick' event That has the following code.
+
+</description>
+      <example><![CDATA[populateChildList(this.selectionData[0]);]]></example>
+    </case>
+      <case>
+      <description>Commit the changes to 'lb1', and open 'Javascript functions' and create the populateChildList client side function
+</description>
+      <example><![CDATA[function populateChildList(data) {
+   var lObj2 = {dialog.object}.getControl('lb2');
+   lObj2.populate([{}]);
+   {dialog.object}.ajaxCallback("","","xbpopulateCalendarList","","calendarId="+data.id)
+}]]></example>
+    </case>
+      <case>
+      <description>Go the the 'Xbasic Functions' and add the xbpopulateCalendarList function, which calls our populateEvents() function passing in the 'calendarId' from the Ajax callback, and returning code to repopulate the 'lb2' control.
+</description>
+      <example><![CDATA[function xbpopulateCalendarList as c(e as p)
+	on error goto done
+	dim eventsResolve as c = populateEvents( urlencode(e.calendarId),"")
+	if eventsResolve <> "" then
+		eventsResolve = json_extract( eventsResolve , "items" )
+		if eventsResolve <> "" then
+			xbpopulateCalendarList = "var lObj2 = {dialog.object}.getControl('lb2');"+\
+			crlf()+"lObj2.populate("+eventsResolve+")";		
+		end if	
+	end if
+done:	
+end function  	]]></example>
+    </case>
+      <case>
+      <description>Now preview will switch the contents of 'lb2' to match the calendar pointed to by 'lb1'.
+</description>
+     <figure><link>images/oauth_ux_second_preview.PNG</link></figure>
+    </case>
+    
+  </cases>
+      
+    </section>
+    
+         <section>
+          <title>Stage 3 - Remove the 'id' we hardcoded so that ambient credentials can be used.</title> 
+      <description>Now we need to edit the populateEventList Server-Side-Function to use the 'first' calendar id found in the GetCalendars call, instead of relying on the id we used in the REST Genie.
+</description>
+   <example><![CDATA[function populateEventList as c(e as p)	
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	eventsResolve = json_extract( eventsResolve , "items" )
+    	if eventsResolve <> "" then
+    		dim arr as p = json_parse(eventsResolve)
+			dim eventsResolve as c = populateEvents( urlencode(arr[1].id) ,"")
+			if eventsResolve <> " " then
+		    	populateEventList = json_extract( eventsResolve , "items" )
+		    end if    		
+    	end if
+	end if
+end function   ]]></example>
+    </section>
+       <section>
+           
+      <description>This Will not change the observed behaviour at this point, but the function is now ready to accept any log in.
+</description>
+  
+    </section>
+       <section>
+           <title>Stage 4 - Add oAuth login button, and comment out Scaffold code, and comment in Production code.
+</title>
+      <description>Go to the button, on click event and select the 'Server-Side Xbasic' xbasic option. Type a script (substrituting the generated name ). 
+</description>
+    <example><![CDATA[function serverside_93db1500fe5c446582e3c3879724fcaa as c (e as p)
+  dim cred as p = A5WS_GetCurrentUserResourceValues("Google Calendar ")
+  if .not. cred.hasToken then
+    serverside_93db1500fe5c446582e3c3879724fcaa = cred.javascript
+  end if	
+end function      
+]]></example>
+      
+    </section>
+       <section>
+           
+      <description>The next step is to make the UX code ask for credentials instead of using our temporary Scaffold function. To make the function production ready, comment our the 'cred - scaffoldCredentials() calls, and uncomment the like above which calls 'A5WS_GetCurrentUserResourceValues()'. 
+Final Xbasic functions for component
+</description>
+ <example><![CDATA[function xbpopulateCalendarList as c(e as p)
+	on error goto done
+	dim eventsResolve as c = populateEvents( urlencode(e.calendarId),"")
+	if eventsResolve <> "" then
+		eventsResolve = json_extract( eventsResolve , "items" )
+		if eventsResolve <> "" then
+			xbpopulateCalendarList = "var lObj2 = {dialog.object}.getControl('lb2');"+\
+			crlf()+"lObj2.populate("+eventsResolve+")";		
+		end if	
+	end if
+done:	
+end function  	
+
+function populateList as c(e as p)
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	populateList = json_extract( eventsResolve , "items" )
+    end if
+end function   
+
+function populateEventList as c(e as p)	
+	dim eventsResolve as c = GetCalendars("")
+	if eventsResolve <> " " then
+    	eventsResolve = json_extract( eventsResolve , "items" )
+    	if eventsResolve <> "" then
+    		dim arr as p = json_parse(eventsResolve)
+			dim eventsResolve as c = populateEvents( urlencode(arr[1].id) ,"")
+			if eventsResolve <> " " then
+		    	populateEventList = json_extract( eventsResolve , "items" )
+		    end if    		
+    	end if
+	end if
+end function   
+
+function populateEvents as c(id as c,YOUR_API_KEY as c)
+    dim cred as p
+    cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+    'cred = scaffoldCredentials() 'testing code...
+    if cred.hasToken = .f. then
+       exit function
+    end if
+    dim api_path as c = "/calendar/v3/calendars/"+(id)+"/events?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     populateEvents = curlResponse.GetContent()
+	else 
+		 populateEvents = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+'Implementation of REST call
+function GetCalendars as c(YOUR_API_KEY as c)
+    dim cred as p
+    cred = A5WS_GetCurrentUserResourceValues("Google Calendar") ' Production code
+    'cred = scaffoldCredentials() 'testing code...
+    if cred.hasToken = .f. then
+       exit function
+    end if
+    dim api_path as c = "/calendar/v3/users/me/calendarList?key="+(YOUR_API_KEY)
+	dim curlResponse as extension::CurlFile
+	dim result_flag as l
+	dim header_list[0] as c 
+	dim ce as extension::Curl
+	
+	header_list[] = "Authorization: Bearer "+cred.access_token
+	ce = extension::Curl.Init()
+	ce.setOpt("URL", "https://" + cred.resourceURL + api_path)
+	ce.setOpt("NOPROGRESS",1)
+	ce.setOpt("USERAGENT","curl/7.40.0")
+	ce.setOpt("HTTPHEADER",header_list)
+	ce.setOpt("MAXREDIRS",50)
+	ce.setOpt("CAINFO",a5.Get_Exe_Path()+"\caroot\ca-cert.pem")
+	ce.setOpt("CAPATH",a5.Get_Exe_Path()+"\caroot")
+	ce.setOpt("TCP_KEEPALIVE",1)
+	ce.SetOpt("FILE",curlResponse)	
+	result_flag = ce.Exec()
+	if result_flag then
+	     GetCalendars = curlResponse.GetContent()
+	else 
+		 GetCalendars = "{ \"error\" : " + js_escape(ce.Error()) + "}"
+	end if
+	ce.close()
+end function
+
+
+'Scaffold function to test credentials...
+function scaffoldCredentials as p()
+    dim cred.hasToken as l = .t.
+    dim cred.access_token as c = "{your access token - can be regenerated}"
+    dim cred.clientid as c = "{your client id}"
+    dim cred.resourceURL as c = "www.googleapis.com"
+    scaffoldCredentials = cred
+end function]]></example>
+      
+    </section>
+       <section>
+           
+      <description><![CDATA[Working preview will no longer work in production, since it does not field the callbacks.
+Live Preview will work, but with the caveat that your callback host has to match exactly. When LivePreview is done, change the URL from https://localhost:>port< to from https://127.0.0.1:>port< if thats what you defined on the Google Application Credentials.
+Now loading the UX component will start up empty, Then when the 'button' is pressed, will first 'prompt' for credentials, then reload the component using the provided credentails. 
+]]></description>
+      <figure><link>images/oauth_ux_production.PNG</link></figure>
+      
+    </section>
+       <section>
+           
+      <description>If there is a problem with the callback_url, you will get a 400 error, otherwise, you will be prompted to grant access to the Calendar Application. 
+</description>
+  
+    </section>
+    
+    
+  </sections>
+  </group></groups>
+  <links>
+    <link href="https://developers.google.com/apis-explorer/?hl=en_US">https://developers.google.com/apis-explorer/?hl=en_US</link>
+    <link href="https://developers.google.com/apis-explorer/?hl=en_US#search/%09%20calendar/calendar/v3/calendar.calendarList.list">https://developers.google.com/apis-explorer/?hl=en_US#search/%09%20calendar/calendar/v3/calendar.calendarList.list</link>
+    
+  </links>
+  
+</page>
