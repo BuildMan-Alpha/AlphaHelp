@@ -4,6 +4,11 @@
 			<xsl:call-template name="page-content"/>
 		</xsl:for-each>
 	</xsl:template>
+	<xsl:template match="pages" name="pages" >
+        <xsl:for-each select="pages/page">
+			<xsl:call-template name="page-content"/>
+		</xsl:for-each>
+	</xsl:template>
 	<xsl:template match="page-content" name="page-content" >
         <xsl:if test="./@reorder-children"><xsl:comment>orderchildren</xsl:comment> </xsl:if>
         <xsl:if test="links">
@@ -198,6 +203,9 @@
         <xsl:if test="warning">
            <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
+        <xsl:if test="pages">
+            <xsl:call-template name="pages"/>
+        </xsl:if>        
 		<xsl:if test="video">
 			<xsl:for-each select="video">
                 <xsl:choose>
@@ -337,6 +345,9 @@
         </xsl:choose>
         <xsl:if test="list">
             <xsl:call-template name="list"/>
+        </xsl:if>
+        <xsl:if test="pages">
+            <xsl:call-template name="pages"/>
         </xsl:if>
         <xsl:if test="example">
             <pre class="codeSection"><xsl:value-of select="example" /></pre>
