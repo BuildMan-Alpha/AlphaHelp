@@ -1,0 +1,487 @@
+<page>
+	<topic>Server Programming Functions and Methods</topic>
+	
+<sections>
+<section>
+	<title>Removed</title>
+	<description>Several functions and methods have been removed from the V11 Application Server. Any applications which use the following will not run in V11 without being modified.
+</description>
+</section>	
+<section>
+	<warning>Any existing applications which use any of the following MUST be modified before they will work in the V11 server.</warning>
+</section>
+<section>
+	
+	<cases>
+		<case>
+			<title>General</title>
+			<cases>
+				<case>
+					<description>Do not use property_recurse_assign(), property_to_string(), or property_to_blob() on any of the Application Server objects. 
+</description>
+				</case>
+				<case>
+					<description>a5w_load_aex() has been removed. See [Change In Way AEX Files are Used in a Web Application] 
+</description>
+				</case>
+				<case>
+					<description>a5w_unload_aex() has been removed. See [Change In Way AEX Files are Used in a Web Application]
+</description>
+				</case>
+				<case>
+					<description>a5_count_websessions() has been removed. Use Server.SessionCount as a replacement. 
+</description>
+				</case>
+				<case>
+					<description>Application.Path() is no longer available. Use Request.ApplicationRoot as a replacement. 
+</description>
+				</case>
+				<case>
+					<description>Session variables can only be strings. Other variable types are not supported and my not work as expected. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Request</title>
+			<cases>
+				<case>
+					<description>Nothing can be dimmed directly within Request. While Request has always been documented as read-only, this is now strictly enforced and any code that attempts to dim within Request will generate an error. 
+</description>
+				</case>
+				<case>
+					<description>Request.Variables2 is no longer available. All variables should be accessed using Request.Variables. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Response
+</title>
+			<cases>
+				<case>
+					<description>Response.Message_Body is now a read-only property. Any attempts to assign any value to it will generate an error. 
+</description>
+				</case>
+				<case>
+					<description>Response.Add_Cookie(), which was previously marked as deprecated, has been removed. See [Replacing Response.Add_Cookie]. 
+</description>
+				</case>
+				<case>
+					<description>Response.Add_Header(), which was previously marked as deprecated, has been removed. See [Replacing Response.Add_Header]. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Server</title>
+			<cases>
+				<case>
+					<description>Server. variables are no longer available. Code that tries to dim Server.foo as c will run without error, but the behavior will not be as previously expected. It will instead create a local variable Server which will not be visible beyond the current local scope. 
+</description>
+				</case>
+				<case>
+					<description>Server.ClearA5ICache() has been removed. The A5I cache now automatically monitors the filesystem and does not need to be manually cleared. 
+</description>
+				</case>
+				<case>
+					<description>Server.ClearGzipCache() has been removed. The Gzip cache now automatically monitors the filesystem and does not need to be manually cleared. 
+</description>
+				</case>
+				<case>
+					<description>Server.Reset() has been removed, as there are no longer server variables to delete. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>ServerSettings
+</title>
+			<cases>
+				<case>
+					<description>ServerSettings.BrowserIdCookieName has been removed. 
+</description>
+				</case>
+				<case>
+					<description>ServerSettings.BrowserIdLifetime has been removed. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Session
+</title>
+			<cases>
+				<case>
+					<description>Session.BrowserId has been removed. The Application Server no longer performs automatic browser tracking. 
+</description>
+				</case>
+				<case>
+					<description>Session.Session_Folder has been removed. Use Session.SaveDataAsFile() to safely store file-based data in the Session instead of attempting to write directly to disk. 
+</description>
+<example><![CDATA[<%a5
+dim Fn as c = "MySessionPage.html"
+dim FileData as b
+FileData = "<html><body><h2>Hello World</h2></body></html>"
+Session.SaveDataAsFile(Fn,FileData)
+Response.Redirect( Session.FormatFileDataURL(Fn) )
+%>]]></example>
+<note>The file extension of the filename used as a key in Session.SaveDataAsFile(Key, data) and Session.FormatFileDataURL(Key) matters, because the extension is used for MIME type parsing. For example, in order to have Excel data treated as such when it is sent to the browser, use an extension of .XLS. The above example uses a file extension of .HTML.</note>
+				</case>
+				<case>
+					<description>Session.Session_Url has been removed. Use Session.FormatFileDataURL() instead when linking to Session resources. 
+</description>
+				</case>
+				<case>
+					<description>Session Variables cannot be created directly from a request query string or POST body. This negates the need to use "protected" session variables, as all session variables now effectively "protected". In order to create a session variable, you must execute A5W code to read the request variable and create or set the session variable. A request for a URL such as [http://localhost/index.a5w?session.name=John] will not create a session variable session.name, but will instead create a request variable which may be accessed as Request.Variables.session.name during the lifetime of that request only. 
+</description>
+<example><![CDATA[dim Session.Name as c = Request.Variables.Name]]></example>
+				</case>
+				
+			</cases>
+		</case>
+		
+		
+	</cases>
+	
+	
+</section>
+<section>
+	<title>Deprecated</title>
+	<description>The following will continue to work in the standard V11 server, but will be removed in a future release. Replacement of any application code that uses the following should be planned now for future compatibility. All new code should be written using the replacement properties and methods specified.
+</description>
+	<note>Existing code that uses any of the following will continue to work in the V11 Alpha Web Server, but will NOT work in future release. You should begin planning replacement of affected existing code now and use the specified replacement(s) in all new code.</note>
+</section>
+
+<section>
+	<cases>
+		<case>
+			<title>Component Events</title>
+			<cases>
+				<case>
+					<description>e.rv - Use Request.Variables to directly access request variables (also referred to as "page variables"). 
+</description>
+				</case>
+				<case>
+					<description>e.session - Uses Session to directly access the Session object. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Request
+</title>
+			<cases>
+				<case>
+					<description>Request.Script_Name - Use Request.ScriptName as a replacement. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Response</title>
+			<cases>
+				<case>
+					<description>Response.Message_Body - Use Response.Write() instead of assigning to Response.Message_Body. 
+</description>
+				</case>
+				<case>
+					<description>Response.Mime_Type - Use Response.ContentType as a replacement. 
+</description>
+				</case>
+				<case>
+					<description>Response.Reason_Phrase - Use Response.StatusDescription as a replacement. 
+</description>
+				</case>
+				<case>
+					<description>Response.Status_Code - Use Response.StatusCode as a replacement. Note that .StatusCode is a numeric variable and .Status_Code is a character variable. 
+</description>
+				</case>
+				<case>
+					<description>Response.AddCookie() - Use Response.Cookies.Add (System.Web.HttpCookie) or Response.Cookies.Set(System.Web.HttpCookie) as a replacement. See [Replacing Response.Add_Cookie]
+</description>
+				</case>
+				<case>
+					<description>Response.AddHeader() - Use Response.Headers.Add(Name,Value) or Response.Headers.Set(Name,Value) as a replacement. See [Replacing Response.Add_Header]
+</description>
+				</case>
+				<case>
+					<description>Response.Redirect(NewUrl,.t.) - Use Response.RedirectPermanent() to create a permanent redirect instead of the legacy Response.Redirect() syntax. Response.Redirect(Url) is not deprecated, only the syntax specifying the second argument to create a permanent redirect is deprecated. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Session</title>
+			<cases>
+				<case>
+					<description>Session.Timestamp 
+</description>
+				</case>
+				<case>
+					<description>Session.Reset() - Use Session.Clear() as a replacement. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		
+	</cases>
+	
+	
+	
+</section>
+<section>
+	<title>Added</title>
+<description>The following objects, properties, and methods have been added to the V11 Application Server. In some cases they add new functionality, while others supersede a previous property or method.
+</description>	
+	<cases>
+		<case>
+			<title>Context</title>
+			<cases>
+				<case>
+					<description>Context.GridCache 
+</description>
+				</case>
+				<case>
+					<description>Context.HostContext 
+</description>
+				</case>
+				<case>
+					<description>Context.HostContextName 
+</description>
+				</case>
+				<case>
+					<description>Context.Request 
+</description>
+				</case>
+				<case>
+					<description>Context.Response 
+</description>
+				</case>
+				<case>
+					<description>Context.Security 
+</description>
+				</case>
+				<case>
+					<description>Context.Session 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Request
+</title>
+			<cases>
+				<case>
+					<description>Request.ScriptName - The requested file, such as "/index.html" (the currently running page). Replaces Request.Script_Name. 
+</description>
+				</case>
+				<case>
+					<description>Request.GetRequestTempFileName([FileExtension as c]) - Creates a filename for temporary use. Any data stored in the corresponding filename will automatically be removed when the current request completes processing.
+The optional FileExtension parameter specifies the extension to use for the temporary file. If omitted, .tmp will be used. FileExtension may be specified with or without the leading dot (e.g. "jpg" and ".jpg" will both work and produce an equivalent result). 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Response</title>
+			<cases>
+				<case>
+					<description>Response.ContentType - The MIME type for this Response. Replaces Response.Mime_Type. 
+</description>
+				</case>
+				<case>
+					<description>Response.Cookies - This is a collection of cookies that will be sent as part of the outgoing response. It is a .NET HttpCookieCollection, with individual items in the collection each being a .NET HttpCookie object. This is identical to ASP.NET's HttpResponse.Cookies and can be used in the same manner. See [Replacing Response.Add_Cookie]
+</description>
+				</case>
+				<case>
+					<description>Response.Headers - This is a collection of headers that will be sent as part of the outgoing response. It is a .NET NameValueCollection, with individual items in the collection each being a simple name-value pair. This is identical to ASP.NET's HttpResponse.Headers and can be used in the same manner. See [Replacing Response.Add_Header]
+</description>
+				</case>
+				<case>
+					<description>Response.OutputStream - A .NET System::IO::Stream object which enables binary output to the outgoing HTTP content body. This is identical to the ASP.NET HttpResponse.OutputStream Property. 
+</description></case>
+<case>
+<description>Complete documentation of the ASP.NET HttpResponse.OutputStream Property is at [http://msdn.microsoft.com/en-us/library/system.web.httpresponse.outputstream.aspx]
+</description></case>
+				
+				<case>
+					<description>Response.StatusCode - The HTTP status code for this Response. Replaces Response.Status_Code. Note that .StatusCode is a numeric variable and the legacy .Status_Code is a character variable. 
+</description>
+				</case>
+				<case>
+					<description>Response.StatusDescription - The HTTP status description for this Response. Replaces Response.Reason_Phrase. 
+</description>
+				</case>
+				<case>
+					<description>Response.Clear() - Clears all content from the output buffer. It does not clear the headers, see Response.ClearHeaders() . 
+</description>
+				</case>
+				<case>
+					<description>Response.ClearContent() - Clears all content from the output buffer. It does not clear the headers, see Response.ClearHeaders() . 
+</description>
+				</case>
+				<case>
+					<description>Response.ClearHeaders() - Clears all headers from the output buffer. It does not clear the body, see Response.ClearContent() . 
+</description>
+				</case>
+				<case>
+					<description>Response.End() - Signals the Application Server to stop processing the A5W page, returning only the output created so far. Any remaining content in the file will not be processed. 
+</description>
+				</case>
+				<case>
+					<description>Response.RedirectPermanent() - A new method for creating a permanent redirect. This replaces the Response.Redirect() syntax that specifies the second parameter to create a permanent redirect. 
+</description>
+				</case>
+				<case>
+					<description>Response.Write() - Write data to the Response body. This is the equivalent of using ? 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		<case>
+			<title>Session</title>
+			<cases>
+				<case>
+					<description>Session.CallResult - (read-only) </description>
+				</case>
+				<case>
+					<description>Session.CookieMode - (read-only) A .NET System::Web::HttpCookieMode enumeration that specifies how cookies are used for a Web application.</description>
+				</case>
+			<case>
+				
+				<description>Complete documentation of HttpCookieMode is at [http://msdn.microsoft.com/en-us/library/system.web.httpcookiemode.aspx]</description>
+				</case>
+				<case>
+					<description>Session.Count - (read-only) The number of variables stored in the session. 
+</description>
+				</case>
+				<case>
+					<description>Session.FormatFileDataURL(Key as C) - 
+</description>
+				</case>
+				<case>
+					<description>Session.IsCookieless - (read-only) Indicates whether or not cookies are being used to track the state of this session. 
+</description>
+				</case>
+				<case>
+					<description>Session.Keys - (read-only) A .NET System::Collections::Specialized::NameObjectCollectionBase::KeysCollection collection of the keys for all values stored in session variables. 
+</description></case>
+<case>
+<description>Complete documentation of System.Collections.Specialized.NameObjectCollectionBase.KeysCollection is at [http://msdn.microsoft.com/en-us/library/system.collections.specialized.nameobjectcollectionbase.keyscollection.aspx]</description>
+				</case>
+				<case>
+					<description>Session.Timeout - (read-write) The timeout, in minutes, for this session. A new value must be specified in whole minutes. The minimum timeout is 1 minute and the maximum is 525600 minutes (365 days). 
+</description>
+				</case>
+				<case>
+					<description>Session.UniqueDataKey - (read-only) 
+</description>
+				</case>
+				<case>
+					<description>Session.Add(Name as C, Value as A) - Adds a new session variable. 
+</description>
+				</case>
+				<case>
+					<description>Session.Clear() - Removes all session variables. 
+</description>
+				</case>
+				<case>
+					<description>Session.GetData(Key as C, BYREF Data as A) 
+</description>
+				</case>
+				<case>
+					<description>Session.Remove(Name as C) - Removes the specified session variable. 
+</description>
+				</case>
+				<case>
+					<description>Session.RemoveAll() - Removes all session variables. This is functionally equivelent to Session.Clear(). 
+</description>
+				</case>
+				<case>
+					<description>Session.SaveData(Key as C, Data as A) 
+</description>
+				</case>
+				<case>
+					<description>Session.SaveDataAsFile(Key as C, Data as B) 
+</description>
+<note>The file extension of the filename used as a key in Session.SaveDataAsFile(Key, data) and Session.FormatFileDataURL(Key) matters, because the extension is used for MIME type parsing. For example, in order to have Excel data treated as such when it is sent to the browser, use an extension of .XLS after the key/file name.</note>
+				</case>
+				
+			</cases>
+		</case>
+		
+		
+	</cases>
+</section>
+<section>
+	<title>Changes in Operation</title>
+	<cases>
+		<case>
+			<title>Response</title>
+			<cases>
+				<case>
+					<description>Response.SendFile() has been extended to allow control over the raising of a Save As prompt in the client. Prior to V11, the Save As dialog would always be opened. To suppress this dialog, specify a logical value of false as the second parameter to the method. </description>
+				</case>
+				<case>
+					<description>Example 1:</description>
+					<example><![CDATA[<%a5
+'Send a file without explicitly telling the browser to prompt to save.
+Response.SendFile(Filename,.f.)
+%> ]]></example>
+				</case>
+				<case>
+					<description>Example 2:</description>
+					<example><![CDATA[<%a5
+'Send a file, using an alternate name when sent, without explicitly telling the browser to prompt to save.
+Response.SendFile(Filename,.f.)
+%>]]></example>
+				</case>
+			</cases>
+		</case>
+		<case>
+			<title>Session</title>
+			<cases>
+				<case>
+					<description>Session.Abandon() now returns void. Prior to Version 11, it returned a logical result. 
+</description>
+				</case>
+				<case>
+					<description>Application Server Settings, Session Lifetime is now specified in minutes. Previously the value was specified in seconds. 
+</description>
+				</case>
+				
+			</cases>
+		</case>
+		
+	</cases>
+	
+	
+</section>
+
+</sections>
+	<links>
+		
+<link href="http://documentation.alphasoftware.com/testdoc/pages/Server/Guide/Design/Platform/Dotnet/Replacing%20Response.Add_Cookie.xml">Replacing Response.Add_Cookie</link>		
+<link href="http://documentation.alphasoftware.com/testdoc/pages/Ref/Api/Namespace/DotNet/Replacing%20Response.Add_Header.xml">Replacing Response.Add_Header</link>
+<link href="http://documentation.alphasoftware.com/testdoc/pages/Server/Guide/Design/Platform/Xbasic/Change%20In%20Way%20AEX%20Files%20are%20Used%20in%20a%20Web%20Application.xml">Change In Way AEX Files are Used in a Web Application</link>		
+<link href="http://msdn.microsoft.com/en-us/library/system.web.httpresponse.outputstream.aspx">http://msdn.microsoft.com/en-us/library/system.web.httpresponse.outputstream.aspx</link>	
+<link href="http://msdn.microsoft.com/en-us/library/system.web.httpcookiemode.aspx">http://msdn.microsoft.com/en-us/library/system.web.httpcookiemode.aspx</link>	
+<link href="http://msdn.microsoft.com/en-us/library/system.collections.specialized.nameobjectcollectionbase.keyscollection.aspx">http://msdn.microsoft.com/en-us/library/system.collections.specialized.nameobjectcollectionbase.keyscollection.aspx</link>
+<link href="http://localhost/index.a5w?session.name=John">http://localhost/index.a5w?session.name=John</link>
+	</links>
+	
+	
+</page>
