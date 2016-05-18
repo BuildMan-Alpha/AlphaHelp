@@ -53,6 +53,11 @@ getAllFiles(baseFolder, function (err) {
                     var document = null;
                     try {
                         document = new xmldoc.XmlDocument(data);
+                        if( !document.description ) {
+                             console.log("(FILE=" + file.filename+ ")\n Warning: missing description");
+                        } else if( !document.topic ) {
+                             console.log("(FILE=" + file.filename+ ")\n Warning: missing topic");                            
+                        }
                     } catch (err) {
                         console.log("(FILE=" + file.filename+ ")\n Error: "+ err);
                     }

@@ -652,10 +652,11 @@ events.embedXmlPage = function(data) {
                 data += (parseInt(nested[i].substring(0,term))+1); // increase the initial depth
                 data += nested[i].substring(term);
             } else {
-                data += nested[i]
+                data += nested[i];
             }
         }
     }
+    
     if( data.substring(0,5) == "<page" ) {
         // Add depth to the page tag
         data = "<page depth=\"2\""+data.substring(5);
