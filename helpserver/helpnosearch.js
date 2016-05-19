@@ -664,6 +664,28 @@ events.embedXmlPage = function(data) {
     return data;
 }
 
+events.canFlatten = function(pageName) {
+    var flattenChildren = [
+        { path : "/Ref/Api/Functions/" , level : 2 },
+        { path : "/Ref/Api/Namespace/" , level : 1 },
+        { path : "/Ref/Api/Objects/" , level : 1 }
+    ];
+    for( var i = 0 ; i < flattenChildren.length ; ++i ) {
+        var child = flattenChildren[i];
+        var pos = pageName.indexOf(child.path);
+        if( pos >= 0 ) {
+            var part = pageName.substring(pos+child.path.length);
+            if( child.level > 0 ) {
+                if( part.split('/').length > child.level ) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
