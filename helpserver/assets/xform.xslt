@@ -4,6 +4,11 @@
 			<xsl:call-template name="page-content"/>
 		</xsl:for-each>
 	</xsl:template>
+	<xsl:template match="pages" name="pages" >
+        <xsl:for-each select="pages/page">
+			<xsl:call-template name="page-content"/>
+		</xsl:for-each>
+	</xsl:template>
 	<xsl:template match="page-content" name="page-content" >
         <xsl:if test="./@reorder-children"><xsl:comment>orderchildren</xsl:comment> </xsl:if>
         <xsl:if test="links">
@@ -30,8 +35,16 @@
                 </xsl:for-each>
             </script>
         </xsl:if>
-		<xsl:if test="topic"><h1><xsl:value-of select="topic" /></h1></xsl:if>
-		<xsl:if test="name"> <h1><xsl:value-of select="name" /></h1></xsl:if>
+        <xsl:choose>
+           <xsl:when test="./@depth">
+                <xsl:if test="topic"><h1><a name="section{(./@depth)-1}_{topic}" ><xsl:value-of select="topic" /></a></h1></xsl:if>
+                <xsl:if test="name"> <h1><a name="section{(./@depth)-1}_{name}" ><xsl:value-of select="name" /></a></h1></xsl:if>
+           </xsl:when>
+           <xsl:otherwise>
+                <xsl:if test="topic"><h1><xsl:value-of select="topic" /></h1></xsl:if>
+                <xsl:if test="name"> <h1><xsl:value-of select="name" /></h1></xsl:if>
+           </xsl:otherwise>
+        </xsl:choose>   
 		<xsl:if test="syntax">
 			<p class="A5">Syntax</p>
 			<xsl:value-of select="syntax" />
@@ -198,6 +211,9 @@
         <xsl:if test="warning">
            <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
         </xsl:if>
+        <xsl:if test="pages">
+            <xsl:call-template name="pages"/>
+        </xsl:if>        
 		<xsl:if test="video">
 			<xsl:for-each select="video">
                 <xsl:choose>
@@ -304,14 +320,8 @@
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
-            <xsl:choose>
-                <xsl:when test="title/@nested">
-                    <h4 class="section-level-{title/@nested}"><a name="section{title/@nested}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h4>
-                </xsl:when>
-                <xsl:otherwise>
-                    <h3 class="section-level-1"><a name="section1_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:when test="title/@nested"><xsl:value-of select="title/@nested" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+            <h3 class="section-level-{$depth}"><a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
@@ -337,6 +347,9 @@
         </xsl:choose>
         <xsl:if test="list">
             <xsl:call-template name="list"/>
+        </xsl:if>
+        <xsl:if test="pages">
+            <xsl:call-template name="pages"/>
         </xsl:if>
         <xsl:if test="example">
             <pre class="codeSection"><xsl:value-of select="example" /></pre>
@@ -437,18 +450,19 @@
     </xsl:template>
     
 	<xsl:template match="properties-content" name="properties-content" >
+        <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
         <xsl:choose>
             <xsl:when test="./@readonly">
-                <dt class="propertyReadonly" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:when test="./@writeonly">
-                <dt class="propertyWriteonly" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:when test="./@pseudo">
-                <dt class="propertyPseudo" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
             <xsl:otherwise>
-                <dt class="propertyReadwrite" ><a name="section1_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:otherwise>
         </xsl:choose> 
         <dd><xsl:value-of select="description" />

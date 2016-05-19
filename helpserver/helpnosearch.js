@@ -641,6 +641,30 @@ events.postProcessContent = function(data) {
     return data;
 };
 
+events.embedXmlPage = function(data) {
+    var nested = data.split("<page depth=\"");
+    if( nested.length > 1 ) {
+        data = nested[0];
+        for( var i = 1 ; i < nested.length ; ++i ) {
+            var term = nested[i].indexOf('"');
+            data += "<page depth=\"";
+            if( term > 0 ) {
+                data += (parseInt(nested[i].substring(0,term))+1); // increase the initial depth
+                data += nested[i].substring(term);
+            } else {
+                data += nested[i];
+            }
+        }
+    }
+    
+    if( data.substring(0,5) == "<page" ) {
+        // Add depth to the page tag
+        data = "<page depth=\"2\""+data.substring(5);
+    }
+    return data;
+}
+
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 
