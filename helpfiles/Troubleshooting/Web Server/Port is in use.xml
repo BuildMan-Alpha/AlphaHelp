@@ -1,0 +1,83 @@
+<page>
+    <topic>Port is Already in Use Error when Starting Server</topic>
+    <description>The Alpha Anywhere Application Server cannot start if the server's Server Port is being used by another process.</description>
+    <sections>
+        <section>
+            <figure>
+                <title>Port 80 is already in use.</title>
+                <link alt="The server cannot be started. Port 80 is already in use. Make sure no other server software is configured to use this port and try again.">images/portIsInUse.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>Network services use TCP ports to "listen" for incoming requests from remote clients and service them. The combination of IP address and TCP port is what provides the unique address for your service, so only one process can use a given port at a time. When you attempt to start the Application Server, it will warn you if there is already some other program using the port it is configured to use and it will then abort starting. If this happens, you can either use a different port for the Application Server, or you can determine what other program is using the port and stop it.</description>
+        </section>
+        <section>
+            <title>Changing the Application Server Port</title>
+            <description>
+                <p>If you are running the Development Application Server, changing the port used by the server is the easiest solution. Change the Server Port in the Application Server Control Panel and start the server. Specify a port that is not 80, such as 8080.</p>
+                <p>When you publish your application, you must include the chosen Server Port in as part of the URL that they access. For example, *[bold:localhost:8080/myApplication/index.a5w]*</p>
+            </description>
+            <note>Changing the port number may not desired in a Production environment. This is because anyone using your site must include the port number in the URL. For example, *[bold:http://www.myapplicationsite.com:8080/index.a5w]*.</note>
+        </section>
+        <section>
+            <title>How to Determine the Process Using the Port</title>
+            <description>
+                <p>The Application Server cannot determine what other process is using a port on your computer for you. Windows provides tools you can uset to determine what process is using the port. Once you know the other process involved, you can determine whether it is providing a critical service or if it is safe to disable.</p>
+                <p>Follow the instructions below to determine the application using the port.</p>
+            </description>
+            <note>This guide requires *[Windows Task Manager]* and *[netstat]*, both of which are availalbe on Windows XP, Windows 2003 and newer versions of Windows. If you need to determine the port in use on older, unsupported versions of Windows, third-party tools are availalbe online. Follow the instructions for the third-party tool you use to determine what process is using port 80.</note>
+        </section>
+        <section>
+            <steps>
+                <step>
+                    <description>At a Windows command prompt, run the command *[netstat -o]*. This will output a list of ports, along with the PID (process ID) that has that port open. *[netstat]* should produce output similar to the example below:</description>
+                    <example><![CDATA[C:\Documents and Settings\Administrator>netstat -o 
+Active Connections 
+
+  Proto  Local Address          Foreign Address        State           PID 
+  TCP    WEBAPPSERVER2:80       199.90.113.2:57434     TIME_WAIT       2636 
+  TCP    WEBAPPSERVER2:80       199.90.113.2:57589     TIME_WAIT       2636 
+  TCP    WEBAPPSERVER2:80       199.90.113.2:57600     TIME_WAIT       2636 
+  TCP    WEBAPPSERVER2:80       199.90.113.2:57608     TIME_WAIT       2636 
+  TCP    WEBAPPSERVER2:3389     12.110.143.84:6473     ESTABLISHED     964 
+  TCP    WEBAPPSERVER2:2325     192.168.0.13:netbios-ssn  TIME_WAIT       0 
+
+C:\Documents and Settings\Administrator>]]></example>
+                </step>
+                <step>
+                    <description>
+                        <p>The sample output above indicates that the local port 80 is being used by process ID 2636. To determine the executable running as this process ID, you need to use *[Windows Task Manager]*.</p>
+                        <p>Open *[Windows Task Manager]*. This can be done in the Windows command prompt. Run *[taskmgr]* in the command prompt.</p>
+                    </description>
+                    <example><![CDATA[C:\Documents and Settings\Administrator>taskmgr
+
+C:\Documents and Settings\Administrator>]]></example>
+                </step>
+                <step>
+                    <description>Open the *[Processes]* tab.</description>
+                    <figure>
+                        <title>Processes tab in Windows Task Manager</title>
+                        <link>images/portIsInUse_taskmgr1.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>
+                        <p>Add *[PID]* (Process Identifier) to the columns displayed for the processes. Depending on the version of Windows Task Manager you are running, the PID column can be added by selecting *[ui:Select Columns]* under the *[ui:View]* menu.</p>
+                        <p>If *[ui:Select Columns]* is not listed under the *[ui:View]* menu, right click on the title bar in the Process tab (as shown below) and select *[PID]* from the list of options.</p>
+                    </description>
+                    <figure>
+                        <title>Adding the PID column to the Processes tab in Windows Task Manager</title>
+                        <link>images/portIsInUse_taskmgr2.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Sort the process that are running by clicking on the *[PID]* heading. Find the PID that matches the PID using port 80 listed by netstat. The process in the *[Name]* column is the application using the port.</description>
+                    <figure>
+                        <title>This screenshot shows that process ID 2636 is alpha5.exe, indicating that port 80 is used by the Application Server</title>
+                        <link>images/PID.jpg</link>
+                    </figure>
+                </step>	
+            </steps>
+        </section>
+    </sections>
+</page>
