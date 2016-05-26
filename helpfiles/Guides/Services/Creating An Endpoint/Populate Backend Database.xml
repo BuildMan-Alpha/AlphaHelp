@@ -1,0 +1,120 @@
+<page>
+<topic>Populate Backend Database</topic> 
+<description>
+Lets add a post method to populate the tables.  
+</description>
+<sections>
+<section>
+<example><![CDATA[<%a5
+dim tablename as c 
+dim primaryKeyName as c
+
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+    if tablename = "Products" then
+    	primaryKeyName = "ProductID"
+    else
+        primaryKeyName = "CustomerID"    
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+
+dim args as sql::Arguments
+dim sql as c = "select * from "+tablename
+
+if eval_valid("request.variables.primarykey") then
+   args.Set("Pkey",request.variables.primarykey)
+   sql = sql + " where "+primaryKeyName+" = :PKey"
+end if
+
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	if request.request_method = "POST" then
+	    ' Add a record
+		if json_validate(request.body) <> "" then
+		    ? "{ \"error\" : \"Body is not valid JSON \" }"
+	    	end 
+		end if
+
+        dim ti as sql::TableInfo
+        cn.GetTableInfo(ti,tablename)
+
+		dim jsd as extension::JSON
+		jsd.setJson(request.body)
+		dim columns as c = ""
+		dim values as c = ""
+		for i = 1 to  ti.Column.Count
+			dim columnName as c = ti.Column[i].name
+			if jsd.hasProperty(columnName) then
+				args.Set(columnName,jsd.getProperty(columnName))
+				columns = columns + columnName + ","
+				values = values + ":" + columnName + ","				
+			end if
+		next
+		if columns <> "" then
+			columns = rtrim(columns,",")
+			values = rtrim(values,",")
+			sql = "insert into "+tablename+" ("+columns+") values ("+values+")"
+		else
+			? "{ \"error\" : \"No columns specified \" }"
+			end
+		end if
+	 end if
+
+	 if cn.Execute(sql,args) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        if request.request_method = "POST" then
+		    if rs.CallResult.LastInsertedIdentity = "" then
+				? "{ \"identity\" : \"" + rs.Data(1) + "\" }"
+			else      
+	            ? "{ \"identity\" : \""+rs.CallResult.LastInsertedIdentity+"\" }"
+			end if	
+        else
+	        dim responseJson as c = rs.ToJSONObjectSyntax()
+	        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+		    ? json_reformat( responseJson )
+	        end
+        end if
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if]]></example>
+</section>
+<section>
+<example><![CDATA[>curl -d "{ \"ProductName\" : \"Foozeball\" }" "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products"
+{ "identity" : "90" }
+
+>curl "http://127.0.0.1:8081/service_endpoint2.a5w?tablename=products&primarykey=90"
+{
+    "items": [
+        {
+            "ProductID": "90",
+            "ProductName": "Foozeball",
+            "SupplierID": null,
+            "CategoryID": null,
+            "QuantityPerUnit": null,
+            "UnitPrice": "0",
+            "UnitsInStock": "0",
+            "UnitsOnOrder": "0",
+            "ReorderLevel": "0",
+            "Discontinued": "F"
+        }
+    ]
+}
+]]></example>
+</section>
+</sections>
+</page>
