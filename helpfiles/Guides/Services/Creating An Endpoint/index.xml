@@ -1,0 +1,306 @@
+<page>
+<topic>Creating A Service Endpoint</topic>
+<description>
+Create a Service Endpoint in Alpha Anywhere to Retreive, Create, Update and Delete data.
+</description>
+<discussion>
+It is possible to use A5W pages to define an enpoint that is consumed as a service, using JSON, XML, CSV text or whatever other data format
+is convenient.   In addition to HTTP 'GET', an A5W page can also accept 'POST' requests
+</discussion>
+<sections>
+<section>
+<title>Get Records</title>
+<description>
+<p>Lets start with a simple page that just returns the records in Northwind Customer Table as JSON data.</p> 
+<p>Create a new A5W page that has no HTML content, and which only dumps the JSON from Customer table (assuming the project has a connection string to the sample 'Northwind' Database).</p>  
+</description>
+<example>
+<![CDATA[<%a5
+dim sql as c = "select * from Customers"
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	 if cn.Execute(sql) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        dim responseJson as c = rs.ToJSONObjectSyntax()
+        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+	    ? json_reformat( responseJson )
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>]]>
+</example>
+</section>
+<section>
+<title>Testing our First Service Endpoint</title>
+<description>
+If the page called service_endpoint/a5w is published to the Root folder, and our port is 8081.  When we execute the following 'curl' command against the page on a running server,
+ we will see the JSON data being echoed.
+</description>
+<example>
+<![CDATA[>curl "http://127.0.0.1:8081/service_endpoint.a5w"
+{
+   "items": [
+        {
+            "CustomerID": "ALFKI",
+            "CompanyName": "Alfreds Futterkiste",
+            "ContactName": "manager\u001B",
+            "ContactTitle": "Sales Representative",
+            "Address": "Obere Str. 57",
+            "City": "Berlin",
+            "Region": null,
+            "PostalCode": "12209",
+            "Country": "Germany",
+            "Phone": "030-0074321",
+            "Fax": "030-0076545"
+        },
+        {
+            "CustomerID": "ANATR",
+.....
+.....
+.....
+           "PostalCode": "21240",
+            "Country": "Finland",
+            "Phone": "90-224 8858",
+            "Fax": "90-224 8858"
+        },
+        {
+            "CustomerID": "WOLZA",
+            "CompanyName": "Wolski  Zajazd",
+            "ContactName": "Zbyszek Piestrzeniewicz",
+            "ContactTitle": "Owner",
+            "Address": "ul. Filtrowa 68",
+            "City": "Warszawa",
+            "Region": null,
+            "PostalCode": "01-012",
+            "Country": "Poland",
+            "Phone": "(26) 642-7012",
+            "Fax": "(26) 642-7012"
+        }
+    ]
+}]]>
+</example>
+</section>
+<section>
+<title>Adding Parameters</title> 
+<description>
+<p>Our first attempt at an endpoint is just to Demonstrate that an A5W page does not need to return just HTML.  Lets say we wanted to be able to 
+Return the Contents of either the Customers or the Products table.</p>
+<p>To Do this, Edit the endpoint page to take a 'tablename' parameter, which will select the table to use, or return an error.
+</p>
+</description>
+<example><![CDATA[<%a5
+dim tablename as c
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+dim sql as c = "select * from "+tablename
+
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	 if cn.Execute(sql) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        dim responseJson as c = rs.ToJSONObjectSyntax()
+        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+	    ? json_reformat( responseJson )
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>]]>
+</example>
+</section>
+
+<section>
+<title>Testing Service Endpoint With Parameters</title>
+<description>
+<p>Now if we use the original curl command, we recieve a JSON packet with the error indicating that we have not specified a require paremeter.</p>
+<p>Supply the parameter, and now our page can bring back either .</p>
+</description>
+<example><![CDATA[>curl "http://127.0.0.1:8081/service_endpoint.a5w"
+{ "error" : "No tablename specified " }
+
+>curl "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products"
+{
+   "items": [
+        {
+            "ProductID": "1",
+            "ProductName": "Chai",
+            "SupplierID": "1",
+            "CategoryID": "1",
+            "QuantityPerUnit": "10 boxes x 20 bags",
+            "UnitPrice": "18",
+            "UnitsInStock": "39",
+            "UnitsOnOrder": "0",
+            "ReorderLevel": "10",
+            "Discontinued": "F"
+        },
+        {
+            "ProductID": "2",
+        .....
+]]></example>
+</section>
+
+<section>
+<title>Page That Supports direct Population of a Backend Database</title> 
+<description>
+Now we have a service endpoint that allows us to List, Create , Update and Delete Records from both a Customers and Products Tables.  
+</description>
+<example><![CDATA[<%a5
+dim tablename as c 
+dim primaryKeyName as c
+
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+    if tablename = "Products" then
+    	primaryKeyName = "ProductID"
+    else
+        primaryKeyName = "CustomerID"    
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+
+dim args as sql::Arguments
+dim sql as c = "select * from "+tablename
+
+if eval_valid("request.variables.primarykey") then
+   args.Set("Pkey",request.variables.primarykey)
+   sql = sql + " where "+primaryKeyName+" = :PKey"
+end if
+
+dim action as c = "get"
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	if request.request_method = "POST" then
+	    ' Add a record
+		if json_validate(request.body) <> "" then
+		    ? "{ \"error\" : \"Body is not valid JSON \" }"
+	    	end 
+		end if
+	    dim jso as extension::JSON
+        jso.setJson(request.body)
+        action = jso.getProperty("action")
+
+        dim ti as sql::TableInfo
+        cn.GetTableInfo(ti,tablename)
+        if action = "insert" then
+            dim jsonData as c = jso.getPropertyString("data")             
+            if jsonData <> "" then
+	            dim jsd as extension::JSON
+				jsd.setJson(jsonData)
+				if jsd.isObject() then
+	                 dim columns as c = ""
+	                 dim values as c = ""
+	                 for i = 1 to  ti.Column.Count
+	                     dim columnName as c = ti.Column[i].name
+	                     if jsd.hasProperty(columnName) then
+	                     	 args.Set(columnName,jsd.getProperty(columnName))
+							 columns = columns + columnName + ","
+							 values = values + ":" + columnName + ","
+	                     end if
+	                 next
+					 if columns <> "" then
+	                     columns = rtrim(columns,",")
+	                     values = rtrim(values,",")
+	                     sql = "insert into "+tablename+" ("+columns+") values ("+values+")"
+                     else
+						? "{ \"error\" : \"No columns specified \" }"
+			            end
+	                 end if
+				end if
+			else
+				? "{ \"error\" : \"No data specified \" }"
+		        end
+       	    end if
+        else if action = "update" then
+            dim jsonData as c = jso.getPropertyString("data")             
+            if jsonData <> "" then
+	            dim jsd as extension::JSON
+				jsd.setJson(jsonData)
+				if jsd.isObject() then
+	                 dim columns as c = ""
+	                 dim values as c = ""
+	                 for i = 1 to  ti.Column.Count
+	                     dim columnName as c = ti.Column[i].name
+	                     if jsd.hasProperty(columnName) then
+	                     	 args.Set(columnName,jsd.getProperty(columnName))
+							 columns = columns + columnName+" = :"+ columnName + ","
+	                     end if
+	                 next
+					 if columns <> "" then
+	                     columns = rtrim(columns,",")
+	                     sql = "update "+tablename+" set "+columns+" where "+primaryKeyName+" = :PKey"
+                     else
+						? "{ \"error\" : \"No columns specified \" }"
+			            end
+	                 end if
+				end if
+			else
+				? "{ \"error\" : \"No data specified \" }"
+		        end
+       	    end if
+        else if action = "delete" then
+            if primaryKeyName = "" then
+	           ? "{ \"error\" : \"Delete action requires primary key\" }"
+ 	           end 
+            end if
+            sql = "delete from "+tablename+" where "+primaryKeyName+" = :PKey"
+        else
+            ? "{ \"error\" : \"must specify action of insert, update , or delete\" }"
+            end
+        end if
+	 end if
+
+	 if cn.Execute(sql,args) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        if action = "insert" then            
+            ? "{ \"identity\" : \""+rs.CallResult.LastInsertedIdentity+"\" }"
+        else if action = "update" .or. action = "delete" then
+            ? "{ \"handled\" : true }"
+        else
+	        dim responseJson as c = rs.ToJSONObjectSyntax()
+	        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+		    ? json_reformat( responseJson )
+	        end
+        end if
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>
+]]></example>
+</section>
+</sections>
+</page>
