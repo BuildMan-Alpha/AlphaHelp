@@ -1,10 +1,51 @@
 <page>
 <topic>Populate Backend Database</topic> 
 <description>
-Lets add a post method to populate the tables.  
+This Section deomonstrates adding Post Method to Populate the Tables with new records.  
 </description>
 <sections>
 <section>
+<description>
+<p>Part of the http standard is the 'method' type on the http request.</p>
+<p>When a user navigates to a web page, the http method has a value of 'GET'.</p>
+<p>When a user hits the 'SUBMIT' button on a form, the http method is set to a value of 'POST'.</p>
+<p>The http 'method' can be retrieved using the *[request.request_method]* field, and if the value is 'POST',
+the posted data can be retrieved through the *[request.body]* field.</p>
+</description>
+<example><![CDATA[if request.request_method = "POST" then
+	' Add a record
+	if json_validate(request.body) <> "" then
+		? "{ \"error\" : \"Body is not valid JSON \" }"
+		end 
+	end if
+
+	dim ti as sql::TableInfo
+	cn.GetTableInfo(ti,tablename)
+
+	dim jsd as extension::JSON
+	jsd.setJson(request.body)
+	dim columns as c = ""
+	dim values as c = ""
+	for i = 1 to  ti.Column.Count
+		dim columnName as c = ti.Column[i].name
+		if jsd.hasProperty(columnName) then
+			args.Set(columnName,jsd.getProperty(columnName))
+			columns = columns + columnName + ","
+			values = values + ":" + columnName + ","				
+		end if
+	next
+	if columns <> "" then
+		columns = rtrim(columns,",")
+		values = rtrim(values,",")
+		sql = "insert into "+tablename+" ("+columns+") values ("+values+")"
+	else
+		? "{ \"error\" : \"No columns specified \" }"
+		end
+	end if
+end if]]></example>
+</section>
+<section>
+<description>The full page with the changes applied.</description>
 <example><![CDATA[<%a5
 dim tablename as c 
 dim primaryKeyName as c
@@ -94,6 +135,11 @@ else
 end if]]></example>
 </section>
 <section>
+<title>Adding a Record using Curl Request</title>
+<description>
+<p>Now that the endpoint handles 'POST' we can use it to insert a record.</p>
+<p>use the Curl '-d' option (followed by the JSON string) to send the POST record request to the service endpoint.</p>
+</description>
 <example><![CDATA[>curl -d "{ \"ProductName\" : \"Foozeball\" }" "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products"
 { "identity" : "90" }
 
