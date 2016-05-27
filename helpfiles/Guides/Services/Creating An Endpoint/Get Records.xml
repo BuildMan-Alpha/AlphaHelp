@@ -1,0 +1,80 @@
+<page>
+<topic>Get Records</topic>
+<description>
+<p>Lets start with a simple page that just returns the records in Northwind Customer Table as JSON data.</p> 
+<p>Create a new A5W page that has no HTML content, and which only dumps the JSON from Customer table (assuming the project has a connection string to the sample 'Northwind' Database).</p>  
+</description>
+<example>
+<![CDATA[<%a5
+dim sql as c = "select * from Customers"
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	 if cn.Execute(sql) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        dim responseJson as c = rs.ToJSONObjectSyntax()
+        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+	    ? json_reformat( responseJson )
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>]]>
+</example>
+<sections>
+<section>
+<title>Testing our First Service Endpoint</title>
+<description>
+If the page called service_endpoint/a5w is published to the Root folder, and our port is 8081.  When we execute the following 'curl' command against the page on a running server,
+ we will see the JSON data being echoed.
+</description>
+<example>
+<![CDATA[>curl "http://127.0.0.1:8081/service_endpoint.a5w"
+{
+   "items": [
+        {
+            "CustomerID": "ALFKI",
+            "CompanyName": "Alfreds Futterkiste",
+            "ContactName": "manager\u001B",
+            "ContactTitle": "Sales Representative",
+            "Address": "Obere Str. 57",
+            "City": "Berlin",
+            "Region": null,
+            "PostalCode": "12209",
+            "Country": "Germany",
+            "Phone": "030-0074321",
+            "Fax": "030-0076545"
+        },
+        {
+            "CustomerID": "ANATR",
+.....
+.....
+.....
+           "PostalCode": "21240",
+            "Country": "Finland",
+            "Phone": "90-224 8858",
+            "Fax": "90-224 8858"
+        },
+        {
+            "CustomerID": "WOLZA",
+            "CompanyName": "Wolski  Zajazd",
+            "ContactName": "Zbyszek Piestrzeniewicz",
+            "ContactTitle": "Owner",
+            "Address": "ul. Filtrowa 68",
+            "City": "Warszawa",
+            "Region": null,
+            "PostalCode": "01-012",
+            "Country": "Poland",
+            "Phone": "(26) 642-7012",
+            "Fax": "(26) 642-7012"
+        }
+    ]
+}]]>
+</example>
+</section>
+</sections>
+</page>
