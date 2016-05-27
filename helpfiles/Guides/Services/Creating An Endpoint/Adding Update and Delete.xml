@@ -5,6 +5,101 @@ Now we have a service endpoint that allows us to List, Create , Update and Delet
 </description>
 <sections>
 <section>
+<description>To add other actions, we can change the contents of our JSON packet to include an 'action' member.</description>
+<example><![CDATA[dim jso as extension::JSON
+jso.setJson(request.body)
+action = jso.getProperty("action")
+
+dim ti as sql::TableInfo
+cn.GetTableInfo(ti,tablename)
+if action = "insert" then
+    dim jsonData as c = jso.getPropertyString("data")             
+    if jsonData <> "" then
+        dim jsd as extension::JSON
+        jsd.setJson(jsonData)
+        if jsd.isObject() then
+                dim columns as c = ""
+                dim values as c = ""
+                for i = 1 to  ti.Column.Count
+                    dim columnName as c = ti.Column[i].name
+                    if jsd.hasProperty(columnName) then
+                        args.Set(columnName,jsd.getProperty(columnName))
+                        columns = columns + columnName + ","
+                        values = values + ":" + columnName + ","
+                    end if
+                next
+                if columns <> "" then
+                    columns = rtrim(columns,",")
+                    values = rtrim(values,",")
+                    sql = "insert into "+tablename+" ("+columns+") values ("+values+")"
+                else
+                ? "{ \"error\" : \"No columns specified \" }"
+                end
+                end if
+        end if
+    else
+        ? "{ \"error\" : \"No data specified \" }"
+        end
+    end if
+else if action = "update" then
+    dim jsonData as c = jso.getPropertyString("data")             
+    if jsonData <> "" then
+        dim jsd as extension::JSON
+        jsd.setJson(jsonData)
+        if jsd.isObject() then
+                dim columns as c = ""
+                dim values as c = ""
+                for i = 1 to  ti.Column.Count
+                    dim columnName as c = ti.Column[i].name
+                    if jsd.hasProperty(columnName) then
+                        args.Set(columnName,jsd.getProperty(columnName))
+                        columns = columns + columnName+" = :"+ columnName + ","
+                    end if
+                next
+                if columns <> "" then
+                    columns = rtrim(columns,",")
+                    sql = "update "+tablename+" set "+columns+" where "+primaryKeyName+" = :PKey"
+                else
+                ? "{ \"error\" : \"No columns specified \" }"
+                end
+                end if
+        end if
+    else
+        ? "{ \"error\" : \"No data specified \" }"
+        end
+    end if
+else if action = "delete" then
+    if primaryKeyName = "" then
+        ? "{ \"error\" : \"Delete action requires primary key\" }"
+        end 
+    end if
+    sql = "delete from "+tablename+" where "+primaryKeyName+" = :PKey"
+else
+    ? "{ \"error\" : \"must specify action of insert, update , or delete\" }"
+    end
+end if
+]]></example>
+</section>
+<section>
+<description>To the logic that processes the result we now need to handle 'update and delete' separately from 'insert'.</description>
+<example><![CDATA[dim rs as sql::ResultSet = cn.ResultSet
+if action = "insert" then            
+    if rs.CallResult.LastInsertedIdentity = "" then
+        ? "{ \"identity\" : \"" + rs.Data(1) + "\" }"
+    else      
+        ? "{ \"identity\" : \""+rs.CallResult.LastInsertedIdentity+"\" }"
+    end if	
+else if action = "update" .or. action = "delete" then
+    ? "{ \"handled\" : true }"
+else
+    dim responseJson as c = rs.ToJSONObjectSyntax()
+    responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+    ? json_reformat( responseJson )
+    end
+end if]]></example>
+</section>
+<section>
+<description>The Page with the added 'update' and 'delete' methods.</description>
 <example><![CDATA[<%a5
 dim tablename as c 
 dim primaryKeyName as c
@@ -147,6 +242,7 @@ end if
 </section>
 
 <section>
+<description>Now update the record we added in the previous example using the new 'update' action.</description>
 <example><![CDATA[>curl -d "{ \"action\" : \"update\" , \"data\" : { \"UnitPrice\" : \"3.99\" } }" "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products&primarykey=90"
 { "handled" : true }
 ]]></example>
