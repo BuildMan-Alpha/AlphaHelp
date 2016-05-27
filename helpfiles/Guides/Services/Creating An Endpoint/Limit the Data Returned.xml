@@ -1,0 +1,83 @@
+<page>
+<topic>Limit the Data Returned</topic> 
+<description>
+<p>Add an optional parameter to the page for 'primarykey' so we can limit data returned to a single record.</p>
+<p>Note that the the Primary Key is passed to the cn.Execute() as a parameter,  when exposing a service directly to the web,
+it is imperitive that any dynamic SQL data is either validated (as the Products and Customers tablename is), Or when passing
+data or filter criteria, you *[must]* use SQL::Arguments to prevent SQL Injection Attacks.</p>  
+</description>
+<sections>
+<section>
+<example><![CDATA[<%a5
+dim tablename as c 
+dim primaryKeyName as c
+
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+    if tablename = "Products" then
+    	primaryKeyName = "ProductID"
+    else
+        primaryKeyName = "CustomerID"    
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+
+dim args as sql::Arguments
+dim sql as c = "select * from "+tablename
+
+if eval_valid("request.variables.primarykey") then
+   args.Set("Pkey",request.variables.primarykey)
+   sql = sql + " where "+primaryKeyName+" = :PKey"
+end if
+
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	 if cn.Execute(sql,args) then
+        dim rs as sql::ResultSet = cn.ResultSet
+		dim responseJson as c = rs.ToJSONObjectSyntax()
+		responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+		? json_reformat( responseJson )
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>]]></example>
+</section>
+<section>
+<description>
+Now we can use the endpoint to look for a specific Record.
+</description>
+<example><![CDATA[>curl "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products&primarykey=2"
+{
+    "items": [
+        {
+            "ProductID": "2",
+            "ProductName": "Chang",
+            "SupplierID": "1",
+            "CategoryID": "1",
+            "QuantityPerUnit": "24 - 12 oz bottles",
+            "UnitPrice": "19",
+            "UnitsInStock": "17",
+            "UnitsOnOrder": "40",
+            "ReorderLevel": "25",
+            "Discontinued": "F"
+        }
+    ]
+}
+%>]]></example>
+</section>
+</sections>
+</page>

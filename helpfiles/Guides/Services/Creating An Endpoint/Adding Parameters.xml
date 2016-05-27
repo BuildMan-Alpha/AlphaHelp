@@ -1,0 +1,95 @@
+<page>
+<topic>Adding Parameters</topic>
+<description>In this example, we add a Parameter to the Service Endpoint Page.</description> 
+<discussion>
+<p>Our first attempt at an endpoint is just to Demonstrate that an A5W page does not need to return just HTML.  Lets say we wanted to be able to 
+Return the Contents of either the Customers or the Products table.</p>
+<p>To do this, Edit the endpoint page to take a 'tablename' parameter, which will select the table to use, or return an error.</p>
+<p>Add the code below to the top of the page, replacing the hardcode *[code:dim sql as c]* variable assignment.</p> 
+</discussion>
+<sections>
+<section>
+<example><![CDATA[dim tablename as c
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+dim sql as c = "select * from "+tablename]]></example>
+</section>
+<section>
+<title>Page With Parameters Changes Applied</title>
+<example><![CDATA[<%a5
+dim tablename as c
+' Validate the tablename
+if eval_valid("request.variables.tablename") then
+	tablename = request.variables.tablename
+    if tablename <> "Customers" .and. tablename <> "Products" then
+        ? "{ \"error\" : \"Cannot Access table "+tablename+"\" }"
+    	end 
+    end if
+else
+    ? "{ \"error\" : \"No tablename specified \" }"
+  	end 
+end if
+
+dim sql as c = "select * from "+tablename
+
+dim cn as sql::Connection
+cn.PortableSQLEnabled = .t.
+if cn.Open("::Name::Northwind") then
+	 if cn.Execute(sql) then
+        dim rs as sql::ResultSet = cn.ResultSet
+        dim responseJson as c = rs.ToJSONObjectSyntax()
+        responseJson =  "{ \"items\" : [" + strtran( alltrim(responseJson) , crlf(), ","+crlf() ) + "] }"
+	    ? json_reformat( responseJson )
+     else
+        dim resp.error as c = cn.CallResult.Text
+        ? json_generate(resp)
+	 end if
+else
+    dim resp.error as c = cn.CallResult.Text
+    ? json_generate(resp)
+end if
+%>]]>
+</example>
+</section>
+
+<section>
+<title>Testing Service Endpoint With Parameters</title>
+<description>
+<p>Now if we use the original curl command, we recieve a JSON packet with the error indicating that we have not specified a require paremeter.</p>
+<p>Supply the parameter, and now our page can bring back either .</p>
+</description>
+<example><![CDATA[>curl "http://127.0.0.1:8081/service_endpoint.a5w"
+{ "error" : "No tablename specified " }
+
+>curl "http://127.0.0.1:8081/service_endpoint.a5w?tablename=products"
+{
+   "items": [
+        {
+            "ProductID": "1",
+            "ProductName": "Chai",
+            "SupplierID": "1",
+            "CategoryID": "1",
+            "QuantityPerUnit": "10 boxes x 20 bags",
+            "UnitPrice": "18",
+            "UnitsInStock": "39",
+            "UnitsOnOrder": "0",
+            "ReorderLevel": "10",
+            "Discontinued": "F"
+        },
+        {
+            "ProductID": "2",
+        .....
+]]></example>
+</section>
+</sections>
+</page>
