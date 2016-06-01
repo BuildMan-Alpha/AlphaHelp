@@ -204,7 +204,6 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                    <p><xsl:value-of select="." /></p>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -382,7 +381,6 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                    <p><xsl:value-of select="." /></p>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
