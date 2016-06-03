@@ -1,8 +1,27 @@
 <page>
     <topic>Understanding and Using Session Variables</topic>
-    <description>When you create a variable inside an A5W page, the variable is not available to other pages. In other words, the next A5W page you display will have no knowledge of the firstname variable or its value. The firstname is born when the "Set Session Variable" page is loaded and dies when the page is unloaded. To save a value that spans pages, you must use a Session variable. To create a session variable, simply name it session.varname. It will then be persistent across all page views and can be later referenced as session.varname in subsequent pages.
-    </description>
+    <description>When you create an xbasic variable inside an A5W page, the variable is not available to other pages. If you want to reference a variable on multiple A5W pages, you must use a session variable to store the value. Session variables are available for the duration of a session to all A5W pages in an application.</description>
     <sections>
+        <section>
+            <description>Locally defined xbasic variables in an A5W page are not accessible to other A5W pages. For example, suppose you would like to capture the user's first name on one A5W page and display a message using the user's first name on another A5W page. On the first A5W page, you may write</description>
+            <example><![CDATA[<%a5 dim firstname as c = "George" %>]]></example>
+        </section>
+        <section>
+            <description>And on the second A5W page, you may try the following:</description>
+            <example><![CDATA[<%a5 ? "My name is " + firstname %>]]></example>
+        </section>
+        <section>
+            <description>Unfortunately, this will not work. On the second A5W page, instead of seeing the message "My name is George", you will see an error message:</description>
+            <example><![CDATA[500 Internal Server Error
+Script Error
+Error:Script:" /LivePreview/$$E120.a5w" line:17
+? "My name is " + firstname
+Variable "firstname" not found.]]></example>
+        </section>
+        <section>
+            <description>The second A5W page has no knowledge of the *[xb:firstname]* variable or its value. This is because *[xb:firstname]* was defined local to the page. When the A5W page is loaded, the *[xb:firstname]* variable is created. When the same A5W page is unloaded, the *[xb:firstname]* variable is deleted. To save a value that spans multiple pages, you must use a *[session variable]*. To create a session variable, simply name it *[xb:session.varname]*. It will then be persistent across all page views and can be later referenced as *[xb:session.varname]* in subsequent pages.</description>
+            <example><![CDATA[<%a5 session.firstname = "George" %>]]></example>
+        </section>
         <section>
             <title>Session Variable Types</title>
             <description>
@@ -57,7 +76,7 @@ today2 = convert_type(session.today, "D")
 ]]></example>
         </section>
         <section>
-            <description>Array and pointer variables can be placed in session variables, as well. However, they must first be serialized to a character string. This is done using the [json_generate] method to convert the array or pointer variable to a json object. For example:</description>
+            <description>Array and pointer variables can also be saved in session variables. However, they must first be serialized to a character string. This is done using the [json_generate] method to convert the array or pointer variable to a json object. For example:</description>
             <example><![CDATA[dim p as p
 p.name = "John Smith"
 p.city = "Boston"
@@ -88,7 +107,7 @@ state = "MA"
         </section>
         <section>
             <title>How to Create and Reference a Session Variable</title>
-            <description>To demonstrate the use of session variables, we will create two new pages. The first page will set a session variable called "session.myname" to the value of "George". The second page will print the session variable.</description>
+            <description>To demonstrate the use of session variables, we will create two new pages. The first page will set a session variable called *[xb:session.myname]* to the value of "George". The second page will print the session variable.</description>
             <steps>
                 <step>
                     <description>In the Web Projects Control Panel click New > Web Page (A5W) > OK.</description>
@@ -100,7 +119,7 @@ state = "MA"
                     <description>Type the following text into the editor:</description>
                     <example><![CDATA[<html>
     <head>
-        <meta name="generator" content="Alpha Five HTML Editor">
+        <meta name="generator" content="Alpha Anywhere HTML Editor">
         <title>Set Session Variable</title>
     </head>
     <body>
@@ -130,7 +149,7 @@ state = "MA"
                     <description>Type the following text into the editor.</description>
                     <example><![CDATA[<html>
     <head>
-        <meta name="generator" content="Alpha Five HTML Editor">
+        <meta name="generator" content="Alpha Anywhere HTML Editor">
         <title>Read Session Variable</title>
     </head>
     <body>
@@ -158,7 +177,7 @@ state = "MA"
                     <description>Close the browser and return to the Web Projects Control Panel.</description>
                 </step>
                 <step>
-                    <description>Select the "Read_Session_Variable" page, then right click and select Publish (Local Webroot) and open. This will open the page in your browser. The page will display the value of session.myname, which was set in the "Set_Session_Variable" page. The page should look like this:</description>
+                    <description>Select the "Read_Session_Variable" page, then right click and select Publish (Local Webroot) and open. This will open the page in your browser. The page will display the value of *[xb:session.myname]*, which was set in the "Set_Session_Variable" page. The page should look like this:</description>
                     <figure>
                         <alt>Web browser displaying a message that print the session variable, session.myname, along with a message. In this image, the message reads "My name is George".</alt>
                         <title>Message shown on the Read Session Variable page</title>
@@ -169,13 +188,13 @@ state = "MA"
         </section>
         <section>
             <title>Session Variable Availability</title>
-            <description>The session.myname variable will remain available as long as these conditions are met:</description>
+            <description>A session variable will remain available for the duration of the session. The session will remain active as long as the following conditions are met:</description>
             <cases>
                 <case>
-                    <description>The Application Server is not stopped or restarted</description>
+                    <description>The Application Server is not stopped or restarted.</description>
                 </case>
                 <case>
-                    <description>Your next interaction (page request or update) occurs within the Application Server within the session lifetime interval. The minimum value for this interval is 300 seconds (5 minutes).</description>
+                    <description>The next interaction (page request or update) occurs within the Application Server within the session lifetime interval. The minimum value for this interval is 300 seconds (5 minutes).</description>
                 </case>
             </cases>
         </section>
