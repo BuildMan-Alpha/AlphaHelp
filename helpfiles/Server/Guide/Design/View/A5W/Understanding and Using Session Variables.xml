@@ -1,9 +1,94 @@
 <page>
     <topic>Understanding and Using Session Variables</topic>
-    <description>When you create a variable inside an A5W page, the variable is not available to other pages. In other words, the next A5W page you display will have no knowledge of the firstname variable or its value. The firstname is born when the "Set Session Variable" page is loaded and dies when the page is unloaded. To save a value that spans pages, you must use a Session variable. To create a session variable, simply name it session.varname. It will then be persistent across all page views and can be later referenced as session.varname in subsequent pages. To demonstrate the use of session variables, we will create two new pages.
+    <description>When you create a variable inside an A5W page, the variable is not available to other pages. In other words, the next A5W page you display will have no knowledge of the firstname variable or its value. The firstname is born when the "Set Session Variable" page is loaded and dies when the page is unloaded. To save a value that spans pages, you must use a Session variable. To create a session variable, simply name it session.varname. It will then be persistent across all page views and can be later referenced as session.varname in subsequent pages.
     </description>
     <sections>
         <section>
+            <title>Session Variable Types</title>
+            <description>
+                <p>A variable in Xbasic has a type. This can be character, numeric, date, time, shorttime, etc. However, session variables should only be character variables. If you try to set a session variable to a non-character value, the Xbasic Error log will show a warning:</p>
+            </description>
+            <example>Warning: Illegal session variable value.
+    Session.my_date
+    Session variables are restricted to character type only.
+    The variable Session.my_date is about to be set with as non-character value.
+    This code will no longer function in a future software release.</example>
+        </section>
+        <section>
+            <description>
+                <p>To prevent the warning, you must cast the value you want to store in a session variable to a character value before setting the session variable. The easiest way to cast a value to a character is to concatenate it with an empty character value. For example:</p>
+            </description>
+            <example><![CDATA[dim number as n = 5
+dim string as c
+string = "" + number]]></example>
+        </section>
+        <section>
+            <description>When you read the value from the session variable, you can use the [convert_type] method to cast the data to the desired type. *[xb:convert_type]* allows you to convert any data type to any other data type. If you have stored numeric values in a session variable, you would use *[xb:convert_type(session.number,"N")]* to cast the session variable to a numeric type. For example:</description>
+            <example><![CDATA[dim num as n
+num = 5
+
+' Convert num to a character value
+session.number = "" + num
+? session.number
+= "5"
+
+dim num2 as n
+' Convert session.number to a number
+num2 = convert_type(session.number, "N")
+
+? num2
+= 5
+]]></example>
+        </section>
+        <section>
+            <description>The next example shows how you would store a date object in a session variable and set another date variable to the value of the session variable using *[xb:convert_type]*.</description>
+            <example><![CDATA[dim today as d = date()
+
+session.today = "" + today
+? session.today
+= "06/03/2016"
+
+dim today2 as d
+today2 = convert_type(session.today, "D")
+
+? today2
+= {06/03/2016}
+
+]]></example>
+        </section>
+        <section>
+            <description>Array and pointer variables can be placed in session variables as well. However, they must first be serialized to a character string. This is done using the [json_generate] method to convert the array or pointer variable to a json object. For example:</description>
+            <example><![CDATA[dim p as p
+p.name = "John Smith"
+p.city = "Boston"
+p.state = "MA"
+
+' Serialize p to a character string
+session.obj = json_generate(p) 
+? session.obj
+= {
+	"name": "John Smith",
+	"city": "Boston",
+	"state": "MA"
+}]]></example>
+        </section>
+        <section>
+            <description>To convert the json object back to a pointer variable, the [json_parse] method is used:</description>
+            <note>When deserializing an array, you must store it in a pointer variable. This is because the *[xb:json_parse]* method returns a pointer variable and not an array.</note>
+            <example><![CDATA[dim p2 as p
+
+' Deserialize session.obj to a pointer variable
+p2 = json_parse(session.obj)
+
+? p2
+= city = "Boston"
+name = "John Smith"
+state = "MA"
+]]></example>
+        </section>
+        <section>
+            <title>How to Create and Reference a Session Variable</title>
+            <description>To demonstrate the use of session variables, we will create two new pages. The first page will set a session variable called "session.myname" to the value of "George". The second page will print the session variable.</description>
             <steps>
                 <step>
                     <description>In the Web Projects Control Panel click New > Web Page (A5W) > OK.</description>
@@ -12,7 +97,7 @@
                     <description>Display the Source tab of the editor.</description>
                 </step>
                 <step>
-                    <description>Type the following text into the editor.</description>
+                    <description>Type the following text into the editor:</description>
                     <example><![CDATA[<html>
     <head>
         <meta name="generator" content="Alpha Five HTML Editor">
@@ -67,130 +152,34 @@
                     <description>Click the 'X' icon to close the HTML Editor.</description>
                 </step>
                 <step>
-                    <description>Select the "Read Session Variable" page, then right click and select Publish (Local Webroot) and open. This will open the page (which is blank) in your browser.</description>
+                    <description>Select the "Read_Session_Variable" page, then right click and select Publish (Local Webroot) and open. This will open the page (which is blank) in your browser.</description>
                 </step>
                 <step>
                     <description>Close the browser and return to the Web Projects Control Panel.</description>
                 </step>
                 <step>
-                    <description>Select the Lesson 10b page, then right click and select Publish (Local Webroot) and open. This will open the page in your browser. The page will display the value of session.myname, which was set in the Lesson 10a page. The page should look like this. </description>
-
+                    <description>Select the "Read_Session_Variable" page, then right click and select Publish (Local Webroot) and open. This will open the page in your browser. The page will display the value of session.myname, which was set in the "Set_Session_Variable" page. The page should look like this:</description>
                     <figure>
+                        <alt>Web browser displaying a message that print the session variable, session.myname, along with a message. In this image, the message reads "My name is George".</alt>
+                        <title>Message shown on the Read Session Variable page</title>
                         <link>images/WPT_Read_Session_Variable.gif</link>
                     </figure>
                 </step>
             </steps>
         </section>
         <section>
+            <title>Session Variable Availability</title>
             <description>The session.myname variable will remain available as long as these conditions are met:</description>
             <cases>
                 <case>
-                    <description>The Application Server is not stopped</description>
+                    <description>The Application Server is not stopped or restarted</description>
                 </case>
                 <case>
                     <description>Your next interaction (page request or update) occurs within the Application Server within the session lifetime interval. The minimum value for this interval is 300 seconds (5 minutes).</description>
                 </case>
             </cases>
         </section>
-        <section>
-            <description>You may have as many session variables as you require. All session variables are stored as character types. You can convert data to and from a character data type to store in session variables using the [convert_type] and the [json_parse] and [json_generate] xbasic methods.</description>
-            <cases>
-                <case>
-                    <title>Converting Basic Types</title>
-                    <description>Basic data types can be stored in and retrieved from session variables using the *[xb:convert_type]* method. *[xb:Convert_type]* allows you to convert any data type to any other data type. For example, if you wanted to store a numeric value in a session variable, you would use *[xb:convert_type(session.my_number,"N")]* to retrieve the number from the session.</description>
-                    <example><![CDATA[dim num as n
-num = 5
-
-' Convert num to a character string
-session.number = "" + num
-? session.number
-= "5"
-
-dim num2 as n
-' Convert session.number to a number
-num2 = convert_type(session.number, "N")
-
-? num2
-= 5
-]]></example>
-                </case>
-                <case>
-                    <description>The next example shows how to put a date in to a session variable.</description>
-                    <example><![CDATA[dim today as d = date()
-
-session.today = "" + today
-? session.today
-= "06/03/2016"
-
-dim today2 as d
-today2 = convert_type(session.today, "D")
-
-? today2
-= {06/03/2016}
-
-]]></example>
-                </case>
-                <case>
-                    <title>Putting Array and Pointer Data in a Session Variable</title>
-                    <description>Array and pointer data can be put into a session variable by serializing the data to a character string using the *[xb:json_generate]* and *[xb:json_parse]* xbasic methods.</description>
-                    <example><![CDATA[dim p as p
-p.name = "John Smith"
-p.city = "Boston"
-p.state = "MA"
-
-' Serialize p to a character string
-session.obj = json_generate(p) 
-? session.obj
-= {
-	"name": "John Smith",
-	"city": "Boston",
-	"state": "MA"
-}
-
-dim p2 as p
-
-' Deserialize session.obj to a pointer variable
-p2 = json_parse(session.obj)
-
-? p2
-= city = "Boston"
-name = "John Smith"
-state = "MA"
-]]]></example>
-                </case>
-                <case>
-                    <description>Arrays can also be serialized into a character string using *[xb:json_generate]*.</description>
-                    <note>When deserializing an array, you must store it in a pointer variable. This is because the *[xb:json_parse]* method returns a pointer variable and not an array.</note>
-                    <example><![CDATA[dim arr[3] as c
-arr[1] = "alpha"
-arr[2] = "beta"
-arr[3] = "gamma"
-
-' Serialize arr to a character string
-session.arr = json_generate(arr)
-? session.arr
-= [
-	"alpha",
-	"beta",
-	"gamma"
-]
-
-dim arr2 as p
-
-' Deserialize session.arr to a pointer variable
-arr2 = json_parse(session.arr)
-
-? arr2[1]
-= "alpha"]]></example>
-                </case>
-            </cases>
-        </section>
     </sections>
-    <see>
-        <ref>CONVERT_TYPE Function</ref>
-        <ref>json_generate()</ref>
-        <ref>json_parse()</ref>
-    </see>
     <links>
         <link href="/Ref/Api/Functions/Data Type/Date and Time Functions/CONVERT_TYPE Function.xml">convert_type</link>
         <link href="/Ref/Api/Functions/Document Types/JSON Functions/json_generate().xml">json_generate</link>
