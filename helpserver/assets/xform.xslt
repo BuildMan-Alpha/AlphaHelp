@@ -204,7 +204,6 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                    <p><xsl:value-of select="." /></p>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -376,7 +375,14 @@
             </xsl:for-each>
         </xsl:if>
         <xsl:if test="note">
-           <div class="sectionNote" > <xsl:value-of select="note" /> </div>
+            <xsl:choose>
+                <xsl:when test="note/p">
+                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
         <xsl:if test="warning">
            <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
