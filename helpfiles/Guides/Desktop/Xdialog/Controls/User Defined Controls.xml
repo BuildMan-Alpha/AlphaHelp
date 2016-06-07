@@ -1,0 +1,596 @@
+<page>
+	<topic>User Defined Controls</topic>
+  <description>The following section gives examples of User Defined Controls (UDCs) on a form. The sample forms and Xbasic scripts can be found in the Samples\Xbasic directory off the directory in which Alpha Five was installed. Open the Xbasic database in this directory.</description>
+
+<sections>
+
+<section>
+	<title>Writing a Slider Control</title>
+	<description>This example shows a simple slider control -It sets a value in a variable based on the position of the slider.</description>
+	<note>This example is contained in the form called "Slider" in the Samples\Xbasic directory.</note>
+</section>	
+
+<section>
+	<cases>
+		<case>
+			<title>The OnInit Event</title>
+	<description>Declares all the external windows API calls used.</description>
+	<example><![CDATA[Declare a structure for a rectangle
+? Long integer values left, top, right and bottom
+declarestruct rect L1left, L1top, L1right, L1bottom
+?--------------------------------------------------------
+ ? Declare rectangle GDI function - draw a rectangle
+declare gdi32 Rectangle LLLLLL
+?--------------------------------------------------------
+ ? Windows SelectObject function - sets a Pen, Brush, Bitmap etc
+? for a windows HDC
+declare gdi32 SelectObject LLL
+?--------------------------------------------------------
+ ? Windows DeleteObject function - deletes a Pen, Brush, Bitmap etc
+? It is important to release objects when you are done
+declare gdi32 DeleteObject LL
+?--------------------------------------------------------
+ ? Windows CreateSolidBrush function
+?Creates a brush object of the specified color
+declare gdi32 CreateSolidBrush LL
+?--------------------------------------------------------
+ ?Windows InvalidateRect function Used to tell windows
+?that a particular window needs to be repainted
+?the second argument could be a (rect) i.e.
+?InvalidateRect LL(rect)L , but windows wants to see a
+?pointer value of 0 if we want to invalidate the entire window,
+?so we declare that argument as a long integer (same amount of
+? memory as a pointer' so we can pass in a zero
+declare user32 InvalidateRect LLLL
+?--------------------------------------------------------
+?Windows GetFocus function Returns the handle of the window
+?that has focus
+declare user32 GetFocus L
+?--------------------------------------------------------
+?Windows SetCapture function The window handle specified
+? gets all the mouse events after SetCapture is called
+? (until a ReleaseCapture is done)
+declare user32 SetCapture LL
+?--------------------------------------------------------
+?Windows ReleaseCapture function, Inform the system that
+?we are done tracking the mouse
+declare user32 ReleaseCapture L
+?--------------------------------------------------------
+? Windows DrawEdge function - take a rectangle and border
+? style and edge parameters (defined below)
+? This function is used to draw a button-style border
+declare user32 DrawEdge LL(rect)LL
+?--------------------------------------------------------
+? Windows DrawFocusRect function - takes a rectangle argument
+? and is used to draw a broken line ?focus rectangle'
+declare user32 DrawFocusRect LL(rect)
+?--------------------------------------------------------
+? shared variables to position and scale the slider
+dim shared xpos as N
+dim shared xmax as N
+?--------------------------------------------------------
+? constants that are used by the DrawEdge function to
+? specifcy the edges to draw.
+constant BF_LEFT    = 1
+constant BF_TOP     = 2
+constant BF_RIGHT   = 4
+constant BF_BOTTOM  = 8
+constant BF_ALL     = 15
+?--------------------------------------------------------
+? constant defined to specify a border style
+constant BDR_RAISED = 5
+?--------------------------------------------------------
+? Initialize the variables
+xpos = 0
+if xmax < = 0 then
+xmax = 1
+end if ]]></example>
+			
+		</case>
+		<case>
+			<title>The OnDraw Event</title>
+	<description>Draws the Slider control.</description>
+	<example><![CDATA[?-------------------------------------
+? An XBASIC function that deletes the
+? last color brush created
+FUNCTION cleanup_color_brush( hdc as N )
+   dim shared color_hbrush as N
+   dim shared oldbrush as N
+   ? if the color brush is defined (nonzero)
+   if color_hbrush <> 0
+     ?then select the previous brush into the HDC
+     ?it is important to do this BEFORE we delete
+     ?the color brush because the HDC will most likely
+     ?be using the brush we are about to delete
+     SelectObject(hdc, oldbrush)
+     ?and delete the color brush
+     DeleteObject(color_hbrush)
+   end if
+end FUNCTION
+?-------------------------------------
+? A function that creates a brush of a
+? particular color and applies it to a
+? windows display context
+FUNCTION SET_brush_color( hdc as N, color as N )
+  dim shared color_hbrush as N
+  dim shared oldbrush as N
+  ? cleanup previously defined brush
+  cleanup_color_brush( hdc )
+  ? Use windows API call the create a brush of the specified color
+  color_hbrush = CreateSolidBrush(color)
+  ?Select the created brush into the display context
+  ?and remember the old brush
+  oldbrush    = SelectObject(hdc, color_hbrush)
+end FUNCTION
+? Our shared position and extent variables
+dim shared xpos as N
+dim shared xmax as N
+? Sizes we calculate
+dim xthumbwidth as N
+dim physical_width as N
+? shared color brush handle
+dim shared color_hbrush as N
+? color brush = 0 means color brush is undefined
+color_hbrush = 0
+? do a sanity check on xmax to avoid a divide by zero error
+if xmax < = 0 then
+ xmax = 1
+end if   
+physical_width = a_USER.draw.width
+? the width of the ?thumb' we calculate to be 1/8 the
+? width of the slider control
+xthumbwidth   = physical_width / 8
+? calculate the width we have to set the thumbnail at as the
+? width of the slider minus the width of the thumbnail
+physical_width = physical_width - xthumbwidth
+? We set the brush color to be light grey
+? the components of a color are Red, Green and Blue values,
+?where 255 is brightest, 0 is darkest - a multiply 256 will
+?get us the value of the next byte up. .i.e.
+? in a 4 byte long value - if we want to set a byte to a value of
+? ?7'
+? value = 7              ? sets the first byte
+? value = 7 * 256        ? sets the second byte
+? value = 7 * 256 * 256 ? sets the third byte
+? For RGB color values, these are the only bytes that are used
+SET_brush_color( a_USER.draw.hdc , (((192*256) + 192)*256) + 192 )
+? determine where to draw the thumbnail
+pxpos = (xpos * physical_width)/xmax
+? Initailize the rectangle to be the thumbnail
+rect.left  = pxpos
+rect.top   = a_USER.draw.top
+rect.right = pxpos + xthumbwidth
+rect.bottom = a_USER.draw.bottom
+? Draw the thumbnail background
+Rectangle(a_USER.draw.hdc, rect.left, rect.top, rect.right, rect.bottom)
+? Draw the thumbnail border
+DrawEdge(a_USER.draw.hdc , rect , BDR_RAISED , BF_ALL)
+? Set the background brush to Grey
+SET_brush_color( a_USER.draw.hdc , (((128*256) + 128)*256) + 128 )
+if a_USER.draw.left < rect.left
+  ? Draw the slider rectangle area before the thumbnail
+  Rectangle(a_USER.draw.hdc, a_USER.draw.left, a_USER.draw.top, rect.left, a_USER.draw.bottom)
+end if
+if rect.right < a_USER.draw.right
+  ? Draw the slider rectangle area after the thumbnail
+  Rectangle(a_USER.draw.hdc, rect.right, a_USER.draw.top, a_USER.draw.right, a_USER.draw.bottom)
+end if
+if a_USER.draw.hasfocus
+   ?If the control has focus, then draw a focus rectangle
+   DrawFocusRect(a_USER.draw.hdc, a_USER.draw)
+end if
+? Release any brushes we created
+cleanup_color_brush( a_USER.draw.hdc ) ]]></example>
+			
+		</case>
+		<case>
+			<title>The OnKey Event</title>
+	<description>When the right and left arrow keys are pressed (when the control has focus) the slider will change. Notice that the slider accelerates slowly if the user holds down the key.</description>
+	<example><![CDATA[? IS_down_for is a counter
+dim IS_down_for as N
+? If key is Right or Left arrow key
+if a_USER.key.VALUE = "{Left}" .or. a_USER.key.VALUE = "{Right}"
+  a_USER.key.handled = .T.
+  if a_USER.key.event = "down"
+      ?Keep track of how long we hold down the key
+      IS_down_for = IS_down_for + 1
+      ?determine the displayed position
+      xpos = (xpos * physical_width)/xmax
+      if a_USER.key.VALUE = "{Left}"
+         ?move left N pixels - note that we
+         ?speed up the number of pixels we move the
+         ?longer we hold down the key
+        xpos = xpos - (IS_down_for + 1)/2
+       else
+         ?move right N pixels - note that we
+         ?speed up the number of pixels we move the
+         ?longer we hold down the key
+         xpos = xpos + (IS_down_for + 1)/2
+       end if
+       ?Check that position is in range, if out of
+       ?range, then set to the nearest endpoint
+       if xpos < 0
+         xpos = 0
+       else if xpos > = physical_width
+         xpos = physical_width-1
+       end if
+      ? convert back from displayed to logical value for xpos
+      xpos = (xpos * xmax)/physical_width
+      ? invalidate the rectangle - force a repaint
+      InvalidateRect(a_USER.hwnd, 0, 0)
+   else if a_USER.key.event = "up"
+      ? Reset the ?holding-key-down' counter
+      IS_down_for = 0
+   end if
+end if ]]></example>
+			
+		</case>
+		<case>
+			<title>The OnMouse Event</title>
+	<description>Allows the user to grab the slider and drag it to a new position.</description>
+	<example><![CDATA[? Variable to remember that mouse is ?down'
+dim mouse_down as L
+dim xthumbwidth as N
+? physical_width is initialized by OnDraw event
+dim physical_width as N
+dim shared xpos as N
+dim shared xmax as N
+xthumbwidth = physical_width / 8
+? If the left mouse button was released
+if a_USER.mouse.event = "left up"
+  ? ?and we were tracking it
+  if mouse_down
+     ? stop tracking the mouse
+     mouse_down = .F.
+     ReleaseCapture()
+  end if
+else if mouse_down .or. a_USER.mouse.event = "left down"
+  ? If we are tracking the mouse, or the mouse button
+  ? was pressed while above our slider control
+  if .not. mouse_down
+    ?If mouse not captured, capture it now
+     mouse_down = .T.
+     SetCapture(a_USER.hwnd)
+  end if
+  ?Sanity check the maximum value
+  if xmax < = 0 then
+      xmax = 1
+  end if
+  ? move the middle of thumbnail to the current mouse
+  ? ?x' (horizontal displacement) position
+  xpos = a_USER.mouse.x - (xthumbwidth/2)
+  ? range check the position of the thumbnail
+  if xpos < 0
+     xpos = 0
+  else if xpos > = physical_width
+     xpos = physical_width-1
+  end if
+  xpos = (xpos * xmax)/ physical_width
+  ? Force the slider window to repaint
+  InvalidateRect(a_USER.hwnd, 0, 0)
+end if ]]></example>
+			
+		</case>
+		
+		
+	</cases>
+	
+	
+	
+</section>
+
+<section>
+	<title>Writing a Clock Control</title>
+	<cases>
+		<case>
+			<note>This example is contained in the form called "Clock" in the Samples\Xbasic directory. This control is implemented using a User Defined Control. It makes use of a lot of GDI functions as well as the timer event.</note>
+		</case>
+		<case>
+			<title>OnCreate Event</title>
+	<description>The OnCreate event fires when the window for the control is created. The SetTimer call is a windows API call that is declared in the OnInit event.
+When the window is created, we add a timer to that window which goes off every 1, 000 milliseconds (that is once a second) - the ID that we give is is ?1' - the ?0' that is the last parameter is a NULL callback function. Currently, callback functions are not supported by XBASIC.
+</description>
+	<example><![CDATA[' when window is created, create a timer that goes off every second
+timer_id = SetTimer(a_USER.hwnd, 1, 1000, 0) ]]></example>
+			
+		</case>
+		<case>
+			<title>OnDestroy Event</title>
+	<description>The OnDestroy event fires when the window for the control is destroyed. The KillTimer call is also a windows API call (declared in the OnInit event). When we destroy the window for the control, we must also destroy the associated timer.</description>
+	<example><![CDATA[' when the window is destroyed, throw the timer away
+KillTimer( a_USER.hwnd , timer_id ) ]]></example>
+			
+		</case>
+		<case>
+			<title>OnDraw Event</title>
+	<description>This event is called whenever the control is repainted. The OnDraw event shown here uses all sorts of windows API calls (mostly GDI calls - for graphics routines).</description>
+	<example><![CDATA['Paint the display - uses temporary bitmaps & caches the background
+FUNCTION calcx as N(X as N)
+   ? Trignometry to convert a position along the circumference
+   ? of the circle to a ?x' position ranging from -1 to 1
+   calcx = sinx * 3.141516*2?
+end FUNCTION
+FUNCTION calcy as N(Y as N)
+  ? Trignometry to convert a position along the circumference
+  ? of the circle to a ?y' position ranging from -1 to 1
+  calcy = -cosy * 3.141516*2?
+end FUNCTION
+? Function that draws a hand on the clock
+FUNCTION drawhand as N(HDC as N, factor as N, sx as N, sy as N, length as N, pivlength as N, cx as N, cy as N, red as N, green as N, blue as N)
+  ?Factor is the value 0-1 that describes the orientation of the
+  ? hand (f represents to ?inverse' or orientation of the other
+  ? facet of the hand)
+  if factor > 0.75 then
+    f = (1.0-factor)/2
+    fade1 = 0.75 - f
+    fade2 = 0.5 + f
+ else if factor > 0.50 then
+    f = (0.75-factor)/2
+    fade1 = 0.5 + f
+    fade2 = 0.75 - f
+ else if factor > 0.25 then
+    f = (0.5 - factor)/2
+    fade1 = 0.5 + f
+    fade2 = 0.75 - f
+ else
+    f = factor/2
+    fade1 = 0.75 - f
+    fade2 = 0.5 + f
+ end if
+? determine the shading of the hands facets given the
+? ?pure' color of the hands + the angle the handle is at
+ face1color = (int(blue*fade1)*256) + int(green*fade1?*256) + int(red*fade1)
+ face2color = (int(blue*fade2)*256) + int(green*fade2?*256) + int(red*fade2)
+ ? Draw a polygon for the first facet of the handle
+ ? this involves initializing the array of facets that are
+ ? passed to the polygon function
+ dim pts.points4 as P
+ f = factor - 0.50
+ pts.points1.x = cx + calcx(f) * pivlength * sx
+ pts.points1.y = cy + calcy(f) * pivlength * sy
+ f = factor - 0.25
+ pts.points2.x = cx + calcx(f) * pivlength * sx
+ pts.points2.y = cy + calcy(f) * pivlength * sy
+ pts.points3.x = cx + calcx(factor) * length * sx
+ pts.points3.y = cy + calcy(factor) * length * sy
+ pts.points4.x = pts.points1.x
+ pts.points4.y = pts.points1.y
+ hbrush = CreateSolidBrush(face1color)
+ oldbrush = SelectObject(HDC, hbrush)
+ Polygon(HDC, pts, 4)
+ SelectObject(HDC, oldbrush)
+ DeleteObject(hbrush)
+ ? Draw the second facet of the clock hand
+ f = factor + 0.25
+ pts.points2.x = cx + calcx(f) * pivlength * sx
+ pts.points2.y = cy + calcy(f) * pivlength * sy
+ hbrush = CreateSolidBrush(face2color)
+ oldbrush = SelectObject(HDC, hbrush)
+ Polygon(HDC, pts, 4)
+ SelectObject(HDC, oldbrush)
+ DeleteObject(hbrush)
+end FUNCTION
+? XBASIC Function that draws the clock dial
+FUNCTION drawdial as N(DRAW as P)
+  hbrush = CreateSolidBrush((((128*256) + 128)*256) + 128)
+  oldbrush = SelectObject(DRAW.HDC, hbrush)
+  ? Clear the controls background rectangle
+  Rectangle( DRAW.HDC , DRAW.LEFT , DRAW.TOP, DRAW.RIGHT , DRAW.BOTTOM )
+       SelectObject(DRAW.HDC, oldbrush)
+  DeleteObject(hbrush)
+  ? Draw the ellise of the clock face
+  Ellipse( DRAW.HDC , DRAW.LEFT , DRAW.TOP, DRAW.RIGHT , DRAW.BOTTOM )
+  ? calculate x and y radius of the ellipse
+  sx = (((DRAW.RIGHT - DRAW.LEFT) + 1) / 2) -1
+  sy = (((DRAW.BOTTOM - DRAW.TOP) + 1) / 2) -1
+  ? calculate center point of the ellipse
+  cx = (DRAW.LEFT + DRAW.RIGHT) / 2
+  cy = (DRAW.TOP + DRAW.BOTTOM) / 2
+? create a dummy ?point' stucture
+  pt.dummy = 1
+ ? Draw the minute/second ticks along the edge
+  for i = 0 to 59
+     MoveToEx( DRAW.HDC , cx + calcx(i/60) * sx , cy + calcy(i/60) * sy , pt )
+     Lineto( DRAW.HDC , cx + calcx(i/60) * sx * 0.95 , cy + calcy(i/60) * sy * 0.95 )
+   next
+  ?Draw the Hour ticks + the hour text along the edge
+   for i = 0 to 11
+   MoveToEx( DRAW.HDC , cx + calcx(i/12) * sx , cy + calcy(i/12) * sy , pt )
+   Lineto( DRAW.HDC , cx + calcx(i/12) * sx * 0.9 , cy + calcy(i/12) * sy * 0.9 )
+   digit = alltrimiif(i = 0, 12, i?)
+   ? Get the size of the text - use size to determine how to
+   ? center the text at a point
+   GetT
+entPointA( DRAW.HDC , digit , len(digit) , pt )
+   ? Draw the text for the ?hour' centered on a point inside the
+   ? dial next to the hour ?tick'
+   TextOutA( DRAW.HDC , cx + calcx(i/12) * sx * 0.8 - pt.x/2 , cy + calcy(i/12) * sy * 0.8 - pt.y/2, digit , len(digit) )
+ next
+end FUNCTION
+sizex = ((A_USER.DRAW.RIGHT - A_USER.DRAW.LEFT) + 1)
+sizey = ((A_USER.DRAW.BOTTOM - A_USER.DRAW.TOP) + 1)
+? If no background bitmap defined, define a bitmap that
+? is the size of the clock face
+if backgroundhbitmap = 0 then
+  ? Windows ?createBitmap' function uses the colors
+  ? supported by the HDC, plus a size to create a
+  ? bitmap
+  backgroundhbitmap = CreateCompatibleBitmap(A_USER.DRAW.HDC, sizex, sizey)
+  ? Create a HDC for the bitmap
+  draw.hdc   = CreateCompatibleDC(A_USER.DRAW.HDC)
+  ? Select the bitmap into the HDC. This makes any
+  ? calls that use the HDC to draw scribble to the
+  ? bitmap instead of the screen.
+  SelectObject( draw.hdc , backgroundhbitmap )
+ ? Draw the clock dial into the background bitmap
+  draw.top   = 0
+  draw.left  = 0
+  draw.bottom = A_USER.DRAW.BOTTOM - A_USER.DRAW.TOP
+  draw.right = A_USER.DRAW.RIGHT - A_USER.DRAW.LEFT
+  drawdial(draw)
+  DeleteDC(draw.hdc)
+end if
+? If not defined, Create a bitmap for the ?cached' clock display.
+? We write to a bitmap, then write the bitmap to the screen to get
+?smooth repaints
+if hbitmap = 0 then
+  hbitmap = CreateCompatibleBitmap(A_USER.DRAW.HDC, sizex, sizey)
+end if
+? Create a HDC for the background bitmap (to read from)
+backmemhdc = CreateCompatibleDC(A_USER.DRAW.HDC)
+? Create a HDC for the ?cache' bitmap (to write to)
+memhdc    = CreateCompatibleDC(A_USER.DRAW.HDC)
+SelectObject( backmemhdc , backgroundhbitmap )
+SelectObject( memhdc    , hbitmap )
+? Copy the background bitmap to the bitmap we are creating
+? to show the current time
+BitBlt( memhdc , 0 , 0 , sizex , sizey , backmemhdc , 0 , 0 , BITMAP_SRC_COPY )
+? set up the x & y center
+hsx = sizex/2
+hsy = sizey/2
+? draw the hours hand to the bitmap
+drawhand(memhdc, hours/12, hsx, hsy, 1/2, 1/8, hsx, hsy, 255, 255, 255)
+? draw the minutes hand to the bitmap
+drawhand(memhdc, minutes/60, hsx, hsy, 3/4, 1/10, hsx, hsy, 0, 0, 255)
+? draw the seconds hand to the bitmap
+drawhand(memhdc, seconds/60, hsx, hsy, 5/6, 1/16, hsx, hsy, 255, 0, 0)
+? Now that the bitmap is drawn, copy it to the screen
+BitBlt( A_USER.DRAW.HDC , A_USER.DRAW.LEFT , A_USER.DRAW.TOP , sizex , sizey , memhdc , 0 , 0 , BITMAP_SRC_COPY )
+? Cleanup the display contexts that we created
+DeleteDC(backmemhdc)
+DeleteDC(memhdc) ]]></example>
+			
+		</case>
+		<case>
+			<title>OnExit Event</title>
+	<description>This event is called when the control is deleted. The OnDraw events creates bitmaps to cache the repaints. We delete these in the OnExit method.</description>
+	<example><![CDATA[' Cleanup bitmaps that were created
+if hbitmap <> 0
+ DeleteObject(hbitmap)
+ hbitmap = 0
+end if
+if backgroundhbitmap <> 0
+ DeleteObject(backgroundhbitmap)
+ backgroundhbitmap = 0
+end if  ]]></example>
+			
+		</case>
+		
+			<case>
+			<title>OnInit Event</title>
+	<description>This event is called when setting up the control. This performs all the declaration and initialization of variables for all the functions we will use.</description>
+	<example><![CDATA[?Initialize - declare all the API functions that we use,
+? init variables
+?** Declare a windows point structure on long integer X,
+?** one long integer Y
+declarestruct point L1X, L1Y
+?** Declare a windows array that can store up to 100 points
+declarestruct points point100points
+?** Declare a windows rectangle
+declarestruct rect L1left, L1top, L1right, L1bottom
+?** Declare windows MoveToEx (move to a point) function
+declare gdi32 MoveToEx LLLL(point)
+?** Declare windows draw line to a point function
+declare gdi32 LineTo  LLLL
+?** Declare windows draw ellipse function
+declare gdi32 Ellipse LLLLLL
+?** Declare windows draw rectangle function
+declare gdi32 Rectangle LLLLLL
+?** Declare windows draw text function
+declare gdi32 TextOutA LLLLCL
+?** Declare windows get size of drawn text function
+declare gdi32 GetT
+entPointA LLCL(point)
+?** Declare windows mark window as invalid (repaint) function
+declare user32 InvalidateRect LLLL
+?** Declare widows GetFocus function - gets the active window
+declare user32 GetFocus L
+?** Declare windows CreateSolidBrush function - create a brush
+declare gdi32 CreateSolidBrush LL
+?** Declare windows DeleteObject function delete Brush, Pen, Bitmap
+declare gdi32 DeleteObject LL
+?** Declare windows SelectObject function - select brush pen etc
+?** into a windows display context
+declare gdi32 SelectObject LLL
+?----------------------------------------------------------------
+?** Declare windows polygon drawing function. Here we pass an
+? Array of 100 points, we can use less than 100 points - windows
+? polygon function only reads the number of points we report that
+? we are passing to it (using the numer_of_points parameter)
+?. If you need to draw polygons with more than 100 points,
+? than you must make points dimension (declared ? above) -
+? bigger - i.e. point500points would allow up to 500
+? points to be passed to the polygon function
+declare gdi32 Polygon LL(points)L
+?** Declare windows SetTimer function - causes window to get
+? called back on an interval with a timer message + timer id
+declare user32 SetTimer LLLLL
+?** Decalre windows KillTimer function - causes window timer to
+? cease
+declare user32 KillTimer LLL
+?------------------------------------------------------
+? windows CreateCompatibleBitmap Function - creates a bitmap
+?using the attributes of the display context passed in, and
+?the width and height provided
+declare gdi32 CreateCompatibleBitmap LLLL
+?------------------------------------------------------
+? windows function to create a display context that
+? is like another (i.e. same color settings pens brushes etc)
+declare gdi32 CreateCompatibleDC LL
+?** declare windows function to delete display context that was
+? created using CreateCompatibleDC
+declare gdi32 DeleteDC LL
+?** declare windows function Draw pixels from one display context
+? into another display context
+declare gdi32 BitBlt LLLLLLLLLL
+? Constant argument to BitBlt for ?copy bits' mode - there are
+? several modes (subtracting pixels, logically or-ing or and-ing
+? pixels etc) - this is the only BitBlt operation we use in this
+? sample program
+CONSTANT BITMAP_SRC_COPY = 13369376
+? Initialize the hand values, and bitmaps
+seconds = 0
+minutes = 0
+hours = 0
+hbitmap = 0
+backgroundhbitmap = 0 ]]></example>
+			
+		</case>
+		
+			<case>
+			<title>OnSize Event</title>
+	<description>This event is called when the control is sized. This forces the cached bitmaps to be recalculated (so that on the next draw the image will be resized).</description>
+	<example><![CDATA[' throw away the bitmaps whenever we resize
+if hbitmap <> 0 then
+ DeleteObject(hbitmap)
+ hbitmap = 0
+end if
+if backgroundhbitmap <> 0 then
+ DeleteObject(backgroundhbitmap)
+ backgroundhbitmap = 0
+end if ]]></example>
+			
+		</case>
+		
+			<case>
+			<title>OnTimer Event</title>
+	<description>This event is called whenever a timer event occurs. We track the seconds, minutes and hours here:</description>
+	<example><![CDATA[' when timer goes off, recalculate the time & cause a repaint
+seconds = inttoseconds?, 60?
+minutes = modtime(?/60, 60)
+hours  = modtime(?/(60*60), 12)
+?causes the control to repaint
+InvalidateRect(a_USER.hwnd, 0, 0) ]]></example>
+			
+		</case>
+	</cases>
+	
+	
+	
+</section>
+
+
+	
+</sections>	
+	
+</page>

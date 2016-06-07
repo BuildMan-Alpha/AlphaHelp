@@ -1,0 +1,101 @@
+<page>
+  <topic>How to trap mouse events in an xdialog</topic>
+ <description>This example demonstrates how to trap mouse events in an xdialog using a user defined xdialog control.
+</description>
+ <sections>
+  <section>
+   
+    <example><![CDATA[define class system [control] HelloWorld
+dim ctl as p
+dim dlg_title as c
+dim varName as c
+dim message as c
+FUNCTION HelloWorld as v()
+  message = "Hello World"
+END FUNCTION
+ 
+implementation EmbeddedIface as Type::MetaControlImpl
+FUNCTION updateDrawing as v()
+  self.ctl.drawCode = ui_generate_quick_draw(<<%code%
+set_brush("yellow")
+fill_rect(0,0,4,2)
+set_font("Tahoma,15","Red")
+text(self.message,0,0)
+%code%)
+END FUNCTION
+ 
+FUNCTION OnlButtonDown as v(ma as p)
+  self.message = "Hello world - Mouse Down"
+  'self.varname = the 'variable' that is bound to the Meta control
+  'e.g. {HelloWorld=100,10test1};  - in this case, it is 'test1'.
+  ui_dlg_eval(self.dlg_title,self.varname + ":=" + quote(ma.x +":" + ma.y))
+  ui_dlg_refresh(self.dlg_title)
+  updateDrawing()
+END FUNCTION
+FUNCTION OnlButtonUp as v(ma as p)
+  self.message = "Hello world - Mouse Up"
+  updateDrawing()
+END FUNCTION
+FUNCTION OnMouseMove as v(ma as p)
+  self.message = "Hello world - Move "+ma.X+","+ma.Y
+  updateDrawing()
+END FUNCTION
+FUNCTION OnMouseLeave as v (ma as p)
+  self.message = "Hello world"
+  updateDrawing()
+END FUNCTION
+FUNCTION OnKeyDown as v(ka as p)
+  self.message = "Hello world - KeyDown "+ka.KeyName()
+ 
+  updateDrawing()
+END FUNCTION
+FUNCTION OnKeyUp as v(ka as p)
+  self.message = "Hello world - KeyUp "+ka.KeyName()
+  updateDrawing()
+END FUNCTION
+END implementation
+ 
+FUNCTION initialize as v(dlg_title as c, parguments as c, pcontents as c, pvarFrame as p)
+self.dlg_title = dlg_title
+self.varName = parguments
+END FUNCTION
+ 
+FUNCTION GetControlInterface as p()
+GetControlInterface = EmbeddedIface
+END FUNCTION
+ 
+FUNCTION GetVariables as c ()
+GetVariables = ""
+END FUNCTION
+ 
+FUNCTION refresh as c()
+END FUNCTION
+ 
+FUNCTION BindControl as v(ptr as p)
+self.ctl = ptr
+EmbeddedIface.updateDrawing()
+END FUNCTION
+FUNCTION close as v()
+END FUNCTION
+FUNCTION setfocus as v()
+END FUNCTION
+FUNCTION GetBorderStyle as c()
+GetBorderStyle = "default"
+END FUNCTION
+END class
+ 
+ 
+ui_dlg_box("hello",<<%dlg%
+(HelloWorld=100,10test1);
+[.20test1];
+(HelloWorld=100,10test2);
+[.20test2];
+(justify=right)<*10OK!ok>;
+%dlg%) ]]></example>
+    <figure><link>images/trap_mouse_events_in_xdialog.png</link></figure>
+  </section> 
+   
+   
+ </sections> 
+  
+</page>
