@@ -384,6 +384,13 @@ events.extractSymbols = function(txt,title,path) {
          }
          symbols = symbols.split("|").join("_");
      }
+     // Add symbols to denote the separator that is being used
+     if( symbols.indexOf("_") > 0 ) {
+         symbols += "underbarseparated";
+     }
+     if( symbols.indexOf(".") > 0 ) {
+         symbols += "dotseparated";
+     }
      return symbols.trim();  
 };
 
