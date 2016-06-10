@@ -721,6 +721,11 @@ events.postProcessContent = function(data) {
                                 }
                             }
                             if( linkdef ) {
+                                if( linkdef.substring(0,1) == '/' ) {
+                                    if( linkdef.substring(0,15) != '/documentation/' ) {
+                                        linkdef = '/documentation'+linkdef;
+                                    }
+                                }
                                 if( typeName == "link" ) {
                                     snippet = '<a href="'+linkdef+'">'+emph+"</a>";
                                 } else if( typeName == "extlink" ) {
