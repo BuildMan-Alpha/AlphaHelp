@@ -459,6 +459,15 @@ events.addPageSourceComment = function(page,symName) {
     }
     return pageSource;
 };
+events.getSharableLink= function(page,symName) {
+    var shareLink;
+    page = page.replace(".xml_html",".xml");
+    shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
+    if( symName ) {
+        shareLink = "http://www.alphasoftware.com/documentation/index/"+symName;
+    }
+    return shareLink;
+};
 events.generateLocalToc = function(localNames) {
    if( localNames.length > 1 ) { 
         var localToc = "<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
