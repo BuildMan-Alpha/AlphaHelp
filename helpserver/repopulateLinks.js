@@ -17,31 +17,33 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
     async.eachSeries(list, function (fo, callbackLoop) {
         if (fo.file.toLowerCase().indexOf('.xml') > 0) {
             fs.readFile(fo.file, "utf8", function (err, page) {
-                var topicStart = page.indexOf("<topic>");
-                if (topicStart > 0) {
-                    var topicEnd = page.indexOf("</topic>");
-                    topicStart += 7;
-                    if (topicEnd > topicStart) {
-                        var topic = page.substring(topicStart, topicEnd).trim();
-                        if (topic.length > 0) {
-                            if (topic.substring(0, 9) == "<![CDATA[") {
-                                topic = topic.substring(9).split("]]>")[0].trim();
-                            }
-                            var hasKey = usedNames[topic.toLowerCase()];
-                            var pathName = "/pages/" + fo.file.split("/helpfiles/")[1];
-                            if (hasKey) {
-                                if (hasKey != pathName) {
-                                    console.log("Duplicate symbol " + topic + " path " + pathName);
+                if( !err ) {
+                    var topicStart = page.indexOf("<topic>");
+                    if (topicStart > 0) {
+                        var topicEnd = page.indexOf("</topic>");
+                        topicStart += 7;
+                        if (topicEnd > topicStart) {
+                            var topic = page.substring(topicStart, topicEnd).trim();
+                            if (topic.length > 0) {
+                                if (topic.substring(0, 9) == "<![CDATA[") {
+                                    topic = topic.substring(9).split("]]>")[0].trim();
                                 }
-                            } else {
-                                usedNames[topic.toLowerCase()] = pathName;
-                                links[topic] = pathName;
-                                changed = true;
+                                var hasKey = usedNames[topic.toLowerCase()];
+                                var pathName = "/pages/" + fo.file.split("/helpfiles/")[1];
+                                if (hasKey) {
+                                    if (hasKey != pathName) {
+                                        console.log("Duplicate symbol " + topic + " path " + pathName);
+                                    }
+                                } else {
+                                    usedNames[topic.toLowerCase()] = pathName;
+                                    links[topic] = pathName;
+                                    changed = true;
+                                }
                             }
                         }
                     }
                 }
-                callbackLoop();
+                callbackLoop();                
             });
         } else {
             callbackLoop();
