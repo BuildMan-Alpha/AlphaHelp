@@ -294,10 +294,24 @@ events.decorateTitle = function(title) {
    }
    return title;  
 };
-events.addPageSourceComment = function(page) {
+events.addPageSourceComment = function(page,symName) {
+    var pageSource;
     page = page.replace(".xml_html",".xml");
-    return "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
-}
+    pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
+    if( symName ) {
+        pageSource += "\n    <!-- link:  *[link:"+symName+"]* -->";
+    }
+    return pageSource;
+};
+events.getSharableLink = function(page,symName) {
+    var shareLink;
+    page = page.replace(".xml_html",".xml");
+    shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
+    if( symName ) {
+        shareLink = "http://www.alphasoftware.com/documentation/index/"+symName;
+    }
+    return shareLink;
+};
 events.extractSymbols = function(txt,title,path) {
      var leading = [
       { "symbol" : "*" , "replace" : "aster|"}  ,
