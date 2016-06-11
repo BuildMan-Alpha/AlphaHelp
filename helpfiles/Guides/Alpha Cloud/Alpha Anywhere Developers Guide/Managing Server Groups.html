@@ -1,0 +1,185 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Understanding server groups, parameters and scaling for subscription tenancy and single tenancy web sites." />
+<title>Alpha Cloud - Alpha Anywhere Developer's Guide</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+<h2><a id="ManagingServerGroups">Managing Server Groups</a></h2>
+
+<p><a href="#UnderstandingServerGroups">Understanding Server Groups</a></p>
+<p><a href="#UnderstandingServerGroupParameters">Understanding Server Group Parameters</a></p>
+<p><a href="#UnderstandingAutomaticScaling">Understanding Automatic Scaling</a></p>
+<p><a href="#ManagingServerGroupsDialog">Managing Server Groups</a></p>
+<br/>
+
+<h3><a id="UnderstandingServerGroups">Understanding Server Groups</a></h3>
+
+<p>
+A server group is a named set of values that you can create and manage to optimize your cloud deployments and group web sites.
+You can create any number of uniquely named server groups and each has its own set of values for tuning scaling and IIS worker processes.
+</p><br/>  
+<ul>
+	<li><p>Each server group has set of values that are used to deploy web sites that have <strong>Subscription</strong> or <strong>Single</strong> tenancy.
+		When you manage your web site, you select the server group from which you want to assign scaling and IIS parameters.
+		</p><br/>
+		</li>
+	<li><p>For web sites that have a <strong>Subscription</strong> tenancy, a server group associates web sites together when assigning them to servers.
+		The deployed server that the web sites are automatically assigned to will use the parameters from the server group for autoscaling.
+		The applications deployed to the web sites will use the IIS parameters to manage their IIS application pools.
+		</p><br/>
+		</li>
+	<li><p>For web sites that have a <strong>Public</strong> tenancy, the server group is ignored.</p></li>
+</ul>
+<br/>
+<p>
+Alpha Cloud creates a server group called "Default" for each subscription.  
+The initial values are the current defaults for each of the settings.
+You can change the values to meet your needs.
+</p><br/>
+
+<h3><a id="UnderstandingServerGroupParameters">Understanding Server Group Parameters</a></h3>
+
+<p>
+Each server group has the following values.
+</p><br/>
+<dl>
+	<dt><strong>Name</strong></dt><dd>An identifier that is unique within your subscription.
+		</dd><br/>
+	<dt><strong>Status</strong></dt><dd>Either "Active" - meaning the server group is available for use, or "Disabled" meaning the server group is not available.
+		</p><br/>
+		<p><strong>Note:</strong> Disabling a server group that has web sites assigned to it can cause web sites to be stopped.
+		</p>
+		</dd><br/>
+	<dt><strong>Minimum Instances</strong></dt><dd>The minimum number of server instances to be running at any time.
+		</p><br/>
+		<p>Setting this value to at least two means that if one of your servers fails, there is another one available and running to pick up the load.
+			This can greatly reduce the recovery time, because starting a server can take some time.
+		</p>
+		</dd><br/>
+	<dt><strong>Maximum Instances</strong></dt><dd>The maximum number of server instances to be running at any time.
+		</p><br/>
+		<p>Setting this value to a reasonable number will keep your costs limited.
+		</p>
+		</dd><br/>
+	<dt><strong>Desired Instances</strong></dt><dd>The typical number of server instances to be running at any time.
+		</dd><br/>
+	<dt><strong>Scale Up CPU Utilization</strong></dt><dd>The average utilization (as a whole number percent) that the CPU needs to be above for a sustained period of time before adding additional servers (scaling up).
+		</dd><br/>
+	<dt><strong>Scale Up After (Minutes)</strong></dt><dd>How many minutes the CPU must be over the Scale Up CPU Utilization before adding additional servers (scaling up).
+		</dd><br/>
+	<dt><strong>Scale Increment (Instances)</strong></dt><dd>How many servers to add when scaling up or remove when scaling down.
+		</dd><br/>
+	<dt><strong>Scale Down CPU Utilization</strong></dt><dd>The average utilization (as a whole number percent) that the CPU needs to be below for a sustained period of time before removing (scaling down).
+		</dd><br/>
+	<dt><strong>Scale Down After (Minutes)</strong></dt><dd>How many minutes the CPU must be under the Scale Down CPU Utilization before adding removing servers (scaling down).
+		</dd><br/>
+	<dt><strong>Web Application Process Count</strong></dt><dd>How many processes the application pool for a deployed application should create.
+		<br/>
+		<p>Use this value to tune your servers.
+			An application that is very CPU intensive should not try to respond to too many requests at once.
+			An application that is somewhat bursty (short, intermittent requests, with lots of database queries) may perform better with more processes.
+		</p>
+		</dd><br/>
+	<dt><strong>Recycle Every (Hours)</strong></dt><dd>The default of 24 hours is a reasonable number and will restart a process once a day.
+		<br/>
+		<p>If your application tends to use a lot of memory or produces a lot of errors, you may want to restart more frequently.
+		</p><br/>
+		<p>If your application is only very lightly used, it may be reasonable to restart it every few days or even weekly.
+		</p><br/>
+		<p><strong>Note:</strong> Restarting a process in the application pool does not mean that the server will be unavailable.
+			When IIS restarts application pool processes,it waits until the new process is available before stopping the old one.
+			Requests that are being processed get a change to complete.
+			This is a very smooth process that not affect your web site responsiveness at all.
+		</p>
+		</dd><br/>
+</dl>
+
+
+<h3><a id="UnderstandingAutomaticScaling">Understanding Automatic Scaling</a></h3>
+<p>
+In a traditional data center, capacity planning is a very expensive and error prone operation, even with large data centers where things tend to even out.
+When new servers are needed they must be allocated form a pool of physical or virtual machines.
+Adding a new machine means purchasing,installing, and configuring a physical machine.
+</p><br/>
+<p>
+Cloud computing simplifies the process of provisioning a new virtual machine by supporting automated provisioning and (in many cases) automatically adding a server when the load grows and removing servers when it drops back down.
+Alpha Cloud has a load balancer for each group of servers and the load balancer and the scaling engine provided by the intrastructure (Amazon AWS in our case) works with the load balancer to keep track of instance load and machine failures.
+If a machine fails, it is replaced immediately.
+If a scaling rule fires, a machine may be added or removed from the group.
+</p><br/>
+<p>
+The parameters described above instructing the scaling engine how to add and remove servers based on the CPU load.
+<p>Scaling works as follows</p><br/>
+<dl>
+	<dt><strong>Scaling Up</strong></dt>
+		<br/><dd>
+		When the average CPU utilization for the machines in a group exceeds the scale up threshhold (percentage) for a certain number of minutes, one or more instances are added.
+		<br/><br/>
+		For example:
+		<br/><br/>
+		If the average CPU utilization for the machines in a group exceeds 80% for 60 minutes, add 1 instance (virtual machine).
+		<br/><br/>
+		</dd><br/>
+	<dt><strong>Scaling Down</strong></dt>
+		<br/><dd>
+		When the average CPU utilization for the machines in a group falls below the scale down threshhold (percentage) for a certain number of minutes, one or more instances are terminated.
+		<br/><br/>
+		For example:
+		<br/><br/>
+		If the average CPU utilization for the machines in a group falls below 20% for 120 minutes, terminate 1 instance (virtual machine).
+		</dd><br/>
+</dl>
+
+<p>
+Automatic scaling is a complex operation managed by the infrastructure that Alpha Cloud runs on.  
+As a result, there are many options available, and we have exposed a few key values to help you tune your application performance.
+In general, you should be able to use the default values.
+Poor tuning on your part may result in reduced availability or excessive cost.
+</p><br/>
+
+<p>
+It is important not to scale up or down too frequently.
+Each machine that is started is an additional cost.
+Removing a machine too quickly can cause the server group to seem unresponsive when a burst of traffic is encountered.
+It is a good idea not to have the configuration change more than once or twice a day under normal load.
+</p><br/>
+<p><strong>Note:</strong> The default parameters reasonable starting points.  
+If you find yourself tuning them, make sure that you have a good base measure of responsiveness taken over a period of time before you start.
+After making a change, retake those measurements over the same period of time (probably over several days and at different times of the day.
+</p><br/>
+
+<h3><a id="ManagingServerGroupsDialog">Managing Server Groups</a></h3>
+<p>
+You can view or make changes to server groups using the Manage Server Groups Alpha Cloud dialog.  
+If you have permission to maintain server groups for a subscription, you can add, enable or disable and set parameters for a server group.
+<p><br/>
+
+<p>To view or change server groups:</p><br/>
+<ol>
+	<li>Click the Alpha Cloud toolbar icon on the web control panel in Alpha Anywhere and select "Advanced" and then "Server Groups".<br/><br/>
+    <img border="0" src="ScreenShots/WebControlPanelAlphaCloudMenuAdvanced.jpg">
+    <br/>
+    </li>
+    <br/>
+	<li>To add a new server group, click in the empty row at the bottom of the grid (with a * to its left), name your new group and change any values you choose to.</li>
+	<li>To enable or disable a server group, select either "Active" or "Disabled" from the "Status" drop down list.</li>
+	<li>Change any values required on any of the server groups.</li>
+	<li>Click the button entitled "Apply Changes" to update the Alpha Cloud.</li>
+</p><br/>
+<img border="0" src="ScreenShots/ManageServerGroups60pct.jpg">
+<p class="fullsizeimagelink"><a href="ScreenShots/ManageServerGroups.jpg">View a Full Sized Image</a></p>
+
+<br/>
+<br/>
+</ol>
+
+</body>
+
+</html>

@@ -1,0 +1,178 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Uploading and managing SSL/TLS certificates for web sites." />
+<title>Alpha Cloud - Alpha Anywhere Developer's Guide</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+<h2><a id="Certificates">Managing SSL Certificates for Web Sites Accessed From Your Own Domain</a></h2>
+
+<p><a href="#AboutCertificates">About Certificates</a></p>
+<p><a href="#AlphaCloudCertificates">Certificates For Alpha Cloud Managed Domain Names</a></p>
+<p><a href="#CustomDNS">Using a Custom Domain Name with SSL</a></p>
+<p><a href="#UploadCertificate">Uploading Certificates</a></p>
+<p><a href="#ManageCertificates">Managing Certificates</a></p>
+<br/>
+
+<h3><a id="AboutCertificates">About Certificates</a></h3>
+
+<p>
+When a browser URL begins with https instead of http, the communication between the browser and the web site uses the HTTP protocol, but does so using secure communication.
+Transport Layer Security (TLS) and the more commonly recognized Secure Socket Layer (SSL) provide an encrypted transport between browsers and web sites.
+To make this all work, the browser and the web site must complete an exchange of messages called a "handshake" which will include the server offering up a standard X.509 certificate.
+The certificate verifies that the web site is in fact who it claims to be.
+Each certificate is signed by a certificate authority in a chain of authorities that ultimately link back to an authority that is already known to the browser.
+</p></br>
+
+<p><strong>Note:</strong> It is also possible to use a test (or self-signed) certificate.  
+In this case, the browser will display a warning message that the certificate is not trusted and the user will have the option of continuing.
+Production sites with any need for security (most will have this) will need an SSL certificate installed on the server that has been signed by a verified certificate authority.
+</p><br/>
+
+<h3><a id="AlphaCloudCertificates">Certificates For Alpha Cloud Managed Domain Names</a></h3>
+
+<p>Alpha Cloud automatically generates and manages a domain name for each web site so that you can test your deployed web sites immediately.  
+Domain name generation is discussed in detail in the section <a href="Domains.html">Adding Your Web Sites to Your Own Domain</a>.
+</p><br/>
+
+<p>
+Alpha Cloud also manages SSL certification for the automatically generated domain name, so it can be used for both insecure (HTTP) and secure (HTTPS) access to your web site.
+</p><br/>
+
+
+<h3><a id="CustomDNS">Using a Custom Domain Name with SSL</a></h3>
+<p>
+In most cases you will also want to assign your own domain name to your web site.  
+As discussed in <a href="Domains.html#CustomDNSNames">Creating Your Own Custom Domain Name</a>, you can set up a host name from your own domain.
+</p><br/>
+
+<p>You are responsible for purchasing (and periodically renewing) a certificate for your host name in order to support SSL (https) for your web site when referenced from your own domain name.
+Once you have purchased and downloaded a certificate, you can upload it to Alpha Cloud, and it will be automatically installed on each server that handles requests for your web site.
+</p>
+
+
+<h4>The Importance of Securing Your Server Certificate and Your Private key</h4>
+
+<p><strong>Important Note:</strong> 
+The security of your SSL certificate, and the private key required to deploy it are very important!
+If a malicious individual is able to access the private key for your certificate, they can pose as your web site and potentially gain access to confidential information.
+While Alpha Cloud encrypts your certificate in transit and at rest, there is always risk involved when transferring and deploying server side certificates.
+It is important to make sure that any compromise to security is contained.
+Please consider the policies below a minimum of what needs to be done to protect your certificate and your web applications.
+</p><br/>
+<ul>
+	<li>Purchase a certificate for each host name (web site) you deploy on the Alpha Cloud. Don't use wild-card certificates. 
+		This will limit exposure to a single web site.</li>
+	<li>DO NOT use the same certificate for your own on-site web sites and Alpha Cloud web sites.  
+		A compromise on either site will expose the other site and make it harder to track the cause of the breach.</li>
+	<li>Protect your copy of the certificate, but more importantly the private key that you create when you purchase it.</li>
+</ul>
+<br/>
+
+<h3><a id="UploadCertificate">Uploading Certificates</a></h3>
+
+<p>Once you have purchased and downloaded a certificate, you can upload it to Alpha Cloud, and it will be automatically installed on each server that handles requests for your web site.
+</p><br/>
+
+<p>From within Alpha Anywhere, you can upload new or updated certificates to Alpha Cloud.  
+When you renew a certificate and upload it, Alpha Cloud automatically deploys the new one when the old one expires.
+You can also disable a certificate that has been uploaded (for example if your believe it may have been compromised).
+</p><br/>
+
+<p>
+Before you begin, make sure you have your server certificate and private key ready for upload.
+<p>
+
+<h4>Certificate File Formats</h4>
+<p>
+Depending on how you created your certificate, the certificate file may be in one of a few formats.  You can tell the format by the extension on the certificate file. Alpha Cloud will load and upload the following formats:
+</p><br/>
+<ul>
+	<li><strong>.pfx.</strong>(also called PKCS#12) - This is a file that contains both the certificate and the private key.
+		If you have the tools to create such a file, it will make the upload process a little easier.
+		</li>
+	<li><strong>.crt</strong> (Microsoft convention) - This file contains only the certificate and you will need to choose a file with the private key in it.</li> 
+	<li><strong>.cer</strong>(Alternate form of .crt files) - This file contains only the certificate and you will need to choose a file with the private key in it.<br/>
+		<br/>
+		<strong>Note:</strong> .crt and .cer files should be encoded in ASCII PEM format (contains a readable header and footer and a base64 encoded body).
+		</li> 
+
+</ul>
+
+<h4>Private Key Files</h4>
+<p>
+If you have a certificate in a .crt or .cer file, you will need to provide the name of the .key file that contains your private key.  
+Alpha Cloud will automatically convert the file to a .pfx file (see above) before uploading your certificate to the cloud for storage.
+Your key file may be in PKCS#7 or PKCS#8 format (it will have a heading that either says "BEGIN PRIVATE KEY" or "BEGIN RSA PRIVATE KEY".
+</p>
+
+
+<h4>Intermediate Certificate Files</h4>
+<p>
+Each certificate is signed by a trusted provider.  
+In the simplest case, the provider who signs your certificate is a root level provider and the certificate they sign your certificate with is already installed on the server.
+Often root level providers delegate authority to issue certificates to other providers, who can delegate to still other authorities.  
+If your certificate is signed by an intermediate authority, you will need to provide a chain of certificates, each signed by the next authority up the hierarchy until a root certificate is referenced.
+These certificates are sent to each SSL client as proof that the certificate being presented to a browser or web client is in fact valid.
+If your certificate is a CRT or CER file, there is a good chance you have been provided with intermediate certificates (possibly bundled into a single file).
+You will need to provide these certificates at the time you upload your SSL certificate.
+</p>
+
+<h4>Using the Certificate Upload Dialog</h4>
+<ol>
+	<li>Click the Alpha Cloud toolbar icon on the web control panel and select "Security" and then "Upload SSL Certificate" from the drop down menu.<br/><br/>
+    <img border="0" src="ScreenShots/WebControlPanelAlphaCloudMenuSecurity.jpg">
+    <br/>
+    </li>
+    <br />
+    <li>If you have access to more than one subscription, make sure you are accessing the correct subscription.
+	<li>Type the full path and name of your certificate file into the text box labled "Certificate File" or click the button entitled "Browse For Certificate" to choose the certificate to upload.</li>
+	<li>If you have selected a .pfx certificate file format, you may need to supply a password to load it.  
+		If so, type the password and the certificate will load.
+	<li>If you have selected a .crt or a .cer certiticate file format, you need to provide a key file.
+		Type the full path and name of your certificate file into the text box labeled "Private Key File" or click the button entitled "Browse for Private Key" to choose the key file to upload.</li>
+	<li>If you need to include intermediate certificates in your upload (as discussed above) click the button entitled "Browse for Intermediate Certificates" to choose the intermediate certificate files to include.</li>
+	<li>The default status of a newly uploaded certificate is "Active", if you do not want to make the certificate available immediately, select "Disabled" from the dropdown entitled "Status".</li>
+	<li>As a safety, the dialog will not allow you to upload a duplicate certificate.
+		If you need to replace a certificate with the same name and available start date, check the box entitled "Replace existing certificate?"</li>
+	<li>Click the button labeled "Upload" to upload your certificate to the cloud.</li>
+<br/>
+
+
+<img border="0" src="ScreenShots/UploadCertificate.jpg">
+<br/>
+<br/>
+</ol>
+
+<h3><a id="#ManageCertificates">Managing Certificates</a></h3>
+
+<p>For each unique certificate name (the full host name of the certificate), a header record is created so renewed certificates can be related back to older certificates for the same name.</p></br>
+
+<p>You can use the Manage Certificates dialog to view and manage the certificates you have uploaded to the Alpha Cloud for the currently selected subscription.</p><br/>
+<ol>
+	<li>Click the Alpha Cloud toolbar icon on the web control panel and select "Security" and then "SSL Certificates" from the drop down menu.<br/><br/>
+    <img border="0" src="ScreenShots/WebControlPanelAlphaCloudMenuSecurity.jpg">
+    <br/>
+    </li>
+    <br/>
+	<li>Select the certificate from the list entitled "Name".</li>
+	<li><p>You can change the status of the certificate to either "Active" or "Disabled".</p><br/>
+		<p><strong>Important:</strong> If you disable a certificate that is assigned to a web site, the web site may stop working!</p><br/>
+		</li>
+	<li>To permanently delete a certificate from the cloud (such as an expired certificate), click the checkbox labeled "Delete" beside the item you want to delete.</li>
+	<li>Click the button labeled "Apply Changes" to change the status and/or delete certificates.</li>
+	<li>To undo changes before you apply them, click the button labeled "Discard Changes".</li>
+	<li>When you have finished managing your certificates, click the button labled "Close" to exit the dialog.</li>
+
+<br/>		
+<img border="0" src="ScreenShots/ManageCertificates.jpg">
+</ol>
+</body>
+
+</html>
