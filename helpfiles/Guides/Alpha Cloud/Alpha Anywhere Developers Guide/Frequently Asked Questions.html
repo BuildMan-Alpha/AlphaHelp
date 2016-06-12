@@ -60,12 +60,14 @@ For example you might schedule a deployment to occur  around midnight.</li>
 	<li>You could also use the unique URL we generate for each web site you deploy and not bother to assign the QA website or other development web sites to your public DNS name.  The URL would look something like this:  http://mycompany-QA.cloud.alphasoftware.com/Accounting.</li>
 </ul>
 
-<p style="text-indent: 50px;">
-<p><strong>Tenancy</strong> is, at the core, how your web sites are assigned to servers (when one or more applications assigned to a web site are deployed):</p>
-<p><strong>Public</strong> - You share one or more Windows instances with other subscriber web sites; a more economical approach for light usage applications.</p>
-<p><strong>Subscription</strong> - You share one or more Windows instances among web sites defined by your subscription.</p>
-<p><strong>Single</strong> - One of your web sites has one or more Windows instances all to itself.</p>
-</p>
+<p><strong>Tenancy</strong> affects how your web sites are assigned to servers when one or more applications assigned to a web site are deployed.  
+You can deploy any version of your web site to any build of Alpha Anywhere Application Server for IIS regardless of the tenancy choice.  
+Once again, the options are:</p>
+<ul>
+<li><strong>Public</strong> - You share one or more Windows instances with other subscriber web sites; a more economical approach for light usage applications.</li>
+<li><strong>Subscription</strong> - You share one or more Windows instances among web sites defined by your subscription.</li>
+<li><strong>Single</strong> - One of your web sites has one or more Windows instances all to itself.</li>
+</ul>
 <br/>
 <br/>
 
@@ -94,8 +96,8 @@ That said, we will likely provide some rudimentary interfaces to wrap RDS, but o
 
 <h3><a id="QuestionWindowsInstanceShutdown">What happens when a Windows instance needs to be restarted? Won't it shut down all the running application server instances?</a></h3>
 <br/>
-<p>While conceptually, a server is a Windows instance, you will see it referred to in the documentation as a "server group" 
-- a collection of servers. That is actually more correct.</p>
+<p>While it is easier to think of a server as a Windows instance, it is really a collection of servers.  You will see it referred to in the documentation as a "server group" 
+- a collection of servers. That is actually more correct.  The group of servers runs behind a load balancer.  As a result, recycling a single instance will not stop your application from responding.</p>
 <ul>
 <li>In order to increase availability and scale, we will be running at least 2 Windows instances for each server group, all behind a load balancer (Amazon calls this an auto-scaling group).</li>
 <li>These instances will be running in separate data centers (called availability zones) in a tightly coupled geographic region.</li>
@@ -139,7 +141,9 @@ This is usually per application, but you can share security groups within your o
 
 <h3><a id="QuestionDatabaseServersOnInstances">Can you have multiple MySQL database servers (one install for each tenant) running within a single Windows instance?</a></h3>
 <br/>
-<p>Because there will be multiple application servers running at all times and any of these servers might be terminated at any time, 
+<p>
+Alpha Cloud application servers do not run SQL databases on the same virtual machine.  
+Because there will be multiple application servers running at all times and any of these servers might be terminated at any time, 
 any data that will be accessed between requests must be stored outside the application server instances.</p>
 <ul>
 <li>Appropriate places include session state, a SQL database or a storage container (such as S3 storage on Amazon) that persists and is shareable.</li>
