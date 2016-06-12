@@ -20,7 +20,7 @@
 <p><a href="#QuestionChoiceOfTenancy">How does the choice of tenancy (Public, Subscription, Single) affect upgrades to applications and the Alpha Anywhere Application Server for IIS builds?</a></p>
 <p><a href="#QuestionDatabaseSupport">What about cloud based database support?</a></p>
 <p><a href="#QuestionWindowsInstanceShutdown">What happens when a Windows instance needs to be restarted? Won't it shut down all the running application server instances?</a></p>
-<p><a href="#QuestionTenantInteraction">Could one tenant shutdown someone else's running application server?</a></p>
+<p><a href="#QuestionTenantInteraction">Could one tenant shut down someone else's running application server?</a></p>
 <p><a href="#QuestionDatabaseServersOnInstances">Can you have multiple MySQL database servers (one install for each tenant) running within a single Windows instance?</a></p>
 <p><a href="#QuestionMySQLOnRDS">I want to create a MySQL database  on Amazon RDS.  Is there anything I need to consider?</a></p>
 <br/>
@@ -60,10 +60,12 @@ For example you might schedule a deployment to occur  around midnight.</li>
 	<li>You could also use the unique URL we generate for each web site you deploy and not bother to assign the QA website or other development web sites to your public DNS name.  The URL would look something like this:  http://mycompany-QA.cloud.alphasoftware.com/Accounting.</li>
 </ul>
 
+<p style="text-indent: 50px;">
 <p><strong>Tenancy</strong> is, at the core, how your web sites are assigned to servers (when one or more applications assigned to a web site are deployed):</p>
 <p><strong>Public</strong> - You share one or more Windows instances with other subscriber web sites; a more economical approach for light usage applications.</p>
 <p><strong>Subscription</strong> - You share one or more Windows instances among web sites defined by your subscription.</p>
 <p><strong>Single</strong> - One of your web sites has one or more Windows instances all to itself.</p>
+</p>
 <br/>
 <br/>
 
@@ -103,7 +105,7 @@ That said, we will likely provide some rudimentary interfaces to wrap RDS, but o
 <li>Technically, we don't restart servers.  If a server is deemed unhealthy by the load balancer, the server is automatically terminated and another is started to replace it.</li>
 <li>All of this behavior is implemented regardless of the tenancy option you choose.</li>
 </ul>
-<p>Because we are using Alpha Anywhere Application Server for IIS, there are a number of features from IIS that we take advantage of.</p><br/>
+<p>Because we are using Alpha Anywhere Application Server for IIS, there are a number of features from IIS that we take advantage of.</p>
 <ul>
 <li>One of the key features is the ability to run more than one process for a given web application.</li>
 <li>Because of this, we default to up to five processes per application on web sites running under Public tenancy (Note that the actual setting may be changed in the future).</li>
@@ -116,18 +118,19 @@ That said, we will likely provide some rudimentary interfaces to wrap RDS, but o
 <li>The number of instances in a server group.</li>
 <li>The scaling behavior (thresholds and instances added/removed).</li>
 <li>The number of IIS processes per application.</li>
+</ul>
 <br/>
 <br/>
 
 
-<h3><a id="QuestionTenantInteraction">Could one tenant shutdown someone else's running application server?</a></h3>
+<h3><a id="QuestionTenantInteraction">Could one tenant shut down someone else's running application server?</a></h3>
 <br/>
 <p>There are safeguards to prevent any application from interfering with another application or from taking control of the web server itself.</p>
 <ul>
 <li>Alpha Cloud web applications each run in their own dedicated IIS application pool (group of processes) and have a user identity specific to that application pool.</li>
 <li>The identity of the web application is restricted in terms of file access to those that belong to the application.</li>
 <li>None of the web applications has administrator permission.</li>
-<li>Session state and security are isolated by generating a unique machine-key for each security group.</li>
+<li>Session state and security are isolated by generating a unique machine-key for each security group.
 This is usually per application, but you can share security groups within your own subscription for a given region.</li>
 </ul>
 <br/>
@@ -137,17 +140,17 @@ This is usually per application, but you can share security groups within your o
 <h3><a id="QuestionDatabaseServersOnInstances">Can you have multiple MySQL database servers (one install for each tenant) running within a single Windows instance?</a></h3>
 <br/>
 <p>Because there will be multiple application servers running at all times and any of these servers might be terminated at any time, 
-any data that will be accessed between requests must be stored outside the server.</p>
+any data that will be accessed between requests must be stored outside the application server instances.</p>
 <ul>
-<li>Appropriate places include session state, a SQL database or in a storage container (such as S3 storage on Amazon) that persists and is shareable.</li>
+<li>Appropriate places include session state, a SQL database or a storage container (such as S3 storage on Amazon) that persists and is shareable.</li>
 <li>For Alpha Cloud applications, the session state is stored in a shared, highly available cluster (we are currently using a Redis cache cluster running under Amazon ElastiCache).  This is necessary to scale requests across multiple application servers.</li>
 <li>Amazon Relational Database Services (RDS) databases are collections of one or more server instances that Amazon automatically manages.  For MySQL, you can set up replication and manage failover (promotion of a slave to master).</li>
 </ul>
 <p>The connection string you provide for your application when you publish it can either be static, 
 or can be evaluated at runtime, meaning that you can use multiple databases for your own users.  
 Otherwise, the connection string is your own, just as if you deployed an application on your own server.</p>
-<p>In the future, we hope to offer the ability to set the connection string (and other variables) at deployment time 
-(so a test database can be used with a test deployment, for example) so you don't have to include application logic to vary the connection string.</p>
+<p>You can also set the connection string (and other variables) at deployment time so you don't have to include application logic to vary the connection string.
+For example a test database can be used with a test deployment by overriding the connection string for the deployment.</p>
 <br/>
 <br/>
 
@@ -158,10 +161,11 @@ Otherwise, the connection string is your own, just as if you deployed an applica
 <p>There are some parameters you will probably need to set for your Amazon RDS MySQL instance:</p>
 <table border="1">
 	<tr><th align="left">Parameter Name</th><th align="right">Value</th><th align="left">Explanation</th><tr>
-	<tr><td>lower_case_table_names</td><td align="right">1</td><td>Removes the case sensitivity of table names.<br/><strong>Note:</strong> If a database exists when you change this, you can lose addressability to the database.</td></tr>
+	<tr><td>lower_case_table_names</td><td align="right">1</td><td>Removes the case sensitivity of table names.<br/><strong>Warning:</strong> If a database exists when you change this, you can lose addressability to the database.</td></tr>
 	<tr><td>max_allowed_packet</td><td align="right">500000000</td><td>If you use large binary objects in your tables, you will want to increase the size in this table.</td></tr>
 	<tr><td>log_bin_trust_function_creators</td><td align="right">1</td><td>Set this parameter to allow you to create functions and stored procedures.</td></tr>
 </table>
+<p><strong>Note:</strong> MySQL and MariaDB are compatible databases and have similar settings.</p>
 <br/>
 <br/>
 
