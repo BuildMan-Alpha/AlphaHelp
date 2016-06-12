@@ -1,0 +1,177 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="An explanation of Alpha Cloud concepts." />
+<title>Alpha Cloud - Alpha Anywhere Developer's Guide</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="Concepts">Frequently Asked Questions</a></h2>
+<br/>
+
+<div>
+
+<p><a href="#QuestionChoiceOfTenancy">How does the choice of tenancy (Public, Shared, Single) affect upgrades to applications and the Alpha Anywhere Application Server for IIS builds?</a></p>
+<p><a href="#QuestionDatabaseSupport">What about cloud based database support?</a></p>
+<p><a href="#QuestionWindowsInstanceShutdown">What happens when a Windows instance needs to be restarted? Won't it shut down all the running application server instances?</a></p>
+<p><a href="#QuestionTenantInteraction">Could one tenant shutdown someone else's running application server?</a></p>
+<p><a href="#QuestionDatabaseServersOnInstances">Can you have multiple MySQL database servers (one install for each tenant) running within a single Windows instance?</a></p>
+<p><a href="#QuestionMySQLOnRDS">I want to create a MySQL database  on Amazon RDS.  Is there anything I need to consider?</a></p>
+<br/>
+<br/>
+
+
+<h3><a id="QuestionChoiceOfTenancy">How does the choice of tenancy (Public, Shared, Single) affect upgrades to applications and the Alpha Anywhere Application Server for IIS builds?</a></h3>
+<p>
+The Alpha Cloud deployment environment is deliberately architected so a single Windows instance can host multiple applications under multiple web sites.  
+Each application is configured independently for a specific Alpha Anywhere Application Server for IIS version and build.
+</p>/<br/>
+<p>Regardless of tenancy, you can have as many application deployments as IIS can support; 
+with each deployment pairing a specific version of your application and a version and a specific build of the 
+Alpha Anywhere Application Server for IIS mapped to a web site (such as http://www.mycompany.com) 
+and web application path (such as http://www.mycompany.com/ or http://www.mycompany.com/application1/ ).
+</p><br/>
+<h4>When you publish:</h4>
+<ul>
+Kli>We make a uniquely sequenced version of your application and store it on Alpha Cloud.</li>
+</ul>
+
+<h4>When you deploy:</h4>
+<ul>
+<li>You can choose any build of Alpha Anywhere Application Server for IIS that we make available to the cloud as the build that you want your application to run under.</li>
+<li>You can choose any version of your application and assign it to an IIS application path under your web site.</li>
+<li>You can also choose to publish and deploy in one operation.  In this case, your latest version is published and deployed.</li>
+<li>Deployments are actually “scheduled”, so you can schedule a change in a number of deployments to occur at (or around) midnight (for example).</li>
+</ul>
+<p>You choose when you will switch the version of your application and when you will switch the build of Alpha Anywhere Application Server for IIS for a given deployment.  Each deployment can only have one build of Alpha Anywhere Application Server for IIS and one version of your application at a time.</p></br>
+
+<h4>For example:</h4>
+<ul>
+	<li>You might deploy a your accounting application (version 5) to production as:  http://www.mycompany.com/Accounting and choose build number 2727 of Alpha Anywhere Application Server for IIS.</li>
+	<li>At the same time, you might deploy the upcoming version of your accounting application (version 6) to test as http://www.mycompany.com/QA/Accounting and choose build number 2790 of Alpha Anywhere Application Server for IIS.</li>
+	<li>Or if you prefer, you can create a separate DNS for test systems like http://test.mycompany.com/Accounting.</li>
+	<li>You could also use the unique URL we generate for each web site you deploy and not bother to assign the QA website or other development web sites to your public DNS name.  The URL would look something like this:  http://mycompany-QA.prod.a5cloud.alphasoftware.com/Accounting.</li>
+</ul>
+
+<p>Tenancy is, at the core, how your web sites are assigned to servers (when one or more applications assigned to a web site are deployed):</p><br/>
+<br/>
+<p><strong>Public</strong> – You share one or more Windows instances with other subscriber web sites; a more economical approach for light usage applications.</p><br/>
+<p><strong>Subscription</strong> – You share one or more Windows instances among web sites defined by your subscription.</p><br/>
+<p><strong>Single</strong> – One of your web sites has one or more Windows instances all to itself.</p><br/>
+<br/>
+<br/>
+
+
+
+<h3><a id="QuestionDatabaseSupport">What about cloud based database support?</a></h3>
+<p>Right now (at least during beta) we will ask you to create your own database and provide a connection string 
+(or a dynamic connection string for multiple deployments) when you publish your application.</p>
+<br/>
+<ul>
+<li>You can create an Amazon account and create a database on Amazon.  
+This is done by creating an Amazon Relational Database Services (RDS) instance.  
+Amazon currently supports MySQL, SQL Server, PostgreSQL, Oracle and will be introducing something called Aurora (MySQL compatible).</li>
+<li>Alternatively, you can deploy your own Amazon instances and provide connection strings to them.</li>
+</ul>
+<br/>
+<p>Amazon Relational Database Services (RDS) is certainly getting better, 
+but still lacks some of the features we would like to have for a database-as-a-service offering.  
+That said, we will likely provide some rudimentary interfaces to wrap RDS, but only if we can assure ourselves that your data is protected and available.<p>
+</br>
+<p>You have the option of providing access to your in-house database, however it must be publicly accessible from the internet 
+(a security issue) and latency between Amazon and your premises may unreasonably affect application performance.</p>
+</br>
+<p>Longer term, we hope to have a database solution that offers the same ease of use you have always expected from Alpha Software products.</p>
+<br/>
+<br/>
+
+
+
+<h3><a id="QuestionWindowsInstanceShutdown">What happens when a Windows instance needs to be restarted? Won't it shut down all the running application server instances?</a></h3>
+<p>While conceptually, a server is a Windows instance, you will see it referred to in the documentation as a “server group” 
+– a collection of servers. That is actually more correct.</p>
+<br>
+<ul>
+<li>In order to increase availability and scale, we will be running at least 2 Windows instances for each server group, all behind a load balancer (Amazon calls this an auto-scaling group).</li>
+<li>These instances will be running in separate data centers (called availability zones) in a tightly coupled geographic region.</li>
+<li>If one instance should fail, another instance is automatically started to replace it.</li>
+<li>If the overall server load increases for a period of time, an additional instance of the server is started automatically.  Instances are spread across data centers to improve availability and robustness.</li>
+<li>If load drops for an extended period of time, servers may be automatically stopped.</li>
+<li>Technically, we don’t restart servers.  If a server is deemed unhealthy by the load balancer, the server is automatically terminated and another is started to replace it.</li>
+<li>All of this behavior is implemented regardless of the tenancy option you choose.</li>
+</ul>
+<br/>
+<p>Because we are using Alpha Anywhere Application Server for IIS, there are a number of features from IIS that we take advantage of.</p><br/>
+<ul>
+<li>One of the key features is the ability to run more than one process for a given web application.</li>
+<li>Because of this, we default to up to five processes per application on web sites running under Public tenancy (Note that the actual setting may be changed in the future).</li>
+<li>IIS automatically restarts processes periodically, and based on settings we provide.</li>
+<li>This “restarting” is done in an overlapping fashion so that currently running requests are allowed to finish.</li>
+<li>New processes are brought up while the old processes are finishing up and are ready to handle new requests.</li>
+</ul>
+<br/>
+<p>If you are running a web site under Shared or Single tenancy, it will cost you more, but you will also be able to tune some of the behavior discussed above:</p>
+<br/>
+<ul>
+<li>The number of instances in a server group.</li>
+<li>The scaling behavior (thresholds and instances added/removed).</li>
+<li>The number of IIS processes per application.</li>
+<br/>
+<br/>
+
+
+<h3><a id="QuestionTenantInteraction">Could one tenant shutdown someone else's running application server?</a></h3>
+<p>There are safeguards to prevent any application from interfering with another application or from taking control of the web server itself.</p><br/>
+<ul>
+<li>Alpha Cloud web applications each run in their own dedicated IIS application pool (group of processes) and have a user identity specific to that application pool.</li>
+<li>The identity of the web application is restricted in terms of file access to those that belong to the application.</li>
+<li>None of the web applications has administrator permission.</li>
+<li>Session state and security are isolated by generating a unique machine-key for each security group.  
+This is usually per application, but you can share security groups within your own subscription for a given region.</li>
+</ul>
+<br/>
+<br/>
+
+
+<h3><a id="QuestionDatabaseServersOnInstances">Can you have multiple MySQL database servers (one install for each tenant) running within a single Windows instance?</a></h3>
+<p>Because there will be multiple application servers running at all times and any of these servers might be terminated at any time, 
+any data that will be accessed between requests must be stored outside the server.</p><br/>
+<ul>
+<li>Appropriate places include session state, a SQL database or in a storage container (such as S3 storage on Amazon) that persists and is shareable.</li>
+<li>For Alpha Cloud applications, the session state is stored in a shared, highly available cluster (we are currently using a Redis cache cluster running under Amazon ElastiCache).  This is necessary to scale requests across multiple application servers.</li>
+<li>Amazon Relational Database Services (RDS) databases are collections of one or more server instances that Amazon automatically manages.  For MySQL, you can set up replication and manage failover (promotion of a slave to master).</li>
+</ul>
+<br/>
+<p>The connection string you provide for your application when you publish it can either be static, 
+or can be evaluated at runtime, meaning that you can use multiple databases for your own users.  
+Otherwise, the connection string is your own, just as if you deployed an application on your own server.</p>
+<br/>
+<p>In the future, we hope to offer the ability to set the connection string (and other variables) at deployment time 
+(so a test database can be used with a test deployment, for example) so you don’t have to include application logic to vary the connection string.</p>
+<br/>
+<br/>
+
+
+
+<h3><a id="QuestionMySQLOnRDS">I want to create a MySQL database  on Amazon RDS.  Is there anything I need to consider?</a></h3>
+<p>There are some parameters you will probably need to set for your Amazon RDS MySQL instance:</p>
+<br/>
+
+<table>
+	<tr><th>Parameter Name</th><th>Value</th><th>Explanation</th><tr>
+	<tr><td>lower_case_table_names</td><td style="align: right;">1</td><td>Removes the case sensitivity of table names.<br/><strong>Note:</strong> If a database exists when you change this, you can lose addressability to the database.</td></tr>
+	<tr><td>max_allowed_packet</td><td style="align: right;">500000000</td><td>If you use large binary objects in your tables, you will want to increase the size in this table.</td></tr>
+	<tr><td>log_bin_trust_function_creators</td><td style="align: right;">1</td><td>Set this parameter to allow you to create functions and stored procedures.</td></tr>
+</table>
+<br/>
+<br/>
+</div>		
+</body>
+
+</html>
