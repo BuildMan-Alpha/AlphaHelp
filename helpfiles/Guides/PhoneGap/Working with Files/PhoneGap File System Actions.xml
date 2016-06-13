@@ -1,0 +1,120 @@
+<page>
+    <topic>PhoneGap - File System Actions Action Javascript</topic>
+    <description>The PhoneGap - File System Actions Action Javascript allows you to perform actions on the file system of the mobile device in your PhoneGap application.</description>
+    <discussion>
+        <p>PhoneGap - File System Actions Action Javascript makes working with files in the mobile device file system easier in a PhoneGap application. When you choose this action, you can select from the following list of file system actions:</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Get Directory Contents</title>
+            <description>
+                <p>Gets the contents of the directory on a mobile device. When the directory has been obtained, the onComplete callback function is called. If an error occurs, the onError callback function is called.</p>
+                <p>The onComplete callback function is passed an array. The array has objects for each item in the directory. The item object has these properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name>fullPath</name>
+                    <description>The full path of the file.</description>
+                </item>
+                <item>
+                    <name>isFile</name>
+                    <description>A true or false value indicating if the entry is a file (true) or a directory (false).</description>
+                </item>
+                <item>
+                    <name>display</name>
+                    <description>The fullPath followed by either [F] or [D] indicating if the entry is a file or directory.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Get Directory Contents (Recursive)</title>
+            <description>Similar to Get Directory Contents, but recurses into directories to get the contents of all child directories. See [Get Directory Contents] for more information.</description>
+        </section>
+        <section>
+            <title>Create Directory</title>
+            <description>Creates a directory on the mobile device's file system.</description>
+        </section>
+        <section>
+            <title>Remove Directory</title>
+            <description>Deletes a directory from the mobile device file system. For example if you specify 'dir1/dir2' as the name of the directory to remove it will remove 'dir2'.</description>
+        </section>
+        <section>
+            <title>Remove Directory (Recursive)</title>
+            <description>Removes a directory recursively. For example, if you specify 'dir1/dir2' as the name of the directory to remove, it will remove both 'dir1' and 'dir1/dir2'.</description>
+        </section>
+        <section>
+            <title>Create File</title>
+            <description>Creates a new text file. The filename can include a full path (e.g. dir1/dir2/file.txt). The directory structure for the target file must exists. After the file has been created the onSuccess callback is called. If the file was not created, the onError callback is called.</description>
+        </section>
+        <section>
+            <title>Delete File</title>
+            <description>Deletes a file. The filename can include a full path (e.g. dir1/dir2/file.txt). After the file has been deleted the onSuccess callback is called. If the file was not deleted, the onError callback is called.</description>
+        </section>
+        <section>
+            <title>File Exists</title>
+            <description>
+                <p>Checks if a file exists. The filename can include a full path (e.g. dir1/dir2/file.txt). The onSuccess callback is called if there were no errors. Your code can refer to the 'flagExists' variable which will be true (file exists) or false (file does not exist). If there was an error in trying to check the file, the onError callback is called.</p>
+            </description>
+        </section>
+        <section>
+            <title>Read File</title>
+            <description>Reads a text file. The filename can include a full path (e.g. dir1/dir2/file.txt). The onSuccess callback is called if there were no errors. Your code can refere to the 'data' variable which will be the file contents. If there was an error in trying to read the file, the onError callback is called.</description>
+        </section>
+        <section>
+            <title>Get File System URI for Legacy Persistent Storage</title>
+            <description>
+                <p>Gets the URI for the legacy persistent file system.</p>
+                <p>All of the actions defined in this builder use the Legacy Persistent File Storage location. If you want to use the newer PhoneGap - File System Actions (File URI Based) to work with any files or directories created by the actions exposed in this genie you will need the URI of the legacy file system.</p>
+            </description>
+        </section>
+        <section>
+            <figure>
+                <link>images/filesystemactions.jpg</link>
+            </figure>
+		</section>
+        <section>
+			<description>
+				<p>All actions are performed asynchronously. For each action you specify the Javascript to execute once the action has successfully completed. If the action fails, the Javascript you specify for the on failure action is executed.</p>
+				<p>Because the actions are asynchronous, you cannot simply define an Action Javascript that calls two file system actions sequentially. For example, assume that you defined an Action Javascript that did this</p>
+			</description>
+			<steps>
+				<step>
+					<description>
+						Create a new directory
+					</description>
+				</step>
+				<step>
+					<description>
+						Write a file to the new directory
+					</description>
+				</step>
+			</steps>
+		</section>
+		<section>
+			<description>
+				<p>This would likely fail because the second action (write a file to the new directory) would be executed immediately after the first action (before the new directory had actually been created).</p>
+				<p>In order to make the above work, the second action (write a file) needs to be called in the first action's onSuccess function.</p>
+				<p>The asynchronous nature of file system actions makes it tricky to write complex scripts that perform many file system actions.</p>
+				<p>In the above example, you would need to convert your Action Javascript to text mode and the rearrange the code.</p>
+				<p>For example, assume you defined the above two actions using Action Javascript. Once you converted to text mode your code would look like this:</p>
+			</description>
+			<example><![CDATA[{dialog.object}.phoneGapCreateDirectory('dir1', function() { //ok}, function() { //fail } );
+{dialog.object}.phoneGapCreateFile('dir1/file1.txt','some data',function() { //ok }, function() {//fail },false);]]></example>
+		</section>
+		<section>
+			<description>To re-organize the code so that the write file action happens after the new directory has been created, paste the action into the create directory's onSuccess function:</description>
+			<example><![CDATA[{dialog.object}.phoneGapCreateDirectory('dir1', function() {
+    //ok
+    {dialog.object}.phoneGapCreateFile('dir1/file1.txt','some data',
+    function() { //ok },
+    function() {//fail },false);
+
+    }, function() { //fail } );]]></example>
+		</section>
+    </sections>
+    <see>
+        <ref>PhoneGap File System Methods</ref>
+        <ref>PhoneGap File System Actions - (File URI Based) Action Javascript</ref>
+    </see>
+    <terms>file upload,file download,local storage,disconnected application,offline application,mobile application,phonegap build</terms>
+</page>
