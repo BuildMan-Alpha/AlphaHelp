@@ -464,7 +464,7 @@ events.getSharableLink= function(page,symName) {
     page = page.replace(".xml_html",".xml");
     shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
     if( symName ) {
-        shareLink = "http://www.alphasoftware.com/documentation/index/"+symName;
+        shareLink = "http://www.alphasoftware.com/documentation/index?search="+symName;
     }
     return shareLink;
 };
@@ -721,6 +721,11 @@ events.postProcessContent = function(data) {
                                 }
                             }
                             if( linkdef ) {
+                                if( linkdef.substring(0,1) == '/' ) {
+                                    if( linkdef.substring(0,15) != '/documentation/' ) {
+                                        linkdef = '/documentation'+linkdef;
+                                    }
+                                }
                                 if( typeName == "link" ) {
                                     snippet = '<a href="'+linkdef+'">'+emph+"</a>";
                                 } else if( typeName == "extlink" ) {
