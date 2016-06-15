@@ -1,14 +1,21 @@
 /* global indexOf */
 /* global substring */
+var http = require("http");
+var options = {
+  host: 'www.alphasoftware.com',
+  port: 80,
+  path: '/documentation/files.json'
+};
 var fs = require('fs');
 var pathModule = require('path');
-var files = fs.readFileSync("c:/data/files.json", "utf8");
-var list = JSON.parse(files);
+var files = '';
+var list = null;
 var async = require('async');
 var querystring = require("querystring");
 var currentIssue = [];
-var issuesFilename = "c:\\data\\issues.json";
+var issuesFilename = "../generated/issues.json";
 var issuesNeedComma = false;
+var links = {};
 
 var reportIssue = function (filename) {
     var problem = JSON.stringify({ filename: filename, issues: currentIssue }, null, " ");
@@ -59,6 +66,32 @@ var GetCommonFolder = function (paths) {
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
+    var prefix1 = "http://www.alphasoftware.com/testdoc/";
+    var prefix2 = "http://www.alphasoftware.com/documentation/";
+    if( href.substring(0,prefix1.length) == prefix1 ) {
+        href = href.substring(prefix1.length);
+    } else if( href.substring(0,prefix2.length) == prefix2 ) {
+        href = href.substring(prefix2.length);
+    }
+    if( href.substring(0,7) == "/pages/" ) {
+        var path = href.substring(6).toLowerCase();
+        // Find a short cut
+        for( var sc in links ) {
+            if( links[sc].toLowerCase().indexOf(path) >= 0 ) {
+                return "/documentation/index?search="+sc;
+            } 
+        }
+        // return 'index' page
+    } else if( href.substring(0,7) == "/" ) {
+        var path = href.toLowerCase();
+        // Find a short cut
+        for( var sc in links ) {
+            if( links[sc].toLowerCase().indexOf(path) >= 0 ) {
+                return "/documentation/index?search="+sc;
+            } 
+        }
+        // return 'index' page
+    }
     if ( href.indexOf("tiki-print") >= 0
       || href.indexOf("tiki-editpage.php") >= 0
         ) { 
@@ -439,8 +472,17 @@ var ResolveClosestLink = function (text, fromPath) {
     return href;
 };
 
+fs.readFile("../links.json", "utf8", function (err2, linksData) {
+    links = JSON.parse(linksData)
+    var link;
+http.get(options, function(res) {
+  res.on('data', function(chunk) {
+    files += chunk;
+  });
+  res.on('end', function() {
+    list = JSON.parse(files);
 async.eachSeries(list, function (path, callbackLoop) {
-    var filename = "/dev/AlphaHelp/helpfiles" + path;
+    var filename = "../helpfiles" + path;
     fs.readFile(filename, "utf8", function (err, data) {
         var extension = path.substring(path.lastIndexOf('.'));
         currentIssue = [];
@@ -463,8 +505,9 @@ async.eachSeries(list, function (path, callbackLoop) {
                 var expandReferences = function (node) {
                     var i;
                     if (node.name == "ref") {
+                        links
                         if (node.attr.href) {
-                            var newHref = ResolveLink(node.attr.href, path);
+                            var newHref = ResolveLink( node.attr.href , path );
                             if (newHref != node.attr.href) {
                                 var hrefPosition = changedData.indexOf("href=\"" + node.attr.href + "\"");
                                 if (hrefPosition < 0)
@@ -561,4 +604,13 @@ async.eachSeries(list, function (path, callbackLoop) {
 }, function () {
     console.log('Done!');
     fs.appendFileSync(issuesFilename, "\n]");
+});
+
+
+  });
+}).on('error', function(e) {
+  console.log("Got error: " + e.message);
+}); 
+
+
 });
