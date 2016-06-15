@@ -41,8 +41,24 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                         var pathName = "/pages/" + fo.file.split("/helpfiles/")[1];
                         if (hasKey) {
                             if (hasKey != pathName) {
-                                console.log("Duplicate symbol " + topic + " path " + pathName+" old key = "+hasKey);
-                            }
+                                var replacePage = false;
+                                if( hasKey.substring(0,7) == "/pages/" ) {
+                                    replacePage = true;
+                                    hasKey = hasKey.substring(6).toLowerCase();
+                                    for( var i = 0 ; i < list.length ; ++i ) {
+                                        if( list[i].file.toLowerCase().indexOf(hasKey) >= 0 ) {
+                                            replacePage = false;
+                                            break;
+                                        } 
+                                    }
+                                }
+                                if( replacePage ) {
+                                     console.log("Replace stale link "+hasKey+" with "+pathName);
+                                     usedNames[topic.toLowerCase()] = pathName;
+                                } else {
+                                     console.log("Duplicate symbol " + topic + " path " + pathName+" old key = "+hasKey);
+                                }
+                             }
                         } else {
                             usedNames[topic.toLowerCase()] = pathName;
                             links[topic] = pathName;
