@@ -521,6 +521,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                         } else {
                             var href = ResolveClosestLink(node.val, path);
                             if (href) {
+                                href = ResolveLink(href,path);
                                 var findRefLoc = changedData.indexOf('<ref>' + node.val);
                                 if (findRefLoc > 0) {
                                     changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
