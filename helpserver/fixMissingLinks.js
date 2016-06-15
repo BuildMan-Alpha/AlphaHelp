@@ -438,6 +438,34 @@ var ResolveClosestLink = function (text, fromPath) {
                 samename = startsWith;
             }
         }
+        if (samename.length > 1) {
+            var compareApiDef = function(one,two) {
+                var cleanupApiDef = function(funPage) {
+                    funPage = funPage.replace("().",".");
+                    funPage = funPage.replace("function.",".");
+                    funPage = funPage.replace("method.",".");
+                    if( funPage.substring(funPage.length-1) == "." )
+                        funPage = funPage.substring(0,funPage.length-1);
+                    return funPage.trim();
+                };
+                if( one == two )
+                     return true;
+                if( cleanupApiDef(one) == cleanupApiDef(two) )
+                     return true;
+                return false;                
+            }
+            for (i = 0; i < samename.length; ++i) {
+                var namePart = samename[i].lastIndexOf('/');
+                if( namePart > 0 ) {
+                    namePart = samename[i].substring(namePart);
+                    namePart = namePart.split(".")[0].toLowerCase()+".";
+                    if( compareApiDef(namePart,lowRef) ) {
+                        samename = [samename[i]];
+                        break;
+                    }
+                }
+            }            
+        }
         if (samename.length != 1 && hasFolderMatch) {
             for (i = 0; i < hasFolderMatch.length; ++i) {
                 if (fromPath.toLowerCase().indexOf(hasFolderMatch[i].replace('index.xml', '').toLowerCase()) == 0) {
@@ -526,7 +554,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                                 }
                             }
                         } else {
-                            var href = ResolveClosestLink(node.val, path);
+                            var href = ResolveClosestLink(node.val.trim(), path);
                             if (href) {
                                 var rlink = RobustLink(href);
                                 if( rlink )
