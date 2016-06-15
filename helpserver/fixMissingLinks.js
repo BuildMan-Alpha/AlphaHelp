@@ -331,6 +331,10 @@ var ResolveLink = function (href, fromPath) {
 
 // Look for closest reference (late lookup for new XML)
 var ResolveClosestLink = function (text, fromPath) {
+    var rlink = links[text.trim()];
+    if( rlink ) {
+        return rlink;
+    }
     var href = null;
     var samename = [];
     var hasFolderMatch = null;
