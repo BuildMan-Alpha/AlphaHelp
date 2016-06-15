@@ -62,35 +62,41 @@ var GetCommonFolder = function (paths) {
     return basePath;
 }
 
+var RobustLink = function(path) {
+    path = path.toLowerCase();
+    for( var sc in links ) {
+        if( links[sc].toLowerCase().indexOf(path) >= 0 ) {
+            return "/documentation/index?search="+sc;
+        } 
+    }
+    return null;
+}
 
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
     var prefix1 = "http://www.alphasoftware.com/testdoc/";
     var prefix2 = "http://www.alphasoftware.com/documentation/";
+    if( !href )
+       return href; 
+    if( !href.substring )
+       return href; 
     if( href.substring(0,prefix1.length) == prefix1 ) {
         href = href.substring(prefix1.length);
     } else if( href.substring(0,prefix2.length) == prefix2 ) {
         href = href.substring(prefix2.length);
     }
     if( href.substring(0,7) == "/pages/" ) {
-        var path = href.substring(6).toLowerCase();
-        // Find a short cut
-        for( var sc in links ) {
-            if( links[sc].toLowerCase().indexOf(path) >= 0 ) {
-                return "/documentation/index?search="+sc;
-            } 
+        var rlink = RobustLink( href.substring(6) );
+        if( rlink ) {
+            return rlink;
         }
         // return 'index' page
-    } else if( href.substring(0,7) == "/" ) {
-        var path = href.toLowerCase();
-        // Find a short cut
-        for( var sc in links ) {
-            if( links[sc].toLowerCase().indexOf(path) >= 0 ) {
-                return "/documentation/index?search="+sc;
-            } 
+    } else if( href.substring(0,1) == "/" ) {
+        var rlink = RobustLink( href );
+        if( rlink ) {
+            return rlink;
         }
-        // return 'index' page
     }
     if ( href.indexOf("tiki-print") >= 0
       || href.indexOf("tiki-editpage.php") >= 0
@@ -509,6 +515,7 @@ async.eachSeries(list, function (path, callbackLoop) {
                         if (node.attr.href) {
                             var newHref = ResolveLink( node.attr.href , path );
                             if (newHref != node.attr.href) {
+                                href = ResolveLink(href,path);
                                 var hrefPosition = changedData.indexOf("href=\"" + node.attr.href + "\"");
                                 if (hrefPosition < 0)
                                     hrefPosition = changedData.indexOf("href='" + node.attr.href + "'");
@@ -521,7 +528,9 @@ async.eachSeries(list, function (path, callbackLoop) {
                         } else {
                             var href = ResolveClosestLink(node.val, path);
                             if (href) {
-                                href = ResolveLink(href,path);
+                                var rlink = RobustLink(href);
+                                if( rlink )
+                                    href = rlink;
                                 var findRefLoc = changedData.indexOf('<ref>' + node.val);
                                 if (findRefLoc > 0) {
                                     changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
