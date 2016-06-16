@@ -79,8 +79,10 @@ var ResolveLink = function (href, fromPath) {
     var prefix2 = "http://www.alphasoftware.com/documentation";
     var prefix3 = "http://documentation.alphasoftware.com/testdoc";
     if( !href )
-       return href; 
+       return href;
     if( !href.substring )
+       return href; 
+    if( href.substring(0,28) == "/documentation/index?search=" )
        return href; 
     if( href.substring(0,prefix1.length) == prefix1 ) {
         href = href.substring(prefix1.length);
