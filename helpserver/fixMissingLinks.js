@@ -75,9 +75,9 @@ var RobustLink = function(path) {
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
-    var prefix1 = "http://www.alphasoftware.com/testdoc/";
-    var prefix2 = "http://www.alphasoftware.com/documentation/";
-    var prefix3 = "http://documentation.alphasoftware.com/testdoc/";
+    var prefix1 = "http://www.alphasoftware.com/testdoc";
+    var prefix2 = "http://www.alphasoftware.com/documentation";
+    var prefix3 = "http://documentation.alphasoftware.com/testdoc";
     if( !href )
        return href; 
     if( !href.substring )
@@ -545,16 +545,15 @@ async.eachSeries(list, function (path, callbackLoop) {
             if (document) {
                 var expandReferences = function (node) {
                     var i;
-                    if (node.name == "ref") {
-                        links
+                    if (node.name == "ref" ) {
                         if (node.attr.href) {
                             var newHref = ResolveLink( node.attr.href , path );
                             if (newHref != node.attr.href) {
-                                href = ResolveLink(href,path);
+                                newHref = ResolveLink(newHref,path);
                                 var hrefPosition = changedData.indexOf("href=\"" + node.attr.href + "\"");
                                 if (hrefPosition < 0)
                                     hrefPosition = changedData.indexOf("href='" + node.attr.href + "'");
-                                if (hrefPosition > 0) {
+                                if (hrefPosition > 0) {                                    
                                     if( newHref.substring(0,28) == "/documentation/index?search=" ) {
                                          changedData = changedData.substring(0, hrefPosition ) + "link=" + changedData.substring(hrefPosition+5, hrefPosition + 6)+ newHref.substring(28) + changedData.substring(hrefPosition + 6 + node.attr.href.length);
                                     } else {
@@ -575,6 +574,21 @@ async.eachSeries(list, function (path, callbackLoop) {
                                     changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
                                 } else {
                                     console.log("!Failed to update ref " + node.val);
+                                }
+                            }
+                        }
+                    } else if( node.name == "link" ) {
+                        if (node.attr.href) {
+                            var newHref = ResolveLink( node.attr.href , path );
+                            if (newHref != node.attr.href) {
+                                href = ResolveLink(href,path);
+                                var hrefPosition = changedData.indexOf("href=\"" + node.attr.href + "\"");
+                                if (hrefPosition < 0)
+                                    hrefPosition = changedData.indexOf("href='" + node.attr.href + "'");
+                                if (hrefPosition > 0) {
+                                    changedData = changedData.substring(0, hrefPosition + 6) + newHref + changedData.substring(hrefPosition + 6 + node.attr.href.length);
+                                } else {
+                                    console.log('!Failed to update href ' + node.attr.href);
                                 }
                             }
                         }
