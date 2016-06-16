@@ -263,6 +263,13 @@
 								</a>
 							</li>
 						</xsl:when>
+						<xsl:when test="./@link">
+							<li>
+								<a href="/documentation/index?search={./@link}">
+									<xsl:value-of select="." />
+								</a>
+							</li>
+						</xsl:when>
 						<xsl:otherwise>
 							<li>
 								<a onclick="helpServer.navigateClosestTopic('{normalize-space(.)}')">
@@ -511,6 +518,7 @@
 					<xsl:if test="ref">
                         <xsl:choose>
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
+                            <xsl:when test="./@link"><a href="/documentation/index?search={./@link}"><xsl:value-of select="ref" /></a></xsl:when>
                             <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
 					</xsl:if>
