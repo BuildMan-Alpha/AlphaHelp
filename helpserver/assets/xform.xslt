@@ -265,7 +265,7 @@
 						</xsl:when>
 						<xsl:when test="./@link">
 							<li>
-								<a href="/documentation?search={./@link}">
+								<a href="/documentation/index?search={./@link}">
 									<xsl:value-of select="." />
 								</a>
 							</li>
