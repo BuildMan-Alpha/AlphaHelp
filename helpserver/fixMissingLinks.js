@@ -555,12 +555,16 @@ async.eachSeries(list, function (path, callbackLoop) {
                                 if (hrefPosition < 0)
                                     hrefPosition = changedData.indexOf("href='" + node.attr.href + "'");
                                 if (hrefPosition > 0) {
-                                    changedData = changedData.substring(0, hrefPosition + 6) + newHref + changedData.substring(hrefPosition + 6 + node.attr.href.length);
+                                    if( newHref.substring(0,28) == "/documentation/index?search=" ) {
+                                         changedData = changedData.substring(0, hrefPosition ) + "link=" + changedData.substring(hrefPosition+5, hrefPosition + 6)+ newHref.substring(28) + changedData.substring(hrefPosition + 6 + node.attr.href.length);
+                                    } else {
+                                         changedData = changedData.substring(0, hrefPosition + 6) + newHref + changedData.substring(hrefPosition + 6 + node.attr.href.length);
+                                    }
                                 } else {
                                     console.log('!Failed to update href ' + node.attr.href);
                                 }
                             }
-                        } else {
+                        } else if(!node.attr.link) {
                             var href = ResolveClosestLink(node.val.trim(), path);
                             if (href) {
                                 var rlink = RobustLink(href);
