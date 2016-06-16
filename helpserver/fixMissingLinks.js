@@ -77,6 +77,7 @@ var RobustLink = function(path) {
 var ResolveLink = function (href, fromPath) {
     var prefix1 = "http://www.alphasoftware.com/testdoc/";
     var prefix2 = "http://www.alphasoftware.com/documentation/";
+    var prefix3 = "http://documentation.alphasoftware.com/testdoc/";
     if( !href )
        return href; 
     if( !href.substring )
@@ -85,6 +86,8 @@ var ResolveLink = function (href, fromPath) {
         href = href.substring(prefix1.length);
     } else if( href.substring(0,prefix2.length) == prefix2 ) {
         href = href.substring(prefix2.length);
+    } else if( href.substring(0,prefix3.length) == prefix3 ) {
+        href = href.substring(prefix3.length);
     }
     if( href.substring(0,7) == "/pages/" ) {
         var rlink = RobustLink( href.substring(6) );
