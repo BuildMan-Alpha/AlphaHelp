@@ -263,6 +263,13 @@
 								</a>
 							</li>
 						</xsl:when>
+						<xsl:when test="./@link">
+							<li>
+								<a href="/documentation?search={./@link}">
+									<xsl:value-of select="." />
+								</a>
+							</li>
+						</xsl:when>
 						<xsl:otherwise>
 							<li>
 								<a onclick="helpServer.navigateClosestTopic('{normalize-space(.)}')">
