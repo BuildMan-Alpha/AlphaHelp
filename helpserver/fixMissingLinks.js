@@ -96,6 +96,7 @@ var ResolveLink = function (href, fromPath) {
         if( rlink ) {
             return rlink;
         }
+        href = href.substring(6);
         // return 'index' page
     } else if( href.substring(0,1) == "/" ) {
         var rlink = RobustLink( href );
