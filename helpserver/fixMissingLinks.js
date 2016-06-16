@@ -574,7 +574,11 @@ async.eachSeries(list, function (path, callbackLoop) {
                                     href = rlink;
                                 var findRefLoc = changedData.indexOf('<ref>' + node.val);
                                 if (findRefLoc > 0) {
-                                    changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
+                                    if( newHref.substring(0,28) == "/documentation/index?search=" ) {
+                                        changedData = changedData.substring(0, findRefLoc + 4) + " link=\"" + href.substring(28) + "\">" + changedData.substring(findRefLoc + 5);
+                                    } else {
+                                        changedData = changedData.substring(0, findRefLoc + 4) + " href=\"" + href + "\">" + changedData.substring(findRefLoc + 5);
+                                    }
                                 } else {
                                     console.log("!Failed to update ref " + node.val);
                                 }
