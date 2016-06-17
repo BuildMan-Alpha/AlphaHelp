@@ -11,6 +11,30 @@ var replaceAll = function(str, find, replace) {
     }
     return str;
 };
+var removeMarkup =  function(data) {
+    if( data.indexOf("*[")) {
+        var items = data.split("*[");
+        var i;
+        var newData = items[0];
+        for( i = 1 ; i < items.length ; ++i ) {
+            var emph = items[i];
+            var endPos = emph.indexOf(']*'); 
+            if( endPos > 0 ) {
+                var remainder = emph.substring(endPos+2);
+                emph = emph.substring(0,endPos);
+                var typeSeparator = emph.indexOf(':');
+                newData += emph + remainder;
+            } else if( emph.length > 0 || (i+1) >= items.length ) {
+                newData += "*["+emph;
+            } else {
+                ++i;
+                newData += "*["+emph+item[i];
+            }
+        }
+        data = newData;
+    }
+    return data;
+};
 
 fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
      if(!err && contents ) {
@@ -357,6 +381,15 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
         } else {
             var fs = require('fs');
             fs.writeFile(htmlFile, dataOut, function(err) {
+               var contentDiv = dataOut.split('<meta name="description" content="');
+               if( contentDiv.length > 1 ) {
+                   var firstDesc = contentDiv[1].split('"/>');
+                   if( firstDesc.length > 1 ) {
+                       firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
+                       contentDiv[1] = firstDesc.join('"/>');
+                       dataOut = contentDiv.join('<meta name="description" content="');
+                   }
+               }
                 callback(err, dataOut);
             });
         }
