@@ -531,7 +531,11 @@
 	</xsl:template>
 	<xsl:attribute-set name="href-link">
 		<xsl:attribute name="href">
-			<xsl:value-of select="link" />
+            <xsl:choose>
+                <xsl:when test="link"><xsl:value-of select="link" /></xsl:when>
+                <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
+                <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
+            </xsl:choose>
 		</xsl:attribute>
 	</xsl:attribute-set>
 	<xsl:attribute-set name="ref-href-link">
