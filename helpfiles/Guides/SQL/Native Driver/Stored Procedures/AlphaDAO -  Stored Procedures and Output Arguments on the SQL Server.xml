@@ -1,0 +1,117 @@
+<page>
+	<topic>AlphaDAO -  Stored Procedures and Output Arguments on the SQL Server</topic>
+	<description>If you have a SQL server stored procedure that sets the value of an output argument, reading the value in the output argument, after the stored procedure has executed can be tricky. That's because you have to ensure that you first loop through all of the result sets that are returned by the stored procedure before reading the output arguments.</description>
+	<sections>	
+		<section>
+			<description>Consider the following trivial stored procedure:</description>
+			<example><![CDATA[SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE TestSP
+-- Add the parameters for the stored procedure here
+@InParam CHAR(10),
+@OutMessage CHAR(50) OUTPUT
+
+AS
+BEGIN
+-- SET NOCOUNT ON added to prevent extra result sets from
+-- interfering with SELECT statements.
+SET NOCOUNT ON;
+SET @OutMessage = 'initialized'
+
+END
+GO ]]></example>	
+		</section>		
+		<section>
+			<description>From the interactive window:</description>
+			<example><![CDATA[dim cn as sql::Connection
+cn.open("::Name::sqlserver")
+delete args 
+dim args as sql::Arguments
+dim Message as c = "test message"
+'need to pad out the argument so it matches the definition in the stored procedure
+message = padr(Message,50," ")
+args.set("InParam" , "1234567890")
+args.set("OutMessage",Message,sql::ArgumentUsage::InputOutputArgument)
+?cn.Execute("{CALL TestSP(:InParam, :OutMessage)}",args)
+= .T.]]></example>
+			</section>	
+			<section>
+				<description>Now try to read the output parameter value</description>
+				<example><![CDATA[?args[2].data
+= "Initialized"]]></example>
+			</section>		
+			<section>
+				<description>
+					<p>Notice that this worked as expected. But it only worked because the stored procedure did not return any result sets.</p>
+					<p>Now let's modify the stored procedure so that it returns two result sets:</p>
+				</description>
+				<example><![CDATA[USE [Northwind]
+GO
+/****** Object: StoredProcedure [dbo].[TestSP] Script Date: 12/6/2013 1:25:13 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[TestSP]
+-- Add the parameters for the stored procedure here
+@InParam CHAR(10),
+@OutMessage CHAR(50) OUTPUT
+
+AS
+BEGIN
+select * from customers 
+select * from employees
+-- SET NOCOUNT ON added to prevent extra result sets from
+-- interfering with SELECT statements.
+select * from customers 
+SET @OutMessage = 'initialized'
+
+END]]></example>
+		</section>	
+		<section>
+			<description>Now, From the interactive window:</description>
+			<example><![CDATA[dim cn as sql::Connection
+cn.open("::Name::sqlserver")
+delete args 
+dim args as sql::Arguments
+dim Message as c = "test message"
+'need to pad out the argument so it matches the definition in the stored procedure
+message = padr(Message,50," ")
+args.set("InParam" , "1234567890")
+args.set("OutMessage",Message,sql::ArgumentUsage::InputOutputArgument)
+?cn.Execute("{CALL TestSP(:InParam, :OutMessage)}",args)
+= .T.]]></example>
+		</section>	
+		<section>
+			<description>Now try to read the output parameter value</description>
+			<example><![CDATA[?args[2].data 
+= "test message"]]></example>
+		</section>	
+		<section>
+			<description>
+				<p>This is not what we expect! The output parameter cannot yet be read because we have not yet looped through all of the result sets returned by the stored procedure.</p>
+				<p>So, execute:</p>
+			</description>
+			<example><![CDATA[?cn.ResultSet.NextResult()
+= .t.]]></example>
+		</section>	
+		<section>
+			<description>and again:</description>
+			<example><![CDATA[?cn.ResultSet.NextResult()
+= .t.]]></example>
+		</section>	
+		<section>
+			<description>and again (the .f. return value tells you that there are no more resultsets):</description>
+			<example><![CDATA[?cn.ResultSet.NextResult()
+= .f.]]></example>	
+		</section>	
+		<section>
+			<description>Now, that there are no more resultsets, you can read the output arguments:</description>
+			<example><![CDATA[?args[2].data
+= "initialized"]]></example>
+		</section>	
+	</sections>
+	<terms>data integration,stored procedures</terms>
+</page>

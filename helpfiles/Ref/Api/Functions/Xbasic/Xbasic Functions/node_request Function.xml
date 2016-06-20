@@ -1,60 +1,54 @@
 <page>
-   <topic>node_request Function</topic>
-   <description>Call a node service from Xbasic</description>
-   <syntax>C node_request(C nodeService ,P pData [,L flagRestartNode [,L flagShowCommandWindow [,L flagAllowDebug ]]])</syntax>
-   <arguments>
-     <argument>
-         <name>nodeService</name>
-         <description>Name of the node service to run.</description>
-     </argument>
-     <argument>
-         <name>pData</name>
-         <description>Pointer to parameters</description>
-     </argument>
-     <argument>
-         <name>flagRestartNode</name>
-         <description>Restart the node server for the project on this invokation</description>
-     </argument>
-     <argument>
-         <name>flagShowCommandWindow</name>
-         <description>Show the command window for the node service handler (allows developer to see feedback using console.log() in the handler).</description>
-     </argument>
-     <argument>
-         <name>flagAllowDebug</name>
-         <description>Enable node debugger (requires that the node debugger be launched)</description>
-     </argument>
-   </arguments>
-<sections>
-<section>
-<description>
-<p>
-Calls node service for a web project. The web project must include a 'node_services' folder with the named node service.
-If the service is not present in the project, you will receive an error from node.
-</p>
-<p>
-Below is an example call - it assumes a node service called 'eval' that reads javascript to execute from a 'content' property, then returns the result.
-</p>
-</description>
-<example>
-dim req as p
+    <topic>node_request Function</topic>
+    <description>Call a node service from Xbasic</description>
+    <syntax>C node_request(C nodeService ,P pData [,L flagRestartNode [,L flagShowCommandWindow [,L flagAllowDebug ]]])</syntax>
+    <arguments>
+        <argument>
+            <name>nodeService</name>
+            <description>Name of the node service to run.</description>
+        </argument>
+        <argument>
+            <name>pData</name>
+            <description>Pointer to parameters to pass to the node service.</description>
+        </argument>
+        <argument>
+            <name>flagRestartNode</name>
+            <description>
+                <p>.t. or .f. value. Default .f.</p>
+                <p>Flag indicating whether or not the node server should be restarted when node_request is called. .t. restarts the node server. Restarting the node server can be useful for debugging purposes. flagRestartNode should be set to .f. in a production environment.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>flagShowCommandWindow</name>
+            <description>
+                <p>.t. or .f. value. Default .f.</p>
+                <p>Show the command window for the node service handler (allows developer to see feedback using console.log() in the handler).</p>
+            </description>
+        </argument>
+        <argument>
+            <name>flagAllowDebug</name>
+            <description>
+                <p>.t. or .f. value. Default .f.</p>
+                <p>Enable node debugger (requires that the node debugger be launched).</p>
+            </description>
+        </argument>
+    </arguments>
+    <sections>
+        <section>
+            <description>
+                <p>The node_request function calls a node service for a web project. The web project must include a 'node_services' folder with the named node service. If the service is not present in the project, you will receive an error from node.</p>
+                <p>Below is an example call - it assumes a node service called 'eval' that reads javascript to execute from a 'content' property, then returns the result.</p>
+            </description>
+            <example><![CDATA[dim req as p
 dim req.content as c = "1+1"
 ? node_request("eval",req)
-= {"_id":"d18fa451-5c15-4cbf-8085-92fe24890e4d","error":"command eval was not recognized for command d18fa451-5c15-4cbf-8085-92fe24890e4d","result":null}
-</example>
-</section>
-
-<section>
-<description>
-<p>
-Add a node_services to the projects 'node' subfolder - save a file called 'eval.js' that has the following contents.
-</p>
-<p>
-The node service handler consumes a 'packet' that contains the parameters for the command.  In this case, the 
-parameter required is called "content", and gets evaluated, data is returned in a result parameter.
-</p>
-</description>
-<example>
-exports.handler = function(packet,response,sendResponse) {
+= {"_id":"d18fa451-5c15-4cbf-8085-92fe24890e4d","error":"command eval was not recognized for command d18fa451-5c15-4cbf-8085-92fe24890e4d","result":null}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Add a node_services to the projects 'node' subfolder - save a file called 'eval.js' that has the following contents:</p>
+            </description>
+            <example><![CDATA[exports.handler = function(packet,response,sendResponse) {
 	var e;
 	var attachments = null;
 	try {
@@ -67,38 +61,27 @@ exports.handler = function(packet,response,sendResponse) {
 	    response.error = e.message;
 	}
 	sendResponse(response,attachments);
-};
-</example>
-</section>
-<section>
-<description>
-With 'node_services/eval.js' defined, now our example should work, notice that the result of
-evaluation is in a field called 'result', notice also that 'error' is blank.
-</description>
-<example>
-dim req as p
+};]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The node service handler consumes a 'packet' that contains the parameters for the command.  In this case, the 
+                parameter required is called "content", and gets evaluated, data is returned in a result parameter.</p>
+                <p>With 'node_services/eval.js' defined, now our example should work, notice that the result of
+                evaluation is in a field called 'result', notice also that 'error' is blank.</p>
+            </description>
+            <example><![CDATA[dim req as p
 dim req.content as c = "1+1"
 ? node_request("eval",req)
-= {"_id":"d21a4938-d8bd-455f-9e82-e70bcc675316","error":"","result":2}
-</example>
-</section>
-<section>
-<description>
-An example of a valid request with a handled error would be to pass a javascript expression that is invalid.
-</description>
-<example>
-dim req as p
+= {"_id":"d21a4938-d8bd-455f-9e82-e70bcc675316","error":"","result":2}]]></example>
+        </section>
+        <section>
+            <description>An example of a valid request with a handled error would be to pass a javascript expression that is invalid.</description>
+            <example><![CDATA[dim req as p
 dim req.content as c = "1+"
 ? node_request("eval",req)
-= {"_id":"4bee3d41-7816-4f0c-8b3f-ca853fa2ef0c","error":"Unexpected end of input","result":null}
-</example>
-</section>
-
-
-
-</sections>
-   
-<terms>xbasic,function,logical,pointer</terms>
-   
-   
+= {"_id":"4bee3d41-7816-4f0c-8b3f-ca853fa2ef0c","error":"Unexpected end of input","result":null}]]></example>
+        </section>
+    </sections>
+    <terms>xbasic,function,logical,pointer</terms>
 </page>
