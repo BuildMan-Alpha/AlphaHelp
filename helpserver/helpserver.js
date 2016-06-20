@@ -577,6 +577,9 @@ events.generateLocalToc = function(localNames) {
 events.loadIndex = function(callback) {
     fs.readFile(  "../links.json","utf8",function(err,data) {
          var hashObj = {};
+         if( err ) {
+             console.log("Error loading links.json "+err);
+         }
          var srcObj = null;
          try {
              srcObj = JSON.parse(data);
