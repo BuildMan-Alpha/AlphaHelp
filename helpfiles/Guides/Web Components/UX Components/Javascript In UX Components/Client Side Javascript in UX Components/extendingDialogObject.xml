@@ -1,0 +1,95 @@
+        <page>
+            <topic>Extending {dialog.object}</topic>
+            <description>{dialog.object} is a javascript object that you can extend by adding your own properties and methods.</description>
+            <sections>
+                <section>
+                    <description>
+                        <p>When a UX component is loaded, the functions and variables defined in Javascript Functions are added to the global namespace. Even though javascript code lives inside your UX component, it doesn't mean it's isolated from the rest of the page. Therefore, it's very important to understand how a component will be used in the context of your entire web application.
+                        </p>
+                        <p>If a UX component will be used in conjunction with other components or multiple instances of a UX component can exist on the same page, how javascript functions are defined and implemented becomes important. For example, if the web page can have more than one simultaneous instance of the UX component on it within a single session, you will want to consider how you reference any placeholder variables, such as {dialog.object} and {dialog.componentName}. You also want to be cautious how you name your functions. Javascript is a dynamic, interpreted language that permits redefinition of not only variables but also functions during run-time.
+                        </p>
+                        <p>Consider the following function that is called from the onClick event of a button, called BUTTON_1, on a UX:
+                        </p>
+                    </description>
+                    <example><![CDATA[function showAlias() {
+    var alias = {dialog.object}.dialogId;
+    var message = "The Alias of the UX is " + alias;
+       
+    alert(message);
+}]]></example>
+                </section>
+                <section>
+                    <description>
+                        When BUTTON_1 is clicked, the showAlias() function is called. showAlias() gets the alias of the UX component and displays it in a popup message.
+                    </description>
+                    <figure>
+                        <link>image04.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        Suppose, however, that there are two instances of the UX component on a page. This can be accomplished by embedding the UX component twice in another UX component.
+                    </description>
+                    <figure>
+                        <link>image22.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        Run the UX component in Live Preview and click BUTTON_1 in each UX component's instance.
+                    </description>
+                    <figure>
+                        <link>image12.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Both buttons display the same message. Why did this happen? Since there are two instances of the UX component, the UX component is loaded twice. This also means the UX component's javascript was loaded into the global namespace twice. The first time, the showAlias() function didn't exist, so it was created. The second time, however, the function did exist and was redefined. The implementation of showAlias() used a Placeholder, {dialog.object}, to look up the UX component's alias. Placeholder objects are replaced with their actual values when the UX component is loaded. Each instance of the UX component has a unique {dialog.object}. However, showAlias() resides in the global namespace and can only have one definition.
+                        </p>
+                        <p>So, how could you fix your code so the showAlias() function shows the correct alias for both UX components? One method involves passing {dialog.object} as a parameter to the function.
+                        </p>
+                    </description>
+                    <example><![CDATA[function showAlias(ux) {
+    var alias = ux.dialogId;
+    var message = "The Alias of the UX is " + alias;
+       
+    alert(message);
+}]]></example>
+                </section>
+                <section>
+                    <description>
+                        With this change, the implementation of showAlias() is identical for all instances of the UX component. The code in the click event for BUTTON_1 needs to be modified to pass in {dialog.object} to showAlias().
+                    </description>
+                    <figure>
+                        <link>image08.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        If two UX components define a function with the same name but have different implementations, it's no longer a matter of referencing the wrong {dialog.object}. Instead of defining the function in Javascript Functions, it can be added to {dialog.object} as a method. As with the multiple instance case, the last UX component loaded will overwrite the function definition with it's own implementation.
+                    </description>
+                    <example><![CDATA[{dialog.object}._functions.showAlias = function () {
+    var alias = {dialog.object}.dialogId;
+    var message = "The Alias of the UX is " + alias;
+       
+    alert(message);
+}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Adding your functions to {dialog.object}._functions is considered a best practice in Alpha Anywhere. Not only does this prevent function name collisions, but it frees you from having to remember what names you've used in components across your web project.
+                        </p>
+                        <p>If you use this method, however, you cannot define your functions in Javascript Functions. Code in Javascript Functions is only executed when the UX component is first loaded. If a UX component is displayed using Action Javascript, such as the "Open a UX Component" action, code in Javascript Functions is only loaded the first time the Action Javascript is executed. Subsequent calls to the same Action Javascript will not load Javascript Functions a second time; it may, however, destroy and recreate the UX component's {dialog.object} resulting in a loss of all the methods you added to {dialog.object}._functions.
+                        </p>
+                    </description>
+                    <figure>
+                        <link>image03.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        Define methods extending {dialog.object}._functions in the UX component's Client-Side onRenderComplete event instead. This will guarantee the methods are always added to {dialog.object}._functions, even if the {dialog.object} is re-created.
+                    </description>
+                </section>
+            </sections>
+        </page>

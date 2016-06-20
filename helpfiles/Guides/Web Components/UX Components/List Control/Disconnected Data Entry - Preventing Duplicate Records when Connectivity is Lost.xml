@@ -1,0 +1,53 @@
+<page>
+  <topic>Disconnected Data Entry - Preventing Duplicate Records when Connectivity is Lost</topic>
+  
+  <description> When you are working with disconnected data in a List control there is a small possibility of a synchronization request being submitted to the server more than once - resulting in the possibility of duplicate records in the database.</description>
+  
+  <sections>
+    
+    <section>
+      <description>To understand how this might happen, consider what happens when the user clicks the 'Synchronize' button on a device to synchronize edits that were made while offline.
+
+</description>
+   <steps>
+     <step>
+       <description>A JSON packet containing all of the edits that were made to the List (including any child Lists) is sent to the server.
+</description>
+     </step>
+       <step>
+       <description>The server processes the updates.
+</description>
+     </step>
+       <step>
+       <description>After the server has completed processing the updates, the server sends a response back to the client indicating which rows were successfully synchronized and which rows have errors. This response will set the 'dirty' state of each row in the List that had been edited back to 'clean'.
+</description>
+     </step>
+     
+   </steps>
+    </section>
+    <section>
+      <description>Obviously, in order for the server to receive the synchronization request, the user must have a connection. But suppose that AFTER the user sends a synchronization request to the server, but BEFORE the server completes the work and can send a response back to the client, the client looses connectivity.
+</description>
+    </section>
+      <section>
+      <description>The server will continue processing the updates to the server and will do all of the synchronization requests contained in the package sent from the client. The server does not know that the client is now offline and so, after it completes all of the work, it will send a response to client indicating which rows were successfully synchronized. However, since the client is now offline, the client will not receive this message from the server. This means that all of the rows on the client that were edited are still marked as 'dirty' (even though the server has successfully applied all of the edits).
+</description>
+    </section>
+      <section>
+      <description>Now assume that the client gets its connection back and the user clicks the 'Synchronize' button again. The client will send a JSON package to the server and this package will include all of the updates that were previously sent to the server.
+</description>
+    </section>
+      <section>
+      <description>In order to protect against this possibility, a special server-side log can be used to prevent synchronization commands from being executed more than once.
+In order to turn on the server-side synchronization log, edit the List control and on the Detail View pane, check the Use server-side synchronization log table property.
+</description>
+      <figure><link>images/synclog.jpg</link></figure>
+    </section>
+    <section>
+      <description>Before you can check this property however, you must first define the setting for the Synchronization Log Table. To define these settings, click the Project Properties button when the Web Projects Control Panel has focus.
+Scroll to the Offline Data Synchronization Log Table Settings section and set the properties for the table. You can map this table to an existing table in your SQL database or Alpha Anywhere can create a new table for you with the correct table structure.
+</description>
+      <figure><link>images/offlinesynctableproperties.jpg</link></figure>
+    </section>
+  </sections>
+</page>

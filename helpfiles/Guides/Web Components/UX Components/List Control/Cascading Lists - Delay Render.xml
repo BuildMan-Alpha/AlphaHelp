@@ -1,0 +1,96 @@
+<page>
+  <topic>Cascading Lists - Delay Render</topic>
+ <description>The UX component makes it very easy to create cascading Lists.</description> 
+ <sections>
+<section>
+  <description>For example, say you have 3 Lists:</description>
+  <cases>
+    <case>
+      <description>customer</description>
+    </case>
+      <case>
+      <description>orders</description>
+    </case>
+      <case>
+      <description>orderDetails</description>
+    </case>
+    
+    
+  </cases>
+  
+</section>
+<section>
+  <description>You can easily configure the orders List to specify that the customer List is its parent List and the orderDetails List to specify that the orders List is its parent.
+If you specify that a List has a parent, then when you click on a row in the parent List, ajax callbacks are automatically made to refresh the child Lists.
+</description>
+</section>
+ <section>
+  <description>Now, assume that each List is placed in its own PanelCard and the PanelCards are wrapped in a PanelNavigtor. Further assume that for each List you have checked the 'Delay render till visible' property.
+The desired behavior is that when the UX is initially rendered, ONLY the customer List is rendered. Then when the user clicks on a row in the customer List, a single ajax callback is made to populate the order List and the PanelCard that contains the orders List gets focus.
+</description>
+</section>
+   
+   <section>
+  <description>Next, when the user clicks on a row in the orders list, again a single ajax callback is made to populate the orderDetails list and the PanelCard containing OrderDetails gets focus.
+However, if you set up your UX as described above, when you click on a row in the customer List, you will notice that there are two ajax callbacks and that the orders List is refreshed twice - not once as desired. The first ajax callback occurs because the customer List automatically refreshes all of its child Lists when the user selects a row in the List. The second callback occurs because the PanelCard that contains the orders List gets focus and the orders List was configured to render when it becomes visible.
+</description>
+</section>
+     
+    
+   
+   <section>
+  <description>To solve this problem here is how the setup of the UX component must be changed.
+</description>
+  <cases>
+    <case>
+      <description>Even though the orders and orderDetail lists have parent Lists, the 'Has Parent List' property for these two Lists is turned off. Each of the child Lists still have a WHERE clause in their SQL select statements that reference argument values set to the value of the parent Lists.
+</description>
+    </case>
+     <case>
+      <description>In the onSelect event in each parent List, code is added to set the _hasBeenRendered property of each child List to false.
+</description>
+    </case>
+  </cases>
+</section>
+   
+   
+   
+   <section>
+  <description>So, for example, in the onSelect event for List1 (the customer List), the following code is executed:
+</description>
+  <example><![CDATA[var l = {dialog.object}.getControl('list2');
+l._hasBeenRendered = false;
+var l = {dialog.object}.getControl('list3');
+l._hasBeenRendered = false;
+{dialog.object}.panelSetActive('PANELCARD_2');]]></example>
+</section>
+    <section>
+  <description>This event sets the ._hasBeenRendered property for list2 and list3 to false, and then gives focus to PANELCARD_2. When PANELCARD_2 gets focus, list2 is rendered (an ajax callback is made). This is the only callback that is made. Because the orders List (list2) no longer has its 'Has Parent List' property set, no callback triggered by simply clicking on a row in the customer list.
+
+</description>
+  
+</section>
+   
+   
+      <section>
+  <description>Similarly, the onSelect event for List2 (the orders List), the following code is executed:
+</description>
+  <example><![CDATA[var l = {dialog.object}.getControl('list3');
+l._hasBeenRendered = false;
+{dialog.object}.panelSetActive('PANELCARD_3');]]></example>
+</section>
+    <section>
+  <description>The [sample component] which uses Northwind demonstrates the concepts discussed in this topic.
+</description>
+
+</section> 
+   
+     
+ </sections> 
+  <links>
+    <link href="http://www.ajaxvideotutorials.com/V12Videos/delayRender_panelNavigator.zip">sample component</link>
+    
+    
+  </links>
+  
+</page>
