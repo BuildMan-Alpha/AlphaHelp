@@ -5,6 +5,7 @@ var app = express();
 var options = require("./settingslocal");
 var library = require("./assets/library");
 var Help = require('helpserver');
+var fs = require("fs");
 var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
@@ -539,7 +540,23 @@ events.postProcessContent = function(data) {
     }
     return data;
 };
-
+events.loadIndex = function(callback) {
+    fs.readFile(  "../links.json","utf8",function(err,data) {
+         var hashObj = {};
+         var srcObj = null;
+         try {
+             srcObj = JSON.parse(data);
+         } catch(err) {            
+         }
+         if( srcObj ) {
+             for( var name in srcObj ) {
+                 var normalName = name.trim().toLowerCase();
+                 hashObj[normalName] = srcObj[name];
+             }
+         }
+         callback(hashObj);
+    });
+};
 
 options.events = events;
 //--------------------------------------------------------------------------------------------

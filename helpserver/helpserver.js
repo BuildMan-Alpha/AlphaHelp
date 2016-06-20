@@ -575,7 +575,7 @@ events.generateLocalToc = function(localNames) {
    return "";
 };
 events.loadIndex = function(callback) {
-    fs.readFile(  options.repoSource+"/links.json","utf8",function(err,data) {
+    fs.readFile(  "../links.json","utf8",function(err,data) {
          var hashObj = {};
          var srcObj = null;
          try {
