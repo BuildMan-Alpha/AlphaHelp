@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var options = require("./settings");
+var linksFileName = "/home/AlphaHelp/links.json";
 var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
@@ -45,7 +46,7 @@ var createBrokenLinkEmail =  function(problems) {
     for( i = 0 ; i < problems.length ; ++i ) {
         message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
     }
-var emailcred = require("./emailcred");
+var emailcred = require("/home/AlphaHelp/helpserver/emailcred");
 var nodemailer = require('nodemailer'); 
 // create reusable transporter object using the default SMTP transport 
 var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
@@ -68,10 +69,10 @@ transporter.sendMail(mailOptions, function(error, info){
 } 
 
 
-fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
+fs.readFile("/home/AlphaHelp/generated/helpserver_error.log","utf8",function(err,contents) {
      if(!err && contents ) {
-        fs.unlink("../generated/helpserver_error.log");
-        var emailcred = require("./emailcred");
+        fs.unlink("/home/AlphaHelp/generated/helpserver_error.log");
+        var emailcred = require("/home/AlphaHelp/helpserver/emailcred");
         var nodemailer = require('nodemailer'); 
         // create reusable transporter object using the default SMTP transport 
         var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
@@ -99,7 +100,7 @@ fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
 process.on('uncaughtException', function (err) {
     try {
         var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
-        fs.writeFile( "../generated/helpserver_error.log" , nodeErrorLog , function(err2) {
+        fs.writeFile( "/home/AlphaHelp/generated/helpserver_error.log" , nodeErrorLog , function(err2) {
             process.exit(1);			
         });
     } catch(err2) {		 
@@ -419,8 +420,8 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
     });
 };
 events.beforeRefresh = function() {
-    var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
-    validateLinks("../links.json", "../helpfiles",function(result) {
+    var validateLinks = require("/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js");
+    validateLinks(linksFileName, "/home/AlphaHelp/helpfiles",function(result) {
         if( result.problems ) {
             console.log("Found problems with links.json - sending an email.")
             createBrokenLinkEmail(result.problems);
@@ -575,7 +576,7 @@ events.generateLocalToc = function(localNames) {
    return "";
 };
 events.loadIndex = function(callback) {
-    fs.readFile(  "../links.json","utf8",function(err,data) {
+    fs.readFile(  linksFileName,"utf8",function(err,data) {
          var hashObj = {};
          if( err ) {
              console.log("Error loading links.json "+err);
