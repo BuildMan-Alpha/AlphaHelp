@@ -1,0 +1,112 @@
+<page>
+	  <topic>CheckBox Properties</topic>
+<description>The Custom control is a control where the data contents and formatting of a column (or row) is defined by your Xbasic and HTML code. </description>
+
+<sections>
+<section>
+	<description>A custom control can reference a number of grid component and data variables, including the value of data in other grid cells. A custom control can create its own variables to carry values between cells of the grid. There are no important constraints upon what the grid cell of a custom control can display, other than that it must contain valid HTML code. This means, for example, that row-by-row, the type of web control that appears in a grid cell could vary from label to textbox to drop down listbox. Note :Custom controls cannot be used for data entry to bound table fields.  </description>
+	<figure>
+		<title>A custom control with a dynamic background and font.</title>
+		<link>images/01_custom.png</link></figure>
+</section>	
+<section>
+	<description>The following will show how to create a custom control similar to the one above.  This is a custom control where Xbasic dynamically sets the font and background properties, depending on whether the Unit Price value is above or below the average. The Average for this grid is computed by simply adding an average Summary value to the component.  </description>
+</section>
+<section>
+	<title>Create a Custom Control: </title>
+	
+	<steps>
+		<step>
+			<description>Open the Grid Builder and go to the Design tab. On the Data Source page choose either dbf or SQL. </description>
+		</step>
+		<step>
+			<description>On the Query(DBF) or Query(AlphaDAO) page connect to a Table that has some numeric fields in it. </description>
+		</step>
+		<step>
+			<description>From the Design menu open the Fields page. Move a number of fields from the Available Fields: list into the Selected: fields list.  </description>
+		<figure><link>images/01_custom2.png</link></figure>
+		</step>
+		<step>
+			<description>Select one of your numeric fields in the Selected list, this example uses a field called UnitPrice, and in its Field Properties list find the Display Settings section. </description>
+		</step>
+		<step>
+			<description>Under Display Settings find the Control type property and click the button next to it. Select the Custom option from the Select Control Type dialog.  </description>
+			<figure><link>images/01_custom3.png</link></figure>
+		</step>
+		<step>
+			<description>The Field Properties list for custom controls will be displayed. In this list find the Custom Controls Properties section and under it the Definition property. </description>
+		</step>
+		<step>
+			<description>Click the [...] button next to the Definition property.  </description>
+			<figure><link>images/01_custom4.png</link></figure>
+		</step>
+		<step>
+			<description>The Define Xbasic for Custom Control: dialog will open. Delete the default code and replace it with the code below. If your field is not called UnitPrice, replace the name UnitPrice, wherever it occurs in this code, with the name of the field you are using.</description>
+			<example><![CDATA[function UnitPrice_render as c (data as p, args as p, PageVars as p)  
+with PageVars  
+if data.UnitPrice > args.summary. UnitPrice.average then 
+UnitPrice_render = <<%html% 
+
+%html% + data. UnitPrice+ "
+" 
+else 
+UnitPrice_render = <<%html% 
+
+%html% + data. UnitPrice+ "
+" 
+end if 
+end 
+UnitPrice_xbasicError: 
+UnitPrice_render = "Error in custom control xbasic: " + error_text_get() 
+end with 
+end function  
+]]></example>
+<note>AlphaAnywhere will fill in some of the code above automatically, so if you wanted to you could just save the existing framework and fill in the blanks. In this example, the field name is UnitPrice. As a result, the function is named UnitPrice_Render(). If the name of your customized field is not UnitPricethen swap out UnitPricefor the name of the field you are using.  The UnitPrice_Render()function will return a value that is composed of quoted HTML and unquoted Xbasic. In this example, the if and else clauses have similar content. Both are character strings that combine HTML coding and a reference to the quantity field, using the prefix " data. ". Although not a required technique, embedding the HTML inside the 
+... 
+tags simplifies the coding. Likewise, embedding the 
+tag inside the <<%html% ... %html string simplifies the coding by removing the requirement to escape special characters.  
+</note>
+		</step>
+		<step>
+			<description>You need to add an average summary value to your control. In the Field Properties list find the Summary values section and check the box next to the Average property.</description>
+		<figure><link>images/01_custom5.png</link></figure>
+		</step>
+		<step>
+			<description>Done. View your custom control in Live Preview.</description>
+			<figure><link>images/01_custom6.png</link></figure>
+		</step>
+		
+	</steps>
+	
+</section>
+
+<section>
+	<title>Variables</title>
+	<description>You may dimension local variables of any type within the fieldname_render()function. However, if you want to create variables that have scope beyond the current grid cell, you must define it as an element of either the:  </description>
+	<cases>
+		<case>
+			<description>argspointer (valid for the grid page)  </description>
+		</case>
+		<case>
+			<description>sessionpointer (valid for the session)  </description>
+		</case>
+		
+	</cases>
+</section>
+	<section>
+		<description>For example, this code is able to create a running total of the Extensionfield by adding values to session.rt.  
+</description>
+		<example><![CDATA[if eval_valid(" session.rt") = .f. then  
+    session.rt = Data.EXTENSION  
+else  
+    session.rt = session.rt + Data.EXTENSION   
+end if  ]]></example>
+	</section>
+	
+</sections>
+<links>
+	<link href="images/open.png">...</link>
+	
+</links>
+
+</page>
