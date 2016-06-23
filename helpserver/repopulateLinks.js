@@ -38,7 +38,7 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                             topic = topic.substring(9).split("]]>")[0].trim();
                         }
                         var hasKey = usedNames[topic.toLowerCase()];
-                        var pathName = "/pages/" + fo.file.split("/helpfiles/")[1];
+                        var pathName = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
                         if (hasKey) {
                             if (hasKey != pathName) {
                                 var replacePage = false;
@@ -55,6 +55,7 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                                 if( replacePage ) {
                                      console.log("Replace stale link "+hasKey+" with "+pathName);
                                      usedNames[topic.toLowerCase()] = pathName;
+                                     links[topic] = pathName;
                                 } else {
                                      console.log("Duplicate symbol " + topic + " path " + pathName+" old key = "+hasKey);
                                 }
