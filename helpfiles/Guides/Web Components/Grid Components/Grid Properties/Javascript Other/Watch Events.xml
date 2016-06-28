@@ -1,0 +1,76 @@
+<page>
+	  <topic>Watch Events</topic>
+	  <description>The client-side Calculated fields, Show/hide fields, Enable expressions and Conditional styles are all implemented using 'watch' events. For example, if you examine the source in the Browser for a page the defines a calculated field for 'extendedtotal' using the expression 'round(price * quantity,2)', you will see the following Watch event has been defined automatically:
+</description>
+<sections>
+		
+		<section>
+			
+		<example><![CDATA[GRID1_GridObj._gridRowWatches
+'CALC_G_EXTENSION'= { watch:
+'PRICE','QUANTITY', on
+change: function(data) { var PRICE = $u.s.toNum($gvs('GRID1.V.R' + data.rowNumber + '.PRICE')); var QUANTITY = $u.s.toNum($gvs('GRID1.V.R'
++ data.rowNumber + '.QUANTITY')); GRID1_GridObj._setValue('G','EXTENSION',data.rowNumber,'' + $u.n.roundPRICE*QUANTITY),2
+?; } }]]></example>
+		</section>
+<section>
+			
+			<description>The above Javascript adds a new watch event (called 'CALC_G_EXTENSION'). It watches the PRICE and QUANTITY fields. The on change event gets passed an object called 'data' that has the rowNumber of the row in which the change takes place. It then gets to local variables, PRICE and QUANTITY which are the values in the corresponding controls in the Grid part. Finally, it uses the ._setValue() method to set the value of the EXTENSION field to the result of the expression.
+You can define your own custom Watch events if the automatically generated watch events (defined when you create a client-side calculated field, etc.) do not do exactly what you want. In most cases you should not need to use custom Watch events, but for power users, its nice to have this capability. You can define Custom Watch events for the Search part, Grid part and Detail View part. Go to the 'Javascript- Other' section in the appropriate properties page and click the builder for 'Watch events'.
+You can create as many watch events as you want. For each watch event, you specify a unique (arbitrary) name to identify the event, the names of the fields you want to watch and the javascript to execute when the value in any of the watched fields is changed.
+When you define the watch event, you can (optionally) use special 'helper' functions to simplify your javascript. For example the helper function *$('quantity') expands to:
+$gvs('GRID1.V.R' + data.rowNumber + '.QUANTITY').
+The above example Watch event could be written using 'helper' functions as follows:
+</description>
+		<example><![CDATA[GRID1_GridObj._gridRowWatches 'CALC_G_EXTENSION'= { 
+        watch: 'PRICE','QUANTITY',
+        on change: function(data) {
+        var PRICE = *gvn('PRICE'); 
+        var QUANTITY = *gvn('QUANTITY'); 
+        *svs('Extension',$u.n.roundPRICE*QUANTITY),2 ?;
+        }
+}
+]]></example>
+<note>'Helper' functions can only be used when you create custom watch events. The 'helper' functions all start with * and are documented in the Watch Event builder.)</note>
+		</section>
+				<section>
+			<title>Example - How to Dynamically Set a Field Label</title>
+			<description>The generic Javascript Watch events make it very easy to dynamically set a control's label at run-time.
+For example, say that your Grid has a field called 'COUNTRY'. If the value in COUNTRY is 'USA', you want to set the label on the ZIP field to 'Zip code', otherwise you want to set it to 'Postal Code'.
+</description>
+<note>This example assumes that the Grid is set to display data in Form mode.
+
+</note>
+		</section>
+		
+		
+		<section>
+			
+			<description>Here is how you would do it:</description>
+			<steps>
+				<step>
+					<description>Create a new Javascript Watch event (Properties pane, Javascript section, Watch event) and give it a name (any name will do).
+</description>
+				</step>
+					<step>
+					<description>Set the type to 'Other'.
+</description>
+				</step>
+					<step>
+					<description>Specify that the field you want to watch is COMPANY (this means that whenever the value in the COMPANY field changes, the Javascript that sets the label value will execute).
+</description>
+				</step>
+					<step>
+					<description>Enter this code for the Watch event:
+</description>
+<example><![CDATA[var COMPANY = *gv('COMPANY'); 
+var labelValue = 'Zip code'; 
+if( COMPANY != 'USA') labelValue = 'Postal Code'; 
+$('{grid.componentname}.LBL.R' + data.rowNumber + '.'+'ZIP'+'').innerHTML = labelValue;]]></example>
+				</step>
+				
+				
+			</steps>
+		</section>
+	</sections>
+</page>
