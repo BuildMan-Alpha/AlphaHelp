@@ -1,0 +1,209 @@
+<page>
+	<topic>Treating the Map as a Blank Canvas so that Markers on the Map can be Added Programmatically</topic>
+<description>In the previous videos, the markers on the map have been added automatically. For each record in the Grid, a corresponding marker has been placed on the Map. </description>
+
+<sections>
+	<section>
+			<description>However, you can specify that there should be no markers on the map initially. You would do this if you want to add the marker to the map with your own code. This video shows how you can turn off the automatic placement of markers on the map and then use Action Javascript to add markers to the map programmatically.  
+The video shows a Grid with a list of states. Each row in the Grid has a button to populate the map with the 10 airports in the state with the highest elevation. When you click a button in the Grid row, an Ajax callback is made to place the markers on the map.  
+</description>
+<videos>
+	<video>
+		<name>Watch Video 1  
+</name>
+		<link>http://www.ajaxvideotutorials.com/V11Videos/GoogleMapping_AddingMarkersUsingAjax_1.swf</link>
+	</video>
+	<video>
+		<name>Watch Video 2  
+</name>
+		<link>http://www.ajaxvideotutorials.com/V11Videos/GoogleMapping_AddingMarkersUsingAjax_2.swf</link>
+	</video>
+	<video>
+		<name>Watch Video 3  
+</name>
+		<link>http://www.ajaxvideotutorials.com/V11Videos/GoogleMapping_AddingMarkersUsingAjax_3.swf</link>
+	</video>
+	
+	
+	
+</videos>
+	</section>	
+<section>
+		
+		<description><![CDATA[How you can treat the google map in the alternate view as a blank canvas. A marker has been placed on the row automatically for each row on the grid. Show top 10 highest airports.
+Alternate View. PLace Markers on map property has been turned off. Do that so you can place all of the markers on the map yourself programatically.
+
+No icons on the map. When you press button, ajax callback. Go to fields, place new button. do onclick event under Javascript. Add a google Map method from list of actions
+
+Choose Map Id of Map you want to talk to, alternate view map
+Action. Action Javascript. Clear all markers, Add markers to the map, close all infoboxes. Add markers to map is the most powerful of actions because it lets you add markers to the map using an Ajax Callback, or add local data to the map using local data that is already on the grid via Javascript.
+
+Video2 How to write the Ajax Callback Function------------
+Definition of button...Edit Action...Show Function Prototype. Callback needs to set properties in an array. Calls placeMarkers. What happens inside this placeMarkers? Go to working preview click on button for Co.
+
+Xbasic function placeMarkers. Comment describes what your ajax callback needs to do.
+Xbasic Functions]]></description>
+		
+	</section>	
+	
+	<section>
+	<title>Examples</title>
+	<description>Getting a SQL Connection object.  </description>
+	<example><![CDATA[function placeMarkers as c(e as p) 
+dim cn as sql::Connection 
+]]></example>
+	
+</section>	
+
+<section>
+	<description></description>
+	<example><![CDATA[dim cs as c 
+cs=="::Name::Airports" 
+ ]]></example>
+</section>	
+
+
+<section>
+	<description>State value. Colorado. </description>
+	<example><![CDATA[dim state as c 
+state = e._currentRowDataNew.STATE 
+]]></example>
+</section>	
+
+<section>
+	<description>Select all fields from airports where state equals x.</description>
+	<example><![CDATA[dim sql as c 
+sql = "select* from us_airports where state = :state order by elevation desc" 
+dim args as sql::arguments 
+args.add("state",state) 
+ ]]></example>
+</section>	
+
+<section>
+	<description>Resulting set from Query</description>
+	<example><![CDATA[dim flag as c 
+flag = cn.open(cs) 
+if flag = .f then 
+placeMarkers = "alert('could not open connection to database');" 
+exit function 
+end if 
+dim rs as sql::ResultSet  ]]></example>
+</section>	
+
+<section>
+	<description>If there are no records in the query...</description>
+	<example><![CDATA[dim rs as sql::ResultSet 
+
+rs = cn.ResultSet 
+flag = rs.nextRow() 
+if flag = .f. then 
+placeMarkers = "alert('no records in query');" 
+exit function 
+end if 
+]]></example></section>	
+
+<section>
+	<description>Set this array and set these properties in the array. All of these are defined in the prototype. 
+</description>
+	<example><![CDATA[dim count as n = 1 
+while flag 
+e.markers[].type = "coord" 
+e.markers[].lat = rs.data("latitude") 
+e.markers[].lon = rs.data("longitude") 
+e.markers[].title = rs.data("name") 
+e.markers[].infotext = "Airport Information
+Name:" + rs.data("name") + "
+Elevation:" + rs.data("elevation") 
+e.markers[].icon = "http://maps.google.com/mapfiles/marker_green.png" 
+e.markers[].animation = 1 
+e.markers[].duration = 3 
+flag = rs.NextRow() 
+count = count + 1                                                                          
+if count > 10 then 
+exit while 
+end if 
+ ]]></example>
+</section>	
+
+<section>
+<description>Animation is bounce</description>
+<example><![CDATA[e.markers[].animation = 1  ]]></example>
+</section>	
+
+<section>
+<description>Move to the next row in the result set. 
+Increment counter by 1, if the counter is above ten then bail out of the loop. </description>
+<example><![CDATA[flag = rs.NextRow() 
+count = count + 1                                                                          
+if count > 10 then 
+exit while  ]]></example>
+</section>	
+
+<section>
+	<description>Clear out existing markers. Recenter map on new markers. </description>
+	<example><![CDATA[e.flagClearOldMarkers = .t. 
+e.flagRecentMapNew = .t. 
+e.flagRecentMap ]]></example>
+</section>	
+
+<section>
+	<description>Free the connection result set. Close the connection down. </description>
+	<example><![CDATA[cn.FreeResult() 
+delete rs 
+cn.close()]]></example>
+</section>	
+	
+	<section>
+<title>Complete Example</title>
+<example><![CDATA[function placeMarkers as c(e as p) 
+dim cn as sql::Connection 
+dim cs as c 
+cs=="::Name::Airports" 
+dim state as c 
+state = e._currentRowDataNew.STATE 
+dim sql as c 
+sql = "select* from us_airports where state = :state order by elevation desc" 
+dim args as sql::arguments 
+args.add("state",state) 
+dim flag as c 
+flag = cn.open(cs) 
+if flag = .f then 
+placeMarkers = "alert('could not open connection to database');" 
+exit function 
+end if 
+dim rs as sql::ResultSet 
+
+rs = cn.ResultSet 
+flag = rs.nextRow() 
+if flag = .f. then 
+placeMarkers = "alert('no records in query');" 
+exit function 
+end if 
+dim count as n = 1 
+while flag 
+e.markers[].type = "coord" 
+e.markers[].lat = rs.data("latitude") 
+e.markers[].lon = rs.data("longitude") 
+e.markers[].title = rs.data("name") 
+e.markers[].infotext = "Airport Information
+Name:" + rs.data("name") + "
+Elevation:" + rs.data("elevation") 
+e.markers[].icon = "http://maps.google.com/mapfiles/marker_green.png" 
+e.markers[].animation = 1 
+e.markers[].duration = 3 
+flag = rs.NextRow() 
+count = count + 1                                                                          
+if count > 10 then 
+exit while 
+end if 
+end while 
+e.flagClearOldMarkers = .t. 
+e.flagRecentMapNew = .t. 
+e.flagRecentMap 
+cn.FreeResult() 
+delete rs 
+cn.close()    
+]]></example>
+</section>
+	</sections>
+</page>
