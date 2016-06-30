@@ -1,0 +1,65 @@
+<page>
+<title>Listener Example Using Redis</title>
+<description>
+Xbasic scripts can wait for redis commands using a listener.
+</description>
+<sections>
+<section>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.CreateListener("myevents","brpop myEventQueue 0")
+
+thread_create("myEventQueue_thread",<<%code%
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+dim srv as extension::Listener 
+srv = extension::Listener::Get("myevents")
+
+file.from_string("c:\data\eventlog.txt","Events"+crlf()+"===================="+crlf())
+while .not. srv.Closed() 
+	dim event as extension::ListenerEvent 
+	event = srv.Read()
+	file.append("c:\data\eventlog.txt",event.data+crlf())
+	if event.data = "quit" then
+		exit while
+	end if
+end while
+%code%)
+]]>
+</example>
+</section>
+<section>
+<example><![CDATA[
+? thread_enum()
+= Main
+myEventQueue_thread
+
+
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+
+
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.LPush("myEventQueue","Hello world")
+
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+Hello world
+
+
+redis.LPush("myEventQueue","Another Message")
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+Hello world
+Another Message
+
+redis.LPush("myEventQueue","quit")
+? thread_enum()
+= Main
+]]>
+</example>
+</section>
+</sections>
+</page>
