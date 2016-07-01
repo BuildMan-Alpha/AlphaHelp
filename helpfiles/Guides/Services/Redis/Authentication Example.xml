@@ -1,0 +1,77 @@
+<page>
+<topic>Redis Authentication</topic>
+<description>
+For commands that have not been included in the client API, the execute command can be used.
+</description>
+<sections>
+<section>
+<title>Starting a Redis Server Instance with Authentication</title>
+<description>For this demonstration, open a command, go to the A5V12 folder, where the *[redis-server]* redistributable resides, and type the following.</description>
+<example><![CDATA[
+redis-server.exe --port 7777 --requirepass rumplestiltskin
+]]>
+</example>
+</section><section>
+<description>If successful, you should see Redis server startup on the specified port.</description>
+<example><![CDATA[
+c:\Program Files\A5v12>redis-server.exe --port 7777 --requirepass rumplestiltskin
+
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           Redis 3.0.501 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 7777
+ |    `-._   `._    /     _.-'    |     PID: 2832
+  `-._    `-._  `-./  _.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |           http://redis.io
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
+
+[2832] 30 Jun 15:53:09.751 # Server started, Redis version 3.0.501
+[2832] 30 Jun 15:53:09.751 * DB loaded from disk: 0.000 seconds
+[2832] 30 Jun 15:53:09.766 * The server is now ready to accept connections on port 7777
+]]>
+</example>
+</section><section>
+<title>Using passwords with Redis Client</title>
+<description><p>To see what happens when you try to connect to the Redis server without a password, 
+create a client object on port '7777' but don't specify a password.</p>
+<p>When you try to execute a Redis command, an error should be returned indicating that a password is required.</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient("",7777)
+dim info as extension::RedisResult
+
+info = redis.Execute("info")
+? info.type
+= "Error"
+? info.valueString
+= "NOAUTH Authentication required."
+]]>
+</example>
+</section><section>
+<description><p>
+Once again create a Redis client, but this time include the optional password.  Commands should now work.</p></description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient("",7777,"rumplestiltskin")
+info = redis.Execute("info")
+? info.type
+= "String"
+? info.valueString
+= # Server
+redis_version:3.0.501
+redis_git_sha1:00000000
+redis_git_dirty:0
+....
+]]>
+</example>
+</section>
+</sections>
+</page>

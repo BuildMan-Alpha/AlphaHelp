@@ -1,0 +1,86 @@
+<page>
+<topic>The Redis Publish Subscribe Pattern</topic>
+<description>
+An example of how to implement Redis Publish and Subscribe in XBasic.
+</description>
+<discussion>
+<p>Redis has an feature called 'channels' that are used to send messages.</p>
+<p>A channel is named by the user, and can be have a listener attached by using the Redis *[SUBSCRIBE]* command.</p>
+<p>Many clients can listen on the same 'channel', and get the same messages, which makes it good for implementing
+distributed messaging systems like message boards.</p>
+</discussion>
+<sections>
+<section>
+<description>
+<title>Script to implement a Redis Listener</title>
+<p>First we should create a script to listen on a SUBSCRIBED channel.  To accomplish this
+we create a named Listener using *[CreateListener]* on the *[SUBSCRIBE]* command on a channel 
+called *[mynotify]*.  You can use any name you want for the channel, like key values accessed through
+*[Set]* and *[Get]*, channels are accessed through *[PUBLISH]* and *[SUBSCRIBE]* </p>
+<p>In out example script, we create an XDialog to display the last 'message' receieved on the
+channel.  The background thread we create blocks on reading 'messages',  exits the loop when a message
+of 'quit' is recieved, and closes the xdialog .</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.CreateListener("myNotify","SUBSCRIBE mynotify")
+dim note as c 
+
+ui_modeless_dlg_box("notice_handler",<<%dlg%
+{title=Get Notifications}
+Notice: [%M%.100,20note];
+%dlg%,<<%code%
+if a_dlg_button = "quit" then
+	a_dlg_button = ""
+	ui_modeless_dlg_close("notice_handler")
+else if word(a_dlg_button,1,":") = "note" then
+    note = substr(a_dlg_button,6)
+	a_dlg_button = ""
+end if
+%code%)
+
+thread_create("mySubscribe_thread",<<%code%
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+dim srv as extension::Listener 
+srv = extension::Listener::Get("myNotify")
+while .not. srv.Closed() 
+	dim event as extension::ListenerEvent 
+	event = srv.Read()
+	if event.data = "quit" then
+		ui_dlg_event("notice_handler","quit")
+		exit while
+	end if
+	ui_dlg_event("notice_handler","note:"+event.data)	
+end while
+srv.close()
+%code%)
+]]>
+</example>
+</section>
+<section>
+<title>Testing the Subscriber by Publishing</title>
+<description>
+<p>To test our Listener, run the above script, then open the Interactive window, create a Redis client object, and call the
+ *[Publish]* method with a couple messages.  You will notice that the message will show up in the dialog, and since we wrote
+code to close the listener and the XDialog when a 'quit' message is received, that sending quit will do just that.</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.Publish("mynotify","Hello World")
+
+redis.Publish("mynotify","Goodbye World")
+
+redis.Publish("mynotify","quit")
+]]>
+</example>
+</section>
+<section>
+<title>Testing Multiple Instances</title>
+<description>
+<p>If you want to see a demonstration of how the message is broadcast to all clients,  open several instances of
+Alpha Anywhere and run the Listener script, then play the commands.  All the launched dialogs should show the 
+latest message, and close when the 'quit' command is done.</p>
+</description>
+</section>
+</sections>
+</page>
