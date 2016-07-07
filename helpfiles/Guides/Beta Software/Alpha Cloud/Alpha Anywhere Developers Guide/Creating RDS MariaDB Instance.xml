@@ -1,0 +1,397 @@
+<page>
+    <topic>Creating An Amazon RDS MariaDB Instance</topic>
+    <description></description>
+    <groups>
+        <group>
+            <title>Creating An Amazon RDS Instance for MariaDB and Connecting From Alpha Cloud</title>
+            <sections>  
+                <section>
+                    <title>Overview</title>
+                        <description>
+                            <p>This document is a walk-through of creating a MariaDB Amazon RDS (Relational Database Service) instance and database that you can use with the Alpha Anywhere development environment and an application deployed on Alpha Cloud.</p>
+                            <p>We will discuss:</p>
+                        </description>
+                        <cases>
+                            <case>
+                                <description>[Creating a MariaDB Amazon RDS Instance and Database]</description>
+                            </case>
+                            <case>
+                                <description>[Granting Access to Your RDS Database Instance]</description>
+                            </case>
+                            <case>
+                                <description>[Connecting from a Modeling Tool]</description>
+                            </case>
+                            <case>
+                                <description>[Connecting from Alpha Anywhere]</description>
+                            </case>
+                        </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Creating a MariaDB Amazon RDS Instance and Database</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>In this section we will create an Amazon RDS MariaDB instance and database.</p>
+                        <p>Before we can create the instance, however, we first need to create a parameter group that sets some MariaDB parameters to make working with the database easier from Alpha Anywhere. We will be setting the parameters below as follows:</p>
+                    </description>
+                </section>
+                <section>
+                    <content><![CDATA[<table>
+                            <tr><th>Name</th><th>Value</th><th>Description</th></tr>
+                            <tr><td>log_bin_trust_function_creators</td><td>1</td><td>Allows you to create functions and stored procedures.</td></tr>
+                            <tr><td>lower_case_table_names</td><td>1</td><td>Makes table names case insensitive and simplifies hand coding queries.</td></tr>
+                            <tr><td>max_allowed_packet</td><td>500000000</td><td>The value we have chosen (500 million) allows you to save large binary and text columns in the database.</td></tr>
+                        </table>]]></content>
+                </section>
+                <section>
+                    <description>We will create both an instance and a database. You can create additional database on the same instance if you wish.</description>
+                    <steps>
+                        <step>
+                            <description>
+                                <p>Sign in your Amazon Account or create a new Amazon Account at *[extlink:http://aws.amazon.com]*</p>
+                            </description>
+                        </step>
+                        <step>
+                            <description>From the Amazon Web Services page navigate to RDS (Relational Database Service) by clicking on the icon.</description>
+                        </step>
+                        <step>
+                            <description>*[Important]* – Be sure to select the Amazon Region you will be deploying your application in when you create your RDS Instance.  You will get better performance on your deployed applications.</description>
+                        </step>
+                        <step>
+                            <description>Create a Parameter Group for your new MariaDBInstance to make working within Alpha Anywhere easier:</description>
+                            <cases>
+                                <case>
+                                    <description>a. On the RDS Dashboard, click on the Parameter Groups menu item on the left of the page.</description>
+                                </case>
+                                <case>
+                                    <description>b. Click the button labeled “Create parameter Group”.</description>
+                                </case>
+                                <case>
+                                    <description>c. Select “mariadb 10.0 from the Parameter Group Family dropdown list.  Note that you can choose any version of MariaDB on the list, but it should match the database version you intend to create.</description>
+                                </case>
+                                <case>
+                                    <description>d. Enter a group name (Let’s use “MariaDBAA”).  The name should be unique for parameter groups within your account.</description>
+                                </case>
+                                <case>
+                                    <description>e. Enter a reasonable description for the new group like “MariaDB parameter group for use with Alpha Anywhere”.</description>
+                                </case>
+                                <case>
+                                    <description>f. Click the button to the right entitled “Create”.</description>
+                                </case>
+                            </cases>
+                        </step>
+                        <step>
+                            <description>Update the values of three of the  parameters in your new parameter group:</description>
+                            <cases>
+                                <case>
+                                    <description>From the RDS Dashboard click Parameter Groups, select your parameter group by clicking on the checkbox and click the button at the top entitled “Edit Parameters”.</description>
+                                </case>
+                                <case>
+                                    <description>Scroll down to log_bin_trust_function_creators and set the value to 1. A value of 1 will allow you to create functions and stored procedures.</description>
+                                </case>
+                                <case>
+                                    <description>Scroll down to lower_case_table_names and set that value to 1. A value of 1 enables support for case-insensitive table names and simplifies hand coding queries.</description>
+                                </case>
+                                <case>
+                                    <description>Scroll down to max_allowed_packet and set that to 500000000 (500 million). This value can vary.  The suggested value of 500000000 allows you to save large binary and text columns in the database.</description>
+                                </case>
+                                <case>
+                                    <description>Scroll to the top of the page and click the button entitled “Save Changes”.</description>
+                                </case>
+                            </cases>
+                        </step>
+                        <step>
+                            <description>Create your Amazon RDS instance and database:</description>
+                            <cases>
+                                <case>
+                                    <description>Return to the Amazon RDS Dashboard</description>
+                                </case>
+                                <case>
+                                    <description>If you have no instances click on Get Started Now</description>
+                                </case>
+                                <case>
+                                    <description>If you have existing instances, click on the button labeled “Launch a DB Instance”.  Note that the button at the top launches an Amazon Aurora DB Instance.</description>
+                                </case>
+                                <case>
+                                    <description>From the options presented, click on the MariaDB icon on the left.</description>
+                                </case>
+                                <case>
+                                    <description>Click the button entitled “Select” on the right.</description>
+                                </case>
+                                <case>
+                                    <description>Click the radio button entitled Dev/Test and MariaDB.  Note that you can also choose a Production implementation if you wish.  The Dev/Test option creates a smaller instance and can save money while you are learning.</description>
+                                </case>
+                                <case>
+                                    <description>Click the button entitled “Next Step”</description>
+                                </case>
+                                <case>
+                                    <description>From the first page of options entitled “Specify DB Details”, choose the following:</description>
+                                    <list>
+                                        <item>
+                                            <name>DB Engine Version</name>
+                                            <description>*[10.0.24]* is a good choice.</description>
+                                        </item>
+                                        <item>
+                                            <name>DBInstance Class</name>
+                                            <description>*[db.t2.micro]* is sufficient for our purposes but you can choose a larger (and more expensive class if you wish).</description>
+                                        </item>
+                                        <item>
+                                            <name>Multi-AZ Deployment </name>
+                                            <description>
+                                                <p>For our example, you can choose *[No]*.</p>
+                                                <p>For test databases, you don’t need Multi-AZ deployment.</p>
+                                                <p>For production you will want to choose this option as it causes multiple server instances to be run in multiple physical data centers (called availability zones) and assures better availability and load balancing.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>Allocated Storage</name>
+                                            <description>You can work with as little as 20GB. Feel free to use more. Amazon recommends at least 100GB for production performance.</description>
+                                        </item>
+                                        <item>
+                                            <name>DB Instance identifier</name>
+                                            <description>Name your instance. “MariaDB” works fine if you don’t already have one with that name.</description>
+                                        </item>
+                                        <item>
+                                            <name>Master Username</name>
+                                            <description>Choose a user name for the database owner.</description>
+                                        </item>
+                                        <item>
+                                            <name>Master Password</name>
+                                            <description>Enter the password you want to use for your database owner.  Reenter it in Confirm Password.</description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <description>
+                                        <p>Leave all other options at their default values.</p>
+                                        <p>Click the button on the bottom right entitled “Next Step”</p>
+                                    </description>
+                                </case>
+                            </cases>
+                        </step>
+                        <step>
+                            <description>On the page entitled “Configure Advanced Settings”</description>
+                            <cases>
+                                <case>
+                                    <description>a. Leave VPC, Subnet Group, Publicly Available, Availability Zone and VPC Security Group(s) at their default values.  Note that a new security group will be created by default.  This group will grant access to the IP from which you are logged in.</description>
+                                </case>
+                                <case>
+                                    <description>b. Set the Database name to create a new database.  We can use “Test1” </description>
+                                </case>
+                                <case>
+                                    <description>c. Select the DB Parameter Group MariaDBAA (the one we just created).</description>
+                                </case>
+                                <case>
+                                    <description>d. Set Minor Version Upgrade to Yes to take advantage of automatic upgrades.</description>
+                                    <note>You can also set a Backup Retention Period and Maintenance Window for the upgrades.</note>
+                                </case>
+                                <case>
+                                    <description>e. Leave all other options at their defaults.</description>
+                                </case>
+                                <case>
+                                    <description>f. Click the button at the bottom right entitled “Launch DB Instance”.</description>
+                                </case>
+                                <case>
+                                    <description>g. Click the button at the bottom of the next page entitled “View Your New Instances” this will return you to the Instances page of the RDS Dashboard and will show your new database in the “creating” status.</description>
+                                </case>
+                            </cases>
+                        </step>
+                    </steps>
+                </section>
+                <section>
+                    <description>It make take five to ten minutes to create the database.  You can continue with some of the other tasks while you wait.</description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Granting Access to Your RDS Database Instance</title>
+            <sections>
+                <section>
+                    <title>Step 1: Editing Security to Allow Database Access from AlphaCloud</title>
+                    <steps>
+                        <step>
+                            <description>From the RDS Dashboard, click on the menu item entitled “Instances” on the left.</description>
+                        </step>
+                        <step>
+                            <description>Check the box to the left of the database we just created.</description>
+                        </step>
+                        <step>
+                            <description>Click on the black arrow between the checkbox and the database Engine column to display more information on the database.</description>
+                        </step>
+                        <step>
+                            <description>Click on the icon showing a document with a magnifying glass to see the details tab.</description>
+                            <note>The Endpoint will say “Not available yet” until your database is created.</note>
+                        </step>
+                        <step>
+                            <description>Click on the link to the right of the “Security Groups” item to go to the Security Groups page for the security group that was automatically created for us along with our database.</description>
+                        </step>
+                        <step>
+                            <description>If you select the security group, and click on the tab at the bottom of the page entitled “Inbound”, you will see a rule that includes the IP address from which you created the RDS database.</description>
+                        </step>
+                        <step>
+                            <description>Click the “Edit” button in the Inbound tab page to display the edit dialog for the inbound rules.</description>
+                        </step>
+                        <step>
+                            <description>Click the button entitled “Add Rule”.</description>
+                        </step>
+                        <step>
+                            <description>Select MySQL/Aurora as the type.</description>
+                        </step>
+                        <step>
+                            <description>Select “Anywhere” as the Source.  Note that the CIDR address of 0.0.0.0/0 will automatically be filled in.  Your database can now be accessed from anywhere on the internet – including Alpha Cloud.</description>
+                        </step>
+                        <step>
+                            <description>Click Save to save the new inbound rule.</description>
+                        </step>
+                    </steps>
+                </section>
+                <section>
+                    <title>Step 2: Retrieve the Endpoint for your new Database Instance</title>
+                    <steps>
+                        <step>
+                            <description>Return to RDS Instances page:</description>
+                            <cases>
+                                <case>
+                                    <description>a. Click on the cube on the upper left corner of the page.</description>
+                                </case>
+                                <case>  
+                                    <description>b. Click on the RDS (Relational Database Service) menu item.</description>
+                                </case>
+                                <case>
+                                    <description>c. Click on the Instances option on the left of the RDS Dashboard page.</description>
+                                </case>
+                            </cases>
+                        </step>
+                        <step>
+                            <description>Once your database status reports as “available” select your new database.</description>
+                        </step>
+                        <step>
+                            <description>Click on the black arrow to the left of the Engine column with on the row your database is displayed on.</description>
+                        </step>
+                        <step>
+                            <description>Select the EndPoint value and copy it to the clipboard.</description>
+                            <note>
+                                <p>The endpoint will look something like this:</p>
+                                <p>*[bold:mariadb.ctdi74iuxpca.us-east-1.rds.amazonaws.com:3306]*</p>
+                            </note>
+                        </step>
+                        <step>
+                            <description>Save this value for later.</description>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Connecting from a Modeling Tool</title>
+            <sections>
+                <section>   
+                    <description>Depending on your choice of tool to model the schema of your database, you will have a different dialog, but they will all use the following values:</description>
+                    <list>
+                        <item>
+                            <name>Server or Host</name>
+                            <description>This is the front part of the endpoint without the “:3306”</description>
+                        </item>
+                        <item>
+                            <name>Port</name>
+                            <description>This is the value 3306</description>
+                        </item>
+                        <item>
+                            <name>User</name>
+                            <description>The master user name you created</description>
+                        </item>
+                        <item>
+                            <name>Password</name>
+                            <description>The master user password you created</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>Some tools will work with the server and let you select the database, others will prompt for the database as part of the connection.</description>
+                    <list>
+                        <item>
+                            <name>Database</name>
+                            <description>Use the name you created for your database.  In the steps above.  We used “Test1”</description>
+                        </item>
+                    </list>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Connecting from Alpha Anywhere</title>
+            <sections>
+                <section>
+                    <steps>
+                        <step>
+                            <description>Create a named connection string in the Alpha Anywhere Web Project</description>
+                            <cases>
+                                <case>
+                                    <description>a. Open the Web Control Panel</description>
+                                </case>
+                                <case>
+                                    <description>b. Select Tools and then AlphaDAO Connection Strings from the menu.</description>
+                                </case>
+                                <case>
+                                    <description>c. If you have an existing named connection string in use for your project, you can edit it and have it point to your new RDS database.</description>
+                                </case>
+                                <case>
+                                    <description>d. Otherwise, click “New” to create a new connection string.</description>
+                                </case>
+                                <case>
+                                    <description>e. Choose the MySQL client</description>
+                                </case>
+                                <case>
+                                    <description>f. On the Create SQL Connection String dialog enter the following values:</description>
+                                    <list>
+                                        <item>
+                                            <name>Hostname</name>
+                                            <description>Your saved endpoint without the “:3306”</description>
+                                        </item>
+                                        <item>
+                                            <name>Port</name>
+                                            <description>3306</description>
+                                        </item>
+                                        <item>
+                                            <name>User</name>
+                                            <description>The master user name you provided when you created your database</description>
+                                        </item>
+                                        <item>
+                                            <name>Password</name>
+                                            <description>The password you provided when you created your database</description>
+                                        </item>
+                                        <item>
+                                            <name>Database</name>
+                                            <description>Enter the name of the database you created with your instance. We used “Test1”.</description>
+                                        </item>
+                                    </list>
+                                    <note>You can click on the button entitled “Refresh” to retrieve a list of databases.</note>
+                                </case>
+                                <case>
+                                    <description>g. Click on Test Connection to confirm that you have connected to your RDS instance successfully.</description>
+                                </case>
+                            </cases>
+                        </step>
+                        <step>
+                            <description>Give your new named connection a unique name within your web project.</description>
+                        </step>
+                        <step>
+                            <description>Use this named connection for all of your development.</description>
+                        </step>
+                        <step>
+                            <description>When you publish to Alpha Cloud, the connection will work from your deployed applications as well.</description>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link href="#group_Creating%20a%20MariaDB%20Amazon%20RDS%20Instance%20and%20Database">Creating a MariaDB Amazon RDS Instance and Database</link>
+        <link href="#group_Granting%20Access%20to%20Your%20RDS%20Database%20Instance">Granting Access to Your RDS Database Instance</link>
+        <link href="#group_Connecting%20from%20a%20Modeling%20Tool">Connecting from a Modeling Tool</link>
+        <link href="#group_Connecting%20from%20Alpha%20Anywhere">Connecting from Alpha Anywhere</link>
+    </links>
+</page>
+
