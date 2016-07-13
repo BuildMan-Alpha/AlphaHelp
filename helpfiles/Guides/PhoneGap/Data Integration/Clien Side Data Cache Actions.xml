@@ -1,0 +1,136 @@
+<page>
+    <shortlink>Client Side Data Cache Actions Action Javascript</shortlink>
+    <topic>Client-side Data Cache Actions</topic>
+    <sections>
+        <section>
+            <title>Action Javascript</title>
+            <description>Action Javascript allows you to perform several actions on data items in the Data Cache. Select the 'Client-side Data Cache Actions' action from the list of available actions.</description>
+            <figure>
+                <link>images/datacache_actions1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>Then in the editor, select the action type:</description>
+            <figure>
+                <link>images/datacache_actions2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>The actions currently currently supported are:</description>
+            <list>  
+                <item>
+                    <name>Refresh Data Items(s)</name>
+                    <description>allows you to refresh one or more data item. You can also select to refresh all items. Refreshing data cache items is an asynchronous action. The action allows you to specify an *[ui:onComplete]* action that will be called after all items have been refreshed.</description>
+                </item>
+                <item>
+                    <name>Read Data</name>
+                    <description>allows you to read the data in a data item. Reading a data item is an asynchronous action. You can specify the Javascript to run once the item has been read. If you read an item that has been set to *[ui:Delay query until explicit refresh]* and the item has not yet been refreshed, the item will be automatically refreshed first, and then it will be read. Once it has been read the onSuccess Javascript event is fired and the data in the data item is available to your Javascript code in the *[js:data]* variable. You can specify an optional *[ui:Filter]* and *[ui:Order]* property to filter/sort the data in the data array before the *[ui:onSuccess]* event handler is called.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Read Data Action</title>
+            <description>The builder for the Read Data action is shown below. You specify the name of the data item you want to read and then you define the Javascript code you want to execute once the item has been read. You code can reference *[js:data]* - a Javascript array that contains the data in the data item.</description>
+            <figure>
+                <link>images/read_data_action.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>The filter allows you to define an arbitrary filter to filter the data. The filter builder dialog is shown below. The filter is in the form of a Javascript expression that evaluates to true or false. Fields in the data item are referenced with the *[js:data.]* prefix. In the screenshot shown below only records in London or Berlin are included in the data array passed to the *[ui:onSuccess]* event handler.</description>
+            <figure>
+                <link>images/datacache_filter.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>The order allows you to define an arbitrary sort order for the data in the data array. The order builder is shown below:</description>
+            <figure>
+                <link>images/clientsidecache_order.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>The order builder allows you to define a multi-level sort. It also allows you to parse numeric, logical and data strings into data of the correct type so that the data are ordered correctly. For example data values in your data cache might be in form of date strings (e.g. 12-31-2015). In order to sort these values correctly, they have to first be parsed into real date objects.</description>
+        </section>
+        <section>
+            <title>Data Cache Methods</title>
+            <description>The UX object has several methods for working with data items.</description>
+            <cases>
+                <case>
+                    <title>{dialog.object}.refreshDataCacheItem(listOfItemsToRefresh, onCompleteFunction)</title>
+                    <description>{dialog.object}.refreshDataCacheItem refreshes a Data-cache item. Parameters are listed below:</description>
+                    <list>  
+                        <item>
+                            <name>listOfItemsToRefresh</name>
+                            <description>A comma delimited list of data items to refresh or '*[js:*all]*' to refresh all items.</description>
+                        </item>
+                        <item>
+                            <name>onCompleteFunction</name>
+                            <description>A function to call when all of the data items have been refreshed. Data items are refreshed asynchronously.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <title>{dialog.object}.getFromDataCache(itemName,onSuccessFunction, onFailFunction, filter, order)</title>
+                    <description>{dialog.object}.getFromDataCache reads a Data-cache item. Parameters are listed below:</description>
+                    <list>  
+                        <item>
+                            <name>itemName</name>
+                            <description>The name of the data item to read</description>
+                        </item>
+                        <item>
+                            <name>onSuccessFunction</name>
+                            <description>The Javascript code to execute once the data item has been read. Reading data items is asynchronous. Your Javascript can reference *[js:data]*, an array with the data for the specified data item.</description>
+                        </item>
+                        <item>
+                            <name>onFailFunction</name>
+                            <description>The Javascript code to execute if there was an error reading the data item.</description>
+                        </item>
+                        <item>
+                            <name>filter</name>
+                            <description>A string (with a filter expression) or a function that defines how the data should be filtered.</description>
+                        </item>
+                        <item>
+                            <name>order</name>
+                            <description>An object that defines how sorting should be performed, or a function that defines a custom order definition.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <description>Here is an example of the *[js:filter]* parameter specified as a string:</description>
+                    <example><![CDATA[var _filter = 'data.Country == "USA" || data.Country = "France"';]]></example>
+                </case>
+                <case>
+                    <description>Here is an example of the *[js:filter]* parameter specified as a function:</description>
+                    <example><![CDATA[var _filter = function(data) {
+if(data.City == 'Boston') return true;
+    else return false;
+}]]></example>
+                </case>
+                <case>
+                    <description>Here are examples of the *[js:order]* parameter specified as an object:</description>
+                    <example><![CDATA[//sort by City, then by Lastname (descending)
+var _order = {'City' : 1, 'Lastname': -1};
+
+//sort a date string that is in the format MM-dd-yyyy
+var _order = {'DateOfBirty:date:MM-dd-yyyy' : 1);]]></example>
+                </case>
+                <case>
+                    <description>Here are examples of the *[js:order]* parameter specified as an function:</description>
+                    <example><![CDATA[//sorts by Lastname, then by DOB ( a date field with a format of MM-dd-yyyy) in descending order
+
+var _order = function(a,b) {
+    if(a.Lastname > b.Lastname) return 1;
+    else if(a.Lastname < b.Lastname) return -1;
+    else {
+        if(new Date().fromFormat(a.DOB:date:MM-dd-yyyy,'') > new Date().fromFormat(b.DOB:date:MM-dd-yyyy,'')) return 1;
+        else return -1;
+   }
+}]]></example>
+                </case>
+            </cases>
+        </section>
+    </sections>
+    <see>
+        <ref href="/documentation/index?search=client side data cache">Client-side Data Cache</ref>
+    </see>
+    <terms>ux component,client-side data cache,data integration,offline access,disconnected applications,mobile app,phonegap build,local storage,file system,action javascript</terms>
+</page>

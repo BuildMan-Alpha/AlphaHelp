@@ -1,0 +1,104 @@
+<page>
+<topic>Listener Example Using Redis</topic>
+<description>
+Xbasic scripts can wait for Redis commands using a listener.
+</description>
+<sections>
+<section>
+<title>Add and Run a Script to Listen on Redis Commands</title>
+<description>
+<p>
+The first method to be aware of is the *[xb:CreateListener]* method, which creates a named listener on a Redis
+command.
+</p>
+<p>
+The *[xb:CreateListener]* method in this example is listening on 'brpop myEventQueue 0'.  *[BRPOP]* is a Redis 
+command that is a blocking 'Pop' on a list named myEventQueue with a timeout set to '0', which
+indicates that there is no timeout.
+</p>
+<p>
+The Script starts a thread that loops until the server is closed, or until the server receives a 
+message or 'quit'.
+</p>
+<p>
+The background thread gets a pointer to the named listener by calling the *[xb:Extension::Listener Get Method]*.
+The call to the Read method of the Listener object blocks until a message is available.
+</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.CreateListener("myevents","brpop myEventQueue 0")
+
+thread_create("myEventQueue_thread",<<%code%
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+dim srv as extension::Listener 
+srv = extension::Listener::Get("myevents")
+
+file.from_string("c:\data\eventlog.txt","Events"+crlf()+"===================="+crlf())
+while .not. srv.Closed() 
+	dim event as extension::ListenerEvent 
+	event = srv.Read()
+	file.append("c:\data\eventlog.txt",event.data+crlf())
+	if event.data = "quit" then
+		exit while
+	end if
+end while
+%code%)
+]]>
+</example>
+</section>
+<section>
+<title>Interacting with the List the Thread is running on</title>
+<description>
+<p>After adding and running the script defined above,  change to the interactive window and check
+that the thread is running.</p>
+<p>Check the contents of the log file we created in the thread using *[xb:file.to_string()]*.</p>
+</description>
+<example><![CDATA[
+? thread_enum()
+= Main
+myEventQueue_thread
+
+
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+]]>
+</example>
+</section>
+<section>
+<description>
+<p>Push an event on the list, the message should appear in out log file.</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.LPush("myEventQueue","Hello world")
+
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+Hello world
+
+
+redis.LPush("myEventQueue","Another Message")
+? file.to_string("c:\data\eventlog.txt")
+= Events
+====================
+Hello world
+Another Message
+]]>
+</example>
+</section>
+<section>
+<description>
+<p>Push an event called 'quit'' the list, which should cause the thread to stop running.</p>
+</description>
+<example><![CDATA[
+redis.LPush("myEventQueue","quit")
+? thread_enum()
+= Main
+]]>
+</example>
+</section>
+</sections>
+</page>

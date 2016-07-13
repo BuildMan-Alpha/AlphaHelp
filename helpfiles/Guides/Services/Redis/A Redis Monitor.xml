@@ -1,0 +1,59 @@
+<page>
+<topic>A Redis Monitor</topic>
+<description>
+An XBasic code example implementing a Redis Monitor program.
+</description>
+<sections>
+<section>
+<description>
+<p>The *[redis-cli.exe]* program can be used to monitor all traffic on a Redis instance if after you start
+it you type the command 'MONITOR'.</p>
+<p>Monitor is an asynchronouse command on the Redis client just like BLPOP, BRPOP and SUBSCRIBE, so it is 
+possible to build the a Redis MONITOR in XBasic as well</p>
+<p>Create a script with the code below, and run it.   When the XDialog is up, perform redis examples from
+the earlier sections on the local instance, you will see all the traffic show up in the dialog.</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+redis.CreateListener("monitor","MONITOR")
+
+dim messages as c 
+
+ui_modeless_dlg_box("monitor_handler",<<%dlg%
+{title=Monitor}
+REDIS Monitor;
+[%M%.100,20messages];
+%dlg%,<<%code%
+if a_dlg_button = "quit" then
+	a_dlg_button = ""
+	ui_modeless_dlg_close("monitor_handler")
+else if word(a_dlg_button,1,":") = "note" then
+    messages = messages + crlf() + substr(a_dlg_button,6)
+	a_dlg_button = ""
+else if a_dlg_button = "close" then
+	a_dlg_button = ""
+	ui_modeless_dlg_close("monitor_handler")
+else if a_dlg_button = "" then
+	a_dlg_button = ""
+    dim srv as extension::Listener 
+	srv = extension::Listener::Get("monitor")
+	srv.Close()
+end if
+%code%)
+
+thread_create("Monitor_thread",<<%code%
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+dim srv as extension::Listener 
+srv = extension::Listener::Get("monitor")
+while .not. srv.Closed() 
+	dim event as extension::ListenerEvent 
+	event = srv.Read()
+	ui_dlg_event("monitor_handler","note:"+event.data)	
+end while
+ui_dlg_event("monitor_handler","close")	
+%code%)
+]]>
+</example>
+</section>
+</sections>
+</page>

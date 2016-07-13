@@ -1,0 +1,101 @@
+<page>
+<topic>Use Redis to define a List</topic>
+<description>
+Redis can be used to maintain named lists.
+</description>
+<sections>
+<section>
+<description>
+<p>Entries are added to a list at either the 'left', by calling *[LPush]*, or at the 'right' by calling *[RPush]*.</p>
+</description>
+<example><![CDATA[
+dim redis as extension::RedisClient = extension::RedisClient::CreateClient()
+dim list as extension::RedisResult
+
+redis.LPush("GroceryCart","Bannanas")
+redis.LPush("GroceryCart","Apples")
+redis.LPush("GroceryCart","Milk")
+]]>
+</example>
+</section>
+<section>
+<description>
+<p>The *[LRange]* method reads the list from the from 'left' to 'right'.</p>
+<p>Note that the List returns a type of 'Array', and while the *[valueString]* contains a cr-lf
+delimited list of the entries, the individual entries can be read by calling the *[GetItem]* method
+on the *[RedisResult]* that is returned.</p>
+</description>
+<example><![CDATA[
+list = redis.LRange("GroceryCart")
+? list.type
+= "Array"
+
+? list.valueString
+= Milk
+Apples
+Bannanas
+
+
+dim item as extension::RedisResult
+item = list.GetItem(1)
+? item.valueString
+= "Milk"
+
+item = list.GetItem(2)
+? item.valueString
+= "Apples"
+
+item = list.GetItem(3)
+? item.valueString
+= "Bannanas"
+]]>
+</example>
+</section>
+<section>
+<description>
+To remove items from the left, use the *[LPop]* method.
+</description>
+<example><![CDATA[
+item = redis.LPop("GroceryCart")
+? item.valueString
+= "Milk"
+
+list = redis.LRange("GroceryCart")
+? list.type
+= "Array"
+? list.valueString
+= Apples
+Bannanas
+]]>
+</example>
+</section>
+<section>
+<description>
+The remove items from the right, use the *[RPop]* method.
+</description>
+<example><![CDATA[
+item = redis.RPop("GroceryCart")
+? item.valueString
+= "Bannanas"
+
+list = redis.LRange("GroceryCart")
+? list.type
+= "Array"
+
+? list.valueString
+= "Apples"
+
+]]>
+</example>
+</section>
+<section>
+<description>
+To delete the entire list, the *[Del]* method can be called, just as it can be called for Simple 'keys'.
+</description>
+<example><![CDATA[
+redis.Del("GroceryCart")
+]]>
+</example>
+</section>
+</sections>
+</page>

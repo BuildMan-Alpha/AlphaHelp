@@ -1,0 +1,98 @@
+<page>
+    <topic>{dialog.object}.getFromDataCache Method</topic>
+    <description>Reads an item in the client-side data cache. Makes an ajax callback to the server to download the data if it isn't already in the cache.</description>
+    <syntax>{dialog.object}.getFromDataCache(UXClientSideDataCacheItem,onSuccess[,onFail[,filter[,order[,optionsObject]]]])</syntax>
+    <arguments>
+        <argument>
+            <name>UXClientSideDataCacheItem</name>
+            <description>A comma delimited list of data items to get. Can also be '*[js:*all]*' to get all data items.</description>
+        </argument>
+        <argument>
+            <name>onSuccess</name>
+            <description>A javascript function that is called when the data is successfully retrieved.</description>
+        </argument>
+        <argument>
+            <name>onFail</name>
+            <description>Optional. A javascript function that is called if the data cannot be retrieved. EG, if an ajax callback must be made to a server to fetch the data but no network connection is available.</description>
+        </argument>
+        <argument>
+            <name>filter</name>
+            <description>Optional. A Javascript expression that returns true/false. The expression can reference data in the array using this syntax: *[js:data.fieldname]* (case-sensitive.) *[js:filter]* can also be a Javascript function that takes 'data' as an input parameter and return true/false.</description>
+        </argument>
+        <argument>
+            <name>order</name>
+            <description>Optional. Can be a Javscript object that defined the sort order, or a Javascript function. See example below.</description>
+        </argument>
+        <argument>
+            <name>optionsObject</name>
+            <description>Optional. A JSON object containing additional options. The object can contain these properties:</description>
+            <list>  
+                <item>
+                    <name>columns</name>
+                    <description>array of columns to return from the data cache item</description>
+                </item>
+                <item>
+                    <name>distinct</name>
+                    <description>true/false - indictates if distinct values should be returned</description>
+                </item>
+                <item>
+                    <name>distinctColumn</name>
+                    <description>The name of the column to check for distinct values. If omitted, first column in the data is assumed to be the distinct column.</description>
+                </item>
+            </list>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>The getFromDataCache method reads an item in the client-side data cache. Once the data has been read, the onSuccess function is called. If data hasn't been loaded in the client-side cache, an ajax callback is made to the server to retrieve the data. You can specify an optional filter and/or order to apply to the data before the onSuccess function is called. The onSuccess function is passed an array of objects representing the data in the data cache.</p>
+    </discussion>
+    <sections>
+        <section>
+            <example><![CDATA[
+//read data from a data-cache item called 'customer'
+var _onSuccess = function(data) { 
+	alert('Rows in data item: ' + data.length);
+};
+var _onFail = function() { 
+};
+
+//filter expression references the 'Country' field in the data item. If expression
+//returns true, the row is include in the output array
+var _filter = 'data.Country == "USA" || data.Country = "France"';
+
+//no sorting
+var _order = '';
+
+{dialog.object}.getFromDataCache('customers',_onSuccess,_onFail,_filter,_order);
+
+//examples of more complex filter and order definitions
+//a filter function
+var _filter = function(data) { 
+	if(data.City == 'Boston') return true;
+	else return false;
+}
+
+//sort by City in ascending order
+var _order = {'City' : 1};
+
+//sort by City, then by Lastname (descending)
+var _order = {'City' : 1, 'Lastname': -1};
+
+//an order function that sorts by Lastname, then by DOB ( a date field with a format of MM-dd-yyyy) in descending order
+var _order = function(a,b) {
+	if(a.Lastname > b.Lastname) return 1;
+		else if(a.Lastname < b.Lastname) return -1;
+	else {
+		if(new Date().fromFormat(a.DOB:date:MM-dd-yyyy,'') > new Date().fromFormat(b.DOB:date:MM-dd-yyyy,'')) return 1;
+		else return -1;
+	}
+}
+{dialog.object}.getFromDataCache('customers',_onSuccess,_onFail,_filter,_order);
+
+//only get distinct 'Country' field
+var obj = {columns: ['Country'], distinct: true, distinctColumn: 'Country'};
+
+{dialog.object}.getFromDataCache('customers',_onSuccess,_onFail,_filter,_order,obj);]]></example>
+        </section>
+    </sections>
+    <terms>ux component,client side data cache,offline access,disconnected applications,mobile apps</terms>
+</page> 
