@@ -1,0 +1,500 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Secure Database Connections" />
+<title>Alpha DAO - Secure Database Connections</title>
+</head>
+<body>
+
+<h1>AlphaDAO - Secure Database Connections</h1>
+
+<br/>
+<a href="#TLSSSL">TLS (Transport Layer Security) and SSL (Secure Sockets Layer)</a><br/>
+<a href="#CommonFeatures">Common TLS/SSL Features</a><br/>
+<a href="#ConnectionString">Connection String Parameters for TLS/SSL</a><br/>
+<a href="#IsSecurelyConnected">SQL::Connection::IsSecurelyConnected</a><br/>
+<a href="#DriverSpecific">Driver Specific Support for TLS/SSL</a><br/>
+<a href="#AmazonRDS">TLS/SSL Connections to Amazon RDS (Relational Database Service)</a><br/>
+
+
+<h2><a id="TLSSSL">TLS (Transport Layer Security) and SSL (Secure Sockets Layer)</a></h2>
+
+<p>Access to remote databases is generally done by connecting to the server using the socket services provided over TCP/IP.
+These socket connections are inherently insecure, meaning that someone with the right tools can actually see your user name, password and private data being sent from the client to the database server.
+The first protocol introduced to address this concern was known as SSL or Secure Sockets Layer.
+SSL has evolved and matured, but along the way, a newer protocol called TLS or Transport Layer Security has taken its place.
+Although we generally refer to secure connections as SSL connections, the minimum protocol level generally supported is TLS 1.0 (or better TLS 1.1).
+In this and related documentation We will attempt to refer to the secure connections consistently as TLS/SSL connections.
+</p>
+
+<p>Each database client that supports TLS/SSL does so in a slightly different way.  
+Microsoft SQL Server clients use the Microsoft Certificate Service and the Microsoft TLS/SSL stack, for example.
+Most other vendors connect using OpenSSL, but each has a unique approach to setting connection parameters, as we shall see.
+</p>
+
+<p><strong>Note:</strong> Alpha Anywhere integrates SSL support, making setting up and connecting securely to databases easier.
+If your ODBC or ADO.NET driver supports TLS/SSL, you can use the underlying facility to connect securely.
+Alpha Anywhere may not be aware that the connection is secure and you will need to manage the connection yourself.
+</p>
+
+
+<h2><a id="CommonFeatures">Common TLS/SSL Features</a></h2>
+
+<p>The most common features implemented for TLS/SSL are:<br/>
+<ul>
+	<li>	Secure/encrypted communication.<br/><br/>
+		TLS/SSL connections encrypt data as it is transmitted fromthe client to the server.<br/>
+		This is often referred to as data being 'encrypted in transit'.<br/><br/>
+		</li>
+	<li>	Verification of the server certificate.<br/><br/>
+		<ul>
+			<li>X509 certificates are issued by a certificate authority 
+				who vouches for a certificate by signing it 
+				with their private key. Using the public key of the certificate 
+				authority, a client can verify that they have 'signed' the server 
+				certificate.
+				</li>
+			<li>A certificate authority can delegate to another authority. 
+				As a result, a certificate from a 
+				server may actually have a 'chain' of authorizations that go back to 
+				a well-known certificate authority - one that our system trusts. 
+				When a server returns a certificate to the client, it will generally 
+				include the chain of authorities - one of which should match a 
+				certificate you trust.
+				</li>
+			<li>You may need to, install one or more certificates as a trusted certificates
+				either in the Microsoft Certificate Store or in a discrete file
+				to verify the chain of authorization.
+				</li>
+			</ul><br/>
+		</li>
+	<li>	Verification of the server host name.<br/><br/>
+		Although a certificate may in fact be genuine, it is possible to "spoof" the client by providing a valid certificate from 
+		a different host name than was requested.
+		This additional verification compares the host name in the certificate provided by the server with
+		the certificate requested by the client to be sure that the certificate was issued for the host requested.<br/><br/>
+		</li>
+	<li>	Verification of the client.<br/><br/>
+		The same process of verification can also be used to authenticate an SSL client. 
+		A certificate is installed on the client (along with a private key).
+		The certificate is signed and the signed certificate is sent to the server to confirm the
+		identity of the client.<br/>
+		Client certificates are less common, but are used in more secure installations.
+		</li>
+	</ul>
+</p>
+		
+<p>Alpha Anywhere connection strings may support only encryption, or both client and server certificates 
+See the driver by driver explanation below for specific implementations.
+</p>
+
+
+<h2><a id="ConnectionString">Connection String Parameters</a></h2>
+
+<p>Alpha Anywhere connection strings reserve the following connection parameters for managing TLS/SSL Connections.
+Each Alpha DAO native or extension driver that explicitly supports TLS/SSL will use a different subset of parameters.
+This is explained in the driver specific discussion below.
+</p>
+
+<ul>
+	<li><strong>A5SSL</strong> - can be Y or N. 
+			This parameter enables or disables SSL. If A5SSL is set to 'Y', and 
+			the connection cannot be established securely, an error is returned.
+			</li>
+	<li><strong>A5TLSCertificateAuthorityFile</strong> - The name of a file that contains one or more certificates 
+			in PEM format with which to verify the server certificate.
+			</li>
+	<li><strong>A5TLSTrustedCertificatePath</strong> - The path to a folder where separate certificates 
+			are stored in individual PEM files.
+			This folder will be searched when resolving certificates.
+			You will generally use either A5TLSCertificateAuthorityFile or A5TLSTrustedCertificatepath.
+			</li>
+	<li><strong>A5TLSClientKeyFile</strong> - The full path and file name of the private key file for the client certificate.
+			</li>
+	<li><strong>A5TLSClientCertificateFile</strong> - The full path and file name of the client certificate
+			stored in PEM format.
+			As explained above, the client key and client certificate are used to verify the identity of the client.
+			</li>
+	<li><strong>A5TLSCipherList</strong> - An optional list of ciphers to be offered to the server when negotiating an encryption cipher.
+			This list is generally optional.
+			</li>
+	<li><strong>A5TLSServerCertificateDistinguishedName</strong> - Defines the expected distinguished name expected for a server.<br/><br/>
+			For example:<br/><br/>
+			C=US,ST=Washington,L=Seattle,O=Amazon.com,OU=RDS,CN=myinstance.myaccounthash.us-east-1.rds.amazonaws.com
+			</li>
+	</ul>
+
+</p>
+
+
+<h2><a id="IsSecurelyConnected">SQL::Connection::IsSecurelyConnected</a></h2>
+
+<p>You can use the IsSecurelyConnected property of SQL::Connection to determine whether a connection is open and securely connected.
+IsSecurelyConnected will return true (.t.) if a connection for one of the drivers below confirms a secure connection. 
+Note that ODBC drivers or Oracle TNS connections may in fact connect securely, 
+but if Alpha Anywhere does not know this has happened, the value of IsSecurelyConnected may still return false (.f.).
+</p>
+
+<p><strong>Note:</strong> If you request a secure connection, SQL::Connection::Open() will fail if a secure connection can not be established.</p>
+
+<p>You can check an open connection from XBasic to confirm that it was opened securely by referencing the <strong>IsSecurelyConnected</strong> property 
+of SQL::Connection 
+<p>Here is an example of connecting and then checking to see if the connection is secure:
+<ol>
+	<li>dim cn as SQL::Connection </li>
+	<li>?cn.Open("{...}")</li>
+	<li>?<strong>cn.IsSecurelyConnected</strong></li>
+</ol>
+</p>
+
+
+
+<h2><a id="DriverSpecific">Driver Specific Support for TLS/SSL</a></h2>
+<a href="#MariaDB">MariaDB</a><br/>
+<a href="#MySQL">MySQL</a><br/>
+<a href="#Oracle">Oracle</a><br/>
+<a href="#PostgreSQL">PostgreSQL</a><br/>
+<a href="#Microsoft SQL Server">Microsoft SQL Server</a><br/>
+
+
+<h3><a id="MariaDB">MariaDB</a></h3>
+
+<p>Using the Alpha DAO MariaDB native driver, you can to connect securely with MySQL , MariaDB or Aurora (from Amazon) databases. 
+</p>
+
+<p>The Alpha DAO MariaDB native driver is built on MariaDB Connector/C version 2.2.3. 
+The connection string builder dialog includes an additional tab for SSL settings.
+</p>
+
+<p><strong>Note:</strong> Alpha Anywhere ships with libmariadb.dll version 2.2.3.
+This library has been modified slightly to support SNI (Server Name Indication) and to allow for longer certificate chains when verifying a server certificate. 
+Amazon RDS certificates have a slightly longer chain than is typical.
+</p>
+
+<p>The Alpha DAO MariaDB native driver supports the following connection string parameters:<br/>
+<ul>
+	<li><strong>A5SSL</strong></li>
+	<li><strong>A5TLSCertificateAuthorityFile</strong></li>
+	<li><strong>A5TLSTrustedCertificatePath</strong></li>
+	<li><strong>A5TLSClientKeyFile</strong></li>
+	<li><strong>A5TLSClientCertificateFile</strong></li>
+	<li><strong>A5TLSCipherList</strong></li>
+</ul>
+</p>
+
+
+
+<h3><a id="MySQL">MySQL</a></h3>
+
+<p>The alpha DAO MySQL native driver has been replaced by an updated driver built on MySQL Connector/C version 6.1.6 in order to support TLS/SSL and other newer features. 
+The connection string builder dialog includes an additional tab for SSL settings.
+</p>
+
+<p>The Alpha DAO MariaDB native driver supports the following connection string parameters:<br/>
+<ul>
+	<li><strong>A5SSL</strong></li>
+	<li><strong>A5TLSCertificateAuthorityFile</strong></li>
+	<li><strong>A5TLSTrustedCertificatePath</strong></li>
+	<li><strong>A5TLSClientKeyFile</strong></li>
+	<li><strong>A5TLSClientCertificateFile</strong></li>
+	<li><strong>A5TLSCipherList</strong></li>
+</ul>
+All of the options for connection strings discussed above are available for MySQL on the SSL/TLS tab of the connection string dialog.<br/>
+</p>
+
+<p><strong>Note:</strong> Alpha Anywhere ships with libmysql.dll version 6.1.6.</p>
+
+<p>libmysql.dll provides secure communication and will verify a server, but limits the length of the certificate chain, 
+so some environments (such as Amazon RDS) are not suitable for using it.  You may want to use the Alpha DAO MariaDB native driver for Amazon RDS MySQL databases.
+</p>
+
+  
+<p>Because MySQL Connector 6.1.6 supports IPV6 as well as IPV4, you may experience slow connect times 
+if one of the following is not set in your MySQL configuration file:<br/>
+<ul>
+	<li><strong>Bind-address</strong> =* - Add this keyword on its own line 
+		under the section [mysqld] and restart the server. For versions 
+		before 5.6.6 use :: rather than *. This enables servers to 
+		accept IPV6 connections.
+		</li>
+	<li><strong>skip-name-resolve</strong> - Add this keyword on its own line 
+		under the section [mysqld] and restart the server. 
+		This entry will stop the lookup of hosts by name. Note that you may be 
+		required to secure clients by IP address rather than host name. 
+		This is recommended. If you have already enabled clients to 
+		access your server by host name, your clients may no longer be 
+		able to connect.<br/><br/>
+
+		<strong>Instead of</strong><br/><br/>
+
+		&nbsp;&nbsp;&nbsp;&nbsp;CREATE USER 'root'@'localhost' IDENTIFIED BY 'root-password';<br/>
+		<br/>
+		<strong>use</strong><br/><br/>
+
+		&nbsp;&nbsp;&nbsp;&nbsp;CREATE USER 'root'@'127.0.0.1' IDENTIFIED BY 'root-password';<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;CREATE USER 'root'@'::1' IDENTIFIED BY 'root-password';<br/>
+		<br/>
+
+		<strong>Note:</strong> For Windows servers the configuration file is currently 
+			found in the folder &quot;C:\ProgramData\MySQL\MySQL Server 5.7&quot;, but 
+			your other versions may store it in a different location.<br/>
+			<br/>
+			For more information, see the MySQL documentation:</p>
+			<ul>
+				<li>'Connecting Using IPv6 Nonlocal Host Addresses' at
+				<a href="http://dev.mysql.com/doc/refman/5.7/en/ipv6-remote-connections.html">
+				http://dev.mysql.com/doc/refman/5.7/en/ipv6-remote-connections.html</a> 
+				</li>
+				<li>'Server Command Options' at
+				<a href="http://dev.mysql.com/doc/refman/5.7/en/server-options.html#option_mysqld_skip-name-resolve">
+				http://dev.mysql.com/doc/refman/5.7/en/server-options.html#option_mysqld_skip-name-resolve</a> 
+				</li>
+				<li>'DNS Lookup Optimization and the Host Cache' at
+				<a href="http://dev.mysql.com/doc/refman/5.7/en/host-cache.html">
+				http://dev.mysql.com/doc/refman/5.7/en/host-cache.html</a>
+				</li>
+			</ul>
+
+		</li>
+</ul>
+
+<p><strong>Note:</strong> The old Alpha DAO MySQL native driver is still available for compatibility reasons.
+It has been renamed <strong>MySQLV4</strong>.
+MySQLV4is built with MySQL statically linked in and is compatible with MySQL versions 3.0 and 4.0.
+</p>
+
+<p>If you are running a release of MySQL on your server prior to MySQL 5.0, you can fall back to the older driver by changing the connection string parameter 
+<strong>A5API</strong to <strongMySQLV4</strong>.
+</p>
+
+<p>The Alpha DAO MySQLV4 native driver was last updated around 2005 and still uses version 5.0.18 of MySQL Connector/C, so it has no support for SSL, 
+prepared statements and other mainstream features. MySQL version 5.0 was in beta at that time. 
+The current release of MySQL is 5.7 and was released in October of 2015. 
+</p>
+
+
+<h3><a id="Oracle">Oracle</a></h3>
+
+<p>Oracle TLS/SSL connection definitions without the requirement of a tnsnames.ora file.
+This can make deploying to an application server easier in cases where a secure connection is required and you do not want to maintain individual TNS names.</p>
+
+<h4><strong>Oracle Connection String Dialog</strong></h3>
+<p>In the Oracle connection string dialog, there is a tab labeled TLS/SSL that includes a checkbox for enabling TLS/SSL.</p>
+<p>There is also a text box for optionally entering the distinguished name of the server certificate.
+Providing this entry results in the clause (SECURITY=SSL_SERVER_CERT_DN=...) being added to the connection description.
+The distinguished name you provide is used to verify the server certificate.
+</p>
+ 
+<p>The connection string dialog sets the following connection string attributes:</p>
+<ul>
+<li><strong>A5SSL</strong>=Y</li>
+<li><strong>A5TLSServerCertificateDistinguishedName</strong>='&lt;the value you provide&gt;'</li>
+</ul>
+
+<h4>Connecting to Amazon RDS</h4>
+ 
+<p><strong>Note:</strong> If you are connecting to an Amazon RDS server, leave the Distinguished Name entry blank. 
+Alpha Anywhere will provide the correct distinguished name automatically.
+</p>
+
+<p>Be sure to import the Amazon RDS certificate on your application server (the client for Amazon RDS). 
+Alpha Anywhere installs a copy of  of the certificate authority file for Amazon RDS (rds-combined-ca-bundle.pem) in the path &lt;installation directory&gt;\SQLDatabases\Certificates\Amazon RDS.
+</p>
+<p>For more information on Amazon RDS SSL support for Oracle see <a href="http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.Oracle.Options.html#Appendix.Oracle.Options.SSL">Options for Oracle DB Instances</a>
+</p>
+
+<p>For help on importing a certificate on Microsoft Windows Servers see <a href="https://technet.microsoft.com/en-us/library/cc776889(v=ws.10).aspx">Import a Certificate</a></p>
+ 
+<h4><strong>sqlnet.ora</strong></h4>
+<p><strong>Important:</strong> Oracle requires the configuration file sqlnet.ora for the most common SSL settings. 
+The example entries below show the most common values.
+Consult Oracle documentation for details. </p>
+ 
+<p>
+<ul>
+	<li><strong>WALLET_LOCATION = (SOURCE = (METHOD = MCS))</strong><br/>
+                <strong>Note:</strong> The MCS (Microsoft Certificate Service) option causes Oracle to read certificates from the Windows certificate store<br/>
+                Consult Oracle documentation for other options, including using Oracle wallet files.
+		</li>
+ 	<li><strong>SSL_VERSION = 1.0</strong><br/>
+		The version numbers here begin with 3.0 for SSL version 3.0, but move to 1.0 and 1.1 for TLS 1.0 and TLS 1.1 respectively.
+		</li>
+	<li><strong>SSL_CLIENT_AUTHENTICATION = FALSE</strong><br/>
+		Setting client authentication to false (a required entry) means that client's will not need to authenticate with a client side certificate.
+		</li>
+	<li><strong>SSL_SERVER_DN_MATCH = Yes</strong><br/>
+		You can disable distinguished name matching, but this is discouraged, as it leaves room for spoofing attacks.
+		</li>
+	<li><strong>SSL_CIPHER_SUITES= (SSL_RSA_WITH_AES_256_CBC_SHA)</strong><br/>
+		This entry sets the allowable ciphers to be negotiated by the TLS/SSL layer.
+		</li>
+	</ul>
+</p>
+ 
+<p>Notes:</br>
+<ol>
+	<li>The TLS/SSL port will NOT be 1521 as Oracle requires multiple ports.  The TLS/SSL port is typically 2484, but this is configurable.</li>
+	<li>If you select TLS/SSL (A5SSL=Y) and a connection cannot be established securely, SQL::Connection::Open will fail.</li>
+	<li>If you do not select SSL or do not provide a distinguished name, no value will be added to the connection string.</li>
+	<li>A new property of SQL::Connection objects called <strong>IsSecurelyConnected</strong> will return true (.t.) if an SSL connection has been established.</li>
+</ol>
+</p>
+
+
+
+<h3><a id="PostgreSQL">PostgreSQL</a></h3>
+
+<p>The PostgreSQL driver for Alpha Anywhere currently uses the 32-bit ODBC driver for PostgreSQL.
+</p>
+
+<p>The installer for this driver is copied to the folder &lt;install directory&gt; SQLDatabases\ClientInstallers\PostgreSQL when Alpha Anywhere is installed.
+Look for the file Npgsql-3.0.5.msi in this folder</p>
+
+<h4>Connection Strings</h4>
+
+<p>The Alpha DAO PostgreSQL extension driver supports the following connection string parameters:<br/>
+<ul>
+	<li><strong>A5SSL</strong><br/>
+		<strong>Note:</strong> There are other keywords (such as sslcert, sslkey, and sslrootcert), but they are not fully supported on Windows  
+		according to the PostgreSQL documentation at <a href="https://www.postgresql.org/docs/9.5/static/libpq-ssl.html">https://www.postgresql.org/docs/9.5/static/libpq-ssl.html</a>
+		</li>
+</ul>
+</p>
+
+<p>The Alpha DAO PostgreSQL extension driver connection string dialog has a single checkbox for TLS/SSL support. 
+Checking this box sets the A5SSL connection string parameter to 'Y', enabling TLS/SSL. 
+</p>
+	
+
+<h4>Trusted and Client Certificates</h4
+<p>You will need to install trusted certificates and client certificates and keys (if required) in the following directories for them to be recognized by the underlying ODBC driver.<br/>
+<ul>
+	<li>The server certificate authority file must be stored in %APPDATA%\postgresql\root.crt.
+		</li>
+	<li>The certificate and key files must be in stored in %APPDATA%\postgresql\postgresql.crt 
+		and %APPDATA%\postgresql\postgresql.key respectively.
+		</li>
+</ul>
+
+<h4>Creating a DSN with ODBC Administrator</h4>
+<p>The PostgreSQL ODBC driver user interface accessible through the 32-bit ODBC Administator extends the interface by giving you options like 
+allow, prefer, require, verify-ca, verify-full, so you can configure using that a discrete ODBC DSN if you want finer grained control.
+</p>
+<p><strong>Note:</strong> Be sure to use the 32-bit version of the ODBC Administrator.  
+This executable is (somewhat counterintuitively) c:\windows\syswow64\odbcad32.exe.
+</p>
+
+
+<h3><a id="Microsoft SQL Server">Microsoft SQL Server</a></h3>
+
+<p>The Alpha Anywhere SQL Server extension driver supports TLS/SSL connections using the underlying facility of the SQL Server native client driver.</p>
+
+
+<p>The Alpha DAO SQL Sever extension driver supports the following connection string parameters:<br/>
+<ul>
+	<li><strong>A5SSL</strong>=Y<br/><br/>
+		The Alpha DAO SQL Server extension driver connection string dialog has a single checkbox for TLS/SSL support entitled <strong>Encrypt</strong>. 
+		Checking this box sets the A5SSL connection string parameter to 'Y', enabling TLS/SSL. 
+		</li>
+</ul>
+
+<p><strong>Note:</strong> Install any certificate authority files as trusted certificates in the Windows Certificate Store. 
+The Microsoft SQL Server native client will find them there.
+For help on importing a certificate on Microsoft Windows Servers see <a href="https://technet.microsoft.com/en-us/library/cc776889(v=ws.10).aspx">Import a Certificate</a>
+</p>
+
+
+<h3><a id="AmazonRDS">TLS/SSL Connections to Amazon RDS (Relational Database Service)</a></h3>
+
+<p>Using Amazon RDS (Relational Database Service) you can create a managed instance for any of the following databases:
+<ul>
+	<li>Amazon Aurora</li>
+	<li>MariaDB</li>
+	<li>MySQL</li>
+	<li>Oracle</li>
+	<li>PostgreSQL</li>
+	<li>Microsoft SQL Server</li>
+</ul>
+<br/> 
+In order to secure communication to these databases, Amazon generates a certificate for the database and instance that is 
+presented by the server when a secure link is requested.
+</p>
+
+<p>Alpha Anywhere installs a copy of  of the certificate authority files for Amazon RDS in with the path &lt;installation directory&gt;\SQLDatabases\Certificates\Amazon RDS.
+</p>
+
+<p>We recommend the following when attempting to communicate securely with an Amazon RDS instance:</p>
+<ul>
+	<li><strong>Amazon Aurora</strong> - Use the MariaDB extension driver in Alpha Anywhere.<br/><br/>
+
+		Check the Use TLS/SSL checkbox on the TLS/SSL tab of the connection string dialog.<br/><br/>
+
+		<strong>Note:</strong> For Amazon RDS, you do not need to set the certificate authority file name and path.
+		Alpha Anywhere will find the PEM file automatically under the installation directory.
+		<br/><br/>
+		</li>
+	<li><strong>MariaDB</strong> - Use the MariaDB extension driver in Alpha Anywhere.<br/><br/>
+
+		Check the Use TLS/SSL checkbox on the TLS/SSL tab of the connection string dialog.<br/><br/>
+
+		<strong>Note:</strong> For Amazon RDS, you do not need to set the certificate authority file name and path.
+		Alpha Anywhere will find the PEM file automatically under the installation directory.
+		<br/><br/>
+		</li>
+	<li><strong>MySQL</strong> - Use the MariaDB extension driver in Alpha Anywhere.<br/><br/>
+
+		Check the Use TLS/SSL checkbox on the TLS/SSL tab of the connection string dialog.<br/><br/>
+
+		<strong>Note:</strong> For Amazon RDS, you do not need to set the certificate authority file name and path.
+		Alpha Anywhere will find the PEM file automatically under the installation directory.<br/><br/>
+
+		<strong>Note</strong>: There is an issue with the MySQL Connector/C 6.1.6 library that causes server verification to fail on Amazon RDS MySQL instances.
+		For this reason, we recommend using the MariaDB client driver to connect to Amazon RDS instances.
+		<br/><br/>
+		</li>
+	<li><strong>Oracle</strong> - Use the Oracle native driver in Alpha Anywhere.<br/><br/>
+
+		You have two options for creating an SSL connection:<br/><br/>
+		<ul>
+			<li>Create a TNS connection definition following the Oracle instructions in the Oracle and Amazon documentation 
+				and reference that TNS connection from the Alpha DAO connection string.  
+				Using this option gives you the flexibility to use Oracle Wallets.
+				<br/><br/>
+				</li>
+			<li>Create a non-TNS connection string using Alpha DAO Oracle native driver.<br/><br/>
+				To do this, you must:<br/>
+				<ul>
+					<li>Create or edit your sqlnet.ora file with the setting described above (<a href="#Oracle">Oracle Specific Settings</a>).
+						<br/>
+						</li>
+					<li>Install the Amazon RDS bundle file in the Windows Certificate Store.
+						</li>
+					<li>Check the TLS/SSL check box on the Alpha DAO Oracle connection string dialog.<br/><br/>
+						<strong>Note:</strong>The Alpha DAO Oracle native driver will automatically add the SECURITY entry 
+						to the oracle connection descriptor when it recognizes an Amazon RDS server host name.
+						</li>  
+				</ul>
+			</ul>
+		<br/>
+		</li>
+	<li><strong>PostgreSQL</strong> - Use the PostgreSQL extension driver in Alpha Anywhere.<br/><br/>
+		Add the contents of the PEM file included in the installation directory entitled &quot;rds-combined-ca-bundle.pem&quot;
+		found in the folder where you installed Alpha anywhere (&lt;install directory&gt;\SQLDatabases\Certificates\AmazonRDS) 
+		to %APPDATA%\postgresql\root.crt and check the checkbox on the connection string dialog entitled &quot;UseSSL&quot;.
+		<br/><br/>
+		</li>
+	<li><strong>Microsoft SQL Server</strong> - Use the SQL Server extension driver in Alpha Anywhere.<br/><br/>
+		Install the file entitled &quot;rds-combined-ca-bundle.p7b&quot; 
+		found under the folder where you installed Alpha anywhere (&lt;install directory&gt;\SQLDatabases\Certificates\AmazonRDS) 
+		into the Windows certificate store as a trusted certificate. 
+			SQL Server will find the certificate chain there.
+		<br/><br/>
+		</li>
+</ul>
+
+
+</body>
+</html>
+
