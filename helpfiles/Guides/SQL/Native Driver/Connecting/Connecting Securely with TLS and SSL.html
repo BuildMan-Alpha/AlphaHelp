@@ -103,6 +103,9 @@ This is explained in the driver specific discussion below.
 			This parameter enables or disables SSL. If A5SSL is set to 'Y', and 
 			the connection cannot be established securely, an error is returned.
 			</li>
+	<li><strong>A5TLSMode</strong> - can be Disabled, Allowed, Preferred, Required, Verify-CA, or Verify-Full 
+			This parameter sets the mode of TLS support on drivers that support it.
+			</li>
 	<li><strong>A5TLSCertificateAuthorityFile</strong> - The name of a file that contains one or more certificates 
 			in PEM format with which to verify the server certificate.
 			</li>
@@ -119,6 +122,9 @@ This is explained in the driver specific discussion below.
 			</li>
 	<li><strong>A5TLSCipherList</strong> - An optional list of ciphers to be offered to the server when negotiating an encryption cipher.
 			This list is generally optional.
+			</li>
+	<li><strong>A5TLSCertificateRevocationFile</strong> - The name of a file that contains a certificate revocation list in PEM format.
+			These are certificates that are no longer valid.
 			</li>
 	<li><strong>A5TLSServerCertificateDistinguishedName</strong> - Defines the expected distinguished name expected for a server.<br/><br/>
 			For example:<br/><br/>
@@ -180,6 +186,7 @@ Amazon RDS certificates have a slightly longer chain than is typical.
 	<li><strong>A5TLSTrustedCertificatePath</strong></li>
 	<li><strong>A5TLSClientKeyFile</strong></li>
 	<li><strong>A5TLSClientCertificateFile</strong></li>
+	<li><strong>A5TLSCertificateRevocationFile</strong></li>
 	<li><strong>A5TLSCipherList</strong></li>
 </ul>
 </p>
@@ -199,6 +206,7 @@ The connection string builder dialog includes an additional tab for SSL settings
 	<li><strong>A5TLSTrustedCertificatePath</strong></li>
 	<li><strong>A5TLSClientKeyFile</strong></li>
 	<li><strong>A5TLSClientCertificateFile</strong></li>
+	<li><strong>A5TLSCertificateRevocationFile</strong></li>
 	<li><strong>A5TLSCipherList</strong></li>
 </ul>
 All of the options for connection strings discussed above are available for MySQL on the SSL/TLS tab of the connection string dialog.<br/>
@@ -301,44 +309,54 @@ Consult Oracle documentation for details. </p>
 <h3><a id="PostgreSQL">PostgreSQL</a></h3>
 
 <p>The PostgreSQL driver for Alpha Anywhere currently uses the 32-bit ODBC driver for PostgreSQL.
+You can install the standard distribution of the 32-bit PostgreSQL ODBC driver.
+The Alpha Anywhere installation includes a modified version of the PostgreSQL 9.5.3 ODBC driver 
+to enable file overriding SSL parameters without the need for setting environment variables.
 </p>
 
-<p>The installer for this driver is copied to the folder &lt;install directory&gt; SQLDatabases\ClientInstallers\PostgreSQL when Alpha Anywhere is installed.
-Look for the file Npgsql-3.0.5.msi in this folder</p>
+<p>The installer for this modified driver is copied to the folder &lt;install directory&gt; SQLDatabases\ClientInstallers\PostgreSQL when Alpha Anywhere is installed.
+Look for the file psqlodbc-setup.exe in this folder</p>
 
 <h4>Connection Strings</h4>
 
 <p>The Alpha DAO PostgreSQL extension driver supports the following connection string parameters:<br/>
 <ul>
-	<li><strong>A5SSL</strong><br/>
-		<strong>Note:</strong> There are other keywords (such as sslcert, sslkey, and sslrootcert), but they are not fully supported on Windows  
-		according to the PostgreSQL documentation at <a href="https://www.postgresql.org/docs/9.5/static/libpq-ssl.html">https://www.postgresql.org/docs/9.5/static/libpq-ssl.html</a>
-		</li>
+	<li><strong>A5SSL</strong></li>
+	<li><strong>A5TLSMode</strong></li>
+	<li><strong>A5TLSCertificateAuthorityFile</strong></li>
+	<li><strong>A5TLSClientKeyFile</strong></li>
+	<li><strong>A5TLSClientCertificateFile</strong></li>
+	<li><strong>A5TLSCertificateRevocationFile</strong></li>
 </ul>
 </p>
 
-<p>The Alpha DAO PostgreSQL extension driver connection string dialog has a single checkbox for TLS/SSL support. 
-Checking this box sets the A5SSL connection string parameter to 'Y', enabling TLS/SSL. 
+<h4>The PostgreSQL Connection String Dialog</h4>
+<p>The Alpha DAO PostgreSQL extension driver connection string dialog has separate tab entitled Use TLS/SSL. 
+The checkbox at the top of this page enables TLS/SSL (setting the parameter A5SSL to 'Y'). 
+You can also select the level of security you want to your TLS/SSL connection and provide the names of certificate files to authenticate the client and the server.
 </p>
-	
 
-<h4>Trusted and Client Certificates</h4
-<p>You will need to install trusted certificates and client certificates and keys (if required) in the following directories for them to be recognized by the underlying ODBC driver.<br/>
+<p>
+For most SSL connections, simply checking the box labeled <strong>Use TLS/SSL</strong> is sufficient to insure an encrypted exchange of data.  
+It does not, however, protect you from certain types of attacks where a server intercepts your initial connection requests.
+For the most complete protection you will want to select a TLS mode of Verify-Full, as explained below.
 <ul>
-	<li>The server certificate authority file must be stored in %APPDATA%\postgresql\root.crt.
-		</li>
-	<li>The certificate and key files must be in stored in %APPDATA%\postgresql\postgresql.crt 
-		and %APPDATA%\postgresql\postgresql.key respectively.
-		</li>
+<li>If you select a mode of "Disable" a TLS/SSL connections will not be allowed.</li>
+<li>If you select a mode of "Allow" a TLS/SSL connection will be allowed if the server requires it.</li>
+<li>If you select a mode of "Prefer" a TLS/SSL connection will not be made if  the server supports it.</li>
+<li>The default TLS mode is "Require", which guarantees an encrypted connection.</li>
+<li>If you select a mode of "Verify-CA", the server certificate will be verified against a certificate authority that you provide.  
+	You do so by including a file containing certificates (including intermediate files) required to validate the server certificate.
+	Set the <strong>Certificate Authority File</strong> text box to the full path of the file.
+	</li>
+<li>If you select a mode of "Verify-Full", the certificate authority verification above will be performed.
+	The host name of the server will also be matched against the name of the server you provided for your connection.
+	</li>
 </ul>
+<strong>Note: </strong>If you are connecting to an Amazon RDS instance, just check the <strong>Use TLS/SSL</strong> box.
+Alpha Anywhere will provide the certificate authority files and force Verify-Full for the most secure connection. 
+</p>	
 
-<h4>Creating a DSN with ODBC Administrator</h4>
-<p>The PostgreSQL ODBC driver user interface accessible through the 32-bit ODBC Administator extends the interface by giving you options like 
-allow, prefer, require, verify-ca, verify-full, so you can configure using that a discrete ODBC DSN if you want finer grained control.
-</p>
-<p><strong>Note:</strong> Be sure to use the 32-bit version of the ODBC Administrator.  
-This executable is (somewhat counterintuitively) c:\windows\syswow64\odbcad32.exe.
-</p>
 
 
 <h3><a id="Microsoft SQL Server">Microsoft SQL Server</a></h3>
