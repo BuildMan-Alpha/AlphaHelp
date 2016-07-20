@@ -1,0 +1,190 @@
+<page>
+    <topic>Has events</topic>
+    <description>Specify if the chart has events. For example, you can call a Javascript function
+        when clicking on a slice of a pie chart, or hovering over a data point on a series.
+    </description>
+ <sections>
+     <section>
+     <steps>
+         <step>
+             <description>Open the UX Controls page in the UX Builder. Under Data Controls click on the [Chart] control to add it to the component. Name the chart control c1.</description></step>
+         <figure><link>images/has1.png</link></figure>
+      
+         
+         <step>
+           <description>On the UX Code page open the Xbasic functions page and add the following.</description>
+               <example><![CDATA[function piedata as c (e as p)
+
+dim explodedSliceNumber as n = -1
+if eval_valid("e.__javascriptFunctionResults") then
+   dim data as p = json_parse(e.__javascriptFunctionResults)
+   explodedSliceNumber = convert_type(data.javascriptFunctionResult, "N")
+end if
+
+if explodedSliceNumber >= 0 then
+explodedSliceNumber = explodedSliceNumber + 1
+end if
+
+dim arr[0] as p
+arr[].sales = 10
+arr[..].region = "East"
+arr[..].exploded = 0
+           
+arr[].sales = 20
+arr[..].region = "West"
+arr[..].exploded = 0
+
+arr[].sales = 15
+arr[..].region = "South"
+arr[..].exploded = 0
+
+arr[].sales = 8
+arr[..].region = "North"
+arr[..].exploded = 0
+
+if explodedSliceNumber > 0 then
+arr[explodedSliceNumber].exploded = 1
+end if
+
+dim txt as c
+txt = arr.dump_properties("sales|region|exploded")
+
+piedata = txt
+
+end function]]></example>
+
+   <figure><link>images/has2.png</link></figure>
+   <note>e._javascriptFunctionResults is a value of some javascript 
+             that is computed on the client-side before the callback takes place.</note>
+         </step>
+         
+       
+         <step>
+             <description>Go to the UX Properties page and in the Data Series section 
+    click on the Data series property.</description>
+    <figure><link>images/has3.png</link></figure>
+         </step>
+         
+         
+         <step>
+             <description>The Data Series Definition dialog will open. Click the Add Data Series button.</description>
+                 <figure><link>images/has4.png</link></figure>
+         </step>
+         <step>
+             <description>The Data Series Name dialog will open. Enter 'Series1' and click OK and OK again.</description>
+             <figure><link>images/has5.png</link></figure>
+         </step>
+          <step>
+             <description>Click the 'Edit Series Definition' button.</description>
+              <figure><link>images/has6.png</link></figure>
+         </step>
+         <step>
+             <description>In the Data Series Builder select "Custom" as the Data Source Type.</description>
+        <figure><link>images/has7.png</link></figure>
+         </step>
+         <step>
+             <description>At the bottom of the Data Series Builder find the Custom properties section and set
+                 the Xbasic function name property to be "pieData"
+             </description>
+               <figure><link>images/has8.png</link></figure>
+         </step>
+        
+         <step>
+             <description>Set the Subseries names property to "sales,region,exploded"</description>
+            <figure><link>images/has9.png</link></figure>
+         </step>
+          <step>
+             <description>Set the Javascript function property to be "pieDataJs".</description>
+               <figure><link>images/has10.png</link></figure>
+         </step>
+         <step>
+             <description>Go to the UX Code page and click on Javascript functions. 
+                 Define the following function.</description>
+             <example><![CDATA[function pieDataJs() {
+if(typeof {dialog.object}._exploded != 'undefined') {
+return {dialog.object}._exploded;
+} else return -1;
+}]]></example>
+ <figure><link>images/has11.png</link></figure>
+             <note>This function is called when the data series is refreshed. The value returned by this function will be submitted to the server
+                 as part of the Ajax callback.
+             </note>
+         </step>
+         <step>
+             <description>Go to the UX Controls page and in the control properties list,
+                  under the Chart properties section, check the Has events property.
+             </description>
+             <figure><link>images/has12.png</link></figure>
+         </step>
+         <step>
+             <description>Go to the Chart Events section of the Properties list and click the [...]
+                 button next to the onDblClick property.
+             </description>
+              <figure><link>images/has13.png</link></figure>
+         </step>
+         <step>
+             <description>Add this Javascript to the onDblCLick property:</description>
+             <example><![CDATA[{dialog.object}._exploded = chart.pointNumber;
+{dialog.Object}.refreshDataSeries('Series1');
+var obj = {dialog.object}.getControl('c1');
+obj.refresh();]]></example>
+ <figure><link>images/has14.png</link></figure>
+             <note>c1 is the name of the chart to refresh</note>
+         </step>
+         <step>
+             <description>Click OK to close the builder.</description>
+         </step>
+            <step>
+             <description>On the UX Controls page, scroll back up the properties list until you reach
+                 the Chart Properties. Click on the [...] button next to the Chart definition property. </description>
+             <figure><link>images/has15.png</link></figure>
+         </step>
+            <step>
+             <description>In the Chart Data section of the Graph Data dialog, click the [...] button. Click Add, then OK with the Series 1 Data Series highlighted, then set the Select Sub-series to sales and click OK and OK. You should end up with
+                 Series1.sales in the control
+             </description>
+             <cases>
+                 <case>
+                    <figure><title>setting the Data property</title><link>images/has16.png</link></figure>
+                 </case>
+                 <case>
+                     <figure><title>The result</title><link>images/has17.png</link></figure>
+                 </case>
+                 
+             </cases>
+         </step>
+          <step>
+             <description>Click the [...] button and set the Data Label property to chart.category</description>
+               <figure><link>images/has18.png</link></figure>
+         </step>
+          <step>
+             <description>Click the [...] button and set the Explode slice property to Series1.exploded = "1"</description>
+               <figure><link>images/has19.png</link></figure>
+         </step>
+         <step>
+             <description>In the Chart Category section set the Category to Series1.region and then click OK to close the graph data dialog.</description>
+          <figure><link>images/has20.png</link></figure>
+         </step>
+         <step>
+             <description>Now run the component in Live Preview and then double click on different parts of the pie chart. They should explode when double clicked.</description>
+             
+               <cases>
+                   <case>
+                         <figure><title>Double click to explode red</title><link>images/has21.png</link></figure>
+                   </case>
+                   
+                      <case>
+                         <figure><title>Double click on light blue to explode it</title><link>images/has23.png</link></figure>
+                   </case>
+               </cases>
+         </step>
+      
+     </steps>
+  
+         
+     </section>
+     
+     
+ </sections>  
+
+</page>
