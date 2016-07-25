@@ -1,4 +1,4 @@
-#Running Helpserver On a Development Machine
+# Running Helpserver On a Development Machine
 
 After pulling down the AlphaHelp repository to a development machine, you can run the documentation 
 server locally.  You will need to have node installed on your system, as well as getting the node_modules.
@@ -27,5 +27,14 @@ elasticsearch service on your system.
 
 ```
 node helplocal.js
+```
+
+## Maintaining the links.json file
+
+The helpserver has a links.json file that it uses to resolve 'robust' links.  If files are moved, these robust links
+can be fixed up by running this code:
+
+```
+node repopulateLinks.js
 ```
 
