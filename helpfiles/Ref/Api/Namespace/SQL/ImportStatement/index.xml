@@ -1,0 +1,412 @@
+<page>
+	<topic>SQL::ImportStatement Object</topic>
+		<description>The SQL::ImportStatement object parses and executes an Alpha Anywhere Portable SQL import statements of the general form. </description>
+	<syntax>IMPORT  WITH  APPEND | REPLACE ] INTO ' Target_Table_Name ' | : Table_Argument [ DBFDEFINITION ' Database_Definition ' | : Database_Argument ] ( FROM Source_Table_Name ) | Select_Statement</syntax>
+	
+	<arguments>
+		<argument>
+			<name>Target_Table_Name
+</name>
+			<description>The full path and table name of an Alpha Anywhere .DBF table that will receive the data.
+</description>
+		</argument>
+		<argument>
+			<name>Table_Argument
+</name>
+			<description>An argument that provides a full path and table name of an Alpha Anywhere .DBF table.
+</description>
+		</argument>
+		<argument>
+			<name>Database_Definition
+</name>
+			<description>A series of field names and specifications in the format: FieldName, Type, Length, DecimalPlaces. DBFDEFINITION can override column names and precision, but must map positionally to an appropriate type.
+</description>
+		</argument>
+		<argument>
+			<name>Database_Argument
+</name>
+			<description>An argument that provides a series of field names and specifications in the format: FieldName, Type, Length, DecimalPlaces.</description>
+		<cases>
+			<case>
+				<title>FieldName
+</title>
+				<description>
+Type C. 
+ 
+The name of the target field.
+ </description>
+			</case>
+			<case>
+				<title>Type
+</title>
+				<description>
+Type C. 
+ 
+The type of the field. Refer to Create a New Table for valid field types.
+ </description>
+			</case>
+			<case>
+				<title>Length
+</title>
+				<description>
+Type N. 
+ 
+The total number of character positions for the field.
+ </description>
+			</case>
+			<case>
+				<title>DecimalPlaces
+</title>
+				<description>
+Type N.
+ 
+For numbers only. The number of character positions after the decimal point.
+ </description>
+			</case>
+			
+			
+			
+		</cases>
+		
+		
+		</argument>
+		<argument>
+			<name>Source_Table_Name
+</name>
+			<description>The specification for an external (non-Alpha Anywhere) table that will provide the data.
+</description>
+		</argument>
+		<argument>
+			<name>Select_Statement
+</name>
+			<description>A SQL SELECT statement that retrieves data from an external (non-Alpha Anywhere) table. The syntax parsed for the SELECT statement (as with other statements) is portable SQL. The connection passed into the execute function determines the syntax executed. </description>
+		</argument>
+		
+		
+	</arguments>
+
+	
+	<sections>
+		<section>
+			<description>The SQL::ImportStatement object appends or replaces records in an Alpha Anywhere .DBF table. The object may optionally use a reference table to define the target table's structure or it may define the target table's field structure in-line.</description>
+		</section>
+		<section>
+			<title>Syntax Examples</title>
+			<description>In these three cases the target table is created to match the requirements of the imported data.</description>
+			<example><![CDATA[import with replace into 'c:\test.dbf' select * from customers where city = :city"
+import with replace into 'c:\test.dbf' FROM customers"
+import with replace into :targettable DBFDEFINITION :dbfDefinition FROM customers
+ ]]></example>
+		</section>
+			<section>
+			
+			<description>In these two cases the target table is created to the specifications included in the statements.</description>
+			<example><![CDATA[import with replace into :targettable DBFDEFINITION ' CUSTOMER_ID,C,15,0 COMPANYNAME,C,40,0 CONTACTNAME,C,30,0 ' FROM customers
+import with replace into 'c:\test.dbf' DBFDEFINITION ' CUSTOMER_ID,C,15,0 COMPANYNAME,C,40,0 CONTACTNAME,C,30,0 ' FROM customers
+ ]]></example>
+		</section>
+		
+	</sections>
+	<sections>
+		<section>
+			<title>Examples</title>
+			<description>Example usage</description>
+			<example><![CDATA[dim c as SQL::connection
+dim i as SQL::importstatement 
+if c.open("{a5api=access,filename=c:\northwind.mdb,username=admin}")
+    if i.parse(importsyntax)
+        i.Arguments.set("targettable", TargetTableName)
+        i.Arguments.set("dbfdefinition", DBFDefinition)
+        i.Arguments.set("city", "London")
+        EventScript = GetEventScript(TargetTableName)
+        if i.executewithevents(c, EventScript)
+            ? success handling code
+        else
+            ? error handling code
+        end if
+    else
+        ? error handling code
+    end if
+    ? error handling code
+end if ]]></example>
+		</section>
+			<section>
+			
+			<description>Using the ::PARSE() method.</description>
+			<example><![CDATA[dim import as SQL::ImportStatement
+import.Parse("import with replace into 'c:\test.dbf' select * from customers where city = :city") ]]></example>
+		</section>
+		<section>
+			
+			<description>Using the ::EXECUTE() method.</description>
+			<example><![CDATA[dim import as SQL::ImportStatement
+dim stat as C
+ 
+stat = "import with replace into 'c:\test.dbf' select * from customers where city = :city""
+import.Execute( stat )
+import.ExecuteWithEvents(c, EventScript) ]]></example>
+		</section>
+		<section>
+			
+			<description>Using the ::ExecuteWithEvents() method.</description>
+			<example><![CDATA[dim import as SQL::ImportStatement
+dim stat as C
+dim EventScript as C
+stat = "import with replace into 'c:\test.dbf' select * from customers where city = :city""
+import.ExecuteWithEvents(stat, EventScript) ]]></example>
+		</section>
+		
+	</sections>
+	<sections>
+		<section>
+			<description>The SQL::ImportStatement object supports UpdateBegin(), UpdateEnd(), and UpdateProgress().</description>
+		</section>
+	</sections>
+<properties>
+	<property>
+		<name>Arguments
+</name>
+		<type>SQL::Arguments
+</type>
+		<description>Read Only. Arguments for the current query.
+</description>
+	</property>
+	<property>
+		<name>CallResult
+</name>
+		<type>SQL::CallResult
+</type>
+		<description>
+Read Only. 
+ 
+Call results.
+ </description>
+	</property>
+	<property>
+		<name>ColumnReferences
+</name>
+		<type>
+ReferenceList of
+
+SQL::Query::ColumnReference
+ 
+ </type>
+		<description>
+Read Only. 
+ 
+An array of all column references in the query (including nested occurrences).
+ </description>
+	</property>
+	<property>
+		<name>Connection
+</name>
+		<type>SQL::Connection
+</type>
+		<description>
+Read Write. 
+ 
+Current open connection
+ </description>
+	</property>
+	<property>
+		<name>DBFDefinition
+</name>
+		<type>C
+</type>
+		<description>
+Read Write
+ 
+An optional definition for the local table (can override size and name, but must be type compatible with the corresponding column data type being imported)
+ </description>
+	</property>
+	<property>
+		<name>ErrorColumn
+</name>
+		<type>N
+</type>
+		<description>
+Read Only.
+ 
+The column number of the last error reported by the parser.
+ </description>
+	</property>
+	<property>
+		<name>ErrorText
+</name>
+		<type>C
+</type>
+		<description>
+Read Only.
+ 
+The text of the last parser error reported.
+ </description>
+	</property>
+	<property>
+		<name>FunctionReferences
+</name>
+		<type>
+ReferenceList of
+
+SQL::Query::ValueExpression
+ 
+ </type>
+		<description>
+Read Only.
+ 
+An array of all function calls.
+Behaves the same way as the
+SelectTableReference object.
+ </description>
+	</property>
+	<property>
+		<name>ObjectDefinitions
+</name>
+		<type>C
+</type>
+		<description>
+Read Only.
+ 
+For Debugging
+
+Returns a string description of the mapping between the ANTLR grammar and the Xbasic objects.
+ </description>
+	</property>
+	<property>
+		<name>ParseTree
+</name>
+		<type>C</type>
+		<description>
+Read Only.
+ 
+For Debugging
+
+A string description of the underlying parse tree.
+ </description>
+	</property>
+	<property>
+		<name>SQLStatement
+</name>
+		<type>C</type>
+		<description>
+ 
+Read Write. 
+ 
+A variable that can be assigned a syntax string without parsing it.
+
+If no value is passed to the Parse() method, this value is used.
+ </description>
+	</property>
+	<property>
+		<name>ReplaceOption
+</name>
+		<type>
+SQL::Query::ReplaceOption
+ 
+ </type>
+		<description>
+Read Write
+ 
+Append or Replace
+ </description>
+	</property>
+	<property>
+		<name>Table
+</name>
+		<type>C</type>
+		<description>
+Read Write. 
+ 
+The table to be imported into.
+ </description>
+	</property>
+	<property>
+		<name>TokenTypeName
+</name>
+		<type>C</type>
+		<description>
+Mode E.
+ 
+For SQL::Query, this property returns "Query".
+ </description>
+	</property>
+	<property>
+		<name>Source
+</name>
+		<type>SQL::SelectStatement
+
+Or
+
+SQL::Query::TableReference
+</type>
+		<description>
+Read Write
+ 
+The table reference or the select statement that defines the source of the data.
+ </description>
+	</property>
+	<property>
+		<name>XML
+</name>
+		<type>C</type>
+		<description>
+Read Write
+ 
+Creates XML from the parse tree or recreates the tree from the XML.
+ </description>
+	</property>
+</properties>
+
+<methods>
+	<method>
+		<name>Execute</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::Execute Function">Execute</ref>
+		<description>Accepts an optional SQL::Connection object or connection string and executes the current SELECT statement on that or its current connection.</description>
+	</method>
+	<method>
+		<name>ExecuteWithEvents</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::ExecuteWithEvents Function">ExecuteWithEvents</ref>
+		<description>-</description>
+	</method>
+	<method>
+		<name>Format</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::Format Function">Format</ref>
+		<description>Formats the original source (by default, lines are broken at significant keywords).</description>
+	</method>
+	<method>
+		<name>OpenConnection</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::OpenConnection Function">OpenConnection</ref>
+		<description>Generates a native SQL statement using the selected syntax associated with the current or passed connection. </description>
+	</method>
+	<method>
+		<name>Parse</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::Parse Function">Parse</ref>
+		<description>Accepts an optional text string and parses it. If the parse is successful, the elements of the SQL statement will be available immediately as properties of the object.</description>
+	</method>
+	<method>
+		<name>ReleaseConnection</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::ReleaseConnection Function">ReleaseConnection</ref>
+		<description>Clears the connection property. </description>
+	</method>
+	<method>
+		<name>Reset</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::Reset Function">Reset</ref>
+		<description>Reinitializes the query as if it had just been declared.
+</description>
+	</method>
+	<method>
+		<name>Validate</name>
+		<ref href="/documentation/index?search=SQL::ImportStatement::Validate Function">Validate</ref>
+		<description>Accepts an optional SQL::Connection object or connection string and validates the current statement.
+ </description>
+	</method>
+	
+	
+	
+</methods>
+
+<see>
+	<ref>SQL Objects</ref>
+</see>
+
+
+</page>
