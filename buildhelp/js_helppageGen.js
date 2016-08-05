@@ -26,7 +26,7 @@ var dirCreateRecurse = function (folderName) {
 var indentLevelCalc = function(txt) {
     var i;
     for( i = 0 ; i < txt.length ; ++i ) {
-        if( txt[i] != '\t' ) {
+        if( txt[i] !== '\t' ) {
             if( txt[i] <= ' ' )
                 return 0;
             return i;
@@ -85,6 +85,7 @@ var generateXMLHelp = function (content) {
     var contextType = "";
     var lastIndentLevel = 0;
     var nestingProps = [];
+    var titleContext = null;
 
     for (i = 0; i < lines.length; ++i) {
         var indentLevel = indentLevelCalc(lines[i]);
@@ -98,7 +99,7 @@ var generateXMLHelp = function (content) {
             }
         } else if (!endTag) {
             var saveString = "";
-            if( line[0] == "'" ) {
+            if( line[0] === "'" ) {
                 line = line.split("'");
                 if( line.length > 2 ) {
                     saveString = "'"+line[1]+"'";
@@ -130,15 +131,23 @@ var generateXMLHelp = function (content) {
                 }
             }
             if (type) {
-                if (type == "context") {
+                if (type === "context") {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
-                } else if (type == "namespace" || type == "class") {
-                    if( type == "class" )
+                } else if (type === "namespace" || type === "class" || type === "object" ) {
+                    if( type === "class" )
                         contextType = " Class";
+                    else if( type === "object" ) {
+                        contextType = " Object";
+                    }
                     else    
                         contextType = " Namespace";
                     context = line.substring(splitPos + 1).trim();
+                    if( context.indexOf('.') < 0 && type === "object" && topContext ) {
+                        // Object does not have a fully qualified name
+                        titleContext = context;
+                        context = topContext + '.' + context;
+                    }
                     if (!build.context[context]) {
                         var allParts = context.split('.');
                         if (allParts.length > 1) {
@@ -147,73 +156,75 @@ var generateXMLHelp = function (content) {
                                 allParts.splice(0, 1);
                                 build.context[context] = { path: parentContext.path + '/' + allParts.join('/'), classname: context };
                                 console.log("Added context " + context);
+                            } else {
+                                console.log("Could not find parent "+allParts[0]);
                             }
                         }
                     }
-                } else if (type == "method") {
+                } else if (type === "method") {
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "function" || type == "funct" || type == "func" || type == "fun") {
+                } else if (type === "function" || type === "funct" || type === "func" || type === "fun") {
                     isFunction = true;
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "constructor" || type == "cons") {
+                } else if (type === "constructor" || type === "cons") {
                     isConstructor = true;
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "description" || type == "desc") {
+                } else if (type === "description" || type === "desc") {
                     description = line.substring(splitPos + 1);
-                } else if (type == "discussion" || type == "disc") {
+                } else if (type === "discussion" || type === "disc") {
                     discussion = line.substring(splitPos + 1);
-                } else if (type == "note") {
+                } else if (type === "note") {
                     note = line.substring(splitPos + 1);
-                } else if (type == "returns") {
+                } else if (type === "returns") {
                     returns = line.substring(splitPos + 1);
-                } else if (type == "arguments" || type == "args") {
+                } else if (type === "arguments" || type === "args") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length == 0 )
+                        if( nestingProps.length === 0 )
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                } else if (type == "properties" || type == "props") {
+                } else if (type === "properties" || type === "props") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length == 0 )
+                        if( nestingProps.length === 0 )
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                } else if (type == "example") {
+                } else if (type === "example") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
                     }
                     examples = "";
                 }
                 lastType = type;
-            } else if (lastType == "description" || lastType == "desc") {
+            } else if (lastType === "description" || lastType === "desc") {
                 description += "\r\n" + line;
-            } else if (lastType == "discussion" || lastType == "disc") {
+            } else if (lastType === "discussion" || lastType === "disc") {
                 discussion += "\r\n" + line;
-            } else if (lastType == "note") {
+            } else if (lastType === "note") {
                 note += "\r\n" + line;
-            } else if (lastType == "returns") {
+            } else if (lastType === "returns") {
                 returns += "\r\n" + line;
-            } else if (lastType == "example") {
+            } else if (lastType === "example") {
                 examples += "\r\n" + line;
-            } else if (lastType == "arguments"
-                || lastType == "args"
+            } else if (lastType === "arguments"
+                || lastType === "args"
                 ) {
                 if (dashPos > 0) {
                     lastPropOrArg = processArgOrProc(line, dashPos, arguments);
                 }
-            } else if (lastType == "properties"
-                || lastType == "props"
+            } else if (lastType === "properties"
+                || lastType === "props"
                 ) {
                 if (dashPos > 0) {
                     if( !endTag && lastPropOrArg ) {
-                        if( lastIndentLevel == (indentLevel - 1) ) {
+                        if( lastIndentLevel === (indentLevel - 1) ) {
                             if( !lastPropOrArg.properties )
                                 lastPropOrArg.properties = [];
                             nestingProps.push(lastPropOrArg);
@@ -231,9 +242,9 @@ var generateXMLHelp = function (content) {
                     }
                 }
             }
-        } else if (lastType == "example") {
+        } else if (lastType === "example") {
             examples += "\r\n" + line;
-        } else if (lastType == "arguments" || lastType == "args" || lastType == "properties" || lastType == "props") {
+        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
                 var dashPos = line.indexOf("-");
@@ -247,7 +258,7 @@ var generateXMLHelp = function (content) {
                     }
                 }
                 if (dashPos > 0) {
-                    if( lastType == "properties" || lastType == "props" ) {
+                    if( lastType === "properties" || lastType === "props" ) {
                         if (!lastPropOrArg.properties) {
                             lastPropOrArg.properties = [];
                         }
@@ -288,7 +299,7 @@ var generateXMLHelp = function (content) {
             var normalizedClass =  map.classname.toLowerCase().trim() + ".";
             var normalizedPagename = pagename.toLowerCase().trim();
             
-            if( normalizedPagename.substring(0,normalizedClass.length) == normalizedClass ) {
+            if( normalizedPagename.substring(0,normalizedClass.length) === normalizedClass ) {
                 xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
             } else {            
                 xml += "\t<topic>" + protectXml(map.classname + "." + pagename) + "</topic>\r\n";
@@ -297,7 +308,12 @@ var generateXMLHelp = function (content) {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         }
     } else if( contextType.length > 0 ) {
-        xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
+        if( titleContext ) {
+            xml += "\t<topic>" + protectXml(titleContext+contextType)+ "</topic>\r\n";
+            titleContext = null;                        
+        } else {
+            xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
+        }        
     }
 
     if (method) {
@@ -387,9 +403,9 @@ var extractJsHelp = function () {
                 var contexts = {};
                 lastContext = null;
                 for (i = 0; i < syntax.comments.length; ++i) {
-                    if (syntax.comments[i].type == "Block") {
+                    if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
-                        if (content.substring(0, 5) == "[DOC:" && content.substring(content.length - 1) == ']') {
+                        if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
                             content = content.substring(5, content.length - 1).trim();
                             var helpPage = generateXMLHelp(content);
                             if (!contexts[helpPage.context])
