@@ -135,9 +135,11 @@ var generateXMLHelp = function (content) {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
                 } else if (type === "namespace" || type === "class" || type === "object" ) {
-                    if( type === "class" )
+                    if( type === "class" ) {
                         contextType = " Class";
-                    else if( type === "object" ) {
+                        console.log("found a class "+context);
+
+                    } else if( type === "object" ) {
                         contextType = " Object";
                     }
                     else    
@@ -382,8 +384,25 @@ var generateXMLHelp = function (content) {
         xml += "\t<!--list:.-->\r\n";
     }
     if (!pagename) {
+        var hasNonMethodChildren = false;
+        if( context ) {
+            var contextI;        
+            for( contextI in build.context ) {
+                if( contextI.length > context.length+1 ) {
+                    if( contextI.substring(0,context.length+1).toLowerCase() === (context.toLowerCase()+".") ) {
+                        hasNonMethodChildren = true;
+                        break;
+                    }
+                }
+            }
+        }
         pagename = "index";
-        xml += "\t<!--list:.-->\r\n";
+        if( hasNonMethodChildren ) {
+            xml += "\t<!--list:* Method-->\r\n";
+            xml += "\t<!--list:*index.xml-->\r\n";
+        } else {
+            xml += "\t<!--list:.-->\r\n";
+        }
     }
     xml += "</page>\r\n";
     lastContext = context;
