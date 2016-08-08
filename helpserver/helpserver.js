@@ -279,7 +279,11 @@ events.pageIndexer = function(args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args, description, type , topic ));
+                    if( filename.indexOf("/index.xml") > 0 ) {
+                        savePage(outputSnippet(args, description, null , topic ));
+                    } else {
+                        savePage(outputSnippet(args, description, type , topic ));
+                    }
                 });
             }
         });
