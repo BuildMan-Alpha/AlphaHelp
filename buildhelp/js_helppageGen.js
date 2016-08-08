@@ -34,8 +34,27 @@ var indentLevelCalc = function(txt) {
     }
     return 0;
 };
-
+var proccessLink = function(linkdef) {
+   var parts = linkdef.split("{");
+   if( parts.length === 2 ) {
+      linkdef = parts[0] + parts[1].replace("}","")+" Object";
+   }
+   return linkdef;   
+};
 var protectXml = function (content) {
+    if( content.indexOf("[link:") >= 0 ) {
+        content = content.split("[link:")
+        var i;
+        for( i = 1 ; i < content.length ; ++i ) {
+            var endPos = content[i].indexOf("]");
+            if( endPos > 0 ) {
+                content[i] = proccessLink(content[i].substring(0,endPos)) + "]*"+ content[i].substring(endPos+1); 
+            } else {
+                content[i] = proccessLink(content[i]) + "]*";
+            }
+        }
+        content = content.join("*[link:");
+    }
     if (content.indexOf("&") >= 0
         || content.indexOf("<") >= 0
         || content.indexOf(">") >= 0
@@ -327,7 +346,7 @@ var generateXMLHelp = function (content) {
             xml += "\t\t<argument>\r\n";
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
             xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
-            xml += "\t\t\t<description>" + arguments[i].description + "</description>\r\n";
+            xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
             xml += "\t\t</argument>\r\n";
         }
         xml += "\t</arguments>\r\n";
@@ -350,7 +369,7 @@ var generateXMLHelp = function (content) {
                 xml += indented + "\t<property>\r\n";
                 xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
                 xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
-                xml += indented + "\t\t<description>" + properties[i].description + "</description>\r\n";
+                xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
                 if (properties[i].arguments) {
                     var j;
                     xml += indented + "\t\t<arguments>\r\n";
@@ -358,7 +377,7 @@ var generateXMLHelp = function (content) {
                         xml += indented + "\t\t\t<argument>\r\n";
                         xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
                         xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
-                        xml += indented + "\t\t\t\t<description>" + properties[i].arguments[j].description + "</description>\r\n";
+                        xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
                         xml += indented + "\t\t\t</argument>\r\n";
                     }
                     xml += indented + "\t\t</arguments>\r\n";
@@ -445,7 +464,7 @@ var extractJsHelp = function () {
                                     if (map.description) {
                                         var topxml = "<page>\r\n";
                                         topxml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
-                                        topxml += "\t<description>" + map.description + "</description>\r\n";
+                                        topxml += "\t<description>" + protectXml( map.description ) + "</description>\r\n";
                                         topxml += "\t<!--list:.-->\r\n";
                                         topxml += "</page>\r\n";
                                         contexts[ctx.files[j].topContext] = { files: [] };
