@@ -1,0 +1,1 @@
+node \dev\AlphaHelp\buildhelp\js_helppageGen.js
