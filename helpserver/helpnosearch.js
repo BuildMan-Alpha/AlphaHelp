@@ -195,13 +195,16 @@ events.pageIndexer = function(args, savePage) {
         var i;
         var methodFiles = 0;
         var nonMethodFiles = 0;
+        var indexFiles = 0;
         for (i = 0; i < args.all.length; ++i) {
             if( args.all[i].path ) {
                 var testName = args.all[i].path.toLowerCase();
                 var pathEnd = testName.lastIndexOf('/');
                 if (pathEnd > 0)
                     testName = testName.substring(pathEnd);
-                if (testName != '/index.xml') {
+                if (testName === '/index.xml') {
+                    ++indexFiles;
+                } else {
                     if (testName.indexOf(' method.') > 0) {
                         ++methodFiles;
                     } else {
@@ -255,7 +258,11 @@ events.pageIndexer = function(args, savePage) {
                             }
                         }
                     }
-                    savePage(outputSnippet(args, description, type , topic ));
+                    if( filename.indexOf("/index.xml") > 0 ) {
+                        savePage(outputSnippet(args, description, null , topic ));
+                    } else {
+                        savePage(outputSnippet(args, description, type , topic ));
+                    }
                 });
             }
         });
@@ -296,8 +303,8 @@ events.pageIndexer = function(args, savePage) {
 
 events.wrapIndex = function(args) {
     var result = "";
-    if (args.format == ".xml") {
-        if (args.content.substring(0, 10) == "<methodref") {
+    if (args.format === ".xml") {
+        if (args.content.substring(0, 10) === "<methodref") {
             result = "<methods>" + args.content + "</methods>"
         } else {
             result = "<list><item><name-title>Name</name-title></item>" + args.content + "</list>";
