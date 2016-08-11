@@ -189,7 +189,7 @@
                         <xsl:if test="ref">
                             <xsl:choose>
                                 <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                                <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                                <xsl:otherwise><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                             </xsl:choose>
                         </xsl:if>													
 					</dd>
@@ -201,14 +201,14 @@
                             <xsl:choose>
                             <xsl:when test="ref/@href"><dt class="methodStatic"><a href="{ref/@href}"><xsl:value-of select="name" /></a></dt></xsl:when>
                             <xsl:when test="ref"><dt class="methodStatic"><a href="/documentation/index?search={ref}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:otherwise><dt class="methodStatic"><a onclick="helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
+                            <xsl:otherwise><dt class="methodStatic"><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
                             <xsl:choose>
                             <xsl:when test="ref/@href"><dt><a href="{ref/@href}"><xsl:value-of select="name" /></a></dt></xsl:when>
                             <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:otherwise><dt><a onclick="helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
+                            <xsl:otherwise><dt><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:otherwise>
                         </xsl:choose>                                            
@@ -297,7 +297,7 @@
 						</xsl:when>
 						<xsl:otherwise>
 							<li>
-								<a onclick="helpServer.navigateClosestTopic('{normalize-space(.)}')">
+								<a href="javascript:helpServer.navigateClosestTopic('{normalize-space(.)}')">
 									<xsl:value-of select="." />
 								</a>
 							</li>
@@ -522,7 +522,7 @@
             <xsl:if test="ref">
                 <xsl:choose>
                     <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                    <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                    <xsl:otherwise><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                 </xsl:choose>
             </xsl:if>
             <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
@@ -558,7 +558,7 @@
                         <xsl:choose>
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
                             <xsl:when test="./@link"><a href="/documentation/index?search={./@link}"><xsl:value-of select="ref" /></a></xsl:when>
-                            <xsl:otherwise><a onclick="helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
+                            <xsl:otherwise><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
 					</xsl:if>
 					<xsl:if test="list">

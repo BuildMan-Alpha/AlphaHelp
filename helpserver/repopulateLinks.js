@@ -25,13 +25,39 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
         }
         return "";
     };
-    async.eachSeries(list, function (fo, callbackLoop) {
-        if (fo.file.toLowerCase().indexOf('.xml') > 0) {
+    async.eachSeries(list, function (fo, callbackLoop) {        
+        if (fo.file.toLowerCase().indexOf('.xml') > 0 || fo.file.toLowerCase().indexOf('.html') > 0 ) {
             fs.readFile(fo.file, "utf8", function (err, page) {
                 if( !err ) {
-                    var topic = extractTag(page,"<shortlink>","</shortlink>").trim();
-                    if (topic.length == 0 ) {
-                        topic = extractTag(page,"<topic>","</topic>").trim();
+                    var topic = null;
+                    if( fo.file.toLowerCase().indexOf('.xml') > 0 ) {
+                        topic = extractTag(page,"<shortlink>","</shortlink>").trim();
+                        if (topic.length == 0 ) {
+                            topic = extractTag(page,"<topic>","</topic>").trim();
+                        }
+                    } else {
+                        var metatags = page.split("<meta");
+                        var i;
+                        for( i = 1 ; i < metatags.length ; ++i ) {
+                            var metatag = metatags[i].split(">")[0];
+                            if( metatag.replace(" ","").indexOf('name="shortlink"') > 0 ) {
+                                if( metatag.indexOf('content=') > 0 ) {
+                                    metatag = metatag.split('content=')[1].trim();
+                                    var metatags = metatag.split( metatag.substring(0,1) );
+                                    if( metatags.length > 2 ) {
+                                        topic = metatags[1];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if( !topic ) {
+                            topic = extractTag(page,"<title>","</title>").trim();
+                            if( !topic ) {
+                                console.log( "Warning no title or shortlink defined for "+fo.file );
+                                topic = "";
+                            }
+                        }
                     } 
                     if (topic.length > 0) {
                         if (topic.substring(0, 9) == "<![CDATA[") {

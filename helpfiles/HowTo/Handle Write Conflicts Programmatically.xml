@@ -1,0 +1,76 @@
+<page>  
+    <topic>How to Handle Write Conflicts in a List Control Programmatically</topic>
+    <description>When synchronizing a List control with a Detail View, write conflicts can be resolved programmatically instead of letting the user decide what should happen.</description>
+    <discussion>
+        <p>When synchronizing records in a List control back to the database, write conflicts may occur if another user has made edits to the record(s) being synchronized. When write conflicts occur, the List control alerts the user that a conflict has occurred and gives them the option to decide which edits should be kept. You can choose to use your change(s) or use the current value in the database.</p>
+        <p>Handling write conflicts programmatically is done with a custom xbasic function. In the Table Properties for the List control - found on the Detail View tab in the List Builder - you can define an xbasic function that is called when a write conflict occurs. The xbasic function specified for the *[ui:On write conflict]* server-side event will be called whenever a write conflict occurs when the List is synchronized.</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/onWriteConflict1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>In your xbasic function, you can specify how write conflicts should be handled. For example, if you wanted to overwrite the values in the database, submitting all changes from the user, your xbasic function would look like this:</description>
+            <example><![CDATA[function onWriteConflict as v (e as p)
+    'Set flag indicating write conflicts have been resolved
+    e.resolveConflicts = .t.
+
+    'Keep the user values submitted to the database, overwriting values in database
+    e.resolveConflictMethod = "useMine"
+end function ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If your xbasic function resolves the write conflict, you  must set the e.resolveConflicts property to .t., otherwise the user will be prompted to resolve the write conflicts manually.</p>
+                <p>The *[xb:e.resolveConflictMethod]* property lets you define how conflicts should be handled. The conflict resolution method can be one of three values:</p>
+            </description>
+            <list>
+                <item>
+                    <name>useMine</name>
+                    <description>All write conflicts are resolved by using the value the user submitted, overwriting the values in the database.</description>
+                </item>
+                <item>
+                    <name>useTheirs</name>
+                    <description>All write conflicts are resolved by using the values in the database and discarding the values from the user.</description>
+                </item>
+                <item>
+                    <name>custom</name>
+                    <description>Allows you to specify how the conflict should be resolved on a field-by-field basis.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>If you select the *[xb:custom]* option, you can set the conflict resolution method to use for individual conflicts. EG:</description>
+            <example><![CDATA[function onWriteConflict as v (e as p)
+    'Set flag indicating write conflicts have been resolved
+    e.resolveConflicts = .t.
+
+    'Handle each conflict individually
+    e.resolveConflictMethod = "custom"
+
+    'Assume that the e.data[] array that is passed in has 3 items in it 
+    '(because the user edited 3 field values)
+    e.data[1].resolveConflictMethod = "useMine"
+    e.data[2].resolveConflictMethod = "useTheirs"
+    e.data[3].resolveConflictMethod = "custom"
+    e.data[3].customValue = "Value to store"
+end function 
+]]></example>
+        </section>
+        <section>
+            <description>The videos below demonstrate using each of the three conflict resolution methods to programmatically resolve write conflicts in a List control.</description>
+            <videos>
+                <video>
+                    <name>Options for Handling Write Conflicts when Syncing Data Part 1</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_detailview_writeConflicts1.swf</link>
+                </video>
+                <video>
+                    <name>Options for Handling Write Conflicts when Syncing Data Part 2</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_detailview_writeConflicts2.swf</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+</page>

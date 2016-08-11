@@ -1,0 +1,550 @@
+<page>
+    <topic>Building Master Detail Web Applications with Grid Components</topic>
+    <!-- todo 
+        Remove commented content at the end of this article when sibling master-detail UX articles are available.
+    -->
+    <description>Learn how to build a Master Detail web application using Grid components.</description>
+    <groups>
+        <group background="true">
+            <title>Overview</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>In this tutorial, you will build a Master Detail application that allows a user to view Customer records and inspect the Orders and Order Details for individual customers. Each customer in the Customers table can have one or more Orders, and each order can have one or more related Order Details.</p>
+                    </description>
+                    <figure>
+                        <title>A visual representation of the relationship between the Customers, Orders, and Order Details tables</title>
+                        <link>images/customerOrderDetail.svg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>To represent this relationship between the Customers, Orders, and Order Details tables, you will create 3 Grid Components corresponding to each table. Grids can be "linked" together using Alpha Anywhere's Linked Content Sections, creating parent-child relationships between the components. Linked Content can be added to a Grid component using two methods: using the Row Expander or by creating a Linked Content Section. This tutorial employs both features to create the interfaces for viewing the Customers and Orders.</p>
+                        <p>The Grids will be built from the bottom-up, starting with creating the Grid component for the Order Details table. Approaching construction of the Grids for each table in this fashion allows you to link Grids together as they are created.</p>
+                        <p>Alternatively, you could follow a top-down approach, creating the parent Grid for Customer records first. While you can arrive at the same result with a top-down approach, the top-down approach requires working with multiple Grid components simultaneously in order to link the Grids together. </p>
+                        <p>By the end of this tutorial, you will have a Master Detail application for displaying records from the Customers, Orders, and Order Details tables of the Northwind database.</p>
+                    </description>
+                </section>
+                <section>
+                    <title>Before you Begin</title>
+                    <description>This tutorial requires the following resources before you begin. :</description>
+                    <cases>
+                        <case>
+                            <description>*[A new or existing workspace]*</description>
+                        </case>
+                        <case>
+                            <description>*[A Connection String for the Northwind Database]*</description>
+                        </case>
+                        <case>
+                            <description>*[The Development Server]*</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <description>You can build these resources yourself or download a pre-configured workspace.</description>
+                </section>
+                <section>
+                    <title nested="2">Download the Pre-Configured Workspace</title>
+                    <description>If you're ready to start building, download the pre-configured workspace, which includes a predefined connection string and the Northwind database. This workspace also includes a popup help window that will be displayed when you open the workspace.</description>
+                    <steps>
+                        <step>
+                            <description>Download the workspace. [Click here to download the pre-configured workspace]</description>
+                        </step>
+                        <step>
+                            <description>Unzip the workspace inside a folder in the Documents folder in your Users directory. Eg, *[bold:C:/Users/your_windows_user_name/Documents/GettingStartedWorkspace]*. The workspace must be placed in a directory that you have read/write access.</description>
+                        </step>
+                        <step>
+                            <description>Open the workspace. This can be done by double-clicking the *[GettingStartedWorkspace.adb]* file.</description>
+                        </step>
+                    </steps>
+                    <note>If you download the pre-configured workspace, make sure the Development Server is properly configured so you can test your application. See [Configuring the Alpha Anywhere Development Server] for more information.</note>
+                </section>
+                <section>
+                    <title nested="2">Creating the Workspace</title>
+                    <description>Follow the tutorials below to create a new workspace and setup the Northwind database. Each tutorial includes detailed, step-by-step instructions that guide you through the process of creating a new workspace, building AlphaDAO connection strings, or setting up the Alpha Anywhere Development Server, which allows you to test web and mobile applications in your development environment.</description>
+                    <cases>
+                        <case>
+                            <description>[Create a new Alpha Anywhere Workspace]: Learn how to create a new workspace for a mobile or web application by following this step-by-step guide.</description>
+                        </case>
+                        <case>
+                            <description>[Creating AlphaDAO Connection Strings]: Learn how to create an AlphaDAO connection string to an Access, MySQL, or SQL Server database using the Northwind database that ships with Alpha Anywhere.</description>
+                        </case>
+                        <case>
+                            <description>[Configuring the Alpha Anywhere Development Server]: Learn how to configure the Alpha Anywhere Development Server for testing your web and mobile applications.</description>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Lesson 1: Creating the Grid for the Order Details Table</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>In this Lesson, you will learn the following:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <description>How to create a Grid component based on a *[ui:SQL Select Statement]*.</description>
+                        </case>
+                        <case>
+                            <description>How to use Display Formats to format numeric fields.</description>
+                        </case>
+                        <case>
+                            <description>How to add and display a summary total value for a field in the Grid footer.</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <steps>
+                        <step>
+                            <description>Create a new Grid Component. From the Web Projects Control Panel, click the *[ui:New]* button in the toolbar.</description>
+                        </step>
+                        <step>
+                            <description>When the *[ui:New File]* dialog appears, select *[ui:Web Component]* and click *[ui:Next]*.</description>
+                            <figure>
+                                <title>Creating a new Web Component using the New File dialog.</title>
+                                <link>images/mdGrid_new1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Select *[ui:Grid]* and click *[ui:Next]*.</description>
+                            <figure>
+                                <title>Creating a new Grid from the New File dialog.</title>
+                                <link>images/mdGrid_new2.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Select *[ui:Start with a blank Grid Component]* and click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_new3.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Choose *[ui:Tabular]* for the Grid Layout on the *[ui:Component Type]* tab.</description>
+                            <figure>
+                                <link>images/mdGrid_new4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description> Click on *[ui:Data Source]*. Make sure *[ui:SQL Database accessed via AlphaDAO]* is selected.</description>
+                            <figure>
+                                <link>images/mdGrid_newDatasource1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, open the *[ui:Query (AlphaDAO)]* pane. Click the *[ui:Select...]* button to create a connection to a SQL Database.</description>
+                            <figure>
+                                <link>images/mdGrid_newQuery1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Select the Northwind connection string and click *[ui:OK]*.</p>
+                                <p>If you don't have a named connection string for the Northwind database, follow the instructions in the *[extlink:Creating AlphaDAO Connection Strings tutorial@http://www.alphasoftware.com/documentation/index?search=creating%20alphadao%20connection%20strings]*. The Creating AlphaDAO Connection Strings tutorial will guide you step-by-step through the process of setting up the Northwind database and creating an AlphaDAO connection string.</p>
+                            </description>
+                            <figure>
+                                <link>images/mdGrid_newQuery2.png</link>
+                            </figure>                    
+                        </step>
+                        <step>
+                            <description>Back on the *[ui:Query (AlphaDAO)]* pane, click the *[ui:Connect]* button to connect to the Northwind database and build a SQL Query for the Grid Component.</description>
+                            <figure>
+                                <link>images/mdGrid_newQuery3.png</link>
+                            </figure>                    
+                        </step>
+                        <step>
+                            <description>Click the *[ui:SQL Select Statement]* radio option. The *[ui:SQL Select Statement]* option lets you to define a SQL query used to populate the fields and data in the Grid Component. Click the *[ui:Edit SQL in Query Builder]* button to open the SQL Genie.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails3.png</link>
+                            </figure>                    
+                        </step>
+                        <step>
+                            <description>In the *[ui:SQL Genie]* dialog, click the *[ui:Add Table]* button on the *[ui:Tables]* tab to add the Order Details table.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Select *[Order Details]* in the *[ui:Add Table]* dialog and click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails5.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Let's add a column to the SQL Query that calculates the total for each record in Order Details. On the *[ui:Columns]* tab, click the *[ui:Insert Expression]* link below the list of *[ui:Available Columns]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails6.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>In the *[ui:SQL Expression]* dialog, create an expression that calculates the total price for a record. The total price is the Price times the Quantity. The Price is calculated by subtracting the Discount from the UnitPrice.</p>
+                                <p>Enter the following expression in the *[ui:Enter expression:]* text area then click *[ui:OK]*:</p>
+                            </description>
+                            <example><![CDATA[((UnitPrice - (Discount * UnitPrice)) * Quantity)]]></example>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails7.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Change the Alias property for the SQL Expression to *[Total]*. Then, click *[ui:OK]* to save the Query.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrderDetails8.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, open the *[ui:Fields]* pane. Select all database fields in the *[ui:Available Fields]* column. Do not select the <![CDATA[<RowNumber>]]> or <![CDATA[<LogicalRecNo>]]> fields. Click the *[ui:Select Field(s)]* button to add the selected to the Grid Component. These are the fields that will be displayed when the Grid Component is rendered.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Let's add some formatting to the UnitPrice, Discount, and Total fields. Select the *[ui:UniPrice]* field. Click on the [...] button for the *[ui:Display format]* property to open the Display Format dialog.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails2.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Display Format dialog, click the *[ui:Select Pre-Defined Format]* button to display a list of Pre-Defined Formats.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails3.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Pre-Defined Formats dialog, select the *[$123,456.78]* format. Click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The selected *[ui:Display Format]* will format the UnitPrice field to display as a dollar amount with 2 decimal places. Click *[ui:OK]* to save the Display Format for the UnitPrice field.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails5.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Select the Total field and click the [...] for the *[ui:Display format]* property. Add the same format used in the UnitPrice field to the Total field:</description>
+                            <example><![CDATA[alltrim(str(convert_type(<value>,"N"),250,2,"$("))]]></example>
+                        </step>
+                        <step>
+                            <description>Next, select the Discount field. Click the [...] button for the *[ui:Display format]* property. The Discount field is a percentage value. To display the Discount field with as a percentage, you need to multiply its value by 100 before formatting it. Enter the following into the *[ui:Display Format]* text area int he Display Format dialog and click *[ui:OK]*:</description>
+                            <example><![CDATA[alltrim(str(convert_type(<value>,"N")*100,250,0,"%"))]]></example>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails6.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, let's add a "Total" to the grid footer that displays the sum of the Total field for all records in the Grid. Select the Total field. In the *[ui:Summary values]* section for the Field Properties for the Total field, check the *[ui:Total]* box.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrderDetails7.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, add a display format for the Summary value. Click the [...] button for the *[ui:Total display format]* property. Add the same format defined for the UnitPrice field's *[ui:Display format]*. </description>
+                            <example><![CDATA[alltrim(str(convert_type(<value>,"N"),250,2,"$("))]]></example>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Add the summary total for the Total field to the Grid footer. In the left hand column, click *[ui:Properties]* to display the Grid's Properties pane.</p>
+                                <p>By default, summary fields are only shown on the last page of the Grid component. This behavior is defined by the *[ui:Show on last page only]* property. To show the summary total for the Total field on every page in the Grid, you must disable *[ui:Show on last page only]* property. Find the *[ui:Show on last page only]* property and uncheck it. This will display the summary total value for the Total field in the Grid footer on every page in the Grid component.</p>
+                            </description>
+                            <figure>
+                                <link>images/mdGrid_newPropertiesOrderDetails1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Preview the OrderDetailsGrid component. Click on the Live Preview tab. If prompted, start the Development Server.</p>
+                                <p>You should see a Grid with 6 columns. The UnitPrice and Total column should display as dollar amounts. The Discount column should appear as a percentage. At the bottom of the Grid between the navigation footer and records, you should see the summary total for the Total field.</p>
+                                <p>The summary field will be the total for all records in the Order Details table. When the Order Details grid is linked to the Orders Grid, a filter will be applied to the SQL query that fetches the records from the database. When filtered on a specific order, the summary total will be the total for the Order.</p>
+                            </description>
+                            <figure>
+                                <link>images/mdGrid_newPreviewOrderDetails1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Save the Grid component as "OrderDetailsGrid". Click the *[ui:[save] Save]* button in the UX Builder toolbar. Type *[OrderDetailsGrid]* in the *[ui:File name]* text box and click *[ui:Save]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newSaveOrderDetails1.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </section>
+                <section>
+                    <description>The Grid component for the Order Details table is now complete. The next step is to create a Grid for the Orders table and add a Row Expander to display the Order Details for a record in the Orders table.</description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Lesson 2: Creating the Grid for the Orders Table</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>In this Lesson, you will learn the following:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <description>How to create a Grid component based on a *[ui:Table or View]*.</description>
+                        </case>
+                        <case>
+                            <description>How to display related information in a Grid component using the Row Expander.</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <description>
+                        <p>Now that you have a Grid component for the Order Details table, you can create a Grid for the Orders table to display a list of orders. The Order Details can be linked to their respective Orders using a Row Expander. The Row Expander allows you to define one or more linked content items - such as Grid components - displayed in a "row expander". The row expander can be shown for each record by clicking the "Expand Row" icon. Clicking the row expander icon expands the row, revealing the linked content within the Grid Part.</p>
+                        <p>The Expand Row icon is displayed as a Plus or Minus icon at the beginning of each row in the Grid Component. The row expander icon indicates the state of the row expander for a row. A "Plus" icon is shown when the row is collapsed while a "Minus" icon is shown when the row is expanded.</p>
+                    </description>
+                    <steps>
+                        <step>
+                            <description>
+                                <p>Start by creating a new Grid component based on a SQL data source. On the *[ui:Query (AlphaDAO)]* pane, connect to the Northwind database. Set the *[ui:Connection Name]* property to the Northwind connection string and click the *[ui:Connect]* button to expose the Query options for defining the query the Grid component will be based on.</p>
+                            </description>
+                        </step>
+                        <step>
+                            <description>The Orders grid will be based on the Orders table. Select the *[ui:Table or View]* radio button. Then, click the *[ui:Select...]* button for the *[ui:Table/View name]* property.</description>
+                            <figure>
+                                <link>images/mdGrid_newQuery4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the *[ui:Select Table]* dialog, select the *[Orders]* table. Click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryOrders1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The SQL data source for the Grid is now configured. Click on *[ui:Fields]* in the left-hand column to open the Grid Builder Fields pane.</description>
+                        </step>
+                        <step>
+                            <description>Select the *[OrderID]*, *[CustomerID]*, *[OrderDate]* and *[ShippedDate]* fields and click the *[ui:Select field(s)]* button to add the fields to the Grid component.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsOrders1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, you will add a Row Expander that shows information from the Order Details table for an order by linking the OrderDetailsGrid to Orders grid. Click on *[ui:Properties]* in the left-hand column to open the Grid Properties pane.</description>
+                        </step>
+                        <step>
+                            <description>Locate the *[ui:Row Expander]* section in the Grid Properties and check the *[ui:Has row expander]* property.</description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpandOrders1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, click the [...] button for the *[ui:Row expander linked Content]* property to open the Define Linked Content dialog.</description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpander1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Define Linked Content dialog, click the *[ui:Add Object]* button to add a new linked component. Select *[ui:Add linked Component]* from the popup menu.</description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpandOrders2.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Select Component dialog, select the *[OrderDetailsGrid]* Grid component from the list of options. Then, click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpandOrders3.png</link>
+                            </figure>
+                            </step>
+                        <step>
+                            <description>
+                                <p>In the *[ui:Grid Properties]*, define the link fields for the linked content. The link definition defines a filter that should be applied to the linked Grid component. For the Orders Grid, we would like to display all of the Order Details for a record in the Orders table. This is done by filtering the Order Details on the OrderID.</p>
+                                <p>Select *[OrderID (N)]* for the *[ui:Parent Field]*.</p>
+                            </description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpandOrders4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>For the *[ui:Child Field]*, select *[OrderID (N)]*. Click *[ui:OK]* to create the new Linked Content Section.</description>
+                            <figure>
+                                <link>images/mdGrid_newRowExpandOrders5.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Save the Orders grid component as "OrdersGrid". Click the *[ui:[save] Save]* button in the UX Builder toolbar. Type *[OrdersGrid]* in the *[ui:File name]* text box and click *[ui:Save]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newSaveOrders1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Preview your component in Live Preview.</p>
+                                <p>Each order in the Orders Grid includes a small plus icon to at the beginning of each row. This is the Row Expander icon.</p>
+                                <p>Click the icon for a row. This will open the Row Expander for the order record in that row. Inside the Row Expander, you will see the Order Details for the order.</p>
+                            </description>
+                            <figure>
+                                <title>The Orders Grid</title>
+                                <link>images/mdGrid_newPreviewOrders1.png</link>
+                            </figure>
+                            <figure>
+                                <title>Order Details are shown when the Row Expander is opened.</title>
+                                <link>images/mdGrid_newPreviewOrders2.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Lesson 3: Creating the Grid for the Customers Table</title>
+            <sections>
+                <section>
+                    <description>In this lesson, you will learn the following:</description>
+                    <cases>
+                        <case>
+                            <description>How to add a Linked Content section to a Grid component's Freeform Edit Region.</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <description>The final step in creating a Master-Detail interface for the Customers, Orders, and Order Details tables in the Northwind database is to create a Grid component for the Customers table and link the Orders Grid to the Customers Grid, allowing you to view the orders for a selected Customers record. Instead of using a Row Expander, in this lesson you will use a Linked Content Section placed in the Freeform edit region of the Grid component to display the Orders for a selected customer record.</description>
+                    <steps>
+                        <step>
+                            <description>Start by creating a new Grid component based on a SQL data source. On the *[ui:Query (AlphaDAO)]* pane, connect to the Northwind database. Set the *[ui:Connection Name]* property to the Northwind connection string, and click the *[ui:Connect]* button to expose the Query options for defining the query the Grid component will be based on.</description>
+                        </step>
+                        <step>
+                            <description>The Customers grid will be based on the Customers table. Select the *[ui:Table or View]* radio button. Then, click the *[ui:Select...]* button for the *[ui:Table/View name]* property.</description>
+                            <figure>
+                                <link>images/mdGrid_newQuery4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the *[ui:Select Table]* dialog, select the *[Customers]* table. Click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newQueryCustomers1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The SQL data source for the Customers Grid is now configured. Click on *[ui:Fields]* in the left-hand column to open the Grid Builder Fields pane.</description>
+                        </step>
+                        <step>
+                            <description>Select the *[CustomerID]*, *[ContactName]*, *[Address]*, *[City]*, *[Region]*, and *[Country]* fields from the list of *[ui:Available Fields]*. Click the *[ui:Select field(s)]* button to add the selected fields to the Grid component.</description>
+                            <figure>
+                                <link>images/mdGrid_newFieldsCustomers1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, open the *[ui:Properties]* pane for the Grid component. Locate the *[ui:Linked Grid/Content]* section and check the box for the *[ui:Has linked Grid or other content]* property.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Click the [...] button for the *[ui:Linked content definition]* property to open the Linked Content Builder.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers2.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Add a new Linked Content Section. Click the *[ui:Add Linked Content Section]*. Name it *[ORDERS]* and click the *[ui:OK]* button.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers3.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Select *[ORDERS]* listed in the *[ui:Linked Content Section]* and click the *[ui:Define Linked Content]* button to open the Define Linked Content dialog.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Next, you will add the OrdersGrid to the Linked Content Section. In the Define Linked Content dialog, click the *[ui:Add Object]* button and select *[ui:Add linked component]*. </description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers5.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Select Component dialog, select *[OrdersGrid (Grid)]* from the list of components. Click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers6.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Link the CustomerID field in the Customers Grid to the CustomerID in the OrdersGrid component. Select *[CustomerID (C)]* for the *[ui:Parent Field]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers7.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the *[ui:Child Field]*, make sure *[CustomerID (C)]* is selected. Then click *[ui:OK]*  to save the Linked Content Section.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers8.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>The *[ORDERS]* Linked Content Section needs to be placed in the Grid Component's layout so that it can be seen. Linked Content Sections can be placed in either the Freeform Edit Regions or Master Template for the Grid Component. Place the *[ORDERS]* Linked Content Section in the Freeform Edit Region for the Grid Part on the Right side of the grid.</p>
+                                <p>Click the *[ui:Edit 'Freeform Edit Region']* button. Mouse over *[ui:Grid Part]* and select *[ui:Right]* from the popup menu.</p>
+                            </description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers9.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Freeform Edit Region dialog, double-click on the placeholder for the ORDERS content section. It is listed in the *[ui:Available Placeholders]* list on the left-hand side of the Freeform Edit Region dialog. Double-click *[xb:{LinkedContentSection:ORDERS}]*. This will add the placeholder to the text area on the right, which is used to define HTML that will appear in the Freeform Edit Region. Click *[ui:OK]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newLinkedContentCustomers10.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Click *[ui:OK]* to close the Linked Grid or Content Builder dialog.</description>
+                        </step>
+                        <step>
+                            <description>Save the grid as "CustomersGrid". Click the *[ui:[save] Save]* button in the UX Builder toolbar. Type *[CustomersGrid]* in the *[ui:File name]* text box and click *[ui:Save]*.</description>
+                            <figure>
+                                <link>images/mdGrid_newSaveCustomers1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Preview your component in Live Preview.</p>
+                                <p>When the component loads in Live Preview, you will see two Grids. The Grid on the left is the list of Customers. The Grid on the right is the list of orders for the selected customer record. When the component is first loaded, the first record in the Customers Grid is select.</p>
+                                <p>You can expand the Order Details for an Order by clicking the Row Expander icon in the Orders Grid. As you select different Customer records, the Orders Grid will update, loading the Orders for the currently selected customer.</p>
+                            </description>
+                            <figure>
+                                <title>The Customers Grid with the Orders shown in the Linked Content Section on the right.</title>
+                                <link>images/mdGrid_newPreviewCustomers1.png</link>
+                            </figure>
+                            <figure>
+                                <title>You can explore the details for an order by clicking the Row Expander icon.</title>
+                                <link>images/mdGrid_newPreviewCustomers2.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <sections>
+                <section>
+                    <description>
+                        <p>Multiple Grid Components can be linked to a Grid in a  Linked Content Sections and Row Expander. Other components - UX Components, Calendar Components, Gallery Components, Custom Components, etc - can also be linked to a Grid Component using the Linked Content and Row Expander tools. In addition, using the Linked Content Section is not mutually exclusive from the Row Expander. You can add link components to the Grid component using both methods.</p>
+                        <p>Using linked Grid components shown in the Freeform Edit Region or a Row Expander allows you to build robust Master-Detail interfaces, allowing you display detailed information for data in your database how and where you want. You can build interfaces for a wide variety of data relationships using Grid components.</p>
+                        <!--<p>The UX Component can also be used to create Master-Detail applications. This can be done using Repeating Sections or List controls. Visit the tutorials listed below to learn more.</p>-->
+                    </description>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link href="images/ellipsesButton.png">...</link>
+        <link href="/images/$$file.save.png">save</link>
+        <link href="/GettingStarted/GettingStartedTutorials/workspaces/GettingStartedWorkspace.zip">Click here to download the pre-configured workspace</link>
+        <link href="/documentation/index?search=create%20a%20new%20alpha%20anywhere%20workspace">Create a new Alpha Anywhere Workspace</link>
+        <link href="/documentation/index?search=creating%20alphadao%20connection%20strings">Creating AlphaDAO Connection Strings</link>
+        <link href="/documentation/index?search=configuring%20the%20alpha%20anywhere%20development%20server">Configuring the Alpha Anywhere Development Server</link>
+    </links>
+    <see>
+        <!--<ref href="Master Detail App with Repeating Sections.xml">Using Repeating Sections to build Master-Detail Applications</ref>-->
+        <!--<ref href="Master Detail App with List Controls.xml">Building Mobile Master-Detail Applications</ref>-->
+        <ref href="/documentation/index?search=grid properties row expander">Grid Component Row Expander</ref>
+        <ref href="/documentation/index?search=grid properties linked content section">Grid Component Linked Content Sections</ref>
+        <ref href="/documentation/index?search=build a web app">Getting Started With Alpha Anywhere - Build Your First Web App</ref>
+    </see> 
+</page>

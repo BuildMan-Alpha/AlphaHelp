@@ -1,0 +1,98 @@
+<page>
+   <topic>SQL::Connection::GenerateDeleteStatement Function</topic>
+ <description>Generate a SQL Delete statement for the table passed in.
+</description>   
+   <syntax>Statement as C = GenerateDeleteStatement as C (TableInfo as SQL::TableInfo [, UseBatchQualifiers = .t. as L [, Criteria as SQL::UpdateWhereCriteria [,SourceTableInfo as SQL::TableInfo]])</syntax>
+   <arguments>
+     
+     <argument>
+         <name>Statement
+</name>
+         <description>A SQL DELETE statement.
+</description>
+     </argument>
+     <argument>
+         <name>SQL::Connection</name>
+         <description>A SQL::Connection object.
+</description>
+     </argument>
+     
+     
+     <argument>
+         <name>TableInfo</name>
+         <description>SQL::TableInfo</description>
+     </argument>
+     <argument>
+         <name> UseBatchQualifiers = .t.</name>
+         <description>Optional. Default = .T. Changes the syntax of SQL INSERT, DELETE, and UPDATE statements.
+</description>
+     </argument>
+     <argument>
+         <name> Criteria</name>
+         <description>SQL::UpdateWhereCriteria</description>
+     </argument>
+     <argument>
+         <name>SourceTableInfo</name>
+         <description>SQL::TableInfo</description>
+     </argument>
+   </arguments>
+  
+   <discussion><![CDATA[
+The GenerateDeleteStatement() method generates a SQL statement that will delete a table in a database.
+When UseBatchQualifiers is explicitly set to .T., the appropriate column values are generated in the format :old. or :new. (All :old. for DELETE or WHERE clauses, all :new. for INSERT and a mixture for UPDATE statements).
+Note: If UseBatchQualifiers is true then field values will be generated as arguments 
+prefaced with and 'old.' so a result set can be the source of the data.
+  ]]> </discussion>
+ 
+   <sections>
+       <section><title>Example</title>
+            <description>When UseBatchQualifiers is explicitly set to .T. .</description>
+            <example><![CDATA[
+DELETE FROM tablename WHERE column1 = :old.column1
+]]></example>
+       </section>
+       
+       <section>
+            <description>If UseBatchQualifiers is set to .F., these function will generate the value entries as simple arguments (with one exception) so you can build an arguments collection up and execute the statement.</description>
+            <example><![CDATA[
+DELETE FROM tablename WHERE column1 = :column1
+]]></example>
+       </section>
+       
+       <section>
+            <description>This example selects rows from a table, then uses the result set to delete the corresponding rows from another table.</description>
+            <example><![CDATA[
+dim conn as SQL::Connection
+dim ti as SQL::TableInfo
+dim rs as SQL::ResultSet
+dim connstring as C
+dim delete as C
+dim select as C
+connstring = "{A5API=Access, FileName='C:\Program Files\A5V8\MDBFiles\Alphasports.mdb', UserName='Admin'}"
+select = "SELECT * FROM customer WHERE lastname >= 'm'"
+IF .not. conn.Open(connstring) then
+    ui_msg_box("Error", conn.callresult.text)
+    end
+END IF
+conn.PortableSQLEnabled = .T.
+IF .not. conn.execute(select)
+    ui_msg_box("Error", conn.callresult.text)
+    end
+END IF
+rs = conn.ResultSet
+ti.Name = "AlphaSportsCustomerX"
+delete = conn.GenerateDeleteStatement(ti)
+IF .not. conn.ApplyData(delete, rs)
+    ui_msg_box("Error", conn.callresult.text)
+END IF
+conn.close()
+]]></example>
+       </section>
+       
+       
+   </sections>
+   <see>
+      <ref>SQL::Connection Object</ref>
+   </see>
+  <terms>sql,connection,arguments,collection,defaults,delete,function,object</terms>
+</page>

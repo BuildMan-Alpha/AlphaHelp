@@ -1,0 +1,239 @@
+<page>
+	  <topic>Using Xbasic to Read and Write to a Table</topic>
+
+   <description>The new Alpha Anywhere developer eventually comes to the point where he or she would like to write a script that directly reads from and writes to a table. This topic provides a couple of simple examples that you can elaborate upon. The are based on the Customer table in the AlphaSports sample database.</description>
+ 
+<groups>
+	<group>
+	<sections>
+		
+		<section>
+			<title>Script or Function? </title>
+			<description>Perhaps the first question you will ask is: "Should this be a script or a function?". There is little difference in the Xbasic coding between the two alternatives. The determining issue is whether you want to return a value. Functions can return values. Scripts cannot return values, except by setting the value(s) of global variable(s), and this is often considered a sloppy and potentially troublesome programming practice.</description>
+	
+		</section>
+		
+	</sections>
+	
+</group>
+
+<group>
+	<sections>
+		
+		<section>
+			<title>How Do I Call a Script or Function? </title>
+			<description>Calling a function is as easy as naming it and catching the return value, if any. This example returns a value from the find_last_name()function:
+</description>
+		<example><![CDATA[dim return_value as C
+... some code
+return_value = find_last_name()
+... some code]]></example>
+		</section>
+		<section>
+			
+			<description>Or, if the find_last_name()function required a parameter, you might write something like this:
+</description>
+			<example><![CDATA[dim return_value as C
+... some code
+return_value = find_last_name("Michael")
+... some code]]></example>
+		</section>
+		<section>
+			
+			<description>If the find_last_name()function did not return a value, the syntax would simply be:
+</description>
+			<example><![CDATA[... some code
+find_last_name()
+... some code]]></example>
+		</section>
+		<section>
+			
+			<description>Calling a script named find_first_nameis just as easy:
+</description>
+			<example><![CDATA[... some code
+script_play("find_first_name")
+... some code]]></example>
+<note>Function names always have parentheses in their names. Scripts do not.</note>
+		</section>
+	</sections>
+	
+</group>
+
+<group>
+	<sections>
+		
+		<section>
+			<title>Sequencing Through the Records of a Table 
+</title>
+			<description>The following is the beginning of a scriptthat reads and writes to the customertable. This script does not require that the customertable be open in a layout. First, create a table object named tbl(any variable namethat is not a reserved wordwill do).</description>
+			<example><![CDATA[dim tbl as P
+tbl = table.open("customer")
+]]></example>
+		</section>
+			<section>
+			
+			<description>Now read the first record.
+</description>
+			<example><![CDATA[tbl.fetch_first()
+while .not. table.fetch_eof()
+    ' ... do something
+    tbl.fetch_next()
+end while
+tbl.close()
+]]></example>
+		</section>
+		<section>
+			
+			<description>Keep reading until you reach the end of the file.
+</description>
+			<example><![CDATA[tbl.fetch_first()
+while .not. table.fetch_eof()
+    ' ... do something
+    tbl.fetch_next()
+end while
+]]></example>
+		</section>
+		<section>
+			
+			<description>Now, close the table.
+</description>
+			<example><![CDATA[tbl.close()]]></example>
+		</section>
+		<section>
+			<title>Reading a Field Value </title>
+			<description>Reading a field value is as simple as referencing table_object.field_name. In the following script the variable lnalways contains the value of the lastnamefield in the current record:</description>
+			<example><![CDATA[dim tbl as P
+dim ln as C
+tbl = table.open("customer")
+tbl.fetch_first()
+while .not. table.fetch_eof()
+    ln = tbl.lastname
+    tbl.fetch_next()
+end while
+tbl.close()
+]]></example>
+		</section>
+			<section>
+			<title>Writing a Field Value</title>
+			<description>Writing a changed field value in a record requires two more statements. Suppose you wanted to make sure that the lastnamefield had an initial capital letter.</description>
+			<example><![CDATA[dim tbl as P
+dim ln as C
+tbl = table.open("customer")
+tbl.fetch_first()
+while .not. table.fetch_eof()
+]]></example>
+		</section>
+		<section>
+			
+			<description>The tbl.change_begin(.t.)statement says that you are changing an existing field and that you want to honor any existing field rules.
+</description>
+			<example><![CDATA[tbl.change_begin(.t.)
+    tbl.lastname = f_upper(tbl.lastname)
+ ]]></example>
+		</section>
+		<section>
+			
+			<description>The tbl.change_end(.t.)statement says that you are finished changing an existing field and want to save the changes.
+</description>
+			<example><![CDATA[tbl.change_end(.t.)
+tbl.fetch_next()
+end while
+tbl.close()
+ ]]></example>
+		</section>
+		<section>
+			<title>Deleting a Record </title>
+			<description>The process of deleting a record is similar to changing a record. First, you need to use one of many techniques for finding the record you are going to delete.</description>
+			<example><![CDATA[dim tbl as P
+dim ln as C
+tbl = table.open("customer")
+tbl.fetch_first()
+while .not. table.fetch_eof() ]]></example>
+		</section>
+		<section>
+			
+			<description>This script tests the values of the firstnameand lastnamefields, and only deletes specific records.
+</description>
+			<example><![CDATA[if (tbl.lastname = "Smith") .and. (tbl.firstname = "John") then
+        tbl.change_begin(.t.)
+        tbl.delete()
+]]></example>
+		</section>
+		<section>
+			
+			<description>The tbl.change_end(.t.)statement says that you are want to delete the record.
+</description>
+			<example><![CDATA[tbl.change_end(.t.)
+    end if
+    tbl.fetch_next()
+end while
+tbl.close()
+ ]]></example>
+		</section>
+		<section>
+			<title>Adding a Record </title>
+			<description>Adding a record is simple. You bracket your field updates with the tbl.enter_begin()and tbl.enter_end()statements.
+</description>
+			<example><![CDATA[dim tbl as P
+tbl = table.open("customer")
+tbl.enter_begin()
+]]></example>
+		</section>
+		
+		<section>
+			
+			<description>The tbl.enter_begin(.t.)statement says that you are adding a existing field to the end of the table and that you want to honor any existing field rules.
+</description>
+			<example><![CDATA[tbl.firstname = "George"
+tbl.lastname = "Washington" ]]></example>
+		</section><section>
+			
+			<description>The tbl.enter_end(.t.)statement says that you are finished adding a record and want to save the changes.
+</description>
+			<example><![CDATA[tbl.enter_end(.t.)
+tbl.close() ]]></example>
+		</section>
+		
+		<section>
+			<title>Selecting a Subset of Records with a Query </title>
+			<description>In each of the examples above, the code opened the customer table and sequenced through all of its records. Suppose you wanted only to sequence through the records when the bill_state_regionfield contained the value "MA". Instead of writing this code at the beginning of the script:
+</description>
+			<example><![CDATA[dim tbl as P
+tbl = table.open("customer") ]]></example>
+		</section>
+		
+		<section>
+			
+			<description>you would write:
+</description>
+			<example><![CDATA[dim tbl as P
+dim qry as P
+tbl = table.open("customer")
+query.filter = "bill_state_region = 'MA'"
+qry = tbl.query_create()
+... add, change, or delete ...]]></example>
+		</section>
+		
+		<section>
+			
+			<description>Finish the script or function by detaching the query and closing the table.
+</description>
+			<example><![CDATA[tbl.query_detach()
+tbl.close() ]]></example>
+		</section>
+		
+		<section>
+			
+			<description>Now, you will sequence through only those customers in the state of Massachusetts.
+See Also: Table Functions and Methods, Overview: Functions and Expressions 
+
+</description>
+			
+		</section>
+		
+		
+	</sections>
+	
+</group>
+</groups>	
+</page>

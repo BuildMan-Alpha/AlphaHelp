@@ -26,7 +26,7 @@ var dirCreateRecurse = function (folderName) {
 var indentLevelCalc = function(txt) {
     var i;
     for( i = 0 ; i < txt.length ; ++i ) {
-        if( txt[i] != '\t' ) {
+        if( txt[i] !== '\t' ) {
             if( txt[i] <= ' ' )
                 return 0;
             return i;
@@ -34,8 +34,27 @@ var indentLevelCalc = function(txt) {
     }
     return 0;
 };
-
+var proccessLink = function(linkdef) {
+   var parts = linkdef.split("{");
+   if( parts.length === 2 ) {
+      linkdef = parts[0] + parts[1].replace("}","")+" Object";
+   }
+   return linkdef;   
+};
 var protectXml = function (content) {
+    if( content.indexOf("[link:") >= 0 ) {
+        content = content.split("[link:")
+        var i;
+        for( i = 1 ; i < content.length ; ++i ) {
+            var endPos = content[i].indexOf("]");
+            if( endPos > 0 ) {
+                content[i] = proccessLink(content[i].substring(0,endPos)) + "]*"+ content[i].substring(endPos+1); 
+            } else {
+                content[i] = proccessLink(content[i]) + "]*";
+            }
+        }
+        content = content.join("*[link:");
+    }
     if (content.indexOf("&") >= 0
         || content.indexOf("<") >= 0
         || content.indexOf(">") >= 0
@@ -85,6 +104,7 @@ var generateXMLHelp = function (content) {
     var contextType = "";
     var lastIndentLevel = 0;
     var nestingProps = [];
+    var titleContext = null;
 
     for (i = 0; i < lines.length; ++i) {
         var indentLevel = indentLevelCalc(lines[i]);
@@ -98,7 +118,7 @@ var generateXMLHelp = function (content) {
             }
         } else if (!endTag) {
             var saveString = "";
-            if( line[0] == "'" ) {
+            if( line[0] === "'" ) {
                 line = line.split("'");
                 if( line.length > 2 ) {
                     saveString = "'"+line[1]+"'";
@@ -130,15 +150,25 @@ var generateXMLHelp = function (content) {
                 }
             }
             if (type) {
-                if (type == "context") {
+                if (type === "context") {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
-                } else if (type == "namespace" || type == "class") {
-                    if( type == "class" )
+                } else if (type === "namespace" || type === "class" || type === "object" ) {
+                    if( type === "class" ) {
                         contextType = " Class";
+                        console.log("found a class "+context);
+
+                    } else if( type === "object" ) {
+                        contextType = " Object";
+                    }
                     else    
                         contextType = " Namespace";
                     context = line.substring(splitPos + 1).trim();
+                    if( context.indexOf('.') < 0 && type === "object" && topContext ) {
+                        // Object does not have a fully qualified name
+                        titleContext = context;
+                        context = topContext + '.' + context;
+                    }
                     if (!build.context[context]) {
                         var allParts = context.split('.');
                         if (allParts.length > 1) {
@@ -147,73 +177,75 @@ var generateXMLHelp = function (content) {
                                 allParts.splice(0, 1);
                                 build.context[context] = { path: parentContext.path + '/' + allParts.join('/'), classname: context };
                                 console.log("Added context " + context);
+                            } else {
+                                console.log("Could not find parent "+allParts[0]);
                             }
                         }
                     }
-                } else if (type == "method") {
+                } else if (type === "method") {
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "function" || type == "funct" || type == "func" || type == "fun") {
+                } else if (type === "function" || type === "funct" || type === "func" || type === "fun") {
                     isFunction = true;
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "constructor" || type == "cons") {
+                } else if (type === "constructor" || type === "cons") {
                     isConstructor = true;
                     method = line.substring(splitPos + 1).trim();
-                } else if (type == "description" || type == "desc") {
+                } else if (type === "description" || type === "desc") {
                     description = line.substring(splitPos + 1);
-                } else if (type == "discussion" || type == "disc") {
+                } else if (type === "discussion" || type === "disc") {
                     discussion = line.substring(splitPos + 1);
-                } else if (type == "note") {
+                } else if (type === "note") {
                     note = line.substring(splitPos + 1);
-                } else if (type == "returns") {
+                } else if (type === "returns") {
                     returns = line.substring(splitPos + 1);
-                } else if (type == "arguments" || type == "args") {
+                } else if (type === "arguments" || type === "args") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length == 0 )
+                        if( nestingProps.length === 0 )
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                } else if (type == "properties" || type == "props") {
+                } else if (type === "properties" || type === "props") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length == 0 )
+                        if( nestingProps.length === 0 )
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-                } else if (type == "example") {
+                } else if (type === "example") {
                     endTag = line.substring(splitPos + 1).trim();
-                    if (endTag.length == 0) {
+                    if (endTag.length === 0) {
                         endTag = null;
                     }
                     examples = "";
                 }
                 lastType = type;
-            } else if (lastType == "description" || lastType == "desc") {
+            } else if (lastType === "description" || lastType === "desc") {
                 description += "\r\n" + line;
-            } else if (lastType == "discussion" || lastType == "disc") {
+            } else if (lastType === "discussion" || lastType === "disc") {
                 discussion += "\r\n" + line;
-            } else if (lastType == "note") {
+            } else if (lastType === "note") {
                 note += "\r\n" + line;
-            } else if (lastType == "returns") {
+            } else if (lastType === "returns") {
                 returns += "\r\n" + line;
-            } else if (lastType == "example") {
+            } else if (lastType === "example") {
                 examples += "\r\n" + line;
-            } else if (lastType == "arguments"
-                || lastType == "args"
+            } else if (lastType === "arguments"
+                || lastType === "args"
                 ) {
                 if (dashPos > 0) {
                     lastPropOrArg = processArgOrProc(line, dashPos, arguments);
                 }
-            } else if (lastType == "properties"
-                || lastType == "props"
+            } else if (lastType === "properties"
+                || lastType === "props"
                 ) {
                 if (dashPos > 0) {
                     if( !endTag && lastPropOrArg ) {
-                        if( lastIndentLevel == (indentLevel - 1) ) {
+                        if( lastIndentLevel === (indentLevel - 1) ) {
                             if( !lastPropOrArg.properties )
                                 lastPropOrArg.properties = [];
                             nestingProps.push(lastPropOrArg);
@@ -231,9 +263,9 @@ var generateXMLHelp = function (content) {
                     }
                 }
             }
-        } else if (lastType == "example") {
+        } else if (lastType === "example") {
             examples += "\r\n" + line;
-        } else if (lastType == "arguments" || lastType == "args" || lastType == "properties" || lastType == "props") {
+        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
                 var dashPos = line.indexOf("-");
@@ -247,7 +279,7 @@ var generateXMLHelp = function (content) {
                     }
                 }
                 if (dashPos > 0) {
-                    if( lastType == "properties" || lastType == "props" ) {
+                    if( lastType === "properties" || lastType === "props" ) {
                         if (!lastPropOrArg.properties) {
                             lastPropOrArg.properties = [];
                         }
@@ -288,7 +320,7 @@ var generateXMLHelp = function (content) {
             var normalizedClass =  map.classname.toLowerCase().trim() + ".";
             var normalizedPagename = pagename.toLowerCase().trim();
             
-            if( normalizedPagename.substring(0,normalizedClass.length) == normalizedClass ) {
+            if( normalizedPagename.substring(0,normalizedClass.length) === normalizedClass ) {
                 xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
             } else {            
                 xml += "\t<topic>" + protectXml(map.classname + "." + pagename) + "</topic>\r\n";
@@ -297,7 +329,12 @@ var generateXMLHelp = function (content) {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         }
     } else if( contextType.length > 0 ) {
-        xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
+        if( titleContext ) {
+            xml += "\t<topic>" + protectXml(titleContext+contextType)+ "</topic>\r\n";
+            titleContext = null;                        
+        } else {
+            xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
+        }        
     }
 
     if (method) {
@@ -309,7 +346,7 @@ var generateXMLHelp = function (content) {
             xml += "\t\t<argument>\r\n";
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
             xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
-            xml += "\t\t\t<description>" + arguments[i].description + "</description>\r\n";
+            xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
             xml += "\t\t</argument>\r\n";
         }
         xml += "\t</arguments>\r\n";
@@ -332,7 +369,7 @@ var generateXMLHelp = function (content) {
                 xml += indented + "\t<property>\r\n";
                 xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
                 xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
-                xml += indented + "\t\t<description>" + properties[i].description + "</description>\r\n";
+                xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
                 if (properties[i].arguments) {
                     var j;
                     xml += indented + "\t\t<arguments>\r\n";
@@ -340,7 +377,7 @@ var generateXMLHelp = function (content) {
                         xml += indented + "\t\t\t<argument>\r\n";
                         xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
                         xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
-                        xml += indented + "\t\t\t\t<description>" + properties[i].arguments[j].description + "</description>\r\n";
+                        xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
                         xml += indented + "\t\t\t</argument>\r\n";
                     }
                     xml += indented + "\t\t</arguments>\r\n";
@@ -366,8 +403,25 @@ var generateXMLHelp = function (content) {
         xml += "\t<!--list:.-->\r\n";
     }
     if (!pagename) {
+        var hasNonMethodChildren = false;
+        if( context ) {
+            var contextI;        
+            for( contextI in build.context ) {
+                if( contextI.length > context.length+1 ) {
+                    if( contextI.substring(0,context.length+1).toLowerCase() === (context.toLowerCase()+".") ) {
+                        hasNonMethodChildren = true;
+                        break;
+                    }
+                }
+            }
+        }
         pagename = "index";
-        xml += "\t<!--list:.-->\r\n";
+        if( hasNonMethodChildren ) {
+            xml += "\t<!--list:* Method-->\r\n";
+            xml += "\t<!--list:*index.xml-->\r\n";
+        } else {
+            xml += "\t<!--list:.-->\r\n";
+        }
     }
     xml += "</page>\r\n";
     lastContext = context;
@@ -387,9 +441,9 @@ var extractJsHelp = function () {
                 var contexts = {};
                 lastContext = null;
                 for (i = 0; i < syntax.comments.length; ++i) {
-                    if (syntax.comments[i].type == "Block") {
+                    if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
-                        if (content.substring(0, 5) == "[DOC:" && content.substring(content.length - 1) == ']') {
+                        if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
                             content = content.substring(5, content.length - 1).trim();
                             var helpPage = generateXMLHelp(content);
                             if (!contexts[helpPage.context])
@@ -410,7 +464,7 @@ var extractJsHelp = function () {
                                     if (map.description) {
                                         var topxml = "<page>\r\n";
                                         topxml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
-                                        topxml += "\t<description>" + map.description + "</description>\r\n";
+                                        topxml += "\t<description>" + protectXml( map.description ) + "</description>\r\n";
                                         topxml += "\t<!--list:.-->\r\n";
                                         topxml += "</page>\r\n";
                                         contexts[ctx.files[j].topContext] = { files: [] };
