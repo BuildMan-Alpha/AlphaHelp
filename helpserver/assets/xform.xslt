@@ -514,7 +514,7 @@
                 <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:otherwise>
         </xsl:choose> 
-        <dd><xsl:value-of select="description" />
+        <dd><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
             <xsl:choose>
             <xsl:when test="example/@include"><b class="A5">Example</b><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
