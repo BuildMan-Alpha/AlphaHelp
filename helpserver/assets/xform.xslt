@@ -113,7 +113,7 @@
         <xsl:if test="list">
             <xsl:call-template name="list"/>
         </xsl:if>
-		<xsl:if test="example">
+		<xsl:if test="example">            
             <xsl:choose>
             <xsl:when test="example/@include">
             <b class="A5">Example</b> <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
@@ -383,6 +383,7 @@
             <xsl:call-template name="pages"/>
         </xsl:if>
         <xsl:if test="example">
+            <xsl:if test="example/@caption"><div class="figureTitle"><xsl:value-of select="example/@caption"/></div></xsl:if>        
             <xsl:choose>
             <xsl:when test="example/@include">
             <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
