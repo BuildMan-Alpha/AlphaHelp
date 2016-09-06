@@ -519,7 +519,7 @@
             <div><b class="A5"><xsl:choose><xsl:when test="example/@caption"><xsl:value-of select="example/@caption"/></xsl:when><xsl:otherwise>Example</xsl:otherwise></xsl:choose></b></div>
             <xsl:choose><xsl:when test="example/@include"><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
             <xsl:otherwise><pre class="codeSection"><xsl:value-of select="example" /></pre> </xsl:otherwise>
-            </xsl:choose></xsl:if>							 
+            </xsl:choose></xsl:if>
             <xsl:if test="ref">
                 <xsl:choose>
                     <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
