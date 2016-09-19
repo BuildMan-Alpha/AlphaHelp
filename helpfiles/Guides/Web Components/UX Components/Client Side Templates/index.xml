@@ -1473,5 +1473,165 @@ A5.u.template.formats.phoneNumber = function(value) {
                 </section>
             </sections>
         </group>
+        <group>
+            <title>New Features Added in Alpha Anywhere Build 3826</title>
+            <sections>
+                <section>
+                    <title>Comments</title>
+                    <description>Comments can be added to client-side templates using the *[js:{/* ... */}]* directive.</description>
+                    <example>{/* this is a comment */}</example>
+                    <note>Comments must have white space after the first "*" and before the last "*".</note>
+                </section>
+                <section>
+                    <description>
+                        <p> When the template is expanded, any space taken by comments is ignored. Comments are useful for the obvious use case of adding explanations to your templates.</p>
+                        <p>But another less obvious use case for comments is to make templates more readable. For example, in certain cases your templates should not include any line breaks because the space taken by the line break will affect how the expanded template appears. However, this makes the template difficult to read. In the example below, an empty comment that spans two lines is used to insert a line break into the template for readability. This line break is ignored, however, when the template is expanded.</p>
+                    </description>
+                    <example><![CDATA[{/* this is the firstname field */}
+<div class="item">{/*
+*/}<div class="label">Firstname</div>{/*
+*/}<div class="field">{firstname}</div>{/*
+*/}</div>]]></example>
+                </section>
+                <section>
+                    <title>Arbitrary iterator</title>
+                    <description>The arbitrary iterator allows you to iterate over dynamically created data.</description>
+                    <example><![CDATA[{*@functionName}
+...
+{/*}]]></example>
+                </section>
+                <section>
+                    <description>The iterator is useful for inserting external data into the template when it is expanded.</description>
+                    <example><![CDATA[{orders}
+{id} {total} {date}<br />
+{*if !delivered}
+{*@tracking}
+{location} at {date}
+{/*}
+{*endif}
+{/orders}]]></example>
+                </section>
+                <section>
+                    <description>Where tracking is a Javascript function that might be defined as follows:</description>
+                    <example><![CDATA[function tracking(data,temp,root,parent,path){
+    /*
+    data is the current parent data context - in this case the current order
+    assume code here that goes to a separately stored tracking array and
+    returns an array of locations and dates
+    */
+
+    return [
+        {location: 'Boston MA', date: '9/4/2016'},
+        {location: 'Albany NY', date: '9/5/2016'}
+    ];
+}]]></example>
+                </section>
+                <section>
+                    <title>Escape</title>
+                    <description>You can escape long strings of template characters using the escape directive:</description>
+                    <example><![CDATA[<escape<{some template code'}>>]]></example>
+                </section>
+                <section>
+                    <description>In some cases you need to include special functions in a template (such as A5.map.staticMap() - a function that generates a static HTML map). The function call may include characters such as a colon, which must be escaped because they have special meaning in a template.</description>
+                    <example><![CDATA[{A5.map.staticMap(<escape<{
+width: 400,
+height: 300,
+center: 'Boston MA'
+}>>)}]]></example>
+                </section>
+                <section>
+                    <description>Before the escape directive was available, this above template would have had to be written as:</description>
+                    <example><![CDATA[{A5.map.staticMap(\{width\: 400,height\: 300,center\: 'Boston MA'\})}]]></example>
+                </section>
+                <section>
+                    <title>Ensure</title>
+                    <description>The ensure directive allows you to ensure certain properties exist in the Data.</description>
+                    <example><![CDATA[{*ensure a,b,c}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Where *[js:a]*, *[js:b]* and *[js:c]* are data variables that you want to define so that if they are referenced in an *[js:{*if}]* block, the *[js:{*if}]* block will evaluate correctly.</p>
+                        <p>For example, assume the data passsed to a template is:</p>
+                    </description>
+                    <example><![CDATA[{bar: 'world'}]]></example>
+                </section>
+                <section>
+                    <description>And the template is defined as:</description>
+                    <example><![CDATA[{*if foo == 'hello'}
+...
+{*elseif bar == 'world'}
+...
+{*else}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Without *[js:{*ensure foo}]*, the *[js:{*if}]* block will not execute correctly,  as *[js:foo]* doesn't exist.</p>
+                        <p>Here is how the template could be rewritten to ensure that it works as expected:</p>
+                    </description>
+                    <example><![CDATA[{*ensure foo}
+{*if foo == 'hello'}
+...
+{*elseif bar == 'world'}
+...
+{*else}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <title>Defined/Undefined</title>
+                    <description>
+                        <p>The defined and undefined directives provde a shorthand syntax for checking if a list of variables are or are not defined.</p>
+                        <p> It is common in the logical expressions in a *[js:{*if}]* block to check that certain variables are defined or undefined. The code to do this can be cumbersome and the *[js:<![CDATA[<defined<variableList>>]]>]* and *[js:<![CDATA[<undefined<variableList>>]]>]* directives make your template more readable.</p>
+                        <p>For example, imagine you had the following template:</p>
+                    </description>
+                    <example><![CDATA[ {*if typeof variableName1 == 'undefined' || typeof variableName2 == 'undefined'}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <description> The syntax in the template is cumbersome and can be simplified as:</description>
+                    <example><![CDATA[ {*if <undefined<variableName1,variableName1>>}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <description> Similarly, an expression that tests if variables are all defined might previously have been written as:</description>
+                    <example><![CDATA[ {*if typeof variableName1 != 'undefined' && typeof variableName2 != 'undefined'}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <description> can now be written as</description>
+                    <example><![CDATA[{*if <defined<variableName1,variableName2>>}
+...
+{*endif}]]></example>
+                </section>
+                <section>
+                    <title>Expression Escapement</title>
+                    <description>
+                        <p>The ":" and "|" characters have special meaning in a template. If they are used in an expression, they must be escaped.</p>
+                        <p>If a logical expression in an immediate if expression is enclosed in *[js:( ... )]*, the special *[js::]* and *[js:|]* characters do not need to be escaped.</p>
+                    </description>
+                    <note>The *[js::]* character in a template is how a formatter is defined and the *[js:||]* character sequence is used to define default text for null values.</note>
+                </section>
+                <section>
+                    <description>For example consider the following template code:</description>
+                    <example><![CDATA[{a ? b \: c:uppercase}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>If *[js:a]* is true, then the expression will return *[js:b]*. However, if *[js:a]* is false, the expression will return *[js:c]*. The result of the expression *[js:a ? b \: c]* will then be converted to uppercase (expressed as *[js::uppercase]*.)</p>
+                        <p>The above template can now be rewritten as:</p>
+                    </description>
+                    <example><![CDATA[{(a ? b : c):uppercase}]]></example>
+                </section>
+                <section>
+                    <description>Expression escapement is not limited to logical expressions. For example, the following template expression concatenates strings, one of which is a string containing a *[js::]* character.</description>
+                    <example><![CDATA[{(a + ':' + b):uppercase}]]></example>
+                </section>
+            </sections>
+        </group>
     </groups>
 </page>

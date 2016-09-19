@@ -113,7 +113,7 @@
         <xsl:if test="list">
             <xsl:call-template name="list"/>
         </xsl:if>
-		<xsl:if test="example">
+		<xsl:if test="example">            
             <xsl:choose>
             <xsl:when test="example/@include">
             <b class="A5">Example</b> <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
@@ -383,6 +383,7 @@
             <xsl:call-template name="pages"/>
         </xsl:if>
         <xsl:if test="example">
+            <xsl:if test="example/@caption"><div class="figureTitle"><xsl:value-of select="example/@caption"/></div></xsl:if>        
             <xsl:choose>
             <xsl:when test="example/@include">
             <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
@@ -513,12 +514,12 @@
                 <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:otherwise>
         </xsl:choose> 
-        <dd><xsl:value-of select="description" />
+        <dd><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
-            <xsl:choose>
-            <xsl:when test="example/@include"><b class="A5">Example</b><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
-            <xsl:otherwise> <b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre> </xsl:otherwise>
-            </xsl:choose></xsl:if>							 
+            <div><b class="A5"><xsl:choose><xsl:when test="example/@caption"><xsl:value-of select="example/@caption"/></xsl:when><xsl:otherwise>Example</xsl:otherwise></xsl:choose></b></div>
+            <xsl:choose><xsl:when test="example/@include"><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
+            <xsl:otherwise><pre class="codeSection"><xsl:value-of select="example" /></pre> </xsl:otherwise>
+            </xsl:choose></xsl:if>
             <xsl:if test="ref">
                 <xsl:choose>
                     <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
