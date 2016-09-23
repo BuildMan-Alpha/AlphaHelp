@@ -60,8 +60,57 @@ Swipe
 
 </section>
 
+<section>
+<title>Actions</title>
+<description>The code for each of these events is not defined directly in the definition of the ControlBar item. Instead, you define the code in 'actions'.
+You can create as many 'actions' as you want. Each 'action' is given an arbitrary name.
+Once you have defined an action (say 'myaction1') you associate a ControlBar item event with a particular action. So for example, you might set the 'click' event for a ControlBar button to 'myaction1'.
+The advantage of putting your code in named 'actions' rather than directly in a ControlBar item's event (e.g. a button's Click event) is that you might define multiple buttons for display on different ControlBar layouts and each of these buttons can invoke the same action.</description>
 
 
+
+</section>
+<section>
+<title>Data</title>
+<description>
+ControlBars can have an arbitrary amount of data. The data for a ControlBar is defined as a series of name/value pairs. The values can either be strings, or objects.
+For example, you might define a data item called 'name' and give it a value of 'Alpha Anywhere'. You could define another data item called 'address' and give it a value of:
+{ address: '123 Main St', city: 'Lexington', state: 'MA'}
+In this case the data item is an object and to reference the state you would use address.state as the data item name.
+The common reason for defining data items in a ControlBar is to bind the text displayed by the ControlBar items to data values.
+For example, you might define an 'html' ControlBar item called (say) 'html1'. You could set the text for this ControlBar item to a literal value (e.g. 'My Mobile App') or you might set the text to:
+{name}
+When the ControlBar was displayed if the 'name' item in the ControlBar's data was set to 'Alpha Software' the ControlBar would display this value. To change the text shown in the ControlBar, you simply update the value of the data item (using a method of the ControlBar - see ControlBar Methods below).
+Similarly, you might define a 'button' ControlBar item and set the button text to '{name}'.
+The curly braces are how you reference values from the ControlBar's data object. You can use the client side templating syntax when defining the text for a ControlBar item. For example:
+{*if dataItem1 == 'A'}{dataitem2}{*else}{dataitem3}{*endif}
+ 
+NOTE: For more information on client-side templates see the documentation.
+ 
+Data values can be set to update automatically when a 'watch' event fires. For example, when the value in a control that is being watched changes, a watch event will fire if that particular control is being watched. Watch events also fire when the UX changes 'state'. For example, when the UX goes from 'clean' to 'dirty', all of the watch events will fire.
+You can also manually cause watch events to fire using this UX method:
+{dialog.Object}.refreshClientSideComputations()
+ 
+A common use case for setting data values with watch events is to control the enable/disable or shown/hidden state of ControlBar items. For example, say you have a button in the ControlBar to synchronize data. You would like this button to only be enabled if the List control is dirty.
+To do this you would define an entry (call 'SyncDisabled' for example) in the ControlBar's Data collection. Let's assume that the value of the data property will be set to either false or true depending on whether the List has data to synch.
+So, the Disabled expression for this button would be:
+syncDisabled
+ 
+We need to turn the value of the SyncDisabled data value to 'on' when the List has dirty data.
+If we look at the enable expression for a standard sync button on the UX (button was created using the List genie), we see that the expression is defined as:
+(dialog.list.LIST1.isDirty = true) AND (dialog.listDetailView.LIST1.mode <> 'search')
+ 
+The syntax used for client-side enable functions is not Javascript. It is a special Xbasic like syntax that gets converted by AllphaAnywhere into Javascript.
+The above enable expression can be expressed as a Javascript expression as follows:
+(dialog.list.LIST1.isDirty ) && (dialog.listDetailView.LIST1.mode != 'search')
+ 
+The watch event for the 'syncDisabled' data value could therefore be defined as:
+return !(dialog.list.LIST1.isDirty ) && (dialog.listDetailView.LIST1.mode != 'search');
+ 
+Notice that we are returning the inverse of the expression. If the expression (not including the leading ! character, which inverts a logical value) returns true (indicating that the button should be enabled), we want to return false (so that the Disabled expression for the button is false and the button is not disabled).</description>
+
+
+</section>
 
 
 </sections>
