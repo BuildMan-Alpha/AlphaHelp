@@ -1,0 +1,54 @@
+<script>
+var items = [];
+var filter = "";
+var processList = function() {
+   var results = document.getElementById("searchResults");
+   var i;
+   var maxMatch = 100;
+   var filtered = [];
+   if( maxMatch > items.length ) {
+       maxMatch = items.length;
+   }
+   if( filter ) {
+       filter = filter.toLowerCase();
+       for( i = 0 ; i < items.length ; ++i ) {
+           if( items[i].toLowerCase().indexOf(filter) >= 0 ) {
+               filtered.push(items[i]);
+               if( filtered.length === maxMatch ) {
+                   break;
+               }
+           }
+       }
+   } else {
+       for( i = 0 ; i < maxMatch ; ++i ) {
+           filtered.push(items[i]);
+       }
+   }
+   var html = "";
+   for( i = 0 ; i < filtered.length ; ++i ) {
+       html = html + "<a href=\"/documentation/apihelp?topic="+filtered[i]+"\">" + filtered[i] + "</a><br>\n";
+   }
+   results.innerHTML = html;
+};
+    
+function reqListener () {
+  items = JSON.parse(this.responseText);
+  processList();
+};
+
+var oReq = new XMLHttpRequest();
+oReq.addEventListener("load", reqListener);
+oReq.open("GET", "http://www.alphasoftware.com/documentation/help/functionList.json");
+oReq.send();
+
+var applyFilter = function() {
+   var filterObj = document.getElementById("searchFilter");
+   filter = filterObj.value;
+   processList();
+};
+
+</script>
+<h1>Xbasic Function Finder</h1>
+<p>Filter</p>
+<input id="searchFilter" onchange="applyFilter()" style="width:80%;" />
+<div id="searchResults" />
