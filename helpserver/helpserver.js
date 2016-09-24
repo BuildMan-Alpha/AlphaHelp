@@ -879,7 +879,7 @@ app.use("/", function (req, res) {
             help.onSendExpress(res);
             res.send(JSON.stringify(subtoc));
         });
-    } else if (req.path == "/apihelp" ) {
+    } else if (req.path === "/apihelp" ) {
         help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
@@ -896,8 +896,18 @@ app.use("/", function (req, res) {
                     }
                 }
                 if (foundItem) {
-                    help.onSendExpress(res);
-                    res.send(JSON.stringify(foundItem));
+                    var redirectToPage = false;
+                    if( req.query.getpage ) {
+                        if( req.query.getpage === "true" ) {
+                            redirectToPage = true;
+                        }                        
+                    }
+                    if( redirectToPage ) {
+                        res.redirect("/documentation/pages/" + foundItem.path);
+                    } else {
+                        help.onSendExpress(res);
+                        res.send(JSON.stringify(foundItem));
+                    }
                 } else {
                     // TBD - show the 'not-found' page with results...
                     help.onSendExpress(res);
@@ -908,7 +918,7 @@ app.use("/", function (req, res) {
                 }
             }
         }, 0, 20);
-    } else if (req.path.substring(0, 8) == '/images/') {
+    } else if (req.path.substring(0, 8) === '/images/') {
         res.redirect("/help" + req.path);
     } else if( (req.path+".").indexOf('/favicon.') >= 0 ) {
         require('fs').readFile(options.assetpath + "assets/favicon.ico" ,function(err,data) {
