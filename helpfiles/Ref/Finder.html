@@ -4,13 +4,15 @@ var filter = "";
 var processList = function() {
    var results = document.getElementById("searchResults");
    var i;
-   var maxMatch = 100;
+   var maxMatch = 500;
    var filtered = [];
    if( maxMatch > items.length ) {
        maxMatch = items.length;
    }
+   var html = "";
    if( filter ) {
        filter = filter.toLowerCase();
+       filter = filter.split("::").join("__namespace__");
        for( i = 0 ; i < items.length ; ++i ) {
            if( items[i].toLowerCase().indexOf(filter) >= 0 ) {
                filtered.push(items[i]);
@@ -19,14 +21,16 @@ var processList = function() {
                }
            }
        }
-   } else {
-       for( i = 0 ; i < maxMatch ; ++i ) {
-           filtered.push(items[i]);
+       for( i = 0 ; i < filtered.length ; ++i ) {
+            var text = filtered[i];
+            if( text.toLowerCase().indexOf("__namespace__") >= 0 ) {
+                text = text.split("__NAMESPACE__").join("::");
+                text = text.split("__namespace__").join("::");
+            } 
+            html = html + "<a href=\"/documentation/apihelp?topic="+filtered[i]+"&getpage=true\">" + text + "</a><br>\n";
        }
-   }
-   var html = "";
-   for( i = 0 ; i < filtered.length ; ++i ) {
-       html = html + "<a href=\"/documentation/apihelp?topic="+filtered[i]+"&getpage=true\">" + filtered[i] + "</a><br>\n";
+   } else {
+       html = "Type into the filter textbox to filter the list of functions. Only the first 500 matches are shown."; 
    }
    results.innerHTML = html;
 };
@@ -51,4 +55,4 @@ var applyFilter = function() {
 <h1>Xbasic Function Finder</h1>
 <p>Filter</p>
 <input id="searchFilter" onchange="applyFilter()" style="width:80%;" />
-<div id="searchResults" />
+<div id="searchResults" >Type into the filter textbox to filter the list of functions. Only the first 500 matches are shown.</div>
