@@ -19,6 +19,7 @@ fs.readFile("../generated/list.json","utf8",function(err,data) {
                 }
             }
         }
+        funcArray.sort();
         fs.writeFile("../helpfiles/functionList.json" , JSON.stringify(funcArray) );
     }
 });
