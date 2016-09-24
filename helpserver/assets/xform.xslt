@@ -81,11 +81,19 @@
 			<p><xsl:value-of select="returns" /> </p>
 		</xsl:if>
 		<xsl:if test="description">
-            <meta name="description" content="{description}"/>
-			<p class="A5">Description</p>
-            <xsl:for-each select="description">
-                <xsl:call-template name="text-content"/>
-            </xsl:for-each>
+		    <xsl:choose>
+                <xsl:when test="description='here'">   
+                   <p class="A5">Page is under Construction</p>                
+                   <div class="underConstruction"><br/><br/><br/><br/><br/><br/><br/></div>
+                </xsl:when>
+                <xsl:otherwise>            
+                    <meta name="description" content="{description}"/>
+                    <p class="A5">Description</p>
+                    <xsl:for-each select="description">
+                        <xsl:call-template name="text-content"/>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
 		</xsl:if>
 		<xsl:choose>
             <xsl:when test="discussion/@include">
