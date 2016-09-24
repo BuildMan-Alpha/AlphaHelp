@@ -10,7 +10,7 @@ fs.readFile("../generated/list.json","utf8",function(err,data) {
             if( ptr.path.indexOf('/AlphaHelp/helpfiles/Ref') > 0 ) {
                 var nocasepath =  ptr.path.toLowerCase();
                 if( ptr.path.indexOf("/Desktop_Api/") > 0 || ptr.path.indexOf("/Api/") > 0 ) {
-                    if( nocasepath.indexOf(" function.xml") > 0 || nocasepath.indexOf(" method.xml") > 0 ) {
+                    if( nocasepath.indexOf(" function.xml") > 0 || nocasepath.indexOf(" method.xml") > 0 || nocasepath.indexOf("().xml") > 0 ) {
                         var functionName = ptr.path.substring(ptr.path.lastIndexOf("/")+1);
                         //var url = "/documentation/page/"+ptr.path.substr( ptr.path.indexOf('/AlphaHelp/helpfiles/')+21 );
                         functionName = functionName.substring( 0 , functionName.lastIndexOf(' ') );
