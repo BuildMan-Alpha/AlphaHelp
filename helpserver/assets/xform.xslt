@@ -82,7 +82,7 @@
 		</xsl:if>
 		<xsl:if test="description">
 		    <xsl:choose>
-                <xsl:when test="description='here'">   
+                <xsl:when test="description='here' or description='Here'">   
                    <p class="A5">Page is under Construction</p>                
                    <div class="underConstruction"><br/><br/><br/><br/><br/><br/><br/></div>
                 </xsl:when>
