@@ -606,10 +606,10 @@ events.extractSymbols = function(txt,title,path) {
       { "symbol" : "@" , "replace" : "amper|" } ,
       { "symbol" : "{" , "replace" : "lcbrc|" , "endsymbol" :  "}" , "endreplace" : "|rcbrc" } 
      ];
-     var i , j;
+     var i , j , k;
      var padText = " "+txt.toLowerCase()+" ";
      var symbols = " " , symbol;
-     var words , word , parts;
+     var words , word , parts , subparts;
      if( title ) {
          title = title.toLowerCase();
          padText = " "+ title.trim() + padText;
@@ -662,7 +662,7 @@ events.extractSymbols = function(txt,title,path) {
              changed = true;
          }
      }
-     if( symbols.length > 1 ) {
+     if( symbols.length > 1 ) {         
          words = symbols.trim().split(" ");
          for( i = 0 ; i < words.length ; ++i ) {
              if( words[i].indexOf(".") > 0 ) {
@@ -671,7 +671,16 @@ events.extractSymbols = function(txt,title,path) {
                      symbol = parts.slice(0,j+1).join('.') + " ";
                      if( symbols.indexOf(" "+symbol) < 0 ) {
                          symbols += symbol;
-                     }                     
+                     }
+                     if( parts[j].indexOf("_") > 0 ) {
+                         subparts = parts[j].split('_');
+                         for( k = 0 ; k < subparts.length ; ++k ) {
+                            symbol = subparts.slice(0,k+1).join('_') + " ";
+                            if( symbols.indexOf(" "+symbol) < 0 ) {
+                                symbols += symbol;
+                            }
+                         }                         
+                     }
                  }
              } else if( words[i].indexOf("_") > 0 ) {
                  parts = words[i].split('_');
