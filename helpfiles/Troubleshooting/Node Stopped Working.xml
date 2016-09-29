@@ -1,0 +1,108 @@
+<page>
+    <shortlink>debugging node js errors</shortlink>
+    <topic>Debugging Node.js Errors</topic>
+    <description>If a node service fails, you may receive a JSON object with the message "node stopped working" from your Node service. This error indicates that the Node.js server has crashed. You can debug these errors using Helper functions designed for diagnosing Node failures.</description>
+    <discussion>
+        <p>The *[xb:node_request]* method returns a JSON object that contains information about the node service. If the node service fails, the JSON object will have a property called *[js:error]* containing the message "node stopped running".</p>
+    </discussion>
+    <sections>
+        <section>
+            <example><![CDATA[{ "id" : "aec51463-42d6-4f09-aea8-89dc5af8a3a2" , "error" : "node stopped running" }]]></example>
+        </section>
+        <section>
+            <description>You can get more information about the error that caused the node service to stop running using the *[xb:helper::node::GetLastError()]* method. The *[xb:helper::node::GetLastError()]* method returns detailed information about the error that occured in the node service.</description>
+        </section>
+        <section>
+            <title>An Example</title>
+            <description>Suppose you have created the following node service to resize images using the tinify library (visit [How to Install a Node Module and Call it from a Node Service in a Web Application] to learn more about creating and calling node services):</description>
+            <example><![CDATA[var tinify = require("tinify");
+tinify.key = "your api key here";
+
+exports.handler = function (packet, response, sendResponse) {
+	var source = tinify.fromFile(packet.infile).resize(packet.resize).toFile(packet.outfile,function(err) {
+		if (err) {
+			response.error = err.message;
+		}
+		sendresponse(response,null);
+	});
+};]]></example>
+        </section>
+        <section>
+            <description>And you call this node service from an .a5w page, which is defined as follows:</description>
+            <example><![CDATA[<%a5
+dim req as p
+dim req.infile as c = "C:\movieImages\snow.jpg"
+dim req.outfile as c = "C:\movieImages\snowSmall.jpg"
+dim req.resize.method as c = "fit"
+dim req.resize.width as n = 100
+dim req.resize.height as n = 200
+
+if file.exists(req.outfile) then
+	file.remove(req.outfile)
+end if
+
+? node_request("tinify",req)
+
+if file.exists(req.outfile) then
+	? "Thumbnail was created"
+else
+	? "Thumbnail was not created"
+end if
+%>]]></example>
+        </section>
+        <section>
+            <description>When you run your .a5w page, you get the following output:</description>
+            <example><![CDATA[{ "id" : "aec51463-42d6-4f09-aea8-89dc5af8a3a2" , "error" : "node stopped running" }Thumbnail was not created]]></example>
+        </section>
+        <section>
+            <description>The node service stopped running. Unfortunately, there is no information indicating why the service failed. To find out what caused the failure, you need to use the *[xb:Helper::Node::getLastError()]* function. By adding the following to the end of the xbasic script on the .a5w page, you can get more information about the error that occured when you called the node service:</description>
+            <example><![CDATA[? "<pre>" + Helper::Node::getLastError() + "</pre>"]]></example>
+            <note>The *[xb:<![CDATA[<pre>...</pre>]]>]* tags were added to make the output from *[xb:Helper::Node::getLastError()]* easier to read on the .a5w page.</note>
+        </section>
+        <section>
+            <description>Now when you run the .a5w page, you will see detailed information about the failure:</description>
+            <example><![CDATA[Node instance C:\A5Webroot\example\node
+Thu, 29 Sep 2016 00:06:29 GMT uncaughtException:sendresponse is not defined
+
+Callstack:
+ReferenceError: sendresponse is not defined
+    at C:\A5Webroot\example\node\node_services\tinify.js:8:3
+    at tryCatcher (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\util.js:26:23)
+    at Promise.successAdapter [as _fulfillmentHandler0] (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\nodeify.js:22:30)
+    at Promise._settlePromiseAt (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\promise.js:582:21)
+    at Promise._settlePromises (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\promise.js:700:14)
+    at Async._drainQueue (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\async.js:123:16)
+    at Async._drainQueues (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\async.js:133:10)
+    at Immediate.Async.drainQueues [as _onImmediate] (C:\A5Webroot\example\node\node_modules\tinify\node_modules\bluebird\js\main\async.js:15:14)
+    at processImmediate [as _immediateCallback] (timers.js:383:17)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the output above, you can see an uncaught exception occured in the node service:</p>
+            </description>
+            <example>Thu, 29 Sep 2016 00:06:29 GMT uncaughtException:sendresponse is not defined</example>
+        </section>
+        <section>
+            <description>
+                <p>This message states that the object 'sendresponse' was not defined in the node service. Upon inspection of the node service, you see that the line, *[js:sendresponse(response,null);]* is incorrect. The exports function parameter was defined as 'sendResponse', not 'sendresponse':</p>
+            </description>
+            <figure>
+                <title>'sendresponse' was not defined in the node service, leading to a failure.</title>
+                <link>images/nodestoppedrunning2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>Changing the script to *[js:sendResponse(response,null);]* eliminates the error and the node service runs as expected:</description>
+            <example><![CDATA[{"_id":"9b39aae8-99db-49b1-8491-1b3b4389ae71","error":"","result":null}Thumbnail was created]]></example>
+        </section>
+    </sections>
+    <links>
+        <link href="/documentation/index?search=install%20and%20call%20node%20modules%20npm">How to Install a Node Module and Call it from a Node Service in a Web Application</link>
+    </links>
+    <see>
+        <ref href="/documentation/index?search=node_request%20function">node_request Function</ref>
+        <ref href="/documentation/index?search=helper::node%20getlasterror%20method">Helper::Node::getLastError()</ref>
+        <ref href="/documentation/index?search=install%20and%20call%20node%20modules%20npm">How to Install a Node Module and Call it from a Node Service in a Web Application</ref>
+    </see>
+    <terms>node stopped working,debug node,node.js,node crash,troubleshooting node</terms>
+</page>
