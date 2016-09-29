@@ -208,6 +208,7 @@
                             <xsl:when test="./@static">
                             <xsl:choose>                            
                             <xsl:when test="ref/@href"><dt class="methodStatic"><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref/@link"><dt class="methodStatic"><a href="/documentation/index?search={@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
                             <xsl:when test="ref"><dt class="methodStatic"><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
                             <xsl:otherwise><dt class="methodStatic"><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
@@ -215,7 +216,8 @@
                             <xsl:otherwise>
                             <xsl:choose>
                             <xsl:when test="ref/@href"><dt><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref/@link"><dt><a href="/documentation/index?search={@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>                            
                             <xsl:otherwise><dt><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:otherwise>
@@ -507,7 +509,7 @@
     </xsl:template>
     
 	<xsl:template match="properties-content" name="properties-content" >
-        <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+        <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /> </xsl:when><xsl:when test="../@depth"><xsl:value-of select="../@depth+1" /> </xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
         <xsl:choose>
             <xsl:when test="./@readonly">
                 <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
