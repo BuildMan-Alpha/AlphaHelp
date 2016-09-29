@@ -157,7 +157,7 @@
             </xsl:for-each>        
         </xsl:if>
 		<xsl:if test="properties">
-			<p class="A5">Properties</p>
+			<h2 ><a name="group_properties">Properties</a></h2>
             <dl class="propertiesDL" >
                 <xsl:for-each select="properties/property">
                 <xsl:call-template name="properties-content"/>
@@ -165,7 +165,7 @@
             </dl>
 		</xsl:if>
 		<xsl:if test="methods">
-			<p class="A5">Methods</p>
+			<h2 ><a name="group_methods">Methods</a></h2>
 			<dl class="methodsDL" >
                 <xsl:if test="methods/@nomethods"> <dt class="noMethods"><xsl:value-of select="methods" /></dt></xsl:if>
 				<xsl:for-each select="methods/method">
@@ -206,17 +206,17 @@
                     <xsl:if test="name">
                         <xsl:choose>
                             <xsl:when test="./@static">
-                            <xsl:choose>
-                            <xsl:when test="ref/@href"><dt class="methodStatic"><a href="{ref/@href}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref"><dt class="methodStatic"><a href="/documentation/index?search={ref}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:otherwise><dt class="methodStatic"><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
+                            <xsl:choose>                            
+                            <xsl:when test="ref/@href"><dt class="methodStatic"><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref"><dt class="methodStatic"><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:otherwise><dt class="methodStatic"><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
                             <xsl:choose>
-                            <xsl:when test="ref/@href"><dt><a href="{ref/@href}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:otherwise><dt><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
+                            <xsl:when test="ref/@href"><dt><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:otherwise><dt><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:otherwise>
                         </xsl:choose>                                            
