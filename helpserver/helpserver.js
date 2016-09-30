@@ -679,7 +679,10 @@ events.extractSymbols = function(txt,title,path) {
                             if( symbols.indexOf(" "+symbol) < 0 ) {
                                 symbols += symbol;
                             }
-                         }                         
+                            if( k > 0 && symbols.indexOf(" "+subparts[k]) < 0 ) {
+                                symbols += subparts[k]+" ";
+                            }                           
+                        }
                      }
                  }
              } else if( words[i].indexOf("_") > 0 ) {
