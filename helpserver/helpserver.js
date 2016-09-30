@@ -707,7 +707,13 @@ events.extractSymbols = function(txt,title,path) {
      if( symbols.indexOf(".") > 0 ) {
          symbols += "dotseparated";
      }
-     return symbols.trim();  
+     symbols = symbols.trim();
+     if( symbols.length === 0 ) {
+        if( !path && !title ) {
+             symbols = txt.toLowerCase().trim();
+        }
+     }
+     return symbols;
 };
 events.postProcessContent = function(data) {
     if( data.indexOf("*[")) {
