@@ -160,7 +160,7 @@
 			<h2 ><a name="group_properties">Properties</a></h2>
             <dl class="propertiesDL" >
                 <xsl:for-each select="properties/property">
-                <xsl:call-template name="properties-content"/>
+                <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>                
                 </xsl:for-each>
             </dl>
 		</xsl:if>
@@ -509,7 +509,7 @@
     </xsl:template>
     
 	<xsl:template match="properties-content" name="properties-content" >
-        <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /> </xsl:when><xsl:when test="../@depth"><xsl:value-of select="../@depth+1" /> </xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+        <xsl:param name = "depth" />        
         <xsl:choose>
             <xsl:when test="./@readonly">
                 <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
@@ -541,7 +541,7 @@
             <xsl:if test="properties">
                 <dl class="propertiesDL" >
                     <xsl:for-each select="properties/property">
-                        <xsl:call-template name="properties-content"/>
+                        <xsl:call-template name="properties-content"><xsl:with-param name="depth" select = "$depth+1" /></xsl:call-template>
                     </xsl:for-each>
                 </dl>
             </xsl:if>
