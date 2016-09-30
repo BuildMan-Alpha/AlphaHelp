@@ -1,7 +1,10 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 	<xsl:template match="/">
 		<xsl:for-each select="page">
-			<xsl:call-template name="page-content"/>
+           <xsl:choose>
+              <xsl:when test="./@class"> <div class="{./@class}"> <xsl:call-template name="page-content"/> </div> </xsl:when>
+              <xsl:otherwise> <xsl:call-template name="page-content"/> </xsl:otherwise>
+           </xsl:choose>
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="pages" name="pages" >
