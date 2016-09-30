@@ -688,6 +688,8 @@ events.extractSymbols = function(txt,title,path) {
                      symbol = parts.slice(0,j+1).join('_') + " ";
                      if( symbols.indexOf(" "+symbol) < 0 ) {
                          symbols += symbol;
+                     } else if( j > 0 && symbols.indexOf(" "+parts[j]) < 0 ) {
+                         symbols += parts[j]+" ";
                      }                     
                  }
              }
