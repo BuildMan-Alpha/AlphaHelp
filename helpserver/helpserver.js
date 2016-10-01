@@ -610,6 +610,10 @@ events.extractSymbols = function(txt,title,path) {
      var padText = " "+txt.toLowerCase()+" ";
      var symbols = " " , symbol;
      var words , word , parts , subparts;
+     var originalTitle = title;
+     if( !originalTitle ) {
+         originalTitle = txt;
+     }
      if( title ) {
          title = title.toLowerCase();
          padText = " "+ title.trim() + padText;
@@ -699,6 +703,54 @@ events.extractSymbols = function(txt,title,path) {
              }
          }
          symbols = symbols.split("|").join("_");
+     }
+     var splitByCase = function(caseword) {
+         var subWords = [];
+         var i;
+         var lastType = null;
+         var thisType;
+         var wordStart = 0;
+         for( i = 0 ; i < caseword.length ; ++i ) {
+             var chr = caseword.charAt(i);
+             if( /[A-Za-z]|[\u0080-\u024F]/.test(chr)) {
+                 if( chr === chr.toUpperCase() ) {
+                     thisType = "u";
+                 } else if( chr === chr.toLowerCase() ) {
+                     thisType = "l";
+                 } else {
+                     thisType = lastType;
+                 }
+             } else {
+                 thisType = lastType;
+             }
+             if( i > 0 && thisType && thisType !== lastType ) {
+                 if( lastType === 'u' && thisType === 'l' ) {
+                     if( (wordStart+1) < i ) {
+                         subWords.push( caseword.substring(wordStart,i-1) );
+                         wordStart = i-1;
+                     }                      
+                 } else if( (wordStart+1) < i  ) {
+                     subWords.push(  caseword.substring(wordStart,i) )
+                     wordStart = i;
+                 }
+             }
+             lastType = thisType;
+         }
+         subWords.push( caseword.substring(wordStart) );
+         return subWords;
+     };
+     originalTitle = originalTitle.split("_").join(".").split(".");
+     for( i = 0 ; i < originalTitle.length ; ++i ) {
+         var caseWords = splitByCase(originalTitle[i]);
+         if( caseWords.length > 1 ) {
+             // Search for case words
+             for( j = 0 ; j < caseWords.length ; ++j ) {
+                 var subword = caseWords[j].toLowerCase()+" ";
+                 if( symbols.indexOf(" "+subword) < 0 ) {
+                     symbols += subword;
+                 }
+             }
+         }
      }
      // Add symbols to denote the separator that is being used
      if( symbols.indexOf("_") > 0 ) {
