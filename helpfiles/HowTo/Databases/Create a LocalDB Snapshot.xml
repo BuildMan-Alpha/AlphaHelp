@@ -1,0 +1,157 @@
+<page>
+    <topic>How to Create a Database Snapshot and Store it in a SQLLocalDB Database</topic>
+    <description>Having a way to create and share data in databases is desireable in some situations. Test databases, sample databases, or databases shipped with an app can be created using database snapshots.</description>
+    <discussion>
+        <p>Snapshots of tables and databases are created using the [SQL::DatabaseSnapshot] and [SQL::TableSnapshot] classes. Data in a snapshot can be loaded from and saved to any database that can be accessed with AlphaDAO connection strings. Data from databases can also be saved in other formats, such as XML, Excel, or JSON.</p>
+        <p>This article explains how to create a snapshot of a single table from an Access database and store it in a SQL Server LocalDB database. The LocalDB database is created as a file defined by the *[xb:dbFilename]* variable.</p>
+        <p>Once the database has been created, a LocalDB .mdf file can be detached and shared with others. In addition to creating the LocalDB database, this article also explains how to detatch and attach LocalDB databases in Alpha Anywhere.</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>This article requires Alpha Anywhere build 3875 or newer.</note>
+        </section>
+        <section>
+            <title>Loading the Table Snapshot</title>
+            <description>
+                <p>The first step is to create the table snapshot of the Northwind Customers table. Create and open a SQL::Connection to the Northwind Access database. If you have never worked with the Northwind Access database in Alpha Anywhere, a few extra steps are required so the database can be accessed. Follow the instructions in the "[Creating AlphaDAO Connection Strings]" tutorial to configure the Northwind Access database.</p>
+            </description>
+            <example><![CDATA[' Open the source database
+dim cn as SQL::Connection
+cn.open("::Name::Northwind_Access")
+ 
+' Get the table info for Customers
+dim ti as SQL::TableInfo
+cn.getTableInfo(ti,"Customers")
+
+' Load the table snapshot
+dim ts as SQL::TableSnapshot
+ts.load(cn,ti)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the code above, three things are happening. The first is the connection to the Northwind Access database is created. Next, the table info for the Customers table is retrieved from the database. The table info is needed so the table snapshot object knows what table to load. On the last line, *[xb:ts.load(cn,ti)]*, the table snapshot is loaded using the connection string *[xb:cn]* to load the Customers table, as defined by the table info object *[xb:ti]*.</p>
+            </description>
+        </section>
+        <section>
+            <title>Creating the LocalDB Database</title>
+            <description>
+                <p>Since we want to save the snapshot in a portable SQLLocalDB .mdf file, the next step in this process is to create the .mdf file. To do this, a second connection string, *[xb:cn2]* is needed. This connection string will be used to first create the "Northwind_Snapshot.mdf" file. In the third step, *[xb:cn2]* will be reused to open a connection to the Northwind_snapshot.mdf database to store the table snapshot.</p>
+            </description>
+            <example><![CDATA[' Define connection string for connecting to SQLLocalDB 2016
+dim conn as c = "{A5API='SQLServer',A5DBVersion=2016,Server='(localdb)\MSSQLLocalDB',A5ANSINullPadWarn=Default,Trusted_connection=yes,A5LoginTimeout=30}"
+
+' Open the connection
+dim cn2 as SQL::Connection
+cn2.open(conn)
+
+' Create the new database
+dim dbFilename as c = "C:\path\to\Northwind_Snapshot.mdf"
+cn2.execute("CREATE DATABASE Northwind_Snapshot ON (name='Northwind_Snapshot', filename='" + dbFilename + "')")
+
+' Close the connection
+cn2.close()]]></example>
+        </section>
+        <section>
+            <title>Saving the Table Snapshot</title>
+            <description>
+                <p>Now that the database has been created, the table snapshot of the Customers table can be stored in the Northwind_Snapshot database.</p>
+            </description>
+            <example><![CDATA[' Create and open a connection to the Northwind_Snapshot database
+conn = "{A5API='SQLServer',A5DBVersion=2016,Server='(localdb)\MSSQLLocalDB',A5ANSINullPadWarn=Default,Trusted_connection=yes,A5LoginTimeout=30,Database='Northwind_Snapshot'}"
+cn2.open(conn)
+
+' Store the table snapshot
+ts.store(cn2)
+
+' Close all connections
+cn2.close()
+cn.close()]]></example>
+        </section>
+        <section>
+            <title>Detaching a LocalDB Database</title>
+            <description>
+                <p>If you want to share the .mdf file containing the table snapshot or relocate it to another location on the file system, the LocalDB database must be detached from the SQLLocalDB instance:</p>
+            </description>
+            <example><![CDATA[' Create and open the connection
+dim connStr as C = "{A5API='SQLServer',A5DBVersion=2016,Server='(localdb)\MSSQLLocalDB',A5ANSINullPadWarn=Default,Trusted_connection=yes,A5LoginTimeout=30}"
+dim cn as SQL::Connection
+cn.open(connStr)
+
+' Take the database offline
+cn.execute("ALTER DATABASE [Northwind_Snapshot] SET OFFLINE WITH ROLLBACK IMMEDIATE")
+
+' Detatch the database
+dim args as SQL::Arguments
+args.set("dbname","Northwind_Snapshot")
+cn.execute("exec sp_detach_db :dbname", args)
+
+' Close the connection
+cn.close()]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Once the database is detached, it can be copied or distributed. Components that require a database to work are easier to share with a sample database. Simply zip the .mdf file with the component that uses the database to distribute them together.</p>
+            </description>
+        </section>
+        <section>
+            <title>Attaching a LocalDB Database</title>
+            <description>
+                <p>Others who receive the LocalDB .mdf file will need to attach the database to their local instance of SQLLocalDB. This is done as follows:</p>
+            </description>
+            <example><![CDATA[' Define the absolute file path and name for the database to attach
+dim mdfName as C = "C:\path\to\Northwind_Snapshot.mdf"
+
+' Define the connection string
+dim connStr as C = "{A5API='SQLServer',A5DBVersion=2016,Server='(localdb)\MSSQLLocalDB',A5ANSINullPadWarn=Default,Trusted_connection=yes,A5LoginTimeout=30}"
+
+' Create and open the connection string
+dim cn as sql::Connection
+cn.open(connStr)
+cn.PortableSQLEnabled = .f.
+
+' Create the SQL statement for attaching the database
+' Note: The database name must be unique
+dim sql as c =<<%sql%
+CREATE DATABASE Northwind_Snapshot ON
+(FILENAME= '{mdfName}')
+FOR ATTACH
+%sql%
+
+' Replace {mdfName} with the name of the file
+sql = evaluate_string(sql)
+
+' Attach the database
+cn.execute(sql)
+
+' Close the connection string
+cn.close()]]></example>
+        </section>
+        <section>
+            <description>
+                <p>After the database has been attached, a connection string can be created to access the database. This can be done using the AlphaDAO Connection String dialog or with xbasic, as shown below:</p>
+            </description>
+            <example><![CDATA[' Define the connection string
+dim connStr as C = "{A5API='SQLServer',A5DBVersion=2016,Server='(localdb)\MSSQLLocalDB',A5ANSINullPadWarn=Default,Trusted_connection=yes,A5LoginTimeout=30,Database='Northwind_Snapshot'}"
+
+' Save the connection string
+a5_connstringoperation("cs","Northwind_Snapshot","Save","",connStr)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>For more information about Database Snapshots and LocalDB, check out the links below.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link href="/documentation/index?search=sql%20database%20snapshots">SQL Database Snapshots</link>
+        <link href="/documentation/index?search=sql::databasesnapshot%20class">SQL::DatabaseSnapshot</link>
+        <link href="/documentation/index?search=sql::tablesnapshot%20class">SQL::TableSnapshot</link>
+        <link href="/documentation/index?search=creating%20alphadao%20connection%20strings">Creating AlphaDAO Connection Strings</link>
+    </links>
+    <see>
+        <ref href="/documentation/index?search=sql%20database%20snapshots">SQL Database Snapshots</ref>
+        <ref href="/documentation/index?search=sql::databasesnapshot%20class">SQL::DatabaseSnapshot Class</ref>
+        <ref href="/documentation/index?search=sql::tablesnapshot%20class">SQL::TableSnapshot Class</ref>
+        <ref href="/documentation/index?search=sql::localdb%20namespace">SQL::LocalDB</ref>
+    </see>
+</page>
