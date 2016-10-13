@@ -503,7 +503,7 @@ events.getSharableLink= function(page,symName) {
     page = page.replace(".xml_html",".xml");
     shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
     if( symName ) {
-        shareLink = "http://www.alphasoftware.com/documentation/index?search="+symName;
+        shareLink = encodeURI("http://www.alphasoftware.com/documentation/index?search="+symName);
     }
     return shareLink;
 };
@@ -571,10 +571,10 @@ events.generateLocalToc = function(localNames) {
         }
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
-        if( isTree )
-            localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
-        else
-            localToc = "<div id=\"local-toc\">\n" + localToc;
+        //if( isTree )
+        localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
+        //else
+        // localToc = "<div id=\"local-toc\">\n" + localToc;
         return localToc;  
    }
    return "";
@@ -610,6 +610,10 @@ events.extractSymbols = function(txt,title,path) {
      var padText = " "+txt.toLowerCase()+" ";
      var symbols = " " , symbol;
      var words , word , parts , subparts;
+     var originalTitle = title;
+     if( !originalTitle ) {
+         originalTitle = txt;
+     }
      if( title ) {
          title = title.toLowerCase();
          padText = " "+ title.trim() + padText;
@@ -679,7 +683,10 @@ events.extractSymbols = function(txt,title,path) {
                             if( symbols.indexOf(" "+symbol) < 0 ) {
                                 symbols += symbol;
                             }
-                         }                         
+                            if( k > 0 && symbols.indexOf(" "+subparts[k]) < 0 ) {
+                                symbols += subparts[k]+" ";
+                            }                           
+                        }
                      }
                  }
              } else if( words[i].indexOf("_") > 0 ) {
@@ -688,11 +695,62 @@ events.extractSymbols = function(txt,title,path) {
                      symbol = parts.slice(0,j+1).join('_') + " ";
                      if( symbols.indexOf(" "+symbol) < 0 ) {
                          symbols += symbol;
+                     } 
+                     if( j > 0 && symbols.indexOf(" "+parts[j]) < 0 ) {
+                         symbols += parts[j]+" ";
                      }                     
                  }
              }
          }
          symbols = symbols.split("|").join("_");
+     }
+     var splitByCase = function(caseword) {
+         var subWords = [];
+         var i;
+         var lastType = null;
+         var thisType;
+         var wordStart = 0;
+         for( i = 0 ; i < caseword.length ; ++i ) {
+             var chr = caseword.charAt(i);
+             if( /[A-Za-z]|[\u0080-\u024F]/.test(chr)) {
+                 if( chr === chr.toUpperCase() ) {
+                     thisType = "u";
+                 } else if( chr === chr.toLowerCase() ) {
+                     thisType = "l";
+                 } else {
+                     thisType = lastType;
+                 }
+             } else {
+                 thisType = lastType;
+             }
+             if( i > 0 && thisType && thisType !== lastType ) {
+                 if( lastType === 'u' && thisType === 'l' ) {
+                     if( (wordStart+1) < i ) {
+                         subWords.push( caseword.substring(wordStart,i-1) );
+                         wordStart = i-1;
+                     }                      
+                 } else if( (wordStart+1) < i  ) {
+                     subWords.push(  caseword.substring(wordStart,i) )
+                     wordStart = i;
+                 }
+             }
+             lastType = thisType;
+         }
+         subWords.push( caseword.substring(wordStart) );
+         return subWords;
+     };
+     originalTitle = originalTitle.split("_").join(".").split(".");
+     for( i = 0 ; i < originalTitle.length ; ++i ) {
+         var caseWords = splitByCase(originalTitle[i]);
+         if( caseWords.length > 1 ) {
+             // Search for case words
+             for( j = 0 ; j < caseWords.length ; ++j ) {
+                 var subword = caseWords[j].toLowerCase()+" ";
+                 if( symbols.indexOf(" "+subword) < 0 ) {
+                     symbols += subword;
+                 }
+             }
+         }
      }
      // Add symbols to denote the separator that is being used
      if( symbols.indexOf("_") > 0 ) {
@@ -701,7 +759,13 @@ events.extractSymbols = function(txt,title,path) {
      if( symbols.indexOf(".") > 0 ) {
          symbols += "dotseparated";
      }
-     return symbols.trim();  
+     symbols = symbols.trim();
+     if( symbols.length === 0 ) {
+        if( !path && !title ) {
+             symbols = txt.toLowerCase().trim();
+        }
+     }
+     return symbols;
 };
 events.postProcessContent = function(data) {
     if( data.indexOf("*[")) {

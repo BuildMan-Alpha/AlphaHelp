@@ -473,7 +473,7 @@ events.getSharableLink = function(page,symName) {
     page = page.replace(".xml_html",".xml");
     shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
     if( symName ) {
-        shareLink = "http://www.alphasoftware.com/documentation/index/"+symName;
+        shareLink = encodeURI("http://www.alphasoftware.com/documentation/index/"+symName);
     }
     return shareLink;
 };
