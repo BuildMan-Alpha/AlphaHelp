@@ -440,6 +440,13 @@ events.extractTitle = function(page) {
         if( topicEnd > topicStart ) {
             if( page.substring ) {
                 var  topic = page.substring(topicStart,topicEnd).trim();
+                if( topic.substring(0,9) === "<![CDATA[") {
+                    if( topic.substring(topic.length-3) === "]]>" ) {
+                        topic = topic.substring(9,topic.length-3);
+                        topic = replaceAll(topic,"<","&lt;");
+                        topic = replaceAll(topic,">","&gt;");         
+                    }
+                }
                 if( topic.length > 0 )
                     return topic;
             } else {
