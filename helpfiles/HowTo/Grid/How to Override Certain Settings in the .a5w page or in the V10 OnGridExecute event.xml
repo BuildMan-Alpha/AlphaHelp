@@ -1,52 +1,73 @@
 <page>
-	<topic>How to Override Certain Settings in the .a5w page, or in the OnGridExecute event</topic>
-	<description>In V9 you could override any setting of the grid in the Override Settings section in the Xbasic code that loaded the Grid (in the .a5w page).
-In V10, this is no longer possible (at least by default).</description>
-<sections>
-	<section>
-		<description> That's because many of the grid template html and other settings are now computed from the Grid properties at design-time, rather than at runtime.
-
-Many properties can still be set at run-time, but some properties cannot (by default). Typically properties that control the layout of the HTML, control definitions, update settings cannot be set at run-time because Alpha Five has already 'processed' these properties.
-
-You can however force A5 to re-calculate certain parts of the Grid  (that are normally computed at design-time) at run-time by setting properties of the Grid.
-
-For example, say you want to override a column heading at run-time with this code
-</description>
-		<example><![CDATA[tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
-	</section>
-	<section>
-		<description>This will not work because the column headings were computed at run-time,
-However, it will work if you add this property:
-</description>
-		<example><![CDATA[tmpl.flagMustRecalculateGridLayoutAndControls = .t.
- tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
-	</section>
-	<section>
-		<description>Note: In the above example, if your Grid is set to use a Form view, you can use the slightly faster tmpl.flagMustRecalcGridLayout property. e.g.</description>
-		<example><![CDATA[tmpl.flagMustRecalcGridLayout = .t.
- tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
-	</section>
-	<section>
-		<description>You can set the tmpl.flagMustRecalculateAllProperties property. This forces A5 to re-calculate all aspects of the Grid at run-time. This can be quite slow and should be avoided if possible. (It will delay the initial rendering of the Grid. Once the Grid is rendered, interacting with it will be back to normal speed. There will also be a similar delay when you interact with the Grid if your session expires and a new session needs to be instantiated.)
-
-List of all flags
-</description>
-		<example><![CDATA[tmpl.flagMustRecalcGridLayout
-
-tmpl.flagMustRecalcSearchLayout
-
-tmpl.flagMustRecalcDetailViewLayout
-
-tmpl.flagMustRecalculateGridLayoutAndControls
-
-tmpl.flagMustRecalculateDetailViewLayoutAndControls
- tmpl.flagMustRecalculateSearchLayoutAndControls
-
-tmpl.flagMustRecalculateAllProperties
- ]]></example>
-	</section>
-	
-	
-</sections>	
-	<note>If you override the grid's SQL select statement at runtime in the OnGridExecute event by setting the e.tmpl.CS.SQL property, you must also override the grid's refresh row query by setting the e.tmpl.precalc.sql_refreshRowQuery property.</note>
+    <shortlink>How to Override Certain Settings in the .a5w page, or in the OnGridExecute event</shortlink>
+    <topic>How to Override Grid Component Settings in an .a5w page or OnGridExecute event</topic>
+    <description>Properties of the Grid Component can be overridden at run-time when the Grid is being loaded on an .a5w page or in the Grid Component's onGridExecute server-side event.</description>
+    <sections>
+        <section>
+            <description>
+                <p>When a Grid Component is loaded, you can override some of the properties of the Grid Component using xbasic. Many properties can be set at run-time, but some properties cannot (by default) without recalculating part or all of the Grid Component's layout. Properties that control the layout of the HTML, control definitions, or update settings are processed when the Grid Component is published to improve the initial load time for the Grid.</p>
+                <p>You can force the Alpha Anywhere Web Application Server to re-calculate parts of the Grid  that are normally computed at design-time by setting a flag in the Grid Component's definition at run-time.</p>
+                <p>For example, say you want to override a column heading at run-time:</p>
+            </description>
+            <note>In Alpha Five Version 9 and older, you can override Grid Component settings without needing to specify a flag to recalculate the component.</note>
+            <example><![CDATA[tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>This will not work because the column headings were computed at run-time.</p>
+                <p>However, it will work if you add this property:</p>
+            </description>
+            <example><![CDATA[tmpl.flagMustRecalculateGridLayoutAndControls = .t.
+tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
+        </section>
+        <section>
+            <description>In the above example, if your Grid is set to use a Form view, you can use the slightly faster *[xb:tmpl.flagMustRecalcGridLayout]* property:</description>
+            <example><![CDATA[tmpl.flagMustRecalcGridLayout = .t.
+tmpl.field_info[3].Column.Heading = "....here is my column heading...." ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>You can set the *[xb:tmpl.flagMustRecalculateAllProperties]* property. This flag forces the Application Server to re-calculate the entire Grid Component at run-time. This can be quite slow and should be avoided if possible. It will delay the initial rendering of the Grid. Once the Grid is rendered, interacting with it will be back to normal speed. There will also be a similar delay when you interact with the Grid if your session expires and a new session needs to be instantiated.</p>
+                <p>The following flags are available:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Flag</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalcGridLayout</name>
+                    <description>Recaulculates the Grid Part layout.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalcSearchLayout</name>
+                    <description>Recalculates the Search Part layout.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalcDetailViewLayout</name>
+                    <description>Recalculates the Detail View layout.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalculateGridLayoutAndControls</name>
+                    <description>Recalculates the entire Grid Layout and the controls in the Grid Part.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalculateDetailViewLayoutAndControls</name>
+                    <description>Recalculates the entire Detail View layout and the controls in the Detail View.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalculateSearchLayoutAndControls</name>
+                    <description>Recalculates the entire Search layout and the controls in the Search Part.</description>
+                </item>
+                <item>
+                    <name>tmpl.flagMustRecalculateAllProperties</name>
+                    <description>Recalculates the entire Grid Component layout. This is the slowest option and should only be used if none of the other flags work.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Overriding the Grid Component's SQL Query in the onGridExecute Event</title>
+            <description>If you override the grid's SQL select statement at runtime in the OnGridExecute event by setting the *[xb:e.tmpl.CS.SQL]* property, you must also override the grid's refresh row query by setting the *[xb:e.tmpl.precalc.sql_refreshRowQuery]* property.</description>
+        </section>
+    </sections>
 </page>
