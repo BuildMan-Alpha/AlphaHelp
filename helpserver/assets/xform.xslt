@@ -515,28 +515,23 @@
         <xsl:param name = "depth" />        
         <xsl:choose>
             <xsl:when test="./@readonly">
-                <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
             </xsl:when> 
             <xsl:when test="./@writeonly">
-                <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
             </xsl:when> 
             <xsl:when test="./@pseudo">
-                <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
             </xsl:when> 
             <xsl:when test="./@optional">
-                <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
             </xsl:when> 
             <xsl:otherwise>
-                <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+                <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
             </xsl:otherwise>
         </xsl:choose>        
-        <dd>
-            <xsl:choose>
-                <xsl:when test="type">
-                    <div ><div class="propertyType"><xsl:value-of select="type" /></div><div class="propertyDescription"> <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each> </div></div>
-                </xsl:when> 
-                <xsl:otherwise><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each></xsl:otherwise>
-            </xsl:choose>            
+        <dd>                    
+            <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
             <div><b class="A5"><xsl:choose><xsl:when test="example/@caption"><xsl:value-of select="example/@caption"/></xsl:when><xsl:otherwise>Example</xsl:otherwise></xsl:choose></b></div>
             <xsl:choose><xsl:when test="example/@include"><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
@@ -567,9 +562,10 @@
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">
 			<xsl:for-each select="arguments/argument">
-				<dt><xsl:value-of select="name" /></dt>
+				<dt><xsl:value-of select="name" />
+                 <xsl:if test="type"><span class="argumentType"> <xsl:value-of select="type" /><xsl:comment> </xsl:comment></span></xsl:if>                
+                </dt>
 				<dd>
-                    <div><xsl:if test="type"><div class="argumentType"> <xsl:value-of select="type" /><xsl:comment> </xsl:comment></div></xsl:if><div class="argumentDescription">               
 					<xsl:choose>
 						<xsl:when test="content">
 							<xsl:value-of select="content" disable-output-escaping="yes" />
@@ -578,7 +574,6 @@
                             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>							
 						</xsl:when>
 					</xsl:choose>
-                    </div>
                     <xsl:if test="properties">
                         <dl class="propertiesDL" >
                             <xsl:for-each select="properties/property">
@@ -596,7 +591,6 @@
 					<xsl:if test="list">
 						<xsl:call-template name="list"/>
 					</xsl:if>
-                    </div>                    
 				</dd>
 			</xsl:for-each>
 		</dl>
