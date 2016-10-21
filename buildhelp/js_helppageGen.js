@@ -1,6 +1,14 @@
 /*
  * Generate help pages from javascript files
  */
+var keywordHash = {
+     "readonly" : "readonly=\"true\"" 
+   , "writeonly" : "writeonly=\"true\"" 
+   , "pseudo" : "pseudo=\"true\""
+   , "optional" : "optional=\"true\""   
+   , "deprecated" : "deprecated=\"true\""
+   , "obsolete" : "obsolete=\"true\""
+};
 var build = require("./build.json");
 var fs = require("fs");
 var async = require('async');
@@ -77,7 +85,37 @@ var processArgOrProc = function (line, dashPos, properties) {
         }
         argName = argName.substring(0, typeIndex).trim();
     }
-    var lastObj = { name: argName, type: argType, description: description };
+
+    var argAlts = argType.split("|");
+    var i;
+    var argFlags = ""; 
+    var flags = "";
+    argType = "";
+    for( i = 0 ; i < argAlts.length ; ++i ) {
+        var argAlt = argAlts[i];
+        var argTypeParts = argAlt.split(":");
+        if( argType !== "" ) {
+            argType += " | ";
+        }
+        argType += argTypeParts[0];
+        if( argTypeParts.length > 1 ) {
+            if( argFlags !== "" ) {
+                argFlags += ",";
+            }
+            argFlags += argTypeParts[1];
+        }        
+    }
+    if( argFlags !== "" ) {
+        argFlags = argFlags.split(",");
+        for( i = 0 ; i < argFlags.length ; ++i ) {
+            var flag = keywordHash[argFlags[i].trim().toLowerCase()];
+            if( flag ) {
+                flags += " "+flag;
+            } 
+        }
+    }
+    
+    var lastObj = { name: argName, type: argType, description: description , flags : flags.trim() };
     properties.push(lastObj);
     return lastObj;
 }
@@ -87,7 +125,11 @@ var RecursProperties = function(properties,indented) {
         var i = 0;
         xml += indented + "<properties>\r\n";
         for (i = 0; i < properties.length; ++i) {
-            xml += indented + "\t<property>\r\n";
+            if( properties[i].flags !== "" ) {
+                xml += indented + "\t<property "+properties[i].flags+" >\r\n";
+            } else {
+                xml += indented + "\t<property>\r\n";
+            }
             xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
             xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
             xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
@@ -95,7 +137,11 @@ var RecursProperties = function(properties,indented) {
                 var j;
                 xml += indented + "\t\t<arguments>\r\n";
                 for (j = 0; j < properties[i].arguments.length; ++j) {
-                    xml += indented + "\t\t\t<argument>\r\n";
+                    if( properties[i].arguments[j].flags !== "" ) {
+                        xml += indented + "\t\t\t<argument "+properties[i].arguments[j].flags+" >\r\n";
+                    } else {
+                        xml += indented + "\t\t\t<argument>\r\n";
+                    }
                     xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
                     xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
                     xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
@@ -390,7 +436,11 @@ var generateXMLHelp = function (content) {
     if (arguments.length > 0) {
         xml += "\t<arguments>\r\n";
         for (i = 0; i < arguments.length; ++i) {
-            xml += "\t\t<argument>\r\n";
+            if( arguments[i].flags !== "" ) {
+                xml += "\t\t<argument "+arguments[i].flags+" >\r\n";
+            } else {
+                xml += "\t\t<argument>\r\n";
+            }
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
             xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
             xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
