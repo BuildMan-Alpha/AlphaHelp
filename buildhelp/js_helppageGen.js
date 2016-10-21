@@ -7,7 +7,7 @@ var async = require('async');
 var esprima = require('esprima');
 var sourceFiles = [];
 var lastContext = null;
-var dirCreateRecurse = function (folderName) {
+var dirCreateRecurs = function (folderName) {
     var stats = null;
     try {
         stats = fs.statSync(folderName);
@@ -18,7 +18,7 @@ var dirCreateRecurse = function (folderName) {
     if (!stats || !stats.isDirectory()) {
         var parentFolderName = folderName.substring(0, folderName.lastIndexOf('/'));
         if (parentFolderName.length > 1) {
-            dirCreateRecurse(parentFolderName);
+            dirCreateRecurs(parentFolderName);
         }
         fs.mkdirSync(folderName);
     }
@@ -34,12 +34,12 @@ var indentLevelCalc = function(txt) {
     }
     return 0;
 };
-var proccessLink = function(linkdef) {
-   var parts = linkdef.split("{");
+var processLink = function(linkDef) {
+   var parts = linkDef.split("{");
    if( parts.length === 2 ) {
-      linkdef = parts[0] + parts[1].replace("}","")+" Object";
+      linkDef = parts[0] + parts[1].replace("}","")+" Object";
    }
-   return linkdef;   
+   return linkDef;   
 };
 var protectXml = function (content) {
     if( content.indexOf("[link:") >= 0 ) {
@@ -48,9 +48,9 @@ var protectXml = function (content) {
         for( i = 1 ; i < content.length ; ++i ) {
             var endPos = content[i].indexOf("]");
             if( endPos > 0 ) {
-                content[i] = proccessLink(content[i].substring(0,endPos)) + "]*"+ content[i].substring(endPos+1); 
+                content[i] = processLink(content[i].substring(0,endPos)) + "]*"+ content[i].substring(endPos+1); 
             } else {
-                content[i] = proccessLink(content[i]) + "]*";
+                content[i] = processLink(content[i]) + "]*";
             }
         }
         content = content.join("*[link:");
@@ -81,6 +81,37 @@ var processArgOrProc = function (line, dashPos, properties) {
     properties.push(lastObj);
     return lastObj;
 }
+var RecursProperties = function(properties,indented) {
+    var xml = "";
+    if (properties.length > 0) {
+        var i = 0;
+        xml += indented + "<properties>\r\n";
+        for (i = 0; i < properties.length; ++i) {
+            xml += indented + "\t<property>\r\n";
+            xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
+            xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+            xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
+            if (properties[i].arguments) {
+                var j;
+                xml += indented + "\t\t<arguments>\r\n";
+                for (j = 0; j < properties[i].arguments.length; ++j) {
+                    xml += indented + "\t\t\t<argument>\r\n";
+                    xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
+                    xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                    xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
+                    xml += indented + "\t\t\t</argument>\r\n";
+                }
+                xml += indented + "\t\t</arguments>\r\n";
+            }
+            if (properties[i].properties && properties[i].properties.length ) {                
+                xml += RecursProperties(properties[i].properties,indented + "\t\t");
+            }
+            xml += indented+"\t</property>\r\n";
+        }
+        xml += indented+"</properties>\r\n";
+    }
+    return xml;
+};
 
 var generateXMLHelp = function (content) {
     var lines = content.split('\n');
@@ -238,7 +269,23 @@ var generateXMLHelp = function (content) {
                 || lastType === "args"
                 ) {
                 if (dashPos > 0) {
-                    lastPropOrArg = processArgOrProc(line, dashPos, arguments);
+                    if( !endTag && lastPropOrArg ) {
+                        if( lastIndentLevel === (indentLevel - 1) ) {
+                            if( !lastPropOrArg.properties )
+                                lastPropOrArg.properties = [];
+                            nestingProps.push(lastPropOrArg);
+                        } else if( lastIndentLevel > indentLevel ) {
+                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                                lastPropOrArg = nestingProps.pop();
+                                --lastIndentLevel;
+                            }
+                        }
+                    }
+                    if( nestingProps.length > 0 ) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    } else {
+                        lastPropOrArg = processArgOrProc(line, dashPos, arguments);
+                    }
                 }
             } else if (lastType === "properties"
                 || lastType === "props"
@@ -347,6 +394,9 @@ var generateXMLHelp = function (content) {
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
             xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
             xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
+            if (arguments[i].properties && arguments[i].properties.length ) {
+                xml += RecursProperties(arguments[i].properties,"\t\t");
+            }            
             xml += "\t\t</argument>\r\n";
         }
         xml += "\t</arguments>\r\n";
@@ -360,38 +410,7 @@ var generateXMLHelp = function (content) {
     if (discussion) {
         xml += "\t<discussion>" + protectXml(discussion) + "</discussion>\r\n";
     }
-    var recurseProperties = function(properties,indented) {
-        var xml = "";
-        if (properties.length > 0) {
-            var i = 0;
-            xml += indented + "<properties>\r\n";
-            for (i = 0; i < properties.length; ++i) {
-                xml += indented + "\t<property>\r\n";
-                xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
-                xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
-                xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
-                if (properties[i].arguments) {
-                    var j;
-                    xml += indented + "\t\t<arguments>\r\n";
-                    for (j = 0; j < properties[i].arguments.length; ++j) {
-                        xml += indented + "\t\t\t<argument>\r\n";
-                        xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
-                        xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
-                        xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
-                        xml += indented + "\t\t\t</argument>\r\n";
-                    }
-                    xml += indented + "\t\t</arguments>\r\n";
-                }
-                if (properties[i].properties && properties[i].properties.length ) {
-                    xml += recurseProperties(properties[i].properties,indented + "\t\t");
-                }
-                xml += indented+"\t</property>\r\n";
-            }
-            xml += indented+"</properties>\r\n";
-        }
-        return xml;
-    };
-    xml += recurseProperties(properties,"\t");
+    xml += RecursProperties(properties,"\t");
     if (examples) {
         xml += "\t<example>" + protectXml(examples) + "</example>\r\n";
     }
@@ -490,7 +509,7 @@ var extractJsHelp = function () {
             if (fileOps.length > 0) {
                 async.eachSeries(fileOps, function (fileOp, callbackLoopNested) {
                     var folderName = fileOp.filename.substring(0, fileOp.filename.lastIndexOf('/'));
-                    dirCreateRecurse(folderName);
+                    dirCreateRecurs(folderName);
                     fs.writeFile(fileOp.filename, fileOp.xml, function (err) {
                         if (err) {
                             console.log('Error writing ' + fileOp.filename + " error " + err);
@@ -509,7 +528,7 @@ var extractJsHelp = function () {
 
 
 var resolveFiles = function (folders) {
-    var recurseFiles = [];
+    var RecursFiles = [];
     async.eachSeries(folders, function (path, callbackLoop) {
         if (path.indexOf("*") >= 0) {
             var folder = path.substring(0, path.lastIndexOf('/'));
@@ -524,7 +543,7 @@ var resolveFiles = function (folders) {
                         } else {
                             var stat = fs.statSync(folder + "/" + list[i]);
                             if (stat && stat.isDirectory()) {
-                                recurseFiles.push(folder + "/" + list[i] + "/*.js");
+                                RecursFiles.push(folder + "/" + list[i] + "/*.js");
                             }
                         }
                     }
@@ -536,8 +555,8 @@ var resolveFiles = function (folders) {
             callbackLoop();
         }
     }, function () {
-        if (recurseFiles.length > 0) {
-            resolveFiles(recurseFiles);
+        if (RecursFiles.length > 0) {
+            resolveFiles(RecursFiles);
         } else {
             extractJsHelp();
             //console.log(JSON.stringify(sourceFiles));
