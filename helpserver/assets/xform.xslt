@@ -569,7 +569,7 @@
 			<xsl:for-each select="arguments/argument">
 				<dt><xsl:value-of select="name" /></dt>
 				<dd>
-                    <div><xsl:if test="type"><div class="argumentType"><xsl:value-of select="type" /></div></xsl:if><div class="argumentDescription">               
+                    <div><xsl:if test="type"><div class="argumentType"> <xsl:value-of select="type" /><xsl:comment> </xsl:comment></div></xsl:if><div class="argumentDescription">               
 					<xsl:choose>
 						<xsl:when test="content">
 							<xsl:value-of select="content" disable-output-escaping="yes" />
