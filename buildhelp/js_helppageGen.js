@@ -131,7 +131,9 @@ var RecursProperties = function(properties,indented) {
                 xml += indented + "\t<property>\r\n";
             }
             xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
-            xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+            if(  properties[i].type !== "" ) {
+                xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+            }
             xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
             if (properties[i].arguments) {
                 var j;
@@ -143,7 +145,9 @@ var RecursProperties = function(properties,indented) {
                         xml += indented + "\t\t\t<argument>\r\n";
                     }
                     xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
-                    xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                    if( properties[i].arguments[j].type !== "" ) {
+                        xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                    }
                     xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
                     xml += indented + "\t\t\t</argument>\r\n";
                 }
@@ -169,6 +173,9 @@ var generateXMLHelp = function (content) {
     var discussion = null;
     var examples = null;
     var note = null;
+    var warning = null;
+    var deprecated = null;
+    var obsolete = null;
     var returns = null;
     var endTag = null;
     var properties = [];
@@ -273,6 +280,12 @@ var generateXMLHelp = function (content) {
                     discussion = line.substring(splitPos + 1);
                 } else if (type === "note") {
                     note = line.substring(splitPos + 1);
+                } else if (type === "warning") {
+                    warning = line.substring(splitPos + 1);
+                } else if (type === "deprecated") {
+                    deprecated = line.substring(splitPos + 1);
+                } else if (type === "obsolete") {
+                    obsolete = line.substring(splitPos + 1);                   
                 } else if (type === "returns") {
                     returns = line.substring(splitPos + 1);
                 } else if (type === "arguments" || type === "args") {
@@ -307,6 +320,12 @@ var generateXMLHelp = function (content) {
                 discussion += "\r\n" + line;
             } else if (lastType === "note") {
                 note += "\r\n" + line;
+            } else if (lastType === "warning") {
+                warning += "\r\n" + line;
+            } else if (lastType === "deprecated") {
+                deprecated += "\r\n" + line;
+            } else if (lastType === "obsolete") {
+                obsolete += "\r\n" + line;                
             } else if (lastType === "returns") {
                 returns += "\r\n" + line;
             } else if (lastType === "example") {
@@ -442,7 +461,9 @@ var generateXMLHelp = function (content) {
                 xml += "\t\t<argument>\r\n";
             }
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
-            xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
+            if( arguments[i].type !== "" ) {
+                xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
+            }
             xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
             if (arguments[i].properties && arguments[i].properties.length ) {
                 xml += RecursProperties(arguments[i].properties,"\t\t");
@@ -467,6 +488,15 @@ var generateXMLHelp = function (content) {
     if( note ) {
         xml += "\t<note>" + protectXml(note) + "</note>\r\n";        
     }
+    if( warning ) {
+        xml += "\t<warning>" + protectXml(warning) + "</warning>\r\n";        
+    }
+    if( deprecated ) {
+        xml += "\t<deprecated>" + protectXml(deprecated) + "</deprecated>\r\n";        
+    }
+    if( obsolete ) {
+        xml += "\t<obsolete>" + protectXml(obsolete) + "</obsolete>\r\n";        
+    }   
     if (isConstructor) {
         pagename = "index";
         xml += "\t<!--list:.-->\r\n";
