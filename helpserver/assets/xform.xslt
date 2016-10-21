@@ -523,6 +523,9 @@
             <xsl:when test="./@pseudo">
                 <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:when> 
+            <xsl:when test="./@optional">
+                <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
+            </xsl:when> 
             <xsl:otherwise>
                 <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a></dt>
             </xsl:otherwise>
