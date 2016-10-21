@@ -568,6 +568,13 @@
                             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>							
 						</xsl:when>
 					</xsl:choose>
+                    <xsl:if test="properties">
+                        <dl class="propertiesDL" >
+                            <xsl:for-each select="properties/property">
+                            <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>                
+                            </xsl:for-each>
+                        </dl>
+                    </xsl:if>
 					<xsl:if test="ref">
                         <xsl:choose>
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
