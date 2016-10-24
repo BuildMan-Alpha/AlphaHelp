@@ -512,24 +512,47 @@
     </xsl:template>
     
 	<xsl:template match="properties-content" name="properties-content" >
-        <xsl:param name = "depth" />        
+        <xsl:param name = "depth" />
         <xsl:choose>
-            <xsl:when test="./@readonly">
-                <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
-            </xsl:when> 
-            <xsl:when test="./@writeonly">
-                <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
-            </xsl:when> 
-            <xsl:when test="./@pseudo">
-                <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
-            </xsl:when> 
-            <xsl:when test="./@optional">
-                <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
-            </xsl:when> 
+            <xsl:when test="$depth = '1'">
+                <xsl:choose>
+                    <xsl:when test="./@readonly">
+                        <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@writeonly">
+                        <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@pseudo">
+                        <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@optional">
+                        <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:otherwise>
+                        <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:otherwise>
+                </xsl:choose>        
+            </xsl:when>
             <xsl:otherwise>
-                <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                <xsl:choose>
+                    <xsl:when test="./@readonly">
+                        <dt class="propertyReadonly" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@writeonly">
+                        <dt class="propertyWriteonly" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@pseudo">
+                        <dt class="propertyPseudo" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:when test="./@optional">
+                        <dt class="propertyOptional" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:when> 
+                    <xsl:otherwise>
+                        <dt class="propertyReadwrite" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                    </xsl:otherwise>
+                </xsl:choose>        
             </xsl:otherwise>
-        </xsl:choose>        
+        </xsl:choose>
         <dd>                    
             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
@@ -577,7 +600,7 @@
                     <xsl:if test="properties">
                         <dl class="propertiesDL" >
                             <xsl:for-each select="properties/property">
-                            <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>                
+                            <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>2</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>                
                             </xsl:for-each>
                         </dl>
                     </xsl:if>
