@@ -1,0 +1,178 @@
+<page>
+    <shortlink>A5_xb_runGridComponent Function</shortlink>
+    <topic>A5_xb_runGridComponent Function</topic>
+    <description>Generates the HTML and Javascript for a Grid component.</description>
+    <syntax>c output = A5_xb_runGridComponent(p inputProps)</syntax>
+    <arguments>
+        <argument>
+            <name>inputProps</name>
+            <type>P</type>
+            <description>Defines the Grid to run and various properties of the Grid. This object can have the following properties:</description>
+            <properties>
+                <property>
+                    <name>inputProps.gridName</name>
+                    <type>C</type>
+                    <description>Name of the Grid component to run</description>
+                </property>
+                <property>
+                    <name>inputProps.alias</name>
+                    <type>C</type>
+                    <description>Alias for the Grid component. This must be a unique value. No spaces. Try to keep alias as short as possible.</description>
+                </property>
+                <property>
+                    <name>inputProps.thisComponentAlias</name>
+                    <type>C</type>
+                    <description>(Optional) The alias of the parent component. If the parent is a Grid, you can typically set to '{grid.componentName}'. If the parent is a UX, set to '{dialog.componentName}'. If this property is not set the {grid.object}.getParentObject() method (called from this Grid) will fail.</description>
+                </property>
+                <property>
+                    <name>inputProps.div</name>
+                    <type>C</type>
+                    <description> (Optional when function is called from an A5 code block). The ID of the div where the Grid component should be rendered. If the a5_xb_runGridComponent() function is in an &lt;%a5..%&gt; code block and you omit this property, the Grid is shown inline.</description>
+                </property>
+                <property>
+                    <name>inputProps.userFilter</name>
+                    <type>C</type>
+                    <description>(Optional) A filter to apply to the Grid. The filter must use either SQL or DBF syntax, depending on the data source for the Grid. The filter can use literal values of arguments. Arguments are recommended.</description>
+                    <section>
+                        <description>
+                            <p>A user filter can be removed when the user clicks the Clear Search button in the Search Part. Contrast this with the Base Filter, which cannot be removed by the user. When the user searches in the Grid, the user filters are in addition to the base filter.</p>
+                            <p>A filter using literal values:</p>
+                        </description>
+                        <example><![CDATA[STATE = 'MA']]></example>
+                    </section>
+                    <section>
+                        <description>
+                            <p>A filter using arguments:</p>
+                        </description>
+                        <example><![CDATA[STATE = :whatState]]></example>
+                    </section>
+                    <section>
+                        <description>
+                            <p>If the filter uses arguments, you can set the argument values in the arguments property.</p>
+                        </description>
+                    </section>
+                </property>
+                <property>
+                    <name>inputProps.userOrder</name>
+                    <type>C</type>
+                    <description>(Optional) An order expression to apply to the Grid. The order must use either SQL or DBF syntax, depending on the data source for the Grid. For example:</description>
+                    <section>
+                        <description>
+                            <p>SQL Syntax:</p>
+                        </description>
+                        <example><![CDATA[LASTNAME, SALARY DESC]]></example>
+                    </section>
+                    <section>
+                        <description>
+                            <p>DBF Syntax:</p>
+                        </description>
+                        <example><![CDATA[LASTNAME +invert(SALARY)]]></example>
+                    </section>
+                </property>
+                <property>
+                    <name>inputProps.baseFilter</name>
+                    <type>C</type>
+                    <description>(Optional) Applies a base filter to the Grid. A base filter cannot be removed by the user. See userFilter above for additional comments.</description>
+                </property>
+                <property>
+                    <name>inputProps.arguments</name>
+                    <type>C</type>
+                    <description>(Optional) Needs to be specified if the userFilter or baseFilter properties use arguments.</description>
+                    <section>
+                        <description>
+                            <p>You can specify the values of as many arguments as you want. The argument values are specified in a CR-LF delimited string. Each line in the string defines the value of a single argument. The syntax for each line is:</p>
+                        </description>
+                        <example><![CDATA[ArgumentName|Data Type|Value]]></example>
+                    </section>
+                    <section>
+                        <description>
+                            <p>For example, the following string defines the value of three arguments:</p>
+                        </description>
+                        <example><![CDATA[inputProps.arguments = <<%txt%
+name|character|Smith
+amountDue|numeric|1000
+dateOfBirth|time|1/1/1972
+%txt%]]></example>
+                    </section>
+                </property>
+                <property>
+                    <name>inputProps.linkDefinition</name>
+                    <type>C</type>
+                    <description>(Optional) Allows you to specify that the Grid is 'linked'. Linking a Grid is similar to filtering it. However, when a Grid is linked and new records are added, the linking fields in the new record are automatically set to the linking values.</description>
+                    <section>
+                        <description>
+                            <p>The syntax for specifying the link definition is a CR-LF delimited list of linking fields and their corresponding values. Each line in the string has this format:</p>
+                        </description>
+                        <example><![CDATA[LinkingField(type:value)]]></example>
+                    </section>
+                    <section>
+                        <description>
+                            <p>For example, say you wanted to link on the firstname and lastname fields with corresponding values of 'Cathy' and 'Hite', you would use this definition:</p>
+                        </description>
+                        <example><![CDATA[inputProps.linkDefinition = <<%txt%
+firstname(c:Cathy)
+lastname(c:Hite)
+%txt%]]></example>
+                    </section>
+                </property>
+                <property>
+                    <name>inputProps.override</name>
+                    <type>C</type>
+                    <description>(Optional) A CR-LF delimited string that allows you to override settings in the component. This string can be used to override many properties in the component. It is typically used to set the style of the component to match the style of the parent component.</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <sections>
+        <section>
+            <title>Examples</title>
+            <description>
+                <p>In the following example the a5_xb_runGridComponent() function is run in a &lt;%a5..%&gt; code block.</p>
+             </description>
+            <example><![CDATA[<b>An embedded Grid will be shown here.</b>
+
+<%a5
+    delete p
+    dim p as p
+    p.gridName = "MyGrid"
+    p.alias = "MYGRID1"
+    p.thisComponentAlias = "{grid.componentname}"
+
+    dim xb as c
+    xb = a5_XB_RunGridComponent(p)
+    ?xb
+%>]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The above example can be modified to ensure that the target Grid component uses the same style as the parent component by setting the p.override property. For example:</p>
+            </description>
+            <example><![CDATA[p.override = "style_name = \"{grid.style}\""]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the following example the a5_xb_runGridComponent() function is run in an Xbasic function that handles an Ajax callback:</p>
+            </description>
+            <example><![CDATA[function xbRunGrid as c (e as p)
+    delete p
+
+    dim p as p
+    p.gridName = "Grid_SalesPeople"
+    p.alias = "SALESPEOPLE1"
+    p.thisComponentAlias = "{dialog.componentname}"
+    p.div = "grid1"
+
+    p.override = <<%txtsettings%
+    rows = 2
+    %txtsettings%
+
+    p.override = p.override + crlf() + "style_name = \"{grid.style}\""
+
+    dim xb as c
+    xb = a5_XB_RunGridComponent(p)
+    xbRunGrid = xb
+
+end function ]]></example>
+        </section>
+    </sections>
+</page>

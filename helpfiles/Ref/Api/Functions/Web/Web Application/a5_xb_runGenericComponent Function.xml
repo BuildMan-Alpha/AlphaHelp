@@ -1,0 +1,124 @@
+<page>
+    <shortlink>A5_xb_runGenericComponent Function</shortlink>
+    <topic>A5_xb_runGenericComponent Function</topic>
+    <description>Generates the HTML and Javascript for a UX, PageLayout or Custom component.</description>
+    <syntax>c output = A5_xb_runGenericComponent(p inputProps)</syntax>
+    <arguments>
+        <argument>
+            <name>inputProps</name>
+            <type>P</type>
+            <description>Defines the Component to run and various properties of the Component. This object can have the following properties:</description>
+            <properties>
+                <property>
+                    <name>inputProps.componentName</name>
+                    <type>C</type>
+                    <description>Name of the UX, PageLayout or Custom component to run.</description>
+                </property>
+                <property>
+                    <name>inputProps.alias</name>
+                    <type>C</type>
+                    <description>Alias for the component</description>
+                </property>
+                <property>
+                    <name>inputProps.div</name>
+                    <type>C</type>
+                    <description>(Optional when function is called from an A5 code block). The ID of the div where the component should be rendered. If the a5_xb_runGenericComponent() function is in an &lt;%a5..%&gt; code block and you omit this property, the component is shown inline.</description>
+                </property>
+                <property>
+                    <name>inputProps.panelRootId</name>
+                    <type></type>
+                    <description>(Optional) If the target component is a UX component that uses Panels, you can specify the ID of a element into which the Panels are inserted. If this property is not specified, the Panels are inserted in the BODY tag. If you want the Panels to be inside an element (such as another Panel Card, or a Window), you should set this property to the ID of the container (e.g. Window or Panel Card).</description>
+                </property>
+                <property>
+                    <name>inputProps.settings</name>
+                    <type></type>
+                    <description></description>
+                    <properties>
+                        <property>
+                            <name>inputProps.settings.__parentComponentAlias</name>
+                            <type></type>
+                            <description>(Optional) The alias of the parent component. If the parent is a Grid, you can typically set to '{grid.componentName}'. If the parent is a UX, set to '{dialog.componentName}'. If this property is not set the {dialog.object}.getParentObject() method (called from this UX) will fail.</description>
+                        </property>
+                        <property>
+                            <name>inputProps.settings.__argumentValues</name>
+                            <type></type>
+                            <description>If the component has any arguments, set the value of the arguments. The property is a CR-LF delimited string. The syntax for each line in the string is:</description>
+                            <example><![CDATA[argumentName=argumentValue]]></example>
+                            <section>
+                                <description>
+                                    <p>For example:</p>
+                                </description>
+                                <example><![CDATA[inputProps.__argumentValues = <<%str%
+arg1=John
+arg2=Smith
+%str%]]></example>
+                            </section>
+                        </property>
+                        <property>
+                            <name>inputProps.settings.__overrideSettings</name>
+                            <type></type>
+                            <description>(Optional) A CR-LF delimited string that allows you to override settings in the component. This string can be used to override many properties in the component. It is typically used to set the style of the component to match the style of the parent component.</description>
+                        </property>
+                        <property>
+                            <name>inputProps.settings.__populateDialog</name>
+                            <type></type>
+                            <description>
+                                <p>UX Component Only</p>
+                                <p>(Optional) If the UX component that you are loading has been bound to database tables, then you can populate the controls in the UX with data. Set this property to .T. if you want to populate the controls. If this property is .T., then you must set the inputProps.settings.__PKValue property.</p>
+                            </description>
+                        </property>
+                        <property>
+                            <name>inputProps.settings.__PKValue</name>
+                            <type></type>
+                            <description>
+                                <p>UX Component Only</p>
+                                <p>The primary key value of the record you want to retrieve to populate the UX component with. If the primary key is multi-column, specify the key as a single value with each segment delimited with 3 pipes. For example:</p>
+                            </description>
+                            <example><![CDATA[john|||smith]]></example>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <sections>
+        <section>
+            <title>Examples</title>
+            <description>
+                <p>In the following example the a5_xb_runGenericComponent() function is run in a &lt;%a5..%&gt; code block.</p>
+                <p>The example runs two UX components. The first UX component ('Mysql_customer_embedded') has been bound to a table and the UX is populated with data from that table, showing the data from the record with a primary key value of '10'.</p>
+                <p>The second UX component ('UX_arguments') has two arguments, 'arg1' and 'arg2'. The values for these arguments is defined by setting the the settings.__argumentValues property.</p>
+            </description>
+            <example><![CDATA[<p>This is a free-form HTML container with an a5 code block.</p>
+
+<%a5
+    dim p as p
+    p.componentName = "Mysql_customer_embedded"
+    p.alias = "MYDLG"
+    p.settings.__populateDialog = .t.
+    p.settings.__PKValue = 10
+    dim xb as c
+    xb = a5_XB_RunGenericComponent(p)
+    ?xb
+%>
+
+<p>This is another UX component....</p>
+
+<%a5
+    dim p2 as p
+    p2.componentName = "UX_arguments"
+    p2.alias = "MYDLG2"
+    p2.settings.__parentComponentAlias = "{dialog.componentname}"
+    p2.settings.__argumentValues = <<%str%
+        arg1=John
+        arg2=Smith
+    %str%
+    p2.settings.__overrideSettings = "style_name = " + s_quote("{dialog.style}")
+    dim xb2 as c
+    xb2 = a5_XB_RunGenericComponent(p2)
+    ?xb2
+
+%>]]></example>
+        </section>
+    </sections>
+</page>
