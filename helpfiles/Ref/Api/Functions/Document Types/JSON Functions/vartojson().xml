@@ -1,44 +1,49 @@
 <page>
-<group>JSON Functions</group>
-<topic>vartojson()</topic>
-<syntax>C Result = varToJSON(* var [,L flagSpecialTags [,L flagCondense [,C indent [,L flagQuotesOnPropNames [,L flaghonornulls ]]]]])</syntax>
-<arguments>
-<argument>
-	<name>* var</name>
-	<description>Variable to convert to JSON</description>	
-</argument>
-<argument>
-	<name>L flagSpecialTags</name>
-	<description>(optional) Set to .T. to use {...} tags; defaults to .F.</description>
-	</argument>
-<argument>
-	<name>L flagCondense</name>
-	<description>(optional) Set to .T. to remove pretty formatting</description>
-	</argument>
-<argument>
-	<name>C indent</name>
-	<description>(optional) Set to some number of spaces for indented formatting</description>
-	</argument>
-<argument>
-	<name>L flagQuotesOnPropNames</name>
-	<description>(optional) Set to .T. to quote property names</description>
-	</argument>
-<argument>
-	<name>L flaghonornulls</name>
-	<description>(optional)</description>
-</argument>
-</arguments>
-<description>
-Converts an Xbasic variable to a JSON representation. </description>
-<discussion>
-The vartojson() function converts an Xbasic variable to a JSON representation. If flagSpecialTags is .t. then you can use {function} and optional {functionArguments:var1,var2} in a property value to encode as a function. You can also use {Javascript} for arbitrary Javascript. With varToJSON vs varToJSONStandard the difference is that JSONStandard uses double quotes while varToJSON assumes single quotes. The vartojsonStandard() function is preferred. See Also a5_JSON_Prep Function
-
-</discussion>
-<sections>
-	<section>
-	<description>Try this in an interactive session.</description>	
-	<example>
-dim p as p
+	<group>JSON Functions</group>
+	<shortlink>varToJSON()</shortlink>
+	<topic>varToJSON Function</topic>
+	<syntax>C Result = varToJSON(* var [,L flagSpecialTags [,L flagCondense [,C indent [,L flagQuotesOnPropNames [,L flagHonorNulls ]]]]])</syntax>
+	<arguments>
+		<argument>
+			<name>var</name>
+			<type>A</type>
+			<description>Variable to convert to JSON</description>	
+		</argument>
+		<argument>
+			<name>flagSpecialTags</name>
+			<type>L</type>
+			<description>(optional) Set to .T. to use {...} tags; defaults to .F.</description>
+			</argument>
+		<argument>
+			<name>flagCondense</name>
+			<type>L</type>
+			<description>(optional) Set to .T. to remove pretty formatting</description>
+			</argument>
+		<argument>
+			<name>indent</name>
+			<type>C</type>
+			<description>(optional) Set to some number of spaces for indented formatting</description>
+			</argument>
+		<argument>
+			<name>flagQuotesOnPropNames</name>
+			<type>L</type>
+			<description>(optional) Set to .T. to quote property names</description>
+			</argument>
+		<argument>
+			<name>flagHonorNulls</name>
+			<type>L</type>
+			<description>(optional)</description>
+		</argument>
+	</arguments>
+	<description>Converts an Xbasic variable to a JSON representation.</description>
+	<discussion>
+		<p>The varToJSON() function converts an Xbasic variable to a JSON representation. If flagSpecialTags is .t. then you can use {function} and optional {functionArguments:var1,var2} in a property value to encode as a function. You can also use {Javascript} for arbitrary Javascript. With varToJSON vs varToJSONStandard the difference is that JSONStandard uses double quotes while varToJSON assumes single quotes. The varToJSONStandard() function is preferred.</p>
+		<p>See Also a5_JSON_Prep Function</p>
+	</discussion>
+	<sections>
+		<section>
+			<description>Try this in an interactive session.</description>	
+			<example><![CDATA[dim p as p
 p.name = "selwyn"
 p.onchange = "{function}alert('onchange')"
 p.onClick = "{function}alert('onclick')"
@@ -46,66 +51,73 @@ p.onClick = "{function}alert('onclick')"
 = name = "selwyn"
 onchange = "{function}alert('onchange')"
 onClick = "{function}alert('onclick')"
- 
+
 x = varToJSON(p,.f.)
 ?x
-= {name: 'selwyn',
-onchange: '{function}alert(\'onchange\')',
-onClick: '{function}alert(\'onclick\')'}
- 
+= {
+	name: 'selwyn',
+	onchange: '{function}alert(\'onchange\')',
+	onClick: '{function}alert(\'onclick\')'
+}
+
 y = varToJSON(p,.t.)
 ?y
-= {name: 'selwyn',
-onchange: function() {alert('selwyn',
-onClick: function() {alert('onchange')},</example>
-	</section>
-	
-	<section>
-		<description>In the script example below
+= {
+	name: 'selwyn',
+	onchange: function() {alert('onchange')},
+	onClick: function() {alert('onclick')}
+}]]></example>
+		</section>
+		<section>
+			<description>
+				<p>In the script example below</p>
+				<p>1. We use {functionarguments:arg1,arg2,arg3} to specify arguments for a functions</p>
+				<p>2. We demonstrate how xbasic property arrays translate to js arrays of object literals</p>
+				<p>3. We demonstrate how the helper function a5_json_prep() removes properties with blank values (e.g. p.city).</p>
+			</description>
+			<example><![CDATA[dim p as p
+dim p.children[0] as p
 
-1. We use {functionarguments:arg1,arg2,arg3} to specify arguments for a functions
-2. We demonstrate how xbasic property arrays translate to js arrays of object literals
-3. We demonstrate how the helper function a5_json_prep() removes properties with blank values (e.g. p.city).</description>	
-		<example>dim p as p
-dim p.children(0) as p
- 
 p.name = "selwyn"
 p.surname = "{function}alert('onchange')"
-p.children().name = "{function}alert('onclick')"
-p.children(..).age = 4
-p.children().name = "Joe"
-p.children(..).age = 6
+p.children[].name = "{function}alert('onclick')"
+p.children[..].age = 4
+p.children[].name = "Joe"
+p.children[..].age = 6
 p.city = "Smith"
- 
+
 p.myfunc = "Emma"+\
 "Zoe"
- 
+
 a5_JSON_Prep(p)
-showvar(vartojson(p,.t.))</example>
-	</section>
-	
-	<section>
-		<description>This will display:
-</description>	
-		<example>
-{children: [{name: 'Emma',
-age: 4},{name: 'Zoe',
-age: 6}],
-name: 'Joe',
-surname: 'Smith',
-myfunc: function(name,age) { alert('Hello ' +name + '. How does it feel to be ' + age +'?');}}</example>
-	</section>
-	
-</sections>
-
-<see>
-	<ref link="json_generate()">json_generate()</ref>
-	<ref link="json_parse()">json_parse()</ref>
-	<ref link="JSON Data">JSON Data</ref>
-</see>
-
-<terms>JSON,array,arguments,defaults,function,number,object,onclick,script,variable,xbasic</terms>
-
-
-
+showvar(varToJSON(p,.t.))]]></example>
+		</section>
+		<section>
+			<description>This will display:</description>	
+			<example><![CDATA[{
+	name: 'selwyn',
+	onchange: function() {alert('onchange')},
+	onClick: function() {alert('onclick')},
+	children: [
+		{
+			name: function() {alert('onclick')},
+			age: 4
+		},
+		{
+			name: 'Joe',
+			age: 6
+		}	
+],
+	surname: function() {alert('onchange')},
+	city: 'Smith',
+	myfunc: 'EmmaZoe'
+}]]></example>
+		</section>
+	</sections>
+	<see>
+		<ref href="/documentation/index?search=json_generate()">json_generate()</ref>
+		<ref href="/documentation/index?search=json_parse()">json_parse()</ref>
+		<ref href="/documentation/index?search=JSON Data">JSON Data</ref>
+	</see>
+	<terms>JSON,array,arguments,defaults,function,number,object,onclick,script,variable,xbasic</terms>
 </page>
