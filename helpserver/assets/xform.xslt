@@ -645,6 +645,16 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
+        <xsl:if test="tip">
+            <xsl:choose>
+                <xsl:when test="tip/p">
+                    <div class="sectionTip" ><xsl:for-each select="tip/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionTip" ><xsl:value-of select="tip" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
    </xsl:template>
 	<xsl:attribute-set name="href-link">
 		<xsl:attribute name="href">
