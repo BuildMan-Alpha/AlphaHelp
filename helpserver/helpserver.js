@@ -917,6 +917,10 @@ events.canFlatten = function(pageName) {
     return false;
 }
 
+events.calculateFeedback = function(title,page) {
+    return "?subject=Problem with page: "+title+" ["+page+"]"+"&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages"+replaceAll(page," ","%2520").replace(".xml_html",".xml")+"%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page.replace(".xml_html",".xml"),"/","\\")+"'):";
+}
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);

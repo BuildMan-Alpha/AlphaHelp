@@ -235,19 +235,7 @@
 				<xsl:call-template name="page-content"/>
 			</xsl:for-each>
 		</xsl:if>
-        <xsl:if test="note">        
-            <xsl:choose>
-                <xsl:when test="note/p">
-                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-        <xsl:if test="warning">
-           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
-        </xsl:if>
+        <xsl:call-template name="callouts"/>
         <xsl:if test="pages">
             <xsl:call-template name="pages"/>
         </xsl:if>        
@@ -427,19 +415,7 @@
                 </div>
             </xsl:for-each>
         </xsl:if>
-        <xsl:if test="note">
-            <xsl:choose>
-                <xsl:when test="note/p">
-                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-        <xsl:if test="warning">
-           <div class="sectionWarning" > <xsl:value-of select="warning" /> </div>
-        </xsl:if>
+        <xsl:call-template name="callouts"/>
         <xsl:if test="video">
             <xsl:for-each select="video">                
                     <xsl:choose>
@@ -618,6 +594,58 @@
 			</xsl:for-each>
 		</dl>
 	</xsl:template>
+     <xsl:template name="callouts">
+        <xsl:if test="note">
+            <xsl:choose>
+                <xsl:when test="note/p">
+                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        <xsl:if test="warning">
+            <xsl:choose>
+                <xsl:when test="warning/p">
+                    <div class="sectionWarning" ><xsl:for-each select="warning/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionWarning" ><xsl:value-of select="warning" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        <xsl:if test="deprecated">
+            <xsl:choose>
+                <xsl:when test="deprecated/p">
+                    <div class="sectionDeprecated" ><xsl:for-each select="deprecated/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionDeprecated" ><xsl:value-of select="deprecated" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        <xsl:if test="obsolete">
+            <xsl:choose>
+                <xsl:when test="obsolete/p">
+                    <div class="sectionObsolete" ><xsl:for-each select="obsolete/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionObsolete" ><xsl:value-of select="obsolete" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        <xsl:if test="important">
+            <xsl:choose>
+                <xsl:when test="important/p">
+                    <div class="sectionImportant" ><xsl:for-each select="important/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionImportant" ><xsl:value-of select="important" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+   </xsl:template>
 	<xsl:attribute-set name="href-link">
 		<xsl:attribute name="href">
             <xsl:choose>
