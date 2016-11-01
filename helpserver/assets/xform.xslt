@@ -561,8 +561,34 @@
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">
 			<xsl:for-each select="arguments/argument">
-				<dt><xsl:value-of select="name" />
-                 <xsl:if test="type"><span class="argumentType"> <xsl:value-of select="type" /><xsl:comment> </xsl:comment></span></xsl:if>                
+                <dt>
+                <xsl:value-of select="name" />
+				<xsl:if test="type"><span class="argumentType">
+                    <xsl:choose>
+                        <xsl:when test="type='C'">Character </xsl:when>
+                        <xsl:when test="type='L'">Logical </xsl:when>
+                        <xsl:when test="type='N'">Numeric </xsl:when>
+                        <xsl:when test="type='P'">Pointer </xsl:when>
+                        <xsl:when test="type='D'">Date </xsl:when>
+                        <xsl:when test="type='T'">Time </xsl:when>
+                        <xsl:otherwise><xsl:value-of select="type" /></xsl:otherwise>
+                    </xsl:choose>                
+                    <xsl:comment></xsl:comment>
+                </span></xsl:if>                
+                <xsl:choose>
+                    <xsl:when test="./@readonly">
+                        <span class="argReadonly" ><xsl:comment> </xsl:comment></span>
+                    </xsl:when> 
+                    <xsl:when test="./@writeonly">
+                        <span class="argWriteonly" ><xsl:comment> </xsl:comment></span>
+                    </xsl:when> 
+                    <xsl:when test="./@pseudo">
+                        <span class="argPsuedo" ><xsl:comment> </xsl:comment></span>
+                    </xsl:when> 
+                    <xsl:when test="./@optional">
+                        <span class="argOptional" ><xsl:comment> </xsl:comment></span>                        
+                    </xsl:when> 
+                </xsl:choose>
                 </dt>
 				<dd>
 					<xsl:choose>
