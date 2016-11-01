@@ -47,7 +47,8 @@
                 <xsl:if test="topic"><h1><xsl:value-of select="topic" /></h1></xsl:if>
                 <xsl:if test="name"> <h1><xsl:value-of select="name" /></h1></xsl:if>
            </xsl:otherwise>
-        </xsl:choose>   
+        </xsl:choose>
+        <xsl:call-template name="callouts-before"/>
 		<xsl:if test="syntax">
 			<p class="A5">Syntax</p>
 			<xsl:value-of select="syntax" />
@@ -234,8 +235,8 @@
 			<xsl:for-each select="classes/class">
 				<xsl:call-template name="page-content"/>
 			</xsl:for-each>
-		</xsl:if>
-        <xsl:call-template name="callouts"/>
+		</xsl:if>       
+        <xsl:call-template name="callouts-after"/>
         <xsl:if test="pages">
             <xsl:call-template name="pages"/>
         </xsl:if>        
@@ -415,7 +416,8 @@
                 </div>
             </xsl:for-each>
         </xsl:if>
-        <xsl:call-template name="callouts"/>
+        <xsl:call-template name="callouts-before"/>
+        <xsl:call-template name="callouts-after"/>
         <xsl:if test="video">
             <xsl:for-each select="video">                
                     <xsl:choose>
@@ -591,6 +593,7 @@
                 </xsl:choose>
                 </dt>
 				<dd>
+                    <xsl:call-template name="callouts-before"/>
 					<xsl:choose>
 						<xsl:when test="content">
 							<xsl:value-of select="content" disable-output-escaping="yes" />
@@ -599,6 +602,8 @@
                             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>							
 						</xsl:when>
 					</xsl:choose>
+                    <xsl:call-template name="callouts-after"/>
+
                     <xsl:if test="properties">
                         <dl class="propertiesDL" >
                             <xsl:for-each select="properties/property">
@@ -620,17 +625,7 @@
 			</xsl:for-each>
 		</dl>
 	</xsl:template>
-     <xsl:template name="callouts">
-        <xsl:if test="note">
-            <xsl:choose>
-                <xsl:when test="note/p">
-                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
-                </xsl:when>
-                <xsl:otherwise>
-                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
+     <xsl:template name="callouts-before">
         <xsl:if test="warning">
             <xsl:choose>
                 <xsl:when test="warning/p">
@@ -661,6 +656,19 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
+   </xsl:template>
+
+   <xsl:template name="callouts-after">
+        <xsl:if test="note">
+            <xsl:choose>
+                <xsl:when test="note/p">
+                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div class="sectionNote" ><xsl:value-of select="note" /></div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
         <xsl:if test="important">
             <xsl:choose>
                 <xsl:when test="important/p">
@@ -682,6 +690,7 @@
             </xsl:choose>
         </xsl:if>
    </xsl:template>
+
 	<xsl:attribute-set name="href-link">
 		<xsl:attribute name="href">
             <xsl:choose>
