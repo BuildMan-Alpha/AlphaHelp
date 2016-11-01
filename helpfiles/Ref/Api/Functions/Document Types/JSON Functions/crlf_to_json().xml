@@ -1,22 +1,78 @@
 <page>
 	<shortlink>crlf_to_json()</shortlink>
 	<topic>crlf_to_json Function</topic>
-	<description>Converts cr-lf delimited text to JSON. First row of text is assumed to be the field names. Default delimiter (character between fields) is |. crlf - takes something like colors and turn it into a json array.
-	</description>
 	<syntax>C result = crlf_to_json(txt as C [, delimiter as C ])
 	</syntax>
 	<arguments>
 		<argument>
 			<name>txt</name>
 			<type>C</type>
-			<description>List of crlf() delimited rows.</description>
+			<description>List of CR-LF delimited rows. The first row of text is assumed to be the field names.</description>
 		</argument>
 		<argument optional="true">
 			<name>delimiter</name>
 			<type>C</type>
-			<description>Default value is "|". Delimiter that separates each field.</description>
+			<description>Default value is "|". The delimiter used to separate fields.</description>
 		</argument>
 	</arguments>
+	<description>Convert a CR-LF delimited list of records into a JSON object.</description>
+	<discussion>
+		<p>Converts CR-LF delimited list of text to JSON. crlf_to_json can be used to convert the return value of a method such as [sql_records_get] to a JSON object. The first line in the CR-LF delimited list is expected to contain the field names for the records, separated by pipes "|".</p>
+		<p>If a different separator is used, such as commas, the second parameter can be used to indicate the delimiter if the delimiter between column values is not a pipe "|".</p>
+	</discussion>
+	<sections>
+		<section>
+			<example><![CDATA[dim columns as c = "CustomerID|ContactName|Address|City|Country"
+dim records as c = sql_records_get("::Name::northwind","SELECT FIRST 5 CustomerID, ContactName, Address, City, Country FROM CUSTOMERS","","")
+records = columns + crlf() + records
+dim json as c = crlf_to_json(records)
+
+showvar(convert_utf8_to_acp(json))]]></example>
+		</section>
+		<section>
+			<description>The example above produces the following output:</description>
+			<example><![CDATA[[
+	{
+		"CustomerID": "ALFKI",
+		"ContactName": "Maria Anders",
+		"Address": "Obere Str. 57",
+		"City": "Berlin",
+		"Country": "Germany"
+	},
+	{
+		"CustomerID": "ANATR",
+		"ContactName": "Ana Trujillo",
+		"Address": "Avda. de la Constitución 2222",
+		"City": "México D.F.",
+		"Country": "Mexico"
+	},
+	{
+		"CustomerID": "ANTON",
+		"ContactName": "Antonio Moreno",
+		"Address": "Mataderos  2312",
+		"City": "México D.F.",
+		"Country": "Mexico"
+	},
+	{
+		"CustomerID": "AROUT",
+		"ContactName": "Thomas Hardy",
+		"Address": "120 Hanover Sq.",
+		"City": "London",
+		"Country": "UK"
+	},
+	{
+		"CustomerID": "BERGS",
+		"ContactName": "Christina Berglund",
+		"Address": "Berguvsvägen  8",
+		"City": "Luleå",
+		"Country": "Sweden"
+	}
+]]]></example>
+		</section>
+	</sections>
+	<links>
+		<link href="/documentation/index?search=sql_records_get%20function">sql_records_get</link>
+	</links>
 	<see>
 		<ref href="/documentation/index?search=argumentsfromjson()">argumentsfromjson()</ref>
 		<ref href="/documentation/index?search=crlf_to_json()">crlf_to_json()</ref>
