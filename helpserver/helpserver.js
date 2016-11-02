@@ -806,7 +806,6 @@ events.indexTitle = function(title) {
      for( i = 0 ; i < anySymbol.length ; ++i ) {
          if( title.indexOf(anySymbol[i].symbol) >= 0 ) {
              title = title.split(anySymbol[i].symbol).join(anySymbol[i].replace);
-             title = title.split("  ").join(" ");
          }
      }
      return title;
