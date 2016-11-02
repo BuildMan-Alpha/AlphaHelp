@@ -611,6 +611,11 @@ events.extractSymbols = function(txt,title,path) {
       { "symbol" : "*" , "replace" : "aster|"}  ,
       { "symbol" : "$" , "replace" : "dollr|" } ,
       { "symbol" : "@" , "replace" : "amper|" } ,
+      { "symbol" : "%" , "replace" : "percent|" } ,
+      { "symbol" : "<" , "replace" : "grtthn|" } ,
+      { "symbol" : ">" , "replace" : "lssthn|" } ,
+      { "symbol" : "=" , "replace" : "eqlcmp|" } ,
+      { "symbol" : "!" , "replace" : "exclm|" } ,
       { "symbol" : "{" , "replace" : "lcbrc|" , "endsymbol" :  "}" , "endreplace" : "|rcbrc" } 
      ];
      var i , j , k;
