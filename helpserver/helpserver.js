@@ -618,6 +618,7 @@ events.extractSymbols = function(txt,title,path) {
      var symbols = " " , symbol;
      var words , word , parts , subparts;
      var originalTitle = title;
+
      if( !originalTitle ) {
          originalTitle = txt;
      }
@@ -746,9 +747,9 @@ events.extractSymbols = function(txt,title,path) {
          subWords.push( caseword.substring(wordStart) );
          return subWords;
      };
-     originalTitle = originalTitle.split("_").join(".").split(".");
-     for( i = 0 ; i < originalTitle.length ; ++i ) {
-         var caseWords = splitByCase(originalTitle[i]);
+     var originalTitleParts = originalTitle.split("_").join(".").split(".");
+     for( i = 0 ; i < originalTitleParts.length ; ++i ) {
+         var caseWords = splitByCase(originalTitleParts[i]);
          if( caseWords.length > 1 ) {
              // Search for case words
              for( j = 0 ; j < caseWords.length ; ++j ) {
@@ -771,6 +772,24 @@ events.extractSymbols = function(txt,title,path) {
         if( !path && !title ) {
              symbols = txt.toLowerCase().trim();
         }
+     }
+     originalTitle = originalTitle.trim();
+     var specialChars = originalTitle;
+     var anySymbol = [
+      { "symbol" : "%" , "replace" : " prcnt " } ,
+      { "symbol" : "<" , "replace" : " grtthn " } ,
+      { "symbol" : ">" , "replace" : " lssthn " } ,
+      { "symbol" : "=" , "replace" : " eqlcmp " } ,
+      { "symbol" : "!" , "replace" : " exclm " } 
+     ];
+     for( i = 0 ; i < anySymbol.length ; ++i ) {
+         if( specialChars.indexOf(anySymbol[i].symbol) >= 0 ) {
+             specialChars = specialChars.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+             specialChars = specialChars.split("  ").join(" ");
+         }
+     }
+     if( specialChars !== originalTitle ) {
+         symbols = symbols +" "+specialChars;
      }
      return symbols;
 };
