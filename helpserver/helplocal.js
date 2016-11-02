@@ -3,6 +3,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var options = require("./settingslocal");
+var linksFileName = "/home/AlphaHelp/links.json";
 var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
@@ -274,15 +275,27 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
 events.beforeRefresh = function() {
     
 };
+
 events.extractTitle = function(page) {
     var topicStart = page.indexOf("<topic>");
     if( topicStart > 0 ) {
         var topicEnd = page.indexOf("</topic>");
         topicStart += 7;
         if( topicEnd > topicStart ) {
-            var  topic = page.substring(topicStart,topicEnd).trim();
-            if( topic.length > 0 )
-                return topic;
+            if( page.substring ) {
+                var  topic = page.substring(topicStart,topicEnd).trim();
+                if( topic.substring(0,9) === "<![CDATA[") {
+                    if( topic.substring(topic.length-3) === "]]>" ) {
+                        topic = topic.substring(9,topic.length-3);
+                        topic = replaceAll(topic,"<","&lt;");
+                        topic = replaceAll(topic,">","&gt;");         
+                    }
+                }
+                if( topic.length > 0 )
+                    return topic;
+            } else {
+                console.log("substring method was not found."+page);
+            }
         }
     }
     return null;
