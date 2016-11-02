@@ -554,7 +554,8 @@ events.indexTitle = function(title) {
       { "symbol" : "<" , "replace" : "&lt;" } ,
       { "symbol" : ">" , "replace" : "&gt;" } ,
       { "symbol" : "=" , "replace" : "&#61;" } ,
-      { "symbol" : "!" , "replace" : "&#33;" } 
+      { "symbol" : "!" , "replace" : "&#33;" } ,
+      { "symbol" : "$" , "replace" : "&#36;" }      
      ];
      for( i = 0 ; i < anySymbol.length ; ++i ) {
          if( title.indexOf(anySymbol[i].symbol) >= 0 ) {
