@@ -531,8 +531,8 @@ events.extractSymbols = function(txt,title,path) {
      var specialChars = originalTitle;
      var anySymbol = [
       { "symbol" : "%" , "replace" : " prcnt " } ,
-      { "symbol" : "<" , "replace" : " grtthn " } ,
-      { "symbol" : ">" , "replace" : " lssthn " } ,
+      { "symbol" : "<" , "replace" : " lssthn " } ,
+      { "symbol" : ">" , "replace" : " grtthn " } ,
       { "symbol" : "=" , "replace" : " eqlcmp " } ,
       { "symbol" : "!" , "replace" : " exclm " } 
      ];
@@ -550,11 +550,11 @@ events.extractSymbols = function(txt,title,path) {
 events.indexTitle = function(title) {
      var i;
      var anySymbol = [
-      { "symbol" : "%" , "replace" : " prcnt " } ,
-      { "symbol" : "<" , "replace" : " grtthn " } ,
-      { "symbol" : ">" , "replace" : " lssthn " } ,
-      { "symbol" : "=" , "replace" : " eqlcmp " } ,
-      { "symbol" : "!" , "replace" : " exclm " } 
+      { "symbol" : "%" , "replace" : "&#37;" } ,
+      { "symbol" : "<" , "replace" : "&lt;" } ,
+      { "symbol" : ">" , "replace" : "&gt;" } ,
+      { "symbol" : "=" , "replace" : "&#61;" } ,
+      { "symbol" : "!" , "replace" : "&#33;" } 
      ];
      for( i = 0 ; i < anySymbol.length ; ++i ) {
          if( title.indexOf(anySymbol[i].symbol) >= 0 ) {
