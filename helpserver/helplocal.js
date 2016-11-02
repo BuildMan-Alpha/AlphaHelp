@@ -563,6 +563,7 @@ events.indexTitle = function(title) {
              title = title.split("  ").join(" ");
          }
      }
+     console.log(title);
      return title;
 };
 events.postProcessContent = function(data) {
