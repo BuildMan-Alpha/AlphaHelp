@@ -1,0 +1,70 @@
+<page>
+    <shortlink>How to Use User-Defined Scalar Functions in Oracle and SQL Server</shortlink>
+    <topic>How to Use User-Defined Scalar Functions in Oracle and SQL Server</topic>
+    <description>User-defined scalar functions in Oracle and SQL Server can be called from Alpha Anywhere.</description>
+    <discussion>You can either use the function in a SELECT statement, or execute the call in a PL/SQL script. The complete XBasic scripts are shown below for both Oracle and SQL Server. In summary:</discussion>
+    <sections>
+        <section>
+            <description>The correct syntax to select the result of a scalar function in Oracle is:</description>
+            <example><![CDATA[? c.Execute("select COUNT_EMP(:lower, :upper) as l_Count from  dual")
+?c.resultset.data("l_count")]]></example>
+        </section>
+        <section>
+            <description>To retrieve output parameters from a stored procedure or function you can add an argument to the SQL::Arguments object for each output parameter as follows:</description>
+            <example><![CDATA[dim args as sql::arguments
+args.add("l_count", 0, SQL::ArgumentUsage::OutputArgument)
+? c.execute("begin :l_count := COUNT_EMP(:lower, :upper); end;",  args)
+? args[3].Data]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The value SQL::ArgumentUsage::OutputArgument indicates that the parameter is output only. There is an enumerated value for each of (input, output and input/output).</p>
+                <p>The SQL is wrapped in a BEGIN/END pair. This seems to be required by OCI for the script to execute properly.</p>
+            </description>
+        </section>
+        <section>
+            <title>Calling a user defined scalar function using Oracle</title>
+            <description>Getting the result of the function using a SELECT statement</description>
+            <example><![CDATA[dim c as sql::connection
+? c.open( ("::Name::Oracle") )?c.open( ("::Name::Oracle") )
+dim args as sql::arguments
+args.add("lower", 1)
+args.add("upper", 100)
+? c.execute("select COUNT_EMP(:lower, :upper) as l_Count from dual", args)
+? c.resultset.data("l_count")]]></example>
+        </section>
+        <section>
+            <description>Getting the result of the function using SQL::Arguments</description>
+            <example><![CDATA[dim c as sql::connection
+? c.open( ("::Name::Oracle") )
+dim args as sql::arguments
+args.add("lower", 1)
+args.add("upper", 100)
+args.add("l_count", 0, SQL::ArgumentUsage::OutputArgument)
+? c.execute("begin :l_count := COUNT_EMP(:lower, :upper); end;",  args)
+? args[3].Data]]></example>
+        </section>
+        <section>
+            <title>Calling a user defined scalar function using SQL Server</title>
+            <description>Getting the result of the function using a SELECT statement</description>
+            <example><![CDATA[dim c as sql::connection
+? c.open( ("::Name::SQLServer") )
+dim args as sql::arguments
+args.add("lower", 1)
+args.add("upper", 100)
+? c.execute("select dbo.COUNT_EMP(:lower, :upper) as l_Count",  args)
+? c.resultset.data("l_count")]]></example>
+        </section>
+        <section>
+            <description>Getting the result of the function using SQL::Arguments.</description>
+            <example><![CDATA[dim c as sql::connection
+? c.open( ("::Name::SQLServer") )
+dim args as sql::arguments
+args.add("lower", 1)
+args.add("upper", 100)
+args.add("l_count", 0, SQL::ArgumentUsage::OutputArgument)
+? c.execute("select :l_count = dbo.COUNT_EMP(:lower, :upper)",  args)
+? args[3].Data]]></example>
+        </section>
+    </sections>
+</page>

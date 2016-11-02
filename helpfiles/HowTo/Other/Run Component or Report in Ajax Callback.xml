@@ -1,0 +1,136 @@
+<page>
+    <shortlink>Running a Component or Report in a User Defined Ajax Callback or in an Xbasic Code Block</shortlink>
+    <topic>How to run a Component or Report in a User Defined Ajax Callback or &lt;%a5..%&gt; Code Block</topic>
+    <description>Components and reports can be dynamically run using xbasic in an Ajax Callback.</description>
+    <discussion>
+        <p>Action Scripting has always provided powerful techniques for displaying a Component in a pop-up window, or a div. In addition, the UX component allows you to embed Components and Reports directly in the UX component.</p>
+        <p>While these existing techniques are extremely powerful, it is difficult to add certain types of customization logic.</p>
+        <p>For example, your UX component might have a button that opens 'Grid1'. It has not been easy to make a button that opens 'Grid1' under one condition, and 'Grid2' under a different condition.</p>
+        <p>Also, if you put a free form region in a Grid, it has not easy to embed a Component into that free form region.</p>
+        <p>Three powerful new Xbasic functions have been added to allows you to run Components and Reports under full Xbasic control.</p>
+        <p>These functions are:</p>
+    </discussion>
+    <sections>
+        <section>
+            <cases>
+                <case>
+                    <description>[a5_xb_runGridComponent()]</description>
+                </case>
+                <case>
+                    <description>[a5_xb_runGenericComponent()]</description>
+                </case>
+                <case>
+                    <description>[a5_xb_runReport()]</description>
+                </case>
+            </cases>
+            <note>The a5_xb_runReport() function cannot be used in a &lt;%a5..%&gt; code block if the initial view of the report has been set to 'HTML'.</note>
+            <videos>
+                <video>
+                    <name>Video 1</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/a5_xb_runGridComponent_part1.swf</link>
+                </video>
+                <video>
+                    <name>Video 2</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/a5_xb_runGridComponent_part2.swf</link>
+                </video>
+                <video>
+                    <name>Video 3</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/a5_xb_runGridComponent_part3.swf</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <description>
+                <p>For example, assume you have a Grid with a free-form edit region below the Grid. You would like to display a Grid in this free-form region.</p>
+                <p>Here is the html (with included Xbasic code block) that you might use:</p>
+            </description>
+            <example><![CDATA[<b>An embedded Grid will be shown here.</b>
+
+<%a5
+    delete p
+    dim p as p
+    p.gridName = "MyGrid"
+    p.alias = "MYGRID1"
+    p.thisComponentAlias = "{grid.componentname}"
+
+   
+
+    dim xb as c
+    xb = a5_XB_RunGridComponent(p)
+    ?xb
+%>]]></example>
+            <note>Because 'p.div' property was not specified in the above example, the Grid is emitted 'in-line'. Had p.div been specified, the Grid would have been shown in the div specified by p.div.</note>
+        </section>
+        <section>
+            <description>
+                <p>In the above example, you might ask how is this different from defining a Linked Content Section for the Grid? There are two subtle differences.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>The Linked Content Grid has to be linked to the parent Grid in some way. The Grid run using a5_xb_runGridComponent() does not have to be linked (although if you set the appropriate properties of the 'p' dot-var that is passed into a5_xb_runGridComponent(), it could be).</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>The Linked Content Grid is shown on an Ajax callback. As soon as the parent Grid is rendered, a callback is made to render the linked Grids. The Grid run using a5_xb_runGridComponent() is rendered in the initial rendering of the parent Grid - no second callback is needed.</p>
+                    </description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>In this next example, we show how the a5_xb_runGridComponent() could be used in a user defined Ajax callback. Assume that you have a button on a component (UX or Grid) that does a user-defined Ajax callback. The Ajax callback is defined to call an Xbasic function called (say) 'xbRunGrid'. Here is how the 'xbRunGrid' function could be defined:</p>
+            </description>
+            <example><![CDATA[function xbRunGrid as c (e as p)
+    delete p
+    dim p as p
+    p.gridName = "Grid_SalesPeople"
+    p.alias = "SALESPEOPLE1"
+    p.thisComponentAlias = "{dialog.componentname}"
+    p.div = "grid1"
+    p.override = <<%txtsettings%
+    rows = 2
+    %txtsettings%
+    dim xb as c
+    xb = a5_XB_RunGridComponent(p)
+    xbRunGrid = xb
+end function ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that in this example, we have specified the p.div property as 'grid1'. This means that when the Ajax callback completes, the Grid will be rendered inside the the DIV with an id of 'grid1'.</p>
+                <p>Also notice that in this example, we have specified the 'p.override' property to override settings in the Grid when it is rendered. We have changed the number of rows to 5.</p>
+                <p>Using Action Scripting to define a button that does an Ajax callback to show a Grid in a div has always been easy, so you might ask, how is the technique described above different from simply using Action Scripting. On the surface, there is little difference. The results are the same. But the technique described above is more flexible because you can use Xbasic code to make conditional settings. For example, assume that the UX component has a dropdown control called 'GridName'. When the Ajax callback occurs the value in the 'GridName' control will be submitted. The code in the Xbasic function that handles the callback could be modified as follows:</p>
+            </description>
+            <example><![CDATA[function xbRunGrid as c (e as p)
+
+    dim gridName as c
+
+    gridName = e.dataSubmitted.gridName
+    delete p
+    dim p as p
+    p.gridName = gridName
+    p.alias = "MYGRIDALIAS1"
+    p.thisComponentAlias = "{dialog.componentname}"
+    p.div = "grid1"
+    p.override = <<%txtsettings%
+    rows = 2
+    %txtsettings%
+    dim xb as c
+    xb = a5_XB_RunGridComponent(p)
+    xbRunGrid = xb
+end function ]]></example>
+        </section>
+    </sections>
+    <links>
+        <link href="/documentation/index?search=a5_xb_runGridComponent function">a5_xb_runGridComponent()</link>
+        <link href="/documentation/index?search=a5_xb_runGenericComponent function">a5_xb_runGenericComponent()</link>
+        <link href="/documentation/index?search=a5_xb_runReport function">a5_xb_runReport()</link>
+    </links>
+    <see>
+        <ref href="/documentation/index?search=a5_xb_runGridComponent function">a5_xb_runGridComponent()</ref>
+        <ref href="/documentation/index?search=a5_xb_runGenericComponent function">a5_xb_runGenericComponent()</ref>
+        <ref href="/documentation/index?search=a5_xb_runReport function">a5_xb_runReport()</ref>
+    </see>
+</page>
