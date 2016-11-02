@@ -773,17 +773,19 @@ events.extractSymbols = function(txt,title,path) {
              symbols = txt.toLowerCase().trim();
         }
      }
+     originalTitle = originalTitle.trim();
      var specialChars = originalTitle;
      var anySymbol = [
-      { "symbol" : "%" , "replace" : "_percent_" } ,
-      { "symbol" : "<" , "replace" : "_grtthn_" } ,
-      { "symbol" : ">" , "replace" : "_lssthn_" } ,
-      { "symbol" : "=" , "replace" : "_eqlcmp_" } ,
-      { "symbol" : "!" , "replace" : "_exclm_" } 
+      { "symbol" : "%" , "replace" : " prcnt " } ,
+      { "symbol" : "<" , "replace" : " grtthn " } ,
+      { "symbol" : ">" , "replace" : " lssthn " } ,
+      { "symbol" : "=" , "replace" : " eqlcmp " } ,
+      { "symbol" : "!" , "replace" : " exclm " } 
      ];
      for( i = 0 ; i < anySymbol.length ; ++i ) {
          if( specialChars.indexOf(anySymbol[i].symbol) >= 0 ) {
              specialChars = specialChars.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+             specialChars = specialChars.split("  ").join(" ");
          }
      }
      if( specialChars !== originalTitle ) {
