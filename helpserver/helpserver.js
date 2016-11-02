@@ -611,11 +611,6 @@ events.extractSymbols = function(txt,title,path) {
       { "symbol" : "*" , "replace" : "aster|"}  ,
       { "symbol" : "$" , "replace" : "dollr|" } ,
       { "symbol" : "@" , "replace" : "amper|" } ,
-      { "symbol" : "%" , "replace" : "percent|" } ,
-      { "symbol" : "<" , "replace" : "grtthn|" } ,
-      { "symbol" : ">" , "replace" : "lssthn|" } ,
-      { "symbol" : "=" , "replace" : "eqlcmp|" } ,
-      { "symbol" : "!" , "replace" : "exclm|" } ,
       { "symbol" : "{" , "replace" : "lcbrc|" , "endsymbol" :  "}" , "endreplace" : "|rcbrc" } 
      ];
      var i , j , k;
@@ -623,6 +618,7 @@ events.extractSymbols = function(txt,title,path) {
      var symbols = " " , symbol;
      var words , word , parts , subparts;
      var originalTitle = title;
+
      if( !originalTitle ) {
          originalTitle = txt;
      }
@@ -751,9 +747,9 @@ events.extractSymbols = function(txt,title,path) {
          subWords.push( caseword.substring(wordStart) );
          return subWords;
      };
-     originalTitle = originalTitle.split("_").join(".").split(".");
-     for( i = 0 ; i < originalTitle.length ; ++i ) {
-         var caseWords = splitByCase(originalTitle[i]);
+     var originalTitleParts = originalTitle.split("_").join(".").split(".");
+     for( i = 0 ; i < originalTitleParts.length ; ++i ) {
+         var caseWords = splitByCase(originalTitleParts[i]);
          if( caseWords.length > 1 ) {
              // Search for case words
              for( j = 0 ; j < caseWords.length ; ++j ) {
@@ -776,6 +772,22 @@ events.extractSymbols = function(txt,title,path) {
         if( !path && !title ) {
              symbols = txt.toLowerCase().trim();
         }
+     }
+     var specialChars = originalTitle;
+     var anySymbol = [
+      { "symbol" : "%" , "replace" : "_percent_" } ,
+      { "symbol" : "<" , "replace" : "_grtthn_" } ,
+      { "symbol" : ">" , "replace" : "_lssthn_" } ,
+      { "symbol" : "=" , "replace" : "_eqlcmp_" } ,
+      { "symbol" : "!" , "replace" : "_exclm_" } 
+     ];
+     for( i = 0 ; i < anySymbol.length ; ++i ) {
+         if( specialChars.indexOf(anySymbol[i].symbol) >= 0 ) {
+             specialChars = specialChars.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+         }
+     }
+     if( specialChars !== originalTitle ) {
+         symbols = symbols +" "+specialChars;
      }
      return symbols;
 };
