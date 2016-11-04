@@ -3,6 +3,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var options = require("./settingslocal");
+var linksFileName = "/home/AlphaHelp/links.json";
 var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
@@ -274,15 +275,27 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
 events.beforeRefresh = function() {
     
 };
+
 events.extractTitle = function(page) {
     var topicStart = page.indexOf("<topic>");
     if( topicStart > 0 ) {
         var topicEnd = page.indexOf("</topic>");
         topicStart += 7;
         if( topicEnd > topicStart ) {
-            var  topic = page.substring(topicStart,topicEnd).trim();
-            if( topic.length > 0 )
-                return topic;
+            if( page.substring ) {
+                var  topic = page.substring(topicStart,topicEnd).trim();
+                if( topic.substring(0,9) === "<![CDATA[") {
+                    if( topic.substring(topic.length-3) === "]]>" ) {
+                        topic = topic.substring(9,topic.length-3);
+                        topic = replaceAll(topic,"<","&lt;");
+                        topic = replaceAll(topic,">","&gt;");         
+                    }
+                }
+                if( topic.length > 0 )
+                    return topic;
+            } else {
+                console.log("substring method was not found."+page);
+            }
         }
     }
     return null;
@@ -358,6 +371,11 @@ events.extractSymbols = function(txt,title,path) {
      var padText = " "+txt.toLowerCase()+" ";
      var symbols = " " , symbol;
      var words , word , parts , subparts;
+     var originalTitle = title;
+
+     if( !originalTitle ) {
+         originalTitle = txt;
+     }
      if( title ) {
          title = title.toLowerCase();
          padText = " "+ title.trim() + padText;
@@ -448,6 +466,54 @@ events.extractSymbols = function(txt,title,path) {
          }
          symbols = symbols.split("|").join("_");
      }
+     var splitByCase = function(caseword) {
+         var subWords = [];
+         var i;
+         var lastType = null;
+         var thisType;
+         var wordStart = 0;
+         for( i = 0 ; i < caseword.length ; ++i ) {
+             var chr = caseword.charAt(i);
+             if( /[A-Za-z]|[\u0080-\u024F]/.test(chr)) {
+                 if( chr === chr.toUpperCase() ) {
+                     thisType = "u";
+                 } else if( chr === chr.toLowerCase() ) {
+                     thisType = "l";
+                 } else {
+                     thisType = lastType;
+                 }
+             } else {
+                 thisType = lastType;
+             }
+             if( i > 0 && thisType && thisType !== lastType ) {
+                 if( lastType === 'u' && thisType === 'l' ) {
+                     if( (wordStart+1) < i ) {
+                         subWords.push( caseword.substring(wordStart,i-1) );
+                         wordStart = i-1;
+                     }                      
+                 } else if( (wordStart+1) < i  ) {
+                     subWords.push(  caseword.substring(wordStart,i) )
+                     wordStart = i;
+                 }
+             }
+             lastType = thisType;
+         }
+         subWords.push( caseword.substring(wordStart) );
+         return subWords;
+     };
+     var originalTitleParts = originalTitle.split("_").join(".").split(".");
+     for( i = 0 ; i < originalTitleParts.length ; ++i ) {
+         var caseWords = splitByCase(originalTitleParts[i]);
+         if( caseWords.length > 1 ) {
+             // Search for case words
+             for( j = 0 ; j < caseWords.length ; ++j ) {
+                 var subword = caseWords[j].toLowerCase()+" ";
+                 if( symbols.indexOf(" "+subword) < 0 ) {
+                     symbols += subword;
+                 }
+             }
+         }
+     }
      // Add symbols to denote the separator that is being used
      if( symbols.indexOf("_") > 0 ) {
          symbols += "underbarseparated";
@@ -455,7 +521,55 @@ events.extractSymbols = function(txt,title,path) {
      if( symbols.indexOf(".") > 0 ) {
          symbols += "dotseparated";
      }
-     return symbols.trim();  
+     symbols = symbols.trim();
+     if( symbols.length === 0 ) {
+        if( !path && !title ) {
+             symbols = txt.toLowerCase().trim();
+        }
+     }
+     originalTitle = originalTitle.trim();
+     var specialChars = originalTitle;
+     var anySymbol = [
+      { "symbol" : "%" , "replace" : " prcnt " } ,
+      { "symbol" : "<" , "replace" : " lssthn " } ,
+      { "symbol" : ">" , "replace" : " grtthn " } ,
+      { "symbol" : "=" , "replace" : " eqlcmp " } ,
+      { "symbol" : "!" , "replace" : " exclm " } 
+     ];
+     for( i = 0 ; i < anySymbol.length ; ++i ) {
+         if( specialChars.indexOf(anySymbol[i].symbol) >= 0 ) {
+             specialChars = specialChars.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+             specialChars = specialChars.split("  ").join(" ");
+         }
+     }
+     if( specialChars !== originalTitle ) {
+         symbols = symbols +" "+specialChars;
+     }
+     return symbols;
+};
+events.indexTitle = function(title) {
+     var i;
+     var extra = "";
+     var anySymbol = [
+      { "symbol" : "%" , "replace" : "&#37;" } ,
+      { "symbol" : "<" , "replace" : "&lt;" } ,
+      { "symbol" : ">" , "replace" : "&gt;" } ,
+      { "symbol" : "=" , "replace" : "&#61;" } ,
+      { "symbol" : "!" , "replace" : "&#33;" } ,
+      { "symbol" : "$" , "replace" : "&#36;" , "extra" : "dllrsym " }      
+     ];
+     for( i = 0 ; i < anySymbol.length ; ++i ) {
+         if( title.indexOf(anySymbol[i].symbol) >= 0 ) {
+             title = title.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+             if( anySymbol[i].extra )
+                extra += anySymbol[i].extra;      
+         }
+     }
+     if( extra.length > 0 ) {
+         extra = extra.trim();
+         title = title + "<!-- "+extra+" --->"
+     }
+     return title;
 };
 events.postProcessContent = function(data) {
     console.log("Before process "+data);

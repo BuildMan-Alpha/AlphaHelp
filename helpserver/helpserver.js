@@ -777,8 +777,8 @@ events.extractSymbols = function(txt,title,path) {
      var specialChars = originalTitle;
      var anySymbol = [
       { "symbol" : "%" , "replace" : " prcnt " } ,
-      { "symbol" : "<" , "replace" : " grtthn " } ,
-      { "symbol" : ">" , "replace" : " lssthn " } ,
+      { "symbol" : "<" , "replace" : " lssthn " } ,
+      { "symbol" : ">" , "replace" : " grtthn " } ,
       { "symbol" : "=" , "replace" : " eqlcmp " } ,
       { "symbol" : "!" , "replace" : " exclm " } 
      ];
@@ -792,6 +792,30 @@ events.extractSymbols = function(txt,title,path) {
          symbols = symbols +" "+specialChars;
      }
      return symbols;
+};
+events.indexTitle = function(title) {
+     var i;
+     var extra = "";
+     var anySymbol = [
+      { "symbol" : "%" , "replace" : "&#37;" } ,
+      { "symbol" : "<" , "replace" : "&lt;" } ,
+      { "symbol" : ">" , "replace" : "&gt;" } ,
+      { "symbol" : "=" , "replace" : "&#61;" } ,
+      { "symbol" : "!" , "replace" : "&#33;" } ,
+      { "symbol" : "$" , "replace" : "&#36;" , "extra" : "dllrsym " }      
+     ];
+     for( i = 0 ; i < anySymbol.length ; ++i ) {
+         if( title.indexOf(anySymbol[i].symbol) >= 0 ) {
+             title = title.split(anySymbol[i].symbol).join(anySymbol[i].replace);
+             if( anySymbol[i].extra )
+                extra += anySymbol[i].extra;      
+         }
+     }
+     if( extra.length > 0 ) {
+         extra = extra.trim();
+         title = title + "<!-- "+extra+" --->"
+     }
+     return title;
 };
 events.postProcessContent = function(data) {
     if( data.indexOf("*[")) {
