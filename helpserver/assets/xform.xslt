@@ -310,6 +310,22 @@
 		</xsl:if>	
 	</xsl:template>
 	<xsl:template match="list" name="list" >
+		<xsl:choose>
+               <xsl:when test="list/@bullet">
+         <ul class="bulletList" >
+            <xsl:for-each select="list/item">
+                <li class="bulletItem">
+                    <xsl:choose>
+                        <xsl:when test="name/@href"> <a href="{name/@href}"><xsl:value-of select="name" /></a> </xsl:when>
+                        <xsl:otherwise> <xsl:value-of select="name" /> </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:if test="description"> <span class="bulletItemDesc" > <xsl:value-of select="description" /> </span> </xsl:if>
+                    <xsl:if test="list"> <xsl:call-template name="list"/> </xsl:if>
+                </li>
+            </xsl:for-each>
+         </ul>        
+               </xsl:when>
+               <xsl:otherwise>
 		<dl class="definitionTable" >
 			<xsl:for-each select="list/item">
 				<xsl:choose>
@@ -350,6 +366,8 @@
 				</xsl:choose>
 			</xsl:for-each>
 		</dl>
+               </xsl:otherwise>
+        </xsl:choose>       
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
         <xsl:if test="title">
