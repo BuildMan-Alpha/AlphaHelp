@@ -680,9 +680,14 @@ events.loadIndex = function(callback) {
          if( srcObj ) {
              for( var name in srcObj ) {
                  var normalName = name.trim().toLowerCase();
-                 hashObj[normalName] = srcObj[name];
+                 var path = srcObj[name];
+                 if( path.substring(0,7) === "/pages/" ) {
+                     path = "/documentation"+path;
+                 }
+                 hashObj[normalName] = path;
              }
          }
+         debugger;
          callback(hashObj);
     });
 };
