@@ -32,7 +32,7 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                     var topic = null;
                     if( fo.file.toLowerCase().indexOf('.xml') > 0 ) {
                         topic = extractTag(page,"<shortlink>","</shortlink>").trim();
-                        if (topic.length == 0 ) {
+                        if (topic.length === 0 ) {
                             topic = extractTag(page,"<topic>","</topic>").trim();
                         }
                     } else {
@@ -63,6 +63,7 @@ fs.readFile("../links.json", "utf8", function (err2, linksData) {
                         if (topic.substring(0, 9) == "<![CDATA[") {
                             topic = topic.substring(9).split("]]>")[0].trim();
                         }
+                        topic = topic.split("+").join("plus");
                         var hasKey = usedNames[topic.toLowerCase()];
                         var pathName = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
                         if (hasKey) {

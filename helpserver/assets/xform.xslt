@@ -28,6 +28,16 @@
                                 </xsl:otherwise>
                            </xsl:choose>
                         </xsl:when>
+                        <xsl:when test="./@link">
+                            <xsl:choose>
+                                <xsl:when test="./@target">
+                                    <a href="/documentation/index?search={normalize-space(./@link)}"><xsl:value-of select="." target="./@target"/></a>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <a href="/documentation/index?search={normalize-space(./@link)}"><xsl:value-of select="." /></a>
+                                </xsl:otherwise>
+                           </xsl:choose>
+                        </xsl:when>
                         <xsl:when test="./@target">
                             <a><xsl:value-of select="." target="./@target"/></a>
                         </xsl:when>
