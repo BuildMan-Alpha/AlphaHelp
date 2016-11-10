@@ -1,109 +1,102 @@
 <page>
-   <topic>*FOR_EACH Function</topic>
-     <description>Executes the command specified by "each" on every entry in a crlf delimited "list". "Tag" refers to each entry in the "list".</description>
- 
- 
-   <syntax>Result as C = *FOR_EACH(A tag,A each,C list[,L filter])</syntax>
-   <arguments>
-     <argument>
-         <name>tag</name>
-         <description>An arbitrary named placeholder used in the expression/command specified by Eachto refer to each entry in List. Any type</description>
-     </argument>
-     <argument>
-         <name>each</name>
-         <description>An expression or command that you want to execute on each entry in List. Any type</description>
-     </argument>
-     <argument>
-         <name>list</name>
-         <description>A CR-LF delimited list of entries on which you want to operate, or an array. Character</description>
-     </argument>
-     <argument>
-         <name>filter</name>
-         <description>Logical</description>
-     </argument>
-   </arguments>
-   <discussion>
-*FOR_EACH() is a very quick and efficient way of performing a command on every entry in a CR-LF delimited list of values, or in an array. It is an alternative to writing an Xbasic loop.
-Resultis a CR-LF delimited list of return values generate when the command/expression specified by Eachis executed.
-The *COUNTER() function can be used inside the *FOR_EACH() function to return the current count of the number of entries processed. See example below.
-It is easiest to explain how this function works by example. Assume you have a CR-LF list of names:
-
+    <topic>*FOR_EACH Function</topic>
+    <syntax>Result as C = *FOR_EACH(A tag, A each, C list [, L filter_expression ])</syntax>
+    <arguments>
+        <argument>
+            <name>tag</name>
+            <type>A</type>
+            <description>An arbitrary named placeholder used in the expression/command specified by Each to refer to each entry in List. Any type</description>
+        </argument>
+        <argument>
+            <name>each</name>
+            <type>A</type>
+            <description>An expression or command that you want to execute on each entry in List. Any type</description>
+        </argument>
+        <argument>
+            <name>list</name>
+            <type>C</type>
+            <description>A CR-LF delimited list of entries on which you want to operate, or an array. Character</description>
+        </argument>
+        <argument optional="true">
+            <name>filter_expression</name>
+            <type>L</type>
+            <description>A filter expression that returns a .t. or .f. value.</description>
+        </argument>
+    </arguments>
+    <description>Executes the command specified by "each" on every entry in a CR-LF delimited "list". "Tag" refers to each entry in the "list".</description>
+    <discussion>
+        <p>*FOR_EACH() is a very quick and efficient way of performing a command on every entry in a CR-LF delimited list of values, or in an array. It is an alternative to writing an Xbasic loop.</p>
+        <p>Result is a CR-LF delimited list of return values generate when the command/expression specified by Each is executed.</p>
+        <p>The *COUNTER() function can be used inside the *FOR_EACH() function to return the current count of the number of entries processed. See example below.</p>
+        <p>It is easiest to explain how this function works by example. Assume you have a CR-LF list of names:</p>
    </discussion>
-  
    <sections>
        <section>
-            
-            <example><![CDATA[
-Names = <<%str%
+            <example><![CDATA[Names = <<%str%
 Smith,John
 Jones,Jenny
 Kelly,Kim
-%str%
-
-]]></example>
-       </section>
-       
+%str%]]></example>
+        </section>
         <section>
             <description>You would like to get a list of first names only by selecting the word after the comma:</description>
-            <example><![CDATA[
-First_names = *for_each(fullname, word(fullname, 2, ","),names)
-]]></example>
-       </section>
-       
+            <example><![CDATA[First_names = *for_each(fullname, word(fullname, 2, ","),names)
+
+? First_names
+= John
+Jenny
+Kim]]></example>
+        </section>
         <section>
-            <description>In this example, " fullname" is an arbitrary tag that is defined. The Each argument is: word(fullname, 2, ","). This function is performed on each entry in the input list of names. The tag fullnameis used in the expression to refer to each entry in the input list.
-If the tag had been specified as "foo" for example, then the expression would be:
-</description>
-            <example><![CDATA[
-First_names = *for_each(foo, word(foo, 2, ","),names)
-]]></example>
+            <description>
+                <p>In this example, " fullname" is an arbitrary tag that is defined. The Each argument is: word(fullname, 2, ","). This function is performed on each entry in the input list of names. The tag fullname is used in the expression to refer to each entry in the input list.</p>
+                <p>If the tag had been specified as "foo" for example, then the expression would be:</p>
+            </description>
+            <example><![CDATA[First_names = *for_each(foo, word(foo, 2, ","),names)
+
+? First_names
+= John
+Jenny
+Kim]]></example>
        </section>
-       
-       
        <section>
             <description>In this case, this same result can be achieved using the word_change() function:</description>
-            <example><![CDATA[
-First_names = word_change("$(,) + 1", names,CRLF() )First_names = word_change("$(,) + 1", names,CRLF() )
-]]></example>
+            <example><![CDATA[First_names = word_change("$(,)+1", names, crlf() )
+
+? First_names
+= ,John
+,Jenny
+,Kim]]></example>
        </section>
        <section>
        <description>
-       However, the syntax for *FOR_EACH() is easier to understand since it uses standard Alpha Anywhere functions.
-In other situations, such as the example below, where the *FOR_EACH() function is executing a command, WORD_CHANGE() cannot be used as an alternative.
-
+            <p>However, the syntax for *FOR_EACH() is easier to understand since it uses standard Alpha Anywhere functions.</p>
+            <p>In other situations, such as the example below, where the *FOR_EACH() function is executing a command, WORD_CHANGE() cannot be used as an alternative.</p>
        </description>
        </section>
-   </sections>
-   
-   
-   <sections>
-   <section>
-   <title>Examples</title>
-   <description>To delete all of the files with a .tmp extension in a folder.</description>
-   <example><![CDATA[file_list = filefind.get("c:\temp_FILEs\*.tmp", 0, "PN")
-*for_each(filename, file.remove(filename), file_list)
+        <section>
+            <title>Examples</title>
+            <description>To delete all of the files with a .tmp extension in a folder.</description>
+            <example><![CDATA[file_list = filefind.get("c:\temp_FILEs\*.tmp", 0, "PN")
+*for_each(filename, file.remove(filename), file_list)]]></example>
+        </section>
+        <section>
+            <description>Using *[xb:counter()]* to create a numbered list.</description>
+            <example><![CDATA[dim list as c = <<%str%
+apples
+oranges
+pears
+%str%
 
-   ]]></example>
-   </section>
-   
-   <section>
-   <description>To initialize an array with names of all zip files.</description>
-   <example><![CDATA[dim files[1000] as C
-cmd = *for_each(file,"files[" + *counter() + "] = " + quote(file),filefind.get("c:\*.ZIP"))
-? cmd
-= files[1] = "data1.ZIP"
-files[2] = "data2.ZIP"
-files[3] = "mydata.ZIP"
-'now execute the xbasic code in 'cmd' to actually initialize
-'the array
-evaluate_template(cmd)
-
-   ]]></example>
-   </section>
-   
-   <section>
-   <description>Using an array as in the input to the function.</description>
-   <example><![CDATA[dim a[3] as P
+? for_each(item, counter() + ") "+item, list)
+= 1) apples
+2) oranges
+3) pears]]></example>
+        </section>
+        
+        <section>
+            <description>Using an array as in the input to the function.</description>
+            <example><![CDATA[dim a[3] as P
 a[1].fname = "fred"
 a[1].lname = "smith"
 a[1].city = "new york"
@@ -113,33 +106,41 @@ a[2].city = "chicago"
 a[3].fname = "aaron"
 a[3].lname = "brown"
 a[3].city = "london"
-? *for_each(x,x.fname + ' ' + x.lname,a)
+
+? *for_each(x,x.fname + " " + x.lname,a)
 = fred smith
 kelly jones
-aaron brown
+aaron brown]]></example>
+        </section>
+        <section>
+            <description>This example demonstrates using a filter expression. Only the entries where the filter expression returns true are returned:</description>
+            <example><![CDATA[dim txt as c=<<%str%
+Smith,Jenny
+Jones,Michelle
+Amira,Stone
+Krayzelberg,Lawson
+%str%
 
-   ]]></example>
-   </section>
-   
-   <section>
-   <description>In the following example, we read data from the customertable into a property array, and then use *FOR_EACH() to dump out values from the array into a CR-LF string.</description>
-   <example><![CDATA[dim PropArray 100 as P
-  
+?  *for_each(x,word(x,1,","),txt,x>"K")
+= Smith
+Krayzelberg]]></example>
+        </section>
+        <section>
+            <description>In the following example, we read data from the customer table into a property array, and then use *FOR_EACH() to dump out values from the array into a CR-LF string.</description>
+            <example><![CDATA[dim PropArray 100 as P  
 PropArray.initialize_from_table("customer")
+
 ? *for_each(x,x.firstname +" " + x.lastname + " lives in " + x.bill_city + ", " + x.bill_state_region,PropArray) 
 = Michael Graham lives in Natick, MA 
 Aaron Peabody lives in Brockton, MA 
 Janet Rebo lives in Keene, NH 
 David Mesner lives in York Beach, ME 
-Evan Feld lives in Acra, NY
-
-   ]]></example>
-   </section>
-   </sections>
-   <see>
-      <ref link="WORD_CHANGE Function">WORD_CHANGE()</ref>
-      <ref href="/documentation/index?search=FOR EACH ... NEXT">FOR  EACH ... NEXT</ref>
-   </see>
-  <terms>internal,array,arguments,delete,expressions,file,filter,function,list,logical,number,placeholder,writing,xbasic</terms>
-
+Evan Feld lives in Acra, NY]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref href="/documentation/index?search=word_change%20function">WORD_CHANGE()</ref>
+        <ref href="/documentation/index?search=FOR EACH ... NEXT">FOR EACH ... NEXT</ref>
+    </see>
+    <terms>internal,array,arguments,delete,expressions,file,filter,function,list,logical,number,placeholder,writing,xbasic</terms>
 </page>
