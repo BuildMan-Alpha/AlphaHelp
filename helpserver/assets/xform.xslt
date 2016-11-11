@@ -463,8 +463,8 @@
     </xsl:template>    
 
     <xsl:template match="videos" name="videos" >    	
-        <xsl:if test="title">
-            <h3 class="videosTitle"> <xsl:value-of select="title" /> </h3>
+        <xsl:if test="videos/title">
+            <h3 class="videosTitle"> <xsl:value-of select="videos/title" /> </h3>
         </xsl:if>
         <xsl:if test="videos/description">
             <xsl:for-each select="videos/description">
