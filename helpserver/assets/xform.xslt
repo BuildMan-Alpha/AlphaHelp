@@ -272,17 +272,7 @@
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="videos">
-			<xsl:for-each select="videos/video">
-                <xsl:choose>
-                    <xsl:when test="./@embedded"><div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" allowfullscreen="true">loading...</iframe> </div> </xsl:when>
-                    <xsl:otherwise>
-				<li><a xsl:use-attribute-sets="href-link"><xsl:choose>
-                            <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
-                            <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
-                        </xsl:choose></a></li>
-                    </xsl:otherwise>
-                </xsl:choose>            
-			</xsl:for-each>
+            <xsl:call-template name="videos"/>
 		</xsl:if>
 		<xsl:if test="limitations">
             <p class="A5">Limitations</p>
@@ -468,19 +458,47 @@
             </xsl:for-each>
         </xsl:if>
 		<xsl:if test="videos">
-			<xsl:for-each select="videos/video">
-                <xsl:choose>
-                    <xsl:when test="./@embedded"> <div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" allowfullscreen="true">loading...</iframe> </div> </xsl:when>
-                    <xsl:otherwise><li><a xsl:use-attribute-sets="href-link">
-                        <xsl:choose>
-                            <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
-                            <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
-                        </xsl:choose></a></li>
-                    </xsl:otherwise>
-                </xsl:choose>                
-			</xsl:for-each>
+            <xsl:call-template name="videos"/>        
 		</xsl:if>
-    </xsl:template>    	
+    </xsl:template>    
+
+    <xsl:template match="videos" name="videos" >    	
+        <xsl:if test="title">
+            <h3 class="videosTitle"> <xsl:value-of select="title" /> </h3>
+        </xsl:if>
+        <xsl:if test="videos/description">
+            <xsl:for-each select="videos/description">
+                <xsl:call-template name="text-content"/>
+            </xsl:for-each>
+        </xsl:if>
+        <ul>
+        <xsl:for-each select="videos/video">
+            <xsl:choose>
+                <xsl:when test="./@embedded"><div class="videoPlayer"> <iframe  src="{normalize-space(.)}" class="embeddedVideo" frameborder="0" allowfullscreen="true">loading...</iframe> </div> </xsl:when>
+                <xsl:otherwise>
+            <li><a xsl:use-attribute-sets="href-link"><xsl:choose>
+                        <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
+                        <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
+                    </xsl:choose></a></li>
+                </xsl:otherwise>
+            </xsl:choose>            
+        </xsl:for-each>
+        </ul>            
+        <xsl:if test="videos/resources">
+            <xsl:for-each select="videos/resources/resource">
+                <p class="resourceVideoItem"><a xsl:use-attribute-sets="href-link"><xsl:choose>
+                    <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
+                    <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
+                </xsl:choose></a></p>
+            </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="videos/date">
+            <div class="videosDate">
+                <xsl:value-of select="videos/date" />
+            </div>
+        </xsl:if>
+    </xsl:template>
+
     <xsl:template match="text-content" name="text-content" >
         <xsl:choose>
             <xsl:when test="./@include">
