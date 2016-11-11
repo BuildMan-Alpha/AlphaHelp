@@ -488,7 +488,7 @@
             <xsl:for-each select="videos/resources/resource">
                 <p class="resourceVideoItem"><a xsl:use-attribute-sets="href-link"><xsl:choose>
                     <xsl:when test="name"><xsl:value-of select="name" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
+                    <xsl:otherwise>Download Component</xsl:otherwise>
                 </xsl:choose></a></p>
             </xsl:for-each>
         </xsl:if>
