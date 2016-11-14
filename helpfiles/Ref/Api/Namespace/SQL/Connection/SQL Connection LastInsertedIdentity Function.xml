@@ -1,54 +1,60 @@
 <page>
-   <topic>SQL::Connection::LastInsertedIdentity Function</topic>
-     <description>Get the identity value from the last insert for the current session.</description>
-   <syntax>A LastInsertedIdentity([TableInfo as SQL::TableInfo])</syntax>
-   <arguments>
-   <argument>
-         <name>SQL::Connection</name>
-         <description>A SQL::Connection object.
-</description>
-     </argument>
-     
-     
-     <argument>
-         <name>TableInfo</name>
-         <description>A SQL::TableInfo object.
-</description>
-     </argument>
-   </arguments>
- 
-   <discussion>
-The LastInsertedIdentity() method retrieves the last identity value generated for an insert on the currently open connection.
-   </discussion>
+  <topic>SQL::Connection::LastInsertedIdentity Function</topic>
+  <description>Get the identity value from the last insert for the current session.</description>
+  <syntax>Result as A = LastInsertedIdentity([TableInfo as SQL::TableInfo])</syntax>
+  <arguments>
+    <argument optional="true">
+      <name>TableInfo</name>
+      <type>SQL::TableInfo</type>
+      <description>A SQL::TableInfo object.</description>
+    </argument>
+  </arguments>
+  <discussion>The LastInsertedIdentity() method retrieves the last identity value generated for an insert on the currently open connection.</discussion>
   <sections>
-       <section>
-<list>
-<item>
-<name>1. This is current connection specific for most databases. For databases that use sequences to maintain identity (such as Oracle), the sequence may not be correct after the transaction has been completed.</name>
-</item>
+    <section>
+      <steps>
+        <step>
+          <description>This is current connection specific for most databases. For databases that use sequences to maintain identity (such as Oracle), the sequence may not be correct after the transaction has been completed.</description>
+        </step>
+        <step>
+          <description>For databases that use sequences to generate identities &lt;TableInfo&gt; is a required parameter. It must include an identity column in its definition. That column must specify the sequence name to be used.</description>
+        </step>
+      </steps>
+    </section>
+    <section>
+      <note>Cn.CallResult.LastInsertedIdentity is always preferable to Cn.LastInsertedIdentity() after an INSERT is executed</note>
+    </section>
+    <section>
+      <example><![CDATA[dim cn as sql::Connection
+dim insert as c =<<%sql%
+INSERT INTO employees
+(FirstName,LastName,HireDate)
+VALUES
+(:Firstname,:Lastname,:HireDate);
+%sql%
 
-<item>
-<name><![CDATA[2. For databases that use sequences to generate identities <TableInfo> is a required parameter. It must include an identity column in its definition. That column must specify the sequence name to be used.]]></name>
-</item>
+dim args as sql::Arguments
+args.set("Firstname","Alma")
+args.set("Lastname","Vasquez")
+args.set("HireDate",date())
 
-
-</list>
-
-
-
-       </section>
-   </sections>
-   
-   
-   
-   <sections>
-       <section><title>Note</title>
-            <description>Cn.CallResult.LastInsertedIdentity is always preferable to Cn.LastInsertedIdentity() after an INSERT is executed</description>
-
-       </section>
-   </sections>
-   <see>
-      <ref href="/documentation/index?search=SQL::Connection Object">SQL::Connection Object</ref>
-   </see>
- <terms>sql,connection,database,function,insert,object,transactions</terms>
+dim id as N = 0
+if (cn.open("::Name::mysql_northwind")) then
+    if (cn.execute(insert,args)) then
+        ' insert success
+        id = cn.LastInsertedIdentity()
+    else
+        ' insert failed
+    end if
+        cn.close()
+else
+    ' could not open connection 
+end if]]></example>
+        <description></description>
+    </section>
+  </sections>
+  <see>
+    <ref href="/documentation/index?search=SQL::Connection Object">SQL::Connection Object</ref>
+  </see>
+  <terms>sql,connection,database,function,insert,object,transactions</terms>
 </page>
