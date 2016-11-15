@@ -135,15 +135,8 @@
         <xsl:if test="list">
             <xsl:call-template name="list"/>
         </xsl:if>
-		<xsl:if test="example">            
-            <xsl:choose>
-            <xsl:when test="example/@include">
-            <b class="A5">Example</b> <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
-            </xsl:when>
-            <xsl:otherwise>
-			<b class="A5">Example</b> <pre class="codeSection"><xsl:value-of select="example" /></pre>
-            </xsl:otherwise>
-            </xsl:choose>
+		<xsl:if test="example">
+            <xsl:call-template name="example-template"><xsl:with-param name="default_title">Example</xsl:with-param></xsl:call-template>            
 		</xsl:if>
 		<xsl:if test="sections">
             <xsl:call-template name="section-content"/>
@@ -415,15 +408,7 @@
             <xsl:call-template name="pages"/>
         </xsl:if>
         <xsl:if test="example">
-            <xsl:if test="example/@caption"><div class="figureTitle"><xsl:value-of select="example/@caption"/></div></xsl:if>        
-            <xsl:choose>
-            <xsl:when test="example/@include">
-            <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
-            </xsl:when>
-            <xsl:otherwise>
-            <pre class="codeSection"><xsl:value-of select="example" /></pre>
-            </xsl:otherwise>
-            </xsl:choose>            
+            <xsl:call-template name="example-template"></xsl:call-template>
         </xsl:if>
         <xsl:if test="steps">
              <xsl:call-template name="step-content"/>
@@ -593,10 +578,8 @@
             <xsl:call-template name="callouts-before"/>            
             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
-            <div><b class="A5"><xsl:choose><xsl:when test="example/@caption"><xsl:value-of select="example/@caption"/></xsl:when><xsl:otherwise>Example</xsl:otherwise></xsl:choose></b></div>
-            <xsl:choose><xsl:when test="example/@include"><pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre></xsl:when>
-            <xsl:otherwise><pre class="codeSection"><xsl:value-of select="example" /></pre> </xsl:otherwise>
-            </xsl:choose></xsl:if>
+                <xsl:call-template name="example-template"><xsl:with-param name="default_title">Example</xsl:with-param></xsl:call-template>
+            </xsl:if>
             <xsl:if test="ref">
                 <xsl:choose>
                     <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
@@ -749,6 +732,26 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
+   </xsl:template>
+
+   <xsl:template name="example-template">
+        <xsl:param name = "default_title" />
+        <xsl:choose>
+            <xsl:when test="example/@caption"><div class="figureTitle"><xsl:value-of select="example/@caption"/></div></xsl:when>        
+            <xsl:when test="$default_title = 'Example'"><p class="A5">Example</p></xsl:when>
+            <xsl:otherwise></xsl:otherwise>
+        </xsl:choose>
+        <xsl:choose>
+            <xsl:when test="example/@include">
+            <pre class="codeSection"><div class="include-file"><xsl:value-of select="example/@include" disable-output-escaping="yes" /></div></pre>
+            </xsl:when>
+            <xsl:when test="example/@code">
+            <pre class="codeSection {example/@code}Lang"><xsl:value-of select="example" /></pre>
+            </xsl:when>
+        <xsl:otherwise>
+            <pre class="codeSection"><xsl:value-of select="example" /></pre>
+            </xsl:otherwise>
+        </xsl:choose>
    </xsl:template>
 
 	<xsl:attribute-set name="href-link">
