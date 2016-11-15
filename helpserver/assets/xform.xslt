@@ -624,6 +624,12 @@
                         <xsl:when test="type='P'">Pointer </xsl:when>
                         <xsl:when test="type='D'">Date </xsl:when>
                         <xsl:when test="type='T'">Time </xsl:when>
+                        <xsl:when test="type='B'">Binary </xsl:when>
+                        <xsl:when test="type='V'">Void </xsl:when>
+                        <xsl:when test="type='A'">Any Type </xsl:when>
+                        <xsl:when test="type='Y'">Shortime </xsl:when>
+                        <xsl:when test="type='U'">Collection </xsl:when>
+                        <xsl:when test="type='F'">Function </xsl:when>
                         <xsl:otherwise><xsl:value-of select="type" /></xsl:otherwise>
                     </xsl:choose>                
                     <xsl:comment></xsl:comment>
