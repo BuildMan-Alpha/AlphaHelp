@@ -1,4 +1,4 @@
-<page>
+<page api="xb">
 	<topic>Response Object</topic>
 	<description>The Response object is used with the Alpha Anywhere Classic Application Server. To access the Request object in the Alpha Anywhere Application Server for IIS, use the [Context.Response] object.</description>
 	<discussion>Alpha Anywhere pages have access to a system object named Response. This object represents the HTTP response that will be created by the Application Server and sent back to the client. It has a number properties and methods available. The server creates this object for each client Response and can be accessed directly by your applications.</discussion>
@@ -11,7 +11,7 @@
 		<property>
 			<name>Response.Mime_Type</name>
 			<description>Specifies the Content-Type header for the outgoing response.</description>
-			<example><![CDATA[Response.Mime_Type = "application/pdf"]]></example>
+			<example code="xb"><![CDATA[Response.Mime_Type = "application/pdf"]]></example>
 		</property>
 		<property>
 			<name>Response.Reason_Phrase</name>
@@ -24,8 +24,36 @@
 	</properties>
 	<methods>
 		<method>
+			<name>Response.AddCookie</name>
 			<syntax>Response.AddCookie(cookie as c, value as c, lifetimeInSeconds as n [, flagHTTPOnly as L = .f. [, flagSecure as L = .f. ]])</syntax>
 			<description>Sets a cookie to be sent back to the client as part of the response. Supports Http-Only and Secure cookies using the flagHTTPOnly and flagSecure properties.</description>
+			<arguments>
+				<argument>
+					<name>cookie</name>
+					<type>C</type>
+					<description>The cookie name.</description>
+				</argument>
+				<argument>
+					<name>value</name>
+					<type>C</type>
+					<description>The cookie value to store.</description>
+				</argument>
+				<argument>
+					<name>lifetimeInSeconds</name>
+					<type>N</type>
+					<description>The cookie's lifetime in seconds. The cookie expires after the specified period of time.</description>
+				</argument>
+				<argument optional="true">
+					<name>flagHTTPOnly</name>
+					<type>L</type>
+					<description>If .t., cookie is created as an Http-Only cookie.</description>
+				</argument>
+				<argument optional="true">
+					<name>flagSecure</name>
+					<type>L</type>
+					<description>If .t., cookie is create as a Secure cookie.</description>
+				</argument>
+			</arguments>
 			<example><![CDATA[' Set a cookie that expires in 15 minutes
 Response.AddCookie("MyCookie","MyValue",900)
 
@@ -39,11 +67,24 @@ Response.AddCookie("MyCookie","MyValue",900,.f.,.t.)
 Response.AddCookie("MyCookie","MyValue",900,.t.,.t.)]]></example>
 		</method>
 		<method obsolete="true">
+			<name>Response.Add_Cookie</name>
 			<obsolete>This method is obsolete. Use Response.AddCookie. See [Replacing Response.Add_Cookie()].</obsolete>
-			<syntax>Response.Add_Cookie</syntax>
 		</method>
 		<method>
+			<name>Response.AddHeader</name>
 			<syntax>Response.AddHeader(header as C [, headerValue as C])</syntax>
+			<arguments>
+				<argument>
+					<name>header</name>
+					<type>C</type>
+					<description>The header. Both the header and value can be specified using this parameter using the format "header: header_value".</description>
+				</argument>
+				<argument optional="true">
+					<name>headerValue</name>
+					<type>C</type>
+					<description>The header value. Required if you are using ASP-like syntax to specify the header. See example below.</description>
+				</argument>
+			</arguments>
 			<description>Sets a header to be sent back to the client as part of the response.</description>
 			<example><![CDATA[' Using "classic" syntax:
 Response.AddHeader("MyHeader: abc123")
@@ -52,11 +93,19 @@ Response.AddHeader("MyHeader: abc123")
 Response.AddHeader("MyHeader","def456")]]></example>
 		</method>
 		<method obsolete="true">
+			<name>Response.Add_Header</name>
 			<obsolete>This method is obsolete. Use Response.AddHeader. See [Replacing Response.Add_Header()]</obsolete>
-			<syntax>Response.Add_Header</syntax>
 		</method>
 		<method>
+			<name>Response.Expire</name>
 			<syntax>Response.Expire(time as C)</syntax>
+			<arguments>
+				<argument>
+					<name>time</name>
+					<type>C</type>
+					<description>Specifies when the response expires. Value can be a length of time specified as seconds, minutes, hours, days or weeks, a specific time, or immediately (use "-1" to specify response expires immediately.) See examples below.</description>
+				</argument>
+			</arguments>
 			<description>Sets a header to indicate when the client should expire this response from its cache.</description>
 			<example><![CDATA[' Expire in 5 minutes:
 Response.Expire("5 minutes") 'supports seconds, minutes, hours, days, and weeks
@@ -70,16 +119,43 @@ Response.Expire("Thu, 29 Mar 2012 07:07:00 GMT")
 Response.Expire("-1")]]></example>
 		</method>
 		<method>
+			<name>Response.NoCache</name>
 			<syntax>Response.NoCache()</syntax>
 			<description>Sets headers to indicate that the client should not store this response in its cache at all.</description>
 		</method>
 		<method>
+			<name>Response.Redirect</name>
 			<syntax>Response.Redirect(url as C [, permanentRedirect as L = .f.])</syntax>
+			<arguments>
+				<argument>
+					<name>url</name>
+					<type>C</type>
+					<description>The URL to redirect the browser.</description>
+				</argument>
+				<argument optional="true">
+					<name>permanentRedirect</name>
+					<type>L</type>
+					<description>Default value is .f.. If .t., a permanent (301) redirect will be used. If unspecified or .f., a temporary (302) redirect is used.</description>
+				</argument>
+			</arguments>
 			<description>This method has been extended to support permanent (301) redirects using an optional second argument. If left unspecified or set to .F., the redirect is a temporary (302) redirect, while setting the second argument to .T. results in a 301 redirect. The end result is generally the same in most clients, but 301 and 302 redirects are typically handled differently by search engines and caches.</description>
 			<example><![CDATA[Response.Redirect("/newpage.a5w",.t.)]]></example>
 		</method>
 		<method>
+			<name>Response.SendFile</name>
 			<syntax>Response.SendFile(file as C [, downloadedFileName as C])</syntax>
+			<arguments>
+				<argument>
+					<name>file</name>
+					<type>C</type>
+					<description>The full path and file name to the file on the server. The file must always be specified using an absolute path.</description>
+				</argument>
+				<argument optional="true">
+					<name>downloadedFileName</name>
+					<type>C</type>
+					<description>The file name to use in the client when downloading the file.</description>
+				</argument>
+			</arguments>
 			<description>Response.SendFile() can be used to send a file to the client from anywhere on the filesystem that is accessible by the user account used to run the server, including outside the server's document root. The file to be sent must always be specified using an absolute path.</description>
 			<example><![CDATA[' Send a file:
 Response.SendFile("c:\invoice.docx")
