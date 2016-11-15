@@ -1,0 +1,140 @@
+<page>
+	<topic>Response Object</topic>
+	<description>The Response object is used with the Alpha Anywhere Classic Application Server. To access the Request object in the Alpha Anywhere Application Server for IIS, use the [Context.Response] object.</description>
+	<discussion>Alpha Anywhere pages have access to a system object named Response. This object represents the HTTP response that will be created by the Application Server and sent back to the client. It has a number properties and methods available. The server creates this object for each client Response and can be accessed directly by your applications.</discussion>
+	<properties>
+		<property>
+			<name>Response.Charset</name>
+			<description>Specifies the Charset header for the outgoing response.</description>
+			<example><![CDATA[Response.Charset = "UTF-8"]]></example>
+		</property>
+		<property>
+			<name>Response.Mime_Type</name>
+			<description>Specifies the Content-Type header for the outgoing response.</description>
+			<example><![CDATA[Response.Mime_Type = "application/pdf"]]></example>
+		</property>
+		<property>
+			<name>Response.Reason_Phrase</name>
+			<description>Specifies the HTTP Reason Phrase for the outgoing response.</description>
+		</property>
+		<property>
+			<name>Response.Status_Code</name>
+			<description>Specifies the HTTP Status Code for the outgoing response.</description>
+		</property>
+	</properties>
+	<methods>
+		<method>
+			<syntax>Response.AddCookie(cookie as c, value as c, lifetimeInSeconds as n [, flagHTTPOnly as L = .f. [, flagSecure as L = .f. ]])</syntax>
+			<description>Sets a cookie to be sent back to the client as part of the response. Supports Http-Only and Secure cookies using the flagHTTPOnly and flagSecure properties.</description>
+			<example><![CDATA[' Set a cookie that expires in 15 minutes
+Response.AddCookie("MyCookie","MyValue",900)
+
+' Set an Http-Only cookie:
+Response.AddCookie("MyCookie","MyValue",900,.t.)
+
+' Set a Secure cookie:
+Response.AddCookie("MyCookie","MyValue",900,.f.,.t.)
+
+' Set a Secure Http-Only cookie:
+Response.AddCookie("MyCookie","MyValue",900,.t.,.t.)]]></example>
+		</method>
+		<method obsolete="true">
+			<obsolete>This method is obsolete. It is included in Alpha Five V10 for backwards compatibility only and it will be removed in a future version. Use Response.AddCookie Method. See [Replacing Response.Add_Cookie()].</obsolete>
+			<syntax>Response.Add_Cookie</syntax>
+			<description>This method is obsolete. Use Response.AddCookie(). See also [Replacing Response.Add_Cookie()].</description>
+		</method>
+		<method>
+			<syntax>Response.AddHeader(header as C [, headerValue as C])</syntax>
+			<description>Sets a header to be sent back to the client as part of the response.</description>
+			<example><![CDATA[' Using "classic" syntax:
+Response.AddHeader("MyHeader: abc123")
+
+' Using ASP-like syntax:
+Response.AddHeader("MyHeader","def456")]]></example>
+		</method>
+		<method obsolete="true">
+			<obsolete>This method is obsolete. It is included in Alpha Five V10 for backwards compatibility only and it will be removed in a future version. Use Response.AddHeader. See [Replacing Response.Add_Header()]</obsolete>
+			<syntax>Response.Add_Header</syntax>
+			<description>This method is obsolete. Use Response.AddHeader(). See also [Replacing Response.Add_Header()]</description>
+		</method>
+		<method>
+			<syntax>Response.Expire(time as C)</syntax>
+			<description>Sets a header to indicate when the client should expire this response from its cache.</description>
+			<example><![CDATA[' Expire in 5 minutes:
+Response.Expire("5 minutes") 'supports seconds, minutes, hours, days, and weeks
+
+' Expire at a specific time:
+Response.Expire("3/29/12 03:07")
+' or
+Response.Expire("Thu, 29 Mar 2012 07:07:00 GMT")
+
+' Expire immediately:
+Response.Expire("-1")]]></example>
+		</method>
+		<method>
+			<syntax>Response.NoCache()</syntax>
+			<description>Sets headers to indicate that the client should not store this response in its cache at all.</description>
+		</method>
+		<method>
+			<syntax>Response.Redirect(url as C [, permanentRedirect as L = .f.])</syntax>
+			<description>This method has been extended to support permanent (301) redirects using an optional second argument. If left unspecified or set to .F., the redirect is a temporary (302) redirect, while setting the second argument to .T. results in a 301 redirect. The end result is generally the same in most clients, but 301 and 302 redirects are typically handled differently by search engines and caches.</description>
+			<example><![CDATA[Response.Redirect("/newpage.a5w",.t.)]]></example>
+		</method>
+		<method>
+			<syntax>Response.SendFile(file as C [, downloadedFileName as C])</syntax>
+			<description>Response.SendFile() can be used to send a file to the client from anywhere on the filesystem that is accessible by the user account used to run the server, including outside the server's document root. The file to be sent must always be specified using an absolute path.</description>
+			<example><![CDATA[' Send a file:
+Response.SendFile("c:\invoice.docx")
+
+' Send a file with a different filename on the client:
+Response.SendFile("c:\invoices\customer0023.docx","invoice.docx")]]></example>
+		</method>
+	</methods>
+	<sections>
+		<section>
+			<title>Response Object Comparison to Other Environments</title>
+			<description>The chart below is intended to directly compare the Application Server's Response object to other popular web application platforms in order to assist developers familiar with those platforms.</description>
+		</section>
+		<section>
+			<content><![CDATA[<style type="text/css">
+			.tbl th, .tbl td {
+				border: 1px solid #999;
+				padding: 4px;
+			}
+		</style>
+		<table class="tbl" style="border-collapse: collapse;">
+    <tr><th>Description</th><th>A5W Property</th><th>ASP Equivalent</th><th>PHP Equivalent</th></tr>
+	<tr><td>Enable/disable response output buffering</td><td>n/a<Br>Output is always buffered</td><td>Buffer</td><td>ob_start()<br>print ob_end_flush()</td></tr>
+	<tr><td>Set caching directives to indicate how this response should be cached by the client and any proxies</td><td>Response.AddHeader("Cache-Control", "")</td><td>CacheControl</td><td rowspan="4">No specific equivalent. Typically implemented using the Header() function.</td></tr>
+	<tr><td>Set the content type of the outgoing HTTP response.
+</td><td>Response.Charset
+</td><td>Charset
+</td></tr>
+	<tr><td>The MIME type that will be sent back to the browser.</td><td>Response.Mime_Type<br>
+If you do not know the appropriate MIME type for a given file type, but you know that file's extension, the A5W environment offers the RESOLVE_MIME_TYPE() helper function to translate the extension into the proper MIME type.</td><td>ContentType</td></tr>
+	<tr><td>Set an expiration time for this resource when it is stored in a cache </td><td>Response.Expire()</td><td>Expires<br>ExpiresAbsolute</td></tr>
+	<tr><td>Prevent the resource from ever being cached by the client or any proxies </td><td>Response.NoCache()</td><td>Requires setting several different properties individually</td><td>Requires creating several different headers individually</td></tr>
+	<tr><td>Set the The PICS (Platform for Internet Content Selection) Label HTTP response header</td><td>Response.AddHeader("PICS-Label", "")</td><td>PICS</td><td rowspan="3">No specific equivalent. Typically implemented using the Header() function.</td></tr>
+	<tr><td>The HTTP reason phrase that describes the status of the response.</td><td>Response.Reason_Phrase</td><td rowspan="2">Status</td></tr>
+	<tr><td>The 3 digit HTTP status code that describes the status of the response.
+</td><td>Response.Status_Code</td></tr>
+	<tr><td>Output data</td><td>?<br>unlike ASP, A5W is binary aware, so there is only a single method required.</td><td>Response.Write()<br>Response.WriteBinary()</td><td>print<br>print_r</td></tr>
+	<tr><td>Terminate a script</td><td>End</td><td>Response.End()</td><td></td></tr>
+	<tr><td>Add a cookie to the response</td><td>Response.AddCookie()</td><td>Response.Cookie()</td><td>Setcookie()</td></tr>
+	<tr><td>Add an HTTP header to the response</td><td>Response.AddHeader()</td><td>Response.AddHeader()</td><td>Header()</td></tr>
+	<tr><td>Redirect the client (web browser) to the specified URL</td><td>Response.Redirect()</td><td>Response.Redirect()</td><td>Header()</td></tr>
+</table>]]></content>
+		</section>
+	</sections>
+	<links>
+		<link href="/documentation/index?search=replacing%20response.add_cookie()">Replacing Response.Add_Cookie()</link>
+		<link href="/documentation/index?search=replacing%20response.add_header()">Replacing Response.Add_Header()</link>
+		<link href="/documentation/index?search=context.response%20object">Context.Response</link>
+	</links>
+	<see>
+		<ref href="/documentation/index?search=request%20object">Request Object</ref>
+		<ref href="/documentation/index?search=context.response%20object">Context.Response Object</ref>
+		<ref href="/documentation/index?search=context.request%20object">Context.Request Object</ref>
+	</see>
+	
+</page>
