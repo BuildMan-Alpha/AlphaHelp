@@ -631,8 +631,11 @@
                         <span class="argPsuedo" ><xsl:comment> </xsl:comment></span>
                     </xsl:when> 
                     <xsl:when test="./@optional">
-                        <span class="argOptional" ><xsl:comment> </xsl:comment></span>                        
-                    </xsl:when> 
+                        <span class="argOptional" ><xsl:comment> </xsl:comment></span>
+                    </xsl:when>
+                    <xsl:when test="./@byref">
+                        <span class="argByref"><xsl:comment> </xsl:comment></span>
+                    </xsl:when>
                 </xsl:choose>
                 </dt>
 				<dd>
@@ -642,7 +645,7 @@
 							<xsl:value-of select="content" disable-output-escaping="yes" />
 						</xsl:when>
 						<xsl:when test="description">
-                            <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>							
+                            <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
 						</xsl:when>
 					</xsl:choose>
                     <xsl:call-template name="callouts-after"/>
