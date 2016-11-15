@@ -193,6 +193,16 @@
                     </xsl:otherwise>
                    </xsl:choose>
                    </xsl:if>
+				  <xsl:if test="name">
+                    <xsl:choose>
+                    <xsl:when test="./@static">
+                        <dt class="methodStatic"><a name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt>
+                    </xsl:when>
+                    <xsl:otherwise>                        
+                        <dt><a name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt>
+                    </xsl:otherwise>
+                   </xsl:choose>
+                   </xsl:if>
 					<dd><xsl:call-template name="callouts-before"/>
                     <xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
             		<xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>                    						
