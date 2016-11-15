@@ -193,7 +193,8 @@
                     </xsl:otherwise>
                    </xsl:choose>
                    </xsl:if>
-					<dd><xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
+					<dd><xsl:call-template name="callouts-before"/>
+                    <xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
             		<xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>                    						
                         <xsl:for-each select="description">
                             <xsl:call-template name="text-content"/>
@@ -213,7 +214,8 @@
                                 <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
                                 <xsl:otherwise><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                             </xsl:choose>
-                        </xsl:if>													
+                        </xsl:if>
+                        <xsl:call-template name="callouts-after"/>
 					</dd>
 				</xsl:for-each>
 				<xsl:for-each select="methods/methodref">
@@ -236,7 +238,7 @@
                             </xsl:choose>
                             </xsl:otherwise>
                         </xsl:choose>                                            
-                        <dd><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each></dd>
+                        <dd><xsl:call-template name="callouts-before"/><xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each><xsl:call-template name="callouts-after"/></dd>
                     </xsl:if>    
 				</xsl:for-each>
 			</dl>
@@ -577,7 +579,8 @@
                 </xsl:choose>        
             </xsl:otherwise>
         </xsl:choose>
-        <dd>                    
+        <dd>               
+            <xsl:call-template name="callouts-before"/>            
             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
             <div><b class="A5"><xsl:choose><xsl:when test="example/@caption"><xsl:value-of select="example/@caption"/></xsl:when><xsl:otherwise>Example</xsl:otherwise></xsl:choose></b></div>
@@ -604,6 +607,7 @@
                     <xsl:call-template name="sectionstep-content"/>
                 </xsl:for-each>
             </xsl:if>
+            <xsl:call-template name="callouts-after"/>            
         </dd>
     </xsl:template>
 	<xsl:template match="arguments" name="arguments" >
