@@ -1,130 +1,120 @@
 <page>
-   <topic>SQL::Arguments Add Function</topic>
+    <topic>SQL::Arguments Add Function</topic>
     <description>Add an argument to the collection or L Add(SQL::Argument Argument)</description>
-   
-   <syntax>Result_Flag as L =  <![CDATA[<SQL::Arguments>]]>.Add(Name as C [,Value as A [, Usage as SQL::ArgumentUsage [,IsNull as L = .f.]]])</syntax>
-   <arguments>
-   
-   <argument>
-         <name>Result_Flag</name>
-         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).</description>
-   </argument>
-   
-   <argument>
-         <name><![CDATA[<SQL::Arguments>]]></name>
-         <description>A SQL::Arguments object.</description>
-  </argument>
-  
-   <argument>
-         <name>Name</name>
-         <description>The unique name of an argument. See the SQL::Argument object.</description>
-     </argument>
-     
-     <argument>
-         <name>Value</name>
-         <description>Optional. Data of any of the following types:</description>
-<list>
-<item>
-<name>"Blob"</name>
-</item>
-
-<item>
-<name>"Character"</name>
-</item>
-
-<item>
-<name>"Date"</name>
-</item>
-
-<item>
-<name>"Logical"</name>
-</item>
-
-<item>
-<name>"Numeric"</name>
-</item>
-
-<item>
-<name>"Short Time"</name>
-</item>
-
-<item>
-<name>"Time"</name>
-</item>
-
-</list>
-</argument>
-     
-     <argument>
-         <name> Usage</name>
-         <description>Optional. A SQL::ArgumentUsage object.</description>
-     </argument>
-     
-     <argument>
-         <name>IsNull</name>
-         <description>Optional, default FALSE (.F.). If TRUE (.T.), set this argument to a NULL value. (Requires V10.5 or later)</description>
-     </argument>
-     
-     <argument>
-     <name><![CDATA[<Argument>]]></name>
-     <description>A SQL::Argument object with (at a minimum) a defined name or data property.</description>
-     </argument>
-     
-     
-     
-   </arguments>
-   
-   
-   
-   
-   
-   <sections><section>
-  <description>The Add() method adds a new argument to a SQL::Arguments object.</description>
-  </section><section>
-  <title>Example</title>
-   <example><![CDATA[
-dim args as SQL::Arguments
+    <syntax>Result_Flag as L = Add(Name as C [,Value as A [, Usage as SQL::ArgumentUsage [,IsNull as L = .f.]]])
+    </syntax>
+    <arguments>
+        <argument>
+            <name>Name</name>
+            <type>C</type>
+            <description>The unique name of an argument. See the [SQL::Argument class].</description>
+        </argument>
+        <argument optional="true">
+            <name>Value</name>
+            <type>A</type>
+            <description>Optional. Data of any of the following types:</description>
+            <list bullet="true">
+                <item>
+                    <name>"Blob"</name>
+                </item>
+                <item>
+                    <name>"Character"</name>
+                </item>
+                <item>
+                    <name>"Date"</name>
+                </item>
+                <item>
+                    <name>"Logical"</name>
+                </item>
+                <item>
+                    <name>"Numeric"</name>
+                </item>
+                <item>
+                    <name>"Short Time"</name>
+                </item>
+                <item>
+                    <name>"Time"</name>
+                </item>
+            </list>
+        </argument>
+        <argument optional="true">
+            <name>Usage</name>
+            <type>SQL::ArgumentUsage</type>
+            <description>Defines how the argument should be used. See [SQL::ArgumentUsage Enumerated Type] for more information.</description>
+        </argument>
+        <argument optional="true">
+            <name>IsNull</name>
+            <type>L</type>
+            <description>Default value is false (.f.). If true (.T.), set this argument to a NULL value. See also [SQL::Arguments SetNull Function].</description>
+        </argument>
+    </arguments>
+    <sections>
+        <section>
+            <description>The Add() method adds a new argument to a SQL::Arguments object. You can optionally specify the value and usage of the argument. Returns true (.t.) if the operation is successful and false (.f.) if it fails.</description>
+        </section>
+        <section>
+            <title>Example</title>
+            <example><![CDATA[dim args as SQL::Arguments
 ? args.add("city", "Boston")
 = .T.
+
 ? args.add("state", "MA")
 = .T.
+
 ? args.ArgumentNumber("state")
-= 2
-]]></example>
+= 2]]></example>
+        </section>
+        <section>
+            <title>Setting an Argument to NULL</title>
+            <description>This example demonstrates setting the argument to NULL.</description>
+            <example><![CDATA[dim args as SQL::Arguments
+args.add("nullField", "", SQL::ArgumentUsage::InputArgument, .t.)
 
-
-</section>
-       <section>
+? args.find("nullField").isNull
+= .T.]]></example>
+        </section>
+        <section>
+            <title>Filtering a SQL Query with Arguments Using Add</title>
             <description>This script prompts for a value, then returns a filtered list of records.</description>
-            <example><![CDATA[
-dim conn as SQL::Connection
+            <figure>
+                <title>Results after searching for "Spain".</title>
+                <link>images/add1.png</link>
+            </figure>
+            <note>The *[xb:ui_msg_box]* and *[xb:sql_resultset_preview]* functions are only available in desktop applications.</note>
+            <example><![CDATA[dim conn as SQL::Connection
 dim sql as C
 dim vCity as C
 dim args as SQL::Arguments
-vCity = ui_get_text("City", "Show Companies in what city?")
-sql = "select lastname, firstname from customer where bill_city = :city Order By Company"
-if .not. conn.open("{A5API=Access,FileName='C:\Program Files\a5v8\MDBFiles\Alphasports.mdb', UserName='Admin'}")
-ui_msg_box("Error", conn.CallResult.text)
-end
+
+vCity = ui_get_text("City", "Show Customers in what city?")
+sql = "select contactname from customers where city = :city Order By CustomerID"
+
+if .not. conn.open("::Name::AADemo-Northwind")
+    ui_msg_box("Error", conn.CallResult.text)
+    end
 end if
+
 if .not. args.Add("city", vCity)
-end
+    end
 end if
+
 if .not. conn.execute(sql, args)
-ui_msg_box("Error", conn.CallResult.text)
-end
+    ui_msg_box("Error", conn.CallResult.text)
+    end
 end if
-sql_resultset_preview(conn.resultset)
-]]></example>
-       </section>
-   </sections>
-   
-   
-   
-   
-   
-   <see>
-      <ref>SQL::Arguments Object</ref>
-   </see>
- <terms>reporting,list,script</terms>
+
+sql_resultset_preview(conn.resultset)]]></example>
+        </section>
+    </sections>
+    <links>
+        <link href="/documentation/index?search=sql::argument%20class">SQL::Argument class</link>
+        <link href="/documentation/index?search=sql::argumentusage%20enumerated%20type">SQL::ArgumentUsage Enumerated Type</link>
+        <link href="/documentation/index?search=sql::arguments%20setnull%20function">SQL::Arguments SetNull Function</link>
+    </links>
+    <see>
+        <ref href="/documentation/index?search=sql::arguments%20set%20function">SQL::Arguments Set Function</ref>
+        <ref href="/documentation/index?search=sql::arguments%20setnull%20function">SQL::Arguments SetNull Function</ref>
+        <ref href="/documentation/index?search=sql::argumentusage%20enumerated%20type">SQL::ArgumentUsage Enumerated Type</ref>
+    </see>
+    <terms>reporting,list,script</terms>
 </page>

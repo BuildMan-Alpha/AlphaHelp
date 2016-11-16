@@ -1,110 +1,107 @@
 <page>
-   <topic>SQL::Arguments Set Function</topic>
+    <topic>SQL::Arguments Set Function</topic>
     <description>Set the value and (optionally) the usage of an argument.</description>
-
-   
-   <syntax>Result_Flag as L = Set(Name as C, Value as A [, Usage as SQL::ArgumentUsage  [,IsNull as L = .f.]])</syntax>
-   <arguments>
-  
-   <argument>
-         <name>Result_Flag</name>
-         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).</description>
-     </argument>
-     
-     <argument>
-         <name>SQL::Argument</name>
-         <description>A SQL::Arguments object.</description>
-     </argument>
-     
-     <argument>
-         <name>Name</name>
-         <description>The unique name property of an argument. See the SQL::Argument object.</description>
-     </argument>
-     <argument>
-         <name> Value</name>
-         <description>Data of any of the following types:</description>
-<list>
-<item>
-<name>"Blob"</name>
-</item>
-
-<item>
-<name>"Character"</name>
-</item>
-
-<item>
-<name>"Date"</name>
-</item>
-
-<item>
-<name>"Logical"</name>
-</item>
-
-<item>
-<name>"Numeric"</name>
-</item>
-
-<item>
-<name>"Short Time"</name>
-</item>
-
-<item>
-<name>"Time"</name>
-</item>
-</list>
-         
-         
-         
-     </argument>
-     <argument>
-         <name> Usage</name>
-         <description>SQL::ArgumentUsage</description>
-     </argument>
-     <argument>
-         <name>IsNull</name>
-         <description>L = .f.</description>
-     </argument>
-   </arguments>
-     <discussion>
-The Set() method redefines an argument value, or adds an argument and value and to a SQL::Argument object in a SQL::Arguments object.
-   </discussion>
-   <example><![CDATA[
-dim args as SQL::Arguments
+    <syntax>Result_Flag as L = Set(Name as C, Value as A [, Usage as SQL::ArgumentUsage  [,IsNull as L = .f.]])</syntax>
+    <arguments>
+        <argument>
+            <name>Name</name>
+            <type>C</type>
+            <description>The unique name property of an argument. See the [SQL::Argument class].</description>
+        </argument>
+        <argument>
+            <name>Value</name>
+            <type>A</type>
+            <description>The data may be one of any of the following types:</description>
+            <list bullet="true">
+                <item>
+                    <name>"Blob"</name>
+                </item>
+                <item>
+                    <name>"Character"</name>
+                </item>
+                <item>
+                    <name>"Date"</name>
+                </item>
+                <item>
+                    <name>"Logical"</name>
+                </item>
+                <item>
+                    <name>"Numeric"</name>
+                </item>
+                <item>
+                    <name>"Short Time"</name>
+                </item>
+                <item>
+                    <name>"Time"</name>
+                </item>
+            </list>
+        </argument>
+        <argument optional="true">
+            <name>Usage</name>
+            <type>SQL::ArgumentUsage</type>
+            <description>Defines how the argument should be used. See [SQL::ArgumentUsage Enumerated Type] for more information.</description>
+        </argument>
+        <argument optional="true">
+            <name>IsNull</name>
+            <type>L</type>
+            <description>Default value is .f.. Can be used to set the value of the argument to NULL. See also [SQL::Arguments SetNull Function].</description>
+        </argument>
+    </arguments>
+    <discussion>The Set() method adds or redefines an argument's value. You can optionally specify the usage of the argument if the argument is NULL. Returns true (.t.) if the operation is successful and false (.f.) if it fails.</discussion>
+    <example><![CDATA[dim args as SQL::Arguments
 args.add("state", "MA")
 ? args.Find("state")
 = "MA"
+
 ? args.set("state", "NH")
 = .T.
+
 ? args.Find("state")
-= "NH"
-]]></example>
-   <sections>
-       <section>
+= "NH"]]>
+    </example>
+    <sections>
+        <section>
+            <title>Filtering a SQL Query with Arguments Using Set</title>
             <description>This script prompts for a value, then returns a filtered list of records.</description>
-            <example><![CDATA[
-dim conn as SQL::Connection
+            <figure>
+                <title>Results after searching for "Spain".</title>
+                <link>images/add1.png</link>
+            </figure>
+            <note>The *[xb:ui_msg_box]* and *[xb:sql_resultset_preview]* functions are only available in desktop applications.</note>
+            <example><![CDATA[dim conn as SQL::Connection
 dim sql as C
 dim vCity as C
 dim args as SQL::Arguments
-vCity = ui_get_text("City", "Show Companies in what city?")
-sql = "select lastname, firstname from customer where bill_city = :city Order By Company"
-if .not. conn.open("{A5API=Access,FileName='C:\Program Files\a5v8\MDBFiles\Alphasports.mdb', UserName='Admin'}")
+
+vCity = ui_get_text("City", "Show Customers in what city?")
+sql = "select customername from customers where city = :city Order By CustomerID"
+
+if .not. conn.open("::Name::AADemo-Northwind")
     ui_msg_box("Error", conn.CallResult.text)
     end
 end if
+
 if .not. args.Set("city", vCity)
     end
 end if
+
 if .not. conn.execute(sql, args)
     ui_msg_box("Error", conn.CallResult.text)
     end
 end if
-sql_resultset_preview(conn.resultset)
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref>SQL::Arguments Object</ref>
-     </see>
-  <terms>reporting,arguments,function,list,object,operation,script</terms>
+
+sql_resultset_preview(conn.resultset)]]></example>
+        </section>
+    </sections>
+    <links>
+        <link href="/documentation/index?search=sql::argument%20class">SQL::Argument class</link>
+        <link href="/documentation/index?search=sql::argumentusage%20enumerated%20type">SQL::ArgumentUsage Enumerated Type</link>
+        <link href="/documentation/index?search=sql::arguments%20setnull%20function">SQL::Arguments SetNull Function</link>
+    </links>
+    <see>
+        <ref href="/documentation/index?search=sql::arguments%20add%20function">SQL::Arguments Add Function</ref>
+        <ref href="/documentation/index?search=sql::arguments%20setnull%20function">SQL::Arguments SetNull Function</ref>
+        <ref href="/documentation/index?search=sql::argumentusage%20enumerated%20type">SQL::ArgumentUsage Enumerated Type</ref>
+    </see>
+    <terms>reporting,arguments,function,list,object,operation,script</terms>
 </page>
