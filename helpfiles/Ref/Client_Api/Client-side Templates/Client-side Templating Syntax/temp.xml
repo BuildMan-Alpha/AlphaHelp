@@ -1,10 +1,91 @@
 <page api="cstemplate">
     <shortlink>temp cst</shortlink>
    <topic><![CDATA[{[temp]}]]></topic>
-   <description>here</description>
+   <description>References data that has been stored in a global variable named 'temp'.</description>
    
-   <example code="cstemplate"><![CDATA[here]]></example>
    
+<sections>
+    <section>
+        <description>Temp is a global variable that you can put data into when you expand or grow a template using javascript. 
+            It is useful, for example, for placing summary values inside a template. One way to make this work is 
+            to create a function call in the template. You then define the javascript function to take a data, temp, and root 
+            argument. The data argument references the data that your template is based on so that you can assign variables to any of 
+            the existing data fields. The root argument can be used to retrieve information about a JSON array object, if one is present. 
+            You can manipulate any defined data and root variables in javascript to create 'temp' variables. The temp 
+            variables that you create can then be accessed inside the template using {[temp]}.
+            </description>
+        
+    </section>
+    <section>
+        <description>For example, in the Template Tester, say you have this set of JSON data inside an array named 'order'</description>
+        <example code="cstemplate"><![CDATA[[
+    {
+       order:[
+         {cost: 12.50, firstname: 'James', lastname: 'Smith'},
+         {cost: 42.25, firstname: 'John', lastname: 'Jones'},
+         {cost: 30.00, firstname: 'Arnold', lastname: 'Rimmer'}
+       ]
+    }
+]]]></example>
+        
+    </section>
+     <section>
+        <description>In the template call a yet to be defined function named 'process'. Root commands are used 
+            around the function because our data is a JSON array object. The name 'order' is placed in front of the function 
+            call to tell the process function where it will get its data from. A closing {/order} required as well.
+        </description>
+        <example code="cstemplate"><![CDATA[{*root}
+
+{order@process}
+
+{/order}
+
+{/*root}]]></example>
+        
+    </section>
+     <section>
+        <description>On the Javascript tab we define the process function. This function takes three 
+            arguments, data, temp, and root. A loop inside the function goes over the data and retrieves 
+            the cost for each field. Each time the data is looped over the cost is added to the a total variable. 
+            A temp.average variable is then created that is equal to the total cost divided by the number of rows in 
+            the 'order' data. This temp file is then stored as a global variable. 
+        </description>
+        <example code="cstemplate"><![CDATA[function process(data,temp,root) {
+
+var total = 0;
+var _d = '';
+
+for(var i = 0; i < data.length; i++) {
+      _d = data[i];
+      total = total + _d.cost;
+  
+    }
+    
+temp.average = (total / data.length);
+
+return data;
+}]]></example>
+        
+    </section>
+     <section>
+        <description>Returning to the template, create a footer and inside it place the {[temp].average} variable that was defined.</description>
+        <example code="cstemplate"><![CDATA[{*root}
+
+{order@process}
+{*footer}The Average Cost is: {[temp].average}{/*footer}
+{/order}
+
+
+{/*root}]]></example>
+        
+    </section>
+     <section>
+        <description>The result:</description>
+        <example code="cstemplate"><![CDATA[The Average Cost is: 28.25]]></example>
+        
+    </section>
+    
+</sections>
    
    
 </page>
