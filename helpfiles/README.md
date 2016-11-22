@@ -1,8 +1,8 @@
-#Editing Help Files
+# Editing Help Files
 
 An XML Markup is supported, and described here [Using the Documentation XML](Using the Documentation XML.HTM).
 
-#Moving images
+# Moving images
 
 In the /dev/AlphaHelp/helpserver folder there is a utility called fixupimageref.js that generates a 
 windows .BAT file to copy/move images when pages have been moved from a parent 'staging' folder into 
