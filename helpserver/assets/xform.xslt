@@ -510,9 +510,10 @@
                 <div class="include-file"><xsl:value-of select="./@include" disable-output-escaping="yes" /></div>
             </xsl:when>
             <xsl:when test="p">
-                <xsl:for-each select="p">
-                    <p>  <xsl:value-of select="." /> </p>
-                </xsl:for-each>
+                <xsl:call-template name="text-html" />
+            </xsl:when>
+            <xsl:when test="table">
+                <xsl:call-template name="text-html" />
             </xsl:when>
             <xsl:otherwise>
                 <p><xsl:value-of select="." /></p>
@@ -520,6 +521,37 @@
         </xsl:choose>
     </xsl:template>    	
     
+    <xsl:template name="text-html">
+        <xsl:for-each select="*">
+            <xsl:choose>
+                <xsl:when test="local-name()='p'">
+                    <p><xsl:value-of select="." /></p>
+                </xsl:when>
+                <xsl:when test="local-name()='table'">
+                    <div class="A5EmbeddedTable"><table class="A5Table">
+                    <xsl:for-each select="tr">
+                        <tr class="A5Row">
+                        <xsl:for-each select="th">
+                            <th class="A5Header"><xsl:call-template name="text-content" /></th>
+                        </xsl:for-each>
+                        <xsl:for-each select="td">
+                            <xsl:choose>
+                                <xsl:when test="./@rowspan">
+                                    <td class="A5Cell" rowspan="{./@rowspan}"><xsl:call-template name="text-content"  /></td>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <td class="A5Cell"><xsl:call-template name="text-content" /></td>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                        </tr>
+                    </xsl:for-each>
+                    </table></div>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:template>
+
     <xsl:template match="step-content" name="step-content" >
             <ol class="stepsOL">
                 <xsl:for-each select="steps/step">
