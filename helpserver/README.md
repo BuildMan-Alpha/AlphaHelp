@@ -38,3 +38,18 @@ can be fixed up by running this code:
 node repopulateLinks.js
 ```
 
+## Maintaining functionList.json
+
+The Function Finder and F1 Help reference the functionList.json file. If functions are added or removed, this file must be updated. This is done by running the following:
+
+```
+node updateFunctionRef.js
+```
+
+## Updating Known Issues
+
+The help server can integrate issues from GitHub. The generateKnownIssuesRef.js script will add them. This script needs to be run periodically to capture changes to known issues:
+
+```
+node generateKnownIssuesRef.js
+```
