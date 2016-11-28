@@ -1,0 +1,113 @@
+<page>
+    <shortlink>how to use sql data in google chart</shortlink>
+    <topic>How to Use SQL Data in a Google Chart</topic>
+    <description>Data used to populate a Google Chart can be dynamically created from a SQL database. </description>
+    <sections>
+        <section>
+            <description>Data can be retrieved from a SQL database using xbasic. The code below retrieves order information from a SQL table and stores it client-side in the *[js:{dialog.object}]* object:</description>
+            <example><![CDATA[' Define SQL Query to fetch the data:
+dim sql as c
+sql = <<%sql%
+SELECT Products.ProductName Product, SUM(Order_Details.Quantity) AS SumOfQuantity
+FROM Products Products
+	 INNER JOIN [Order Details] Order_Details
+		 ON  Products.ProductID = Order_Details.ProductID
+WHERE Order_Details.OrderID = :OrderID
+GROUP BY Products.ProductName
+%sql%
+
+' Define Arguments used in the SQL Query:
+dim args as SQL::Arguments
+args.set("OrderID", 11055)
+
+
+dim cn as SQL::Connection
+
+' Connect to the database
+if (cn.open("::Name::AADemo-Northwind")) then
+    ' Fetch the Records:
+    if (cn.execute(sql, args)) then
+
+        ' Define the template for the chart data:
+        dim template as c
+        template = "['{js_escape(ds.data(\"Product\"))}', {ds.data(\"SumOfQuantity\")}],"
+
+        ' Merge the SQL Result Set with the template:
+        dim txt as c
+        txt = a5_mergeDataIntoTemplate(template, cn.resultset)
+
+        ' remove trailing comma
+        txt = rtrim(txt,",")
+
+        ' Add the column titles:
+        txt = "[['Product','Quantity']," + txt + "]"
+
+        ' Generate the JavaScript to store the data in the
+        ' {dialog.object} object:
+        dim js as c
+        js = "{dialog.object}._data = " + txt + ";"
+    else
+        ' An error occurred executing the SQL statement
+        ' Display an alert with the error message:
+        js = "alert('An error occurred: " + js_escape(cn.callResult.text) + "');"
+    end if
+    cn.close()
+else
+    ' An error occurred: Unable to open the SQL Connection
+    js = "alert('An error occurred. Unable to open \'AADemo-Northwind\' SQL Connection.');"
+end if
+
+' Return the javascript:
+e.javascript = js]]></example>
+        </section>
+        <section>
+            <description>Storing the data in the *[js:{dialog.object}]* allows you to access the information later to load it into a Google chart:</description>
+            <example><![CDATA[function doChart () {
+    ' Get the Chart Data from the {dialog.object}._data property:
+    var chartdata = {dialog.object}._data;
+
+    var data = google.visualizations.arrayToDataTable(chartdata);
+
+    var options = {
+        title: "Order Breakdown by Product",
+        pieHole: 0.4
+    };
+
+    var chart = new google.visualizations.PieChart($('donutchart'));
+    chart.draw(data, options);
+}]]></example>
+            <note>This function does not verify that *[js:{dialog.object}._data]* exists before it is used. *[js:{dialog.object}._data]* may be undefined if an error occurs when retrieving the data from the database.</note>
+        </section>
+        <section>
+            <description>
+                <p>You are not limited to loading SQL data in the server-side events for the UX Component. SQL data can be dynamically loaded using an ajax callback or loaded using the Client-Side Data Cache.</p>
+                <p>For more information about how to dynamically load SQL data into a Google Chart, watch the videos below:</p>
+            </description>
+            <videos>
+                <title>Using SQL Data in a Google Chart</title>
+                <resources>
+                    <resource>
+                        <link>www.ajaxvideotutorials.com/V12Videos/googleChartBasedOnSQLData.zip</link>
+                    </resource>
+                </resources>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/google_chart_gettingData_1.swf</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/google_chart_gettingData_2.swf</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 3</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/google_chart_gettingData_3.swf</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <see>
+        <ref link="a5_mergedataintotemplate function">a5_mergeDataIntoTemplate Function</ref>
+        <ref link="aftergooglevisualization">afterGoogleVisualization event</ref>
+    </see>
+    <terms>sql query genie</terms>
+</page>
