@@ -1,0 +1,130 @@
+<page>
+    <shortlink>download google chart bitmap</shortlink>
+    <topic>How to Download a Google Chart as a bitmap</topic>
+    <description>Some Google Charts can be downloaded as a bitmap image and embedded in a PDF or saved to disk. A button added to a UX Component can be used to download a chart created using the Google Chart API.</description>
+    <sections>
+        <section>
+            <description>
+                <p>For some charts, the chart object created from the Google visualizations API has a method called *[js:getImageURI]* that can be called to get the base64 encoded data for the chart. This data can then be integrated into a report or saved as an image.</p>
+                <p>For example, the following function creates a combo chart and displays it in the HTML element with an ID of 'visualization'.</p></description>
+            <example code="js"><![CDATA[
+ function barAndLineChart() {
+    // Some raw data (not necessarily accurate)
+    var data = google.visualization.arrayToDataTable([
+        ['Month', 'Bolivia', 'Ecuador', 'Madagascar', 'Papua New Guinea', 'Rwanda', 'Average'],
+        ['2004/05',  165,      938,         522,             998,           450,      614.6],
+        ['2005/06',  135,      1120,        599,             1268,          288,      682],
+        ['2006/07',  157,      1167,        587,             807,           397,      623],
+        ['2007/08',  139,      1110,        615,             968,           215,      609.4],
+        ['2008/09',  136,      691,         629,             1026,          366,      569.6]
+    ]);
+
+    var options = {
+        title : 'Monthly Coffee Production by Country',
+        vAxis: {title: "Cups"},
+        hAxis: {title: "Month"},
+        seriesType: "bars",
+        series: {5: {type: "line"}}
+    };
+
+    var chart = new google.visualization.ComboChart($('visualization'));
+    chart.draw(data, options);
+
+    {dialog.object}._chart = chart; 
+}]]></example>
+        </section>
+        <section>
+            <description>The *[js:chart]* object is stored in the *[js:{dialog.object}._chart]* variable. This makes it possible to reference the chart in another function that is called when a button is clicked:</description>
+            <example code="js"><![CDATA[function downloadChart() { 
+    var chart =  {dialog.object}._chart;
+    if(typeof chart == 'undefined') { 
+        alert('You must click a button to select a chart type before you can download a chart.');
+        return false;
+    }
+    if(typeof chart.getImageURI == 'function' ) { 
+        var base64data = chart.getImageURI();
+        var _d = A5.ajax.buildURLParam('_base64data',base64data)
+        //make an ajax callback with the data
+        {dialog.object}.ajaxCallback("","","printChart","",_d)
+    } else { 
+        alert('This type of chart does not support downloading');
+    }
+}]]></example>
+        </section>
+        <section>
+            <description>The *[js:downloadChart]* function gets the base64 encoded image of the chart from the chart object if the chart object supports the *[js:getImageURI]* method. The base64 encoded image is then sent to the server to be converted into a bitmap by the *[xb:printChart]* ajax callback:</description>
+            <example code="xb"><![CDATA[function printChart as c (e as p)
+
+    'this function handles the Ajax callback to download the chart as an image.
+    dim data as c 
+    'get the base64 encoded image
+    data = e._base64data 
+    'the string should start with a prefix that looks like this: data:image/png;base64,
+    dim b as b 
+    dim type as c 
+    dim prefix as c 
+    if atc("data:image",data) = 0 then 
+        printChart = "alert('data is not valid. expecting a base64 encoded string');"
+        exit function 
+    end if 
+    prefix = word(data,1,",")
+    data = word(data,2,",",9999999999)
+    dim type as c 
+    type = word(prefix,1,";")
+    type = word(type,2,"/")
+    b = base64decode(data)
+    dim fn as c 
+    fn = a5_create_tempfile("." + type)
+    file.From_blob(fn,b)
+    dim js as c 
+    if e.tmpl.embeddedMode = .t. then 'working preview
+        dim xbencoded as c 
+        xbencoded = "sys_open(\"" + fn + "\")"
+        xbencoded = stritran(xbencoded,chr(92),"||!||")
+        js  = "genericXbasicUIFromWorkingPreview('"+xbencoded+"');"
+    else 'live mode
+        dim key as c 
+        key = file.filename_parse(fn,"ne")
+        session.saveFileToSessionFile(fn,"A5SessionFile__" +key)
+        fn = "A5SessionFile__" +key
+        delete pu
+        dim pu as p
+        pu.c="_a5filedownload"
+        pu.fileToDownload = fn 
+        pu.csfilename = "chart." + type
+        dim url as c 
+        url = a5_property_to_attribute(pu,.t.)
+        url = js_escape(url)
+        url = "__A5FileDownload.a5w?" + url
+        js = js + "var url = '" + url + "';" + crlf()
+        js = js + "var ifr = '"+e.tmpl.alias+".__IFRAME1';"
+        js = js + "$(ifr).src = url;"
+    end if 
+
+    printChart = js 
+
+end function]]></example>
+        </section>
+        <section>
+            <description>For a full description of how to download a Google chart object as an image, watch the videos below:</description>
+            <note>Not all Google chart types support this feature.</note>
+            <videos>
+                <title>Downloading a Google Chart as a Bitmap</title>
+                <resources>
+                    <resource>
+                        <link>www.ajaxvideotutorials.com/V12Videos/googleCharts_downloadChart.zip</link>
+                    </resource>
+                </resources>
+                <date>2014-09-13</date>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/ux_google_chart_downloadImage_1.swf</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://www.ajaxvideotutorials.com/V12Videos/ux_google_chart_downloadImage_2.swf</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+</page>
