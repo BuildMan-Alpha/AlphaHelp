@@ -1,0 +1,117 @@
+<page>
+    <shortlink>How to Use Chart Events to Add Effects</shortlink>
+    <topic>How to Use Chart Events to Add Effects</topic>
+    <description>Pie slices can be "exploded" to add emphasis. Chart events can be used to dynamically explode pie slices in a Chart control when the chart is double-clicked. Events also be used to enhance a chart with effects such as popup help or additional details.</description>
+    <sections>
+        <section>
+            <description>Chart events can be used to add effects, such as popup help or dynamically exploding a slice of a pie chart. To being, you must first enable chart events for the Chart control. This is done by checking the [Has events] property.</description>
+            <figure>
+                <link>images/hasEvents.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>When *[ui:Has events]* is enabled, it exposes the *[ui:Chart Events]* available for the chart control. These events are mouse events that can be utilized to add effects or perform other actions when the user interacts with the Chart control.</description>
+        </section>
+        <section>
+            <title>How to Explode a Pie Slice when Chart is Double-Clicked</title>
+            <description>In some cases, you may want to add extra emphasis to a portion of data when the user double-clicks on the Chart. For example, suppose you want to explode a pie slice when the user double-clicks on the chart. In this example, we have created a Chart control that uses a Custom data source as defined below:</description>
+        </section>
+        <section>
+            <description></description>
+            <example code="xb"><![CDATA[function piedata as c (e as p)
+
+dim explodedSliceNumber as n = -1
+if eval_valid("e.__javascriptFunctionResults") then
+   dim data as p = json_parse(e.__javascriptFunctionResults)
+   explodedSliceNumber = convert_type(data.javascriptFunctionResult, "N")
+end if
+
+if explodedSliceNumber >= 0 then
+explodedSliceNumber = explodedSliceNumber + 1
+end if
+
+dim arr[0] as p
+arr[].sales = 10
+arr[..].region = "East"
+arr[..].exploded = 0
+           
+arr[].sales = 20
+arr[..].region = "West"
+arr[..].exploded = 0
+
+arr[].sales = 15
+arr[..].region = "South"
+arr[..].exploded = 0
+
+arr[].sales = 8
+arr[..].region = "North"
+arr[..].exploded = 0
+
+if explodedSliceNumber > 0 then
+arr[explodedSliceNumber].exploded = 1
+end if
+
+dim txt as c
+txt = arr.dump_properties("sales|region|exploded")
+
+piedata = txt
+
+end function]]></example>
+        </section>
+        <section>
+            <description>In the Custom data series that is created, a sub-series that defines the "exploded" state of a pie slice has been included. This allows us to use an expression to define the exploded property of a data point in the Chart as follows:</description>
+            <example><![CDATA[Series1.exploded = "1"]]></example>
+        </section>
+        <section>
+            <description>Before the Custom data series is calculated, a JavaScript function is called. The purpose of this function is to pass which pie slice was double-clicked to the Custom Xbasic function that calculates the data series. The value of the selected pie slice is defined in the *[xb:e.__javascriptFunctionResults]* variable in the Xbasic function. The *[xb:e.__javascriptFunctionResults]* holds the return value of the JavaScript function that is called, which is defined below:</description>
+            <example code="js"><![CDATA[function pieDataJs() {
+    if (typeof {dialog.object}._exploded != 'undefined') {
+        return {dialog.object}._exploded;
+    } else {
+        return -1;
+    }
+}]]></example>
+        </section>
+        <section>
+            <description>The variable, *[js:{dialog.object}._exploded]* is a value that is calculated in the Chart control's *[ui:onDblClick]* event. In the *[ui:onDblClick]* event, the *[js:chart.pointNumber]* is retrieved and stored in the variable *[js:{dialog.object}._exploded]*. *[js:chart.pointNumber]* indicates which pie slice in the data series was double-clicked. It is a zero-indexed value:</description>
+            <example code="js"><![CDATA[{dialog.object}._exploded = chart.pointNumber;
+{dialog.Object}.refreshDataSeries('Series1');
+var obj = {dialog.object}.getControl('c1');
+obj.refresh();]]></example>
+        </section>
+        <section>
+            <description>
+                <p>After setting the *[js:{dialog.object}._exploded]* variable, the Chart control is refreshed. This triggers a call to the Xbasic function that defines the Chart's data series. When called, the exploded pie slice value is passed in and the data series that was double-clicked is given a value of "1" for it's "exploded" sub-series value.</p>
+                <p>For a detailed tutorial on how to explode a pie slice, watch the videos below:</p>
+            </description>
+            <videos>
+                <title>Using Events to Create "Exploding" Pie Charts</title>
+                <resources>
+                    <resource>
+                        <name>Download Exploded Pie Component 1</name>
+                        <link>http://www.ajaxvideotutorials.com/V11Videos/explodedPie1.a5wcmp</link>
+                    </resource>
+                    <resource>
+                        <name>Download Exploded Pie Component 2</name>
+                        <link>http://www.ajaxvideotutorials.com/V11Videos/explodedPie2.a5wcmp</link>
+                    </resource>
+                </resources>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://www.viddler.com/v/3b417664</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://www.viddler.com/v/74fac65e</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 3</name>
+                    <link>http://www.viddler.com/v/6de8e84a</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="ux chart properties has events">Has events</link>
+    </links>
+</page>
