@@ -1,52 +1,116 @@
 <page>
     <topic>a5w_report_saveas Function</topic>
     <description>The a5w_report_saveas() method prints LayoutName to file in PDF, HTML, RTF, or TXT formats. If no format is specified, the PDF format is used. If a report needs to get access to global variables defined in a .a5w page, you must call this function, and not Report.SaveAs()</description>
-    <syntax>Result as C = a5w_report_saveAs(C LayoutName [,C Saveas_format [,C Filter [,C Order [,C Filename [,P globalVariables [,* PrintOptions [,* Arguments [,* Options ]]]]]]]])</syntax>
+    <syntax>Result as C = a5w_report_saveAs(C LayoutName [,C Saveas_format [,C Filter [,C Order [,C Filename [,P globalVariables [,P PrintOptions [,SQL::Arguments Arguments [,P Options ]]]]]]]])</syntax>
     <arguments>
         <argument>
             <name>LayoutName</name>
-            <description>Report to print. Character</description>
+            <type>C</type>
+            <description>The report to print. The report must include a fully qualified path to the report location. See examples below.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Saveas_format</name>
-            <description>Character, type of tile to create (PDF/Excel/HTML/RTF/Text)</description>
+            <type>C</type>
+            <description>Default = "PDF". Type of file to create. Can be one of the following values:</description>
+            <list>
+                <item>
+                    <name-title>Format</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>PDF</name>
+                    <description>Creates a PDF file.</description>
+                </item>
+                <item>
+                    <name>Excel</name>
+                    <description>Exports report as an Excel file.</description>
+                </item>
+                <item>
+                    <name>HTML</name>
+                    <description>Creates an HTML report.</description>
+                </item>
+                <item>
+                    <name>RTF</name>
+                    <description>Creates an RTF file.</description>
+                </item>
+                <item>
+                    <name>Text</name>
+                    <description>Creates a text file.</description>
+                </item>
+            </list>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Filter</name>
-            <description>Filter expression to apply to report. Character</description>
+            <type>C</type>
+            <description>Default = "". Filter expression to apply to report.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Order</name>
-            <description>Order expression to apply to report detail.</description>
+            <type>C</type>
+            <description>Default = "". Order expression to apply to report detail.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Filename</name>
-            <description>Name of file to create.</description>
+            <type>C</type>
+            <description>Default = "". Name of file to create.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>globalVariables</name>
+            <type>P</type>
             <description>
-                <p>A pointer to the global variables. See explanation below.</p>
+                <p>Default = [global_variables()]. A pointer to the global variables. See explanation below.</p>
             </description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>PrintOptions</name>
-            <description>PDF Driver options.  See [Report.SaveAs()] for more details.</description>
+            <type>P</type>
+            <description>Default = [null_value()]. PDF Driver options.  See [Report.SaveAs()] for more details.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Arguments</name>
-            <description>Optional SQL Arguments (if required by the report datasource).  See [Report.SaveAs()] for more details.</description>
+            <type>SQL::Arguments</type>
+            <description>Default = [null_value()]. Optional SQL Arguments (if required by the report data source.)  See [Report.SaveAs()] for more information.</description>
         </argument>
-        <argument>
+        <argument optional="true">
             <name>Options</name>
-            <description>Optional. See [Report.SaveAs()] for more details.</description>
+            <type>P</type>
+            <description>Default = [null_value()]. Additional options. See [Report.SaveAs()] for available options.</description>
         </argument>
     </arguments>
-    <discussion>The *[xb:a5w_report_saveas]* function generates a Report from the Application Server.
-    </discussion>
+    <discussion>The *[xb:a5w_report_saveas]* function generates a Report from the Application Server.</discussion>
     <sections>
         <section>
-            <example><![CDATA[a5w_report_saveAs("customer List","PDF","","","c:\data\custlist.pdf",global_variables())]]></example>
+            <example><![CDATA[a5w_report_saveAs("customer List@[PathAlias.ADB_Path]\myalphaworkspace.alb","PDF","","","c:\data\custlist.pdf",global_variables())]]></example>
+            <note>*[xb:[PathAlias.ADB_Path]]* is an alias for the application webroot.</note>
+        </section>
+        <section>
+            <title>Specifying the Report to Print</title>
+            <description>Reports can be defined in the workspace library or as individual report files on the Web Projects Control Panel. The LayoutName must include a fully qualified path to the location of the report file. Depending on where the report is located, you can specify the path as follows:</description>
+            <note>Use Project Reports (*.a5rpt) in web and mobile applications when creating reports.</note>
+            <list>
+                <item>
+                    <name-title>Report Location</name-title>
+                    <description-title>Layout Name</description-title>
+                </item>
+                <item>
+                    <name>Workspace Library (*.alb)</name>
+                    <description>"MyReport@C:/Path/To/Workspace/Library/MyWorkspace.alb"</description>
+                </item>
+                <item>
+                    <name>Project Report (*.a5rpt)</name>
+                    <description>"C:/Path/To/Webroot/MyReport.a5rpt"</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>The example below shows how to use the *[xb:[PathAlias.ADB_Path]]* placeholder when specifying the location of the workspace library.</description>
+            <example><![CDATA['Print a report stored in the workspace library:
+a5w_report_saveAs("myReport@[PathAlias.ADB_Path]\MyWorkspace.alb")]]></example>
+        </section>
+        <section>
+            <description>The next example shows how to use the [context.request.applicationRoot] property when specifying the location of a Project Report (a report saved as a *.a5rpt file.)</description>
+            <example><![CDATA['Print a Project Report:
+a5w_report_saveAs(a5_removeTrailingBackslash(context.request.applicationRoot) + chr(92) + "myReport.a5rpt")]]></example>
         </section>
         <section>
             <title>Global Variables in Web Applications</title>
@@ -66,7 +130,7 @@ globalvars = global_variables()
 globalvars.myglobal1 = "foo"
 
 dim layout_name as c
-layout_name = context.request.applicationRoot + "/customerList.a5rpt"
+layout_name = a5_removeTrailingBackslash(context.request.applicationRoot) + chr(92) + "customerList.a5rpt"
 
 a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]></example>
         </section>
@@ -78,6 +142,9 @@ a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]><
     <links>
         <link link="Report.SaveAs Function">Report.SaveAs()</link>
         <link link="GLOBAL_VARIABLES Function">global_variables() method</link>
+        <link link="GLOBAL_VARIABLES Function">global_variables()</link>
+        <link link="null_value Function">null_value()</link>
         <link link="Understanding and Using Session Variables">session variables</link>
+        <link link="context.request object">context.request.applicationRoot</link>
     </links>
 </page>
