@@ -1,0 +1,106 @@
+<page api="js">
+    <shortlink>ux component saveListEdits Method</shortlink>
+    <topic>{dialog.object}.saveListEdits Method</topic>
+    <description>Synchronizes edits that have been made to the List (and any of its child Lists).</description>
+    <syntax>{dialog.object}.saveListEdits(listId [,options]);</syntax>
+    <arguments>
+        <argument>
+            <name>listId</name>
+            <description>A key for saved data entered into the repository.</description>
+        </argument>
+        <argument optional="true">
+            <name>options</name>
+            <type>json object</type>
+            <description>A JSON object specifying optional parameters. Available options include:</description>
+            <properties>
+                <property optional="true">
+                    <name>rows</name>
+                    <type>number|string|number array</type>
+                    <description>The rows to submit. Can explicitly define as number or array of numbers to submit specific rows. Use the string 'current' to specify only the current row should be submitted. Use the string 'allRows' to submit all rows.</description>
+                </property>
+                <property optional="true">
+                    <name>batchSize</name>
+                    <type>number</type>
+                    <description>Overrides the batch size property for the List control. Specifies the number of records to submit when data is synchronized using batches.</description>
+                </property>
+                <property optional="true">
+                    <name>allChildRecords</name>
+                    <type>boolean</type>
+                    <description>Can be *[js:true]* or *[js:false]*. If true, child records will be submitted for a List control that has one or more child Lists.</description>
+                </property>
+                <property optional="true">
+                    <name>allParentLists</name>
+                    <type>boolean</type>
+                    <description>Can be *[js:true]* or *[js:false]*. If true, parent records will be submitted for a List control that has a parent List.</description>
+                </property>
+                <property optional="true">
+                    <name>resetMediaFileUploadErrors</name>
+                    <type>boolean</type>
+                    <description>Can be *[js:true]* or *[js:false]*. If true, file upload media errors will be reset. For PhoneGap applications with media files.</description>
+                </property>
+                <property optional="true">
+                    <name>checkForMediaFiles</name>
+                    <type>boolean</type>
+                    <description>If true, new or updated media files will be synchronized. For PhoneGap applications with media files.</description>
+                </property>
+                <property optional="true">
+                    <name>fixMediaFileReferences</name>
+                    <type>boolean</type>
+                    <description>Flag fix media file references. For PhoneGap applications with media files.</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>Synchronizes edits that have been made to the List (and any of its child Lists). By default, edits from all dirty rows in the List are submitted to the server. You can optionally specify that just the edits for the currently selected row, or a specified list of rows, should be submitted to the server. You do this by  passing in *[js:{rows: 'current'}]* (for just the current or), or *[js:{rows: [rowNumber1, rowNumber2, rowNumber3,...] }]*  (for an explicit set of row numbers) in the optional *[ui:options]* parameter.</p>
+        <p>If the List is based on a SQL data source, the data are automatically saved to the table(s) on which the List is based. Alpha Anywhere automatically generates the necessary SQL CRUD statements from the submitted data.</p>
+        <p>If the List is not based on a SQL data source (for example the *[ui:Data Source]* property of the List is set to 'Custom', 'Static', 'Javascript', etc.), then you must write your own synchronization handler to persist the submitted data.</p>
+        <p>When you submit multiple dirty rows of data you can choose to submit all rows at once, or you can submit data in batches. The batch size can be specified in the List properties, or you can override the setting in List properties by specifying an option in the JSON options passed in as the second parameter to the method. For example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example><![CDATA[{dialog.object}.saveListEdits('LISTCUSTOMERS',{rows: 'allRows', batchSize: 10});]]></example>
+        </section>
+        <section>
+            <description>
+                <p>When you submit data in batches, the first batch is submitted, then once that batch is synchronized a subsequent callback is triggered to submit the next batch, and so on, until all of the dirty rows have been submitted. The user can cancel before all batches have been submitted. If the user does cancel, the current batch that is being processed will continue to process, but once this batch completes, no further batches will be sent to the server.</p>
+                <p>Behind the scenes, this method does this:</p>
+            </description>
+            <steps>
+                <step>
+                    <description>Calls the List's *[js:.harvestList()]* method to get all of the dirty data to 
+                submit to the server</description>
+                </step>
+                <step>
+                    <description>Makes an Ajax callback and submits the List data</description>
+                </step>
+                <step>
+                    <description>Performs server-side validation of the submitted data.</description>
+                </step>
+                <step>
+                    <description>If server-side errors are found, compute the necessary Javascript to return information about the errors to the List so that the Detail View controls can be decorated with the appropriate error messages.</description>
+                </step>
+                <step>
+                    <description>If any write conflicts were found on the server (because another user had edited any of the records that were edited in the List), compute the necessary Javascript to return information about the conflicts to the user so that she may resolve them.</description>
+                </step>
+                <step>
+                    <description>Computes an Ajax response to refresh the rows in the List that were updated and remove the 'dirty' flags from List rows that were previously marked as 'dirty'.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>When the List edits are pushed to the server, you can optionally specify that any edits that were made on the server (presumably, by other users) should be pushed back to the List.</p>
+                <p>When you configure the List control you can set the synchronization policy to control whether 'server-to-client' synching should take place.</p>
+                <p>Since 'server-to-client' synching is a more expensive operation than 'client-to-server' synching, you might want to turn this option off and instead provide a menu choice to the client to explicitly do a 'server-to-client' synch. To do an explicit 'server-to-client' synch, you can all this method:</p>
+            </description>
+            <note>When you specify the 'incremental' mode any rows in the List that are dirty will not be refreshed.</note>
+            <example><![CDATA[{dialog.object}.refreshListData(listId, {mode: 'incremental'});]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="BuildingDisconnectedApplications">List Control Overview</ref>
+        <ref link="Dialog Component">{dialog.object}</ref>
+    </see>
+    <terms>ux component,components,events,repository,save,users</terms>
+</page> 
