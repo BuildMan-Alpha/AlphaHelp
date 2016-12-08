@@ -1,4 +1,4 @@
-#Help File Format
+# Help File Format
 
 The embedded help format for javascript requires a multiblock comment with a leading '[DOC:' and trailing ']' 
 
