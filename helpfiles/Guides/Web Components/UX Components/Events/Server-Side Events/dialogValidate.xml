@@ -16,6 +16,256 @@
 </description>
             
         </section>
+        
+        
+        
+<section>
+    <description>Data values that were submitted are in e.dataSubmitted (original values are in e.oldDataSubmitted)
+The list of dirty submitted fields is in: e.dirtyColumns. This is a CRLF delimited string of dirty fields (i.e. fields
+edited by the user). For example:</description>
+<example><![CDATA[FIRSTNAME
+QTY_A5INSTANCE3]]></example>
+    
+</section>
+<section>
+    <title>Important</title>
+    <description>If your event handler modifies a value in the e.dataSubmitted object (and that field has NOT
+been edited by the user), you MUST explicitly add the field to the e.dirtyColumns value yourself.
+For example, assume that you want to set the Company field to 'Alpha' and the 'Qty' field in row 1 of a repeating section
+regardless of whether the user edited the value or not:</description>
+    <example><![CDATA[e.dataSubmitted.COMPANY = "alpha"
+e.dataSubmitted.QTY_A5INSTANCE2 = "2"
+e.dirtyColumns = e.dirtyColumns + crlf()+ "COMPANY" + crlf() + "QTY_A5INSTANCE2"]]></example>
+</section>
+<section>
+    <title>Repeating Sections</title>
+    <description>If your dialog contains repeating sections, data in the repeating sections will be in an array.
+For example, say that your dialog has a repeating section that includes a field called QTY:</description>
+    
+    <list>
+        <item>
+            <name>e.dataSubmitted.qty[1]</name>
+            <description>Contains data from first repeating section row</description>
+        </item>
+        <item>
+            <name>e.dataSubmitted.qty[2]</name>
+            <description>Contains data from second repeating section row, etc</description>
+        </item>
+        <item>
+            <name>e.dataSubmitted.favoriteColors[2][3]</name>
+            <description>Contains data from the second row - 'favoriteColors' is a multi-select control - returns the 3rd choice the user made
+</description>
+        </item>
+        <item>
+            <name>e.dataSubmitted.qty.size()</name>
+            <description>Number of entries in the array.</description>
+        </item>
+        
+        
+        
+    </list>
+    
+    
+</section>
+
+<section>
+    <description>In addition, the e object will contain information about the repeating sections</description>
+    <list>
+        <item>
+            <name>e.repeatingSectionNames</name>
+            <description>A comma delimited list of the name (container ID) or each repeating section</description>
+        </item>
+        <item>
+            <name>e.repeatingSectionInfo</name>
+            <description>A property array with one entry for each repeating section.</description>
+        </item>
+        
+    </list>
+    
+    
+</section>
+<section>
+    
+    <description>The e.repeatingSectionInfo[] array will have these properties for each entry:</description>
+    <list>
+        <item>
+            <name>.activeRow</name>
+            <description>The row in the repeating section that had focus when the Dialog was submitted</description>
+        </item>
+        <item>
+            <name>.deletedRows</name>
+            <description>A CRLF delimited list of rows that were deleted. e.g. 1 and 3</description>
+        </item>
+        <item>
+            <name>.rowCount</name>
+            <description>A count of the number of non-deleted rows</description>
+        </item>
+        <item>
+            <name>.totalRowCount</name>
+            <description>A count of all rows in the repeating section including rows that were deleted</description>
+        </item>
+        <item>
+            <name>.fieldsInRepeating section</name>
+            <description>A CRLF delimited list of fields in the repeating section</description>
+        </item>
+        <item>
+            <name>.dirtyRowsInSection</name>
+            <description>A CRLF delimited list of rows in the repeating section that were edited. (A row that was edited, then deleted will still appear in this list).
+</description>
+        </item>
+        <item>
+            <name>.dirtyFieldsInSection</name>
+            <description>A CRLF delimited list of fields in the repeating section that were edited. for example: PARTNO_A5INSTANCE3 is the 'PARTNO' field in row 3.
+</description>
+        </item>
+        
+        
+    </list>
+  
+</section>
+<section>
+    <title>Request</title>
+<description>The Request object. Includes Request.Variables, which should be used instead of the older e.rv construct</description>
+    
+</section>
+<section>
+    <title>Session</title>
+<description>The Session object. Should be used instead of the older e.session construct</description>
+    
+</section>
+
+<section>
+    <title>Also inside e:</title>
+    <list>
+        <item>
+            <name>e.tmpl</name>
+            <description>Component definition</description>
+        </item>
+        <item>
+            <name>e.rtc</name>
+            <description>Runtime calculations - you can use this to store data to be passed to other server side events (Note: the 'rtc' object cannot be used to persist state information - i.e. you can't set a value in rtc and then read that value in a subsequent callback. To persist state info see e._state).
+</description>
+        </item>
+        <item>
+            <name>e.arguments</name>
+            <description>SQL::Arguments object with values for each of the arguments defined in this component.  To read a value from arguments: e.arguments.find("argumentName").data
+</description>
+        </item>
+        
+    </list>
+    
+    
+</section>
+<section>
+    <description>This event can set the value of any of the control in the Browser after it executes.
+For example:</description>
+  <example><![CDATA[e.control.firstname = "Fred"
+e.control.lastname = "Jones"]]></example>
+    <note>You can also use the 'e._set' syntax here:</note>
+    
+</section>
+<section>
+     <example><![CDATA[e._set.firstname.value = "Fred"
+e._set.firstname.style.color = "red"
+e._set.firstname.style.fontSize = "20"
+e._set.firstname_a5instance3.value = "Fred"   'sets value in 3rd Repeating Section row]]></example>
+    
+</section>
+
+
+<section>
+  <title>Setting Properties of Fields in Repeating Sections</title>
+  
+  <description>If you set the property of a field in a repeating section without explicitly stating what
+row in the repeating section you are addressing, the field in the row with focus is set.
+For example, assume that the QTY field is in a repeating section. The following 
+sets the value of the QTY field in the repeating section row that has focus</description>
+  <example><![CDATA[e._set.qty.value = "23"]]></example>
+</section>
+<section>
+    <description>To set the value of the QTY field in the 3rd repeating instance row do this:</description>
+    
+    <example><![CDATA[e._set.qty_A5INSTANCE3.value = "23"]]></example>
+</section>
+
+<section>
+    <description>Your code must set these properties</description>
+    <example><![CDATA[dialogValidate.hasError = .f.
+dialogValidate.errorText = ""]]></example>
+    
+</section>
+<section>
+    <description>By setting the above properties, you cause a global error message to show on the Dialog. If you want
+error messages to appear next to particular fields, you can set properties in this optional array. For example:</description>
+    <example><![CDATA[dim dialogValidate.fieldErrors[0] as p
+dialogValidate.fieldErrors[].varname = "FIRSTNAME"
+dialogValidate.fieldErrors[..].errorText = "Error message for the FIRSTNAME field"
+
+dialogValidate.fieldErrors[].varname = "QUANTITY:3"
+dialogValidate.fieldErrors[..].errorText = "Error message for the QUANTITY field in the 3rd row of a Repeating Section"
+]]></example>
+</section>
+<section>
+    <description>If you have set field level error using the dialogValidate.fieldErrors[] array, you might want to suppress the global error message from appearing.
+To do this, set</description>
+    <example><![CDATA[dialogValidate.errorText = "No Message"]]></example>
+    
+</section>
+<section>
+    <description>Optional. Set the 'e.javascript'' property if you want to send some javascript back to the browser:</description>
+    <example><![CDATA[e.javascript]]></example>
+    
+</section>
+
+
+
+<section>
+    <title>Examples</title>
+    <description>Example validation code: (Notice that all data values in e.dataSubmitted and e.oldDataSubmitted are Character values. You must use convert_type() to convert it to the correct data type)
+</description>
+    <example><![CDATA[if e.dataSubmitted.lastname = "Smith" .and. convert_type(e.datasubmitted.accountType,"N") > 2 then
+	dialogValidate.hasError = .t.
+	dialogValidate.errorText = "Invalid order"
+end if]]></example>
+    
+</section>
+
+
+        
+        
+<section>
+    
+    <description>Example for a field in a repeating section</description>
+    <example><![CDATA[dim i as n
+dim count as n
+count = e.dataSubmitted.qty.size()
+'Loop over each entry in the array of data that was submitted
+for i = 1 to count
+	if convert_type(e.dataSubmitted.qty[i],"N") > 10 then
+		dialogValidate.hasError = .t.
+		dialogValidate.errorText = dialogValidate.errorText + "Quantity in row " + i + "must be less than 10 <br>"
+	end if
+next i]]></example>
+    
+</section>
+<section>
+    
+    <description>You can set 'state' variables in this event. The value of any state variables will be available in all subsequent ajax callbacks.
+To set a state variable:</description>
+    <example><![CDATA[e._state.myvar1 = "value1"
+e._state.myvar2 = "value2"]]></example>
+    
+</section>
+<section>
+    
+    <description>To read the value of a 'state' variable that was previously set:</description>
+    <example><![CDATA[e._state.myvar1]]></example>
+    
+</section>
+        
+ 
+        
+        
         <section>
             <title>Using the dialogValidate Event</title>
             <steps>
