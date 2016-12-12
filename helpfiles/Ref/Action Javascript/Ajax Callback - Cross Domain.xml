@@ -1,23 +1,86 @@
 <page>
     <shortlink>Ajax Callback - Cross Domain</shortlink>
-   <topic>Ajax Callback - Cross Domain</topic>
-   <description>Define a user-defined cross-domain ajax callback. A cross-domain Ajax callback is a callback to a web service in a domain that is different from the domain from which this component was originally loaded.</description>
-   
-   <sections>
+    <topic>Ajax Callback - Cross Domain</topic>
+    <description>Define a user-defined cross-domain ajax callback. A cross-domain Ajax callback is a callback to a web service in a domain that is different from the domain from which this component was originally loaded.</description>
+    <discussion>
+        <p>Because of security issues, browsers typically enforce a policy that requires that the page that responds to an Ajax callback must be loaded from the same domain that the original page was loaded. This does not represent a problem for typical Ajax callbacks that are handled by Xbasic code on the Alpha Anywhere server. </p>
+        <p>However in cases where you want to call a web service directly from the client (without first going to the Alpha server), it does represent a problem. </p>
+        <p>Consider for example the following scenario:</p>
+        <p>Say you have a button on the UX and you want to make a call to the Apple iTunes store to retrieve information about a book.</p>
+        <p>The URL for this web service (including the query string for the particular book you are interested in) is as follows:</p>
+    </discussion>
+    <sections>
         <section>
-            <description>Used with the UX component</description>
-       </section>
-       
-       
-       <section>
-           <description></description>
-           
-           <title>Javascript used in 'onPush' attribute:</title>
-           <example><![CDATA[var url = '';
+            <example><![CDATA[http://itunes.apple.com/lookup?isbn=9780316069359]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The domain for this URL is obviously not the same as the domain from which the UX component was loaded in the first place.</p>
+                <p>There are two ways in which you could call this web service:</p>
+            </description>
+        </section>
+        <section>
+            <list bullet="true">
+                <item>
+                    <name>Make a standard Ajax callback and define an Xbasic function that calls out to the Apple web service (using the Xbasic [http_get_page2()] function), and then return the response from the Apple web service to the UX component in the same way that any other response from an Ajax callback is return to the UX component.</name>
+                </item>
+                <item>
+                    <name>Directly call the Apple web service from the browser</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Clearly, the second approach is more desirable as it avoids hitting the Alpha server at all.</p>
+                <p>However, in order to implement the second approach you need to perform a cross-domain Ajax callback.</p>
+                <p>The new 'Ajax Callback - Cross Domain' action in Action Javascript allows you to perform cross-domain Ajax callbacks.</p>
+            </description>
+            <important>The Ajax Callback - Cross Domain action is built on top of jQuery. You must load jQuery core for this method to work. See the Web Project Properties dialog to enable jQuery.</important>
+        </section>
+        <section>
+            <description>
+                <p>When you define this action you specify the URL of the callback page. Any parameters that you want to pass in to the web service are in the query string. When you specify the URL, you can specify an explicit value, or any Javascript expression that evaluates to the URL. This allows you to dynamically construct the URL for the callback.</p>
+                <p>You also specify the name of a Javascript function that will be called when the Ajax callback completes successfully. The function gets passed an argument that contains the data returned by the callback.</p>
+            </description>
+            <note>Unfortunately, if the callback fails, there is no way to specify an 'onFailure' function. This is a limitation of the technique used for making cross-domain callbacks.</note>
+        </section>
+        <section>
+            <description>A useful technique for seeing what data in passed to the success function is to define  the following success function for your action:</description>
+            <example><![CDATA[function mySuccessFunction(data) {
+    alert(JSON.stringify(data,'','\t'));
+}]]></example>
+        </section>
+        <section>
+            <description>This function will convert the data returned by the callback into a JSON string and display it.</description>
+            <figure>
+                <link>images/ajax_crossdomain.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>For more information on how to create a cross-domain Ajax Callback, watch the video below:</description>
+            <videos>
+                <title>Cross-domain Ajax Callback</title>
+                <description>
+                    <p>A cross-domain Ajax callback is a callback that takes places to a server that is in a different domain than the domain from which the component was loaded.</p>
+                    <p>In this video we show how a callback is made to the Apple iTunes store and we contrast the difference between making the callback directly to the Apple site versus making a callback to the Alpha server first and then having the Alpha server make the call to the Apple site.</p>
+                </description>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/ajaxcallback_crossdomain.zip</link>
+                    </resource>
+                </resources>
+                <video>
+                    <name>Watch Video</name>
+                    <link>http://www.viddler.com/v/9daf1c18</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <title>Javascript used in 'onPush' attribute:</title>
+            <example><![CDATA[var url = '';
 {dialog.object}.ajaxCallbackCrossDomain(url,'',false,'callback');]]></example>
-          
-       </section>
-          <section>
+        </section>
+        <section>
             <title>Cross-domain Ajax Callback Properties</title>
             <list>
                 <item>
@@ -30,7 +93,7 @@
                 </item>
                 <item>
                     <name>Use jQuery</name>
-                    <description>Specify if the callcaback should be made using jQuery. If you check this option, it is necessary to load the jQuery core library. If this option is not checked, then jQuery is not required.</description>
+                    <description>Specify if the callback should be made using jQuery. If you check this option, it is necessary to load the jQuery core library. If this option is not checked, then jQuery is not required.</description>
                 </item>
                 <item>
                     <name>Callback attribute name</name>
@@ -38,13 +101,12 @@
                 </item>
             </list>
         </section>
-       
-       
-   </sections>
-   
+    </sections>
+    <limitations>UX Component Only</limitations>
+    <links>
+        <link link="http_get_page2 function">http_get_page2</link>
+    </links>
     <see>
-       <ref>Action Javascript for the UX</ref>
-   </see>
-   
-   
+        <ref>Action Javascript for the UX</ref>
+    </see>
 </page>
