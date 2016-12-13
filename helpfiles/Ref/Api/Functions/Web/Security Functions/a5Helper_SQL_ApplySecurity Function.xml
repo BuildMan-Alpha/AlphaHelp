@@ -1,0 +1,102 @@
+<page api="xb">
+    <shortlink>a5Helper_SQL_ApplySecurity function</shortlink>
+    <topic>a5Helper_SQL_ApplySecurity Function</topic>
+    <syntax>c SQLStatement = a5Helper_SQL_ApplySecurity(sql as c , securityDef as c , loggedInGroups as c)</syntax>
+    <arguments>
+        <argument>
+            <name>sql</name>
+            <type>C</type>
+            <description>The SQL Statement to which security will be applied.</description>
+        </argument>
+        <argument>
+            <name>securityDef</name>
+            <type>C</type>
+            <description>A JSON object that defines the security settings and show/hide expression for selected columns in the SQL statement. Has the following properties:</description>
+            <properties>
+                <property>
+                    <name>column</name>
+                    <type>C</type>
+                    <description>The column in the SQL statement. This must match the parsed SQL representation for the column. See example below.</description>
+                </property>
+                <property>
+                    <name>security</name>
+                    <type>C</type>
+                    <description>A comma delimited list of the security groups authorized to see this column.</description>
+                </property>
+                <property>
+                    <name>showHide</name>
+                    <type>expression</type>
+                    <description>A logical expression that evaluates to true or false. Typically the expression will reference session variables.</description>
+                </property>
+            </properties>
+        </argument>
+        <argument>
+            <name>loggedInGroups</name>
+            <type>C</type>
+            <description>The security groups for the current user.</description>
+        </argument>
+    </arguments>
+    <description>Applies security to a SQL SELECT statement. Only applies if the SQL statement can be parsed.</description>
+    <discussion>
+        <p>Applies security and server-side show/hide expressions to a SQL SELECT statement. Columns that the current user is not authorized to access will be removed from the SQL SELECT statement.</p>
+        <p>The SQL statement passed to this function must be parsable. If Alpha Anywhere cannot parse the statement (e.g. the SQL is a call to a stored procedure), the function returns the original SQL statement.</p>
+        <p>If a column does not have a security setting or server-side show/hide expression, it will be included in the SQL statement.</p>
+        <p>If a column has a defined security setting, the column will only be included in the SQL statement if the logged in user is a member of one of the security groups specified by the column's security settings.</p>
+        <p>If a column as a show/hide expression, the column will only be included in the SQL statement if the expression evaluates to a true result.</p>
+        <p>The column specify in the *[xb:securityDef]* must match exactly how the SQL parser represents the column. For example, consider the following column expression</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[concatenate(customers.name , ', ', customers.contacttitle)]]></example>
+        </section>
+        <section>
+            <description>The meaning of this expression is unchanged if the expression is written as:</description>
+            <example><![CDATA[concatenate(     customers.name     , ', ',     customers.contacttitle   )]]></example>
+        </section>
+        <section>
+            <description>However, this is not how the expression is represented in the SQL parser. To get the correct representation of the expression, you can use the code below:</description>
+            <example code="xb"><![CDATA[dim si as sql::Query::SelectItem
+sql2 = "concatenate(   customers.name   , ', ',   customers.contacttitle)"
+?si.Parse(sql2)
+= .T.
+
+?si.SQLStatement
+= "concatenate(customers.name, ', ', customers.contacttitle)"]]></example>
+        </section>
+        <section>
+            <description>Example</description>
+            <example code="xb"><![CDATA[sql = <<%str%
+SELECT customers.CustomerID as cid, customers.CompanyName as compName, customers.ContactName, customers.ContactTitle, concatenate(customers.name,', ',customers.contacttitle) as exp1, orders.OrderID, orders.CustomerID AS CustomerID1, orders.EmployeeID, orders.OrderDate, orders.RequiredDate 
+FROM customers customers
+ INNER JOIN orders orders
+ ON customers.CustomerID = orders.CustomerID
+%str%
+ 
+'define the
+dim ss[0] as p
+ss[].column = "customers.ContactTitle"
+ss[..].security = ""
+ss[..].showHide = "session.var1 = \"alpha\""
+ 
+ss[].column = "concatenate(customers.name, ', ', customers.contacttitle)"
+ss[..].security = "Sales,Marketing"
+ss[..].showhide = ""
+ 
+ss[].column = "customers.CompanyName"
+ss[..].security = "Administrator"
+ss[..].showhide = ""
+ 
+dim security as c
+'Generate a JSON string
+security = json_generate(ss)
+ 
+dim loggedInGroups as c
+loggedInGroups = Context.Security.GetUserRoles()
+
+sql2 = a5Helper_SQL_ApplySecurity(sql,security,loggedInGroups)]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="context.security object">Context.Security</ref>
+    </see>
+</page>
