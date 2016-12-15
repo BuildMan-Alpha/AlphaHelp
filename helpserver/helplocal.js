@@ -694,6 +694,16 @@ events.loadIndex = function(callback) {
 events.calculateFeedback = function(title,page) {
     return "?subject=Problem with page: "+title+" ["+page+"]"+"&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages"+replaceAll(page," ","%2520").replace(".xml_html",".xml")+"%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page.replace(".xml_html",".xml"),"/","\\")+"'):";
 }
+events.beforePageIndex  = function(fo,body) {
+    console.log("Before page index:"+JSON.stringify(args,null,"  "));    
+}
+events.parseQuery = function(args) {
+    console.log("Parse query:"+JSON.stringify(args,null,"  "));
+};
+events.beforeQuery = function(elast,args) {
+     console.log("Before query:"+JSON.stringify(elast,null,"  ")+JSON.stringify(args,null,"  "));  
+};
+
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
