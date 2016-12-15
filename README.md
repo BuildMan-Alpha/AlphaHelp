@@ -9,7 +9,7 @@ values for tags : (can be one or more)
   + common - common to web and desktop.
   + web - web server only functionality
   + desktop - desktop only functionality
-  + legacy - page is marked as legacy (ommitted)
+  + legacy - page is marked as legacy (omitted)
   + review - page is marked for review.
   + dbf - common DBF tag, tag these to make it easier to filter out DBF functions.
 
@@ -117,7 +117,16 @@ Caveat - nodegit 4.0.0 broken in reposity.js - whenever I refresh the npm now I 
 cp /home/repository.js node_modules/helpserver/node_modules/nodegit/lib/repository.js
 ```
 
-This will need to be done untill the fix is rolled into the NPM.
+This will need to be done until the fix is rolled into the NPM.
+
+## Running in a Testing Environment
+
+If running in a test environment, you do not need to create a service. Navigate to the helpserver
+directory and run the system:
+
+```
+node helplocal.js
+```
 
 ## Starting helpserver on Linux
 
@@ -128,11 +137,11 @@ This needs needs to be every time we restart the machine, but also when we are i
 sudo service elasticsearch restart
 ```
 
-##Handling case sensitive path issues with Git-Unite
+## Handling case sensitive path issues with Git-Unite
 
 There is a utility in 3rdParty to handle fixups should files appear to be missing on the documentation
 server.  Linux has a case sensitive file system, while windows does not, so in order to fix inconsistencies 
-in GIT caused by this problem, it is neccessary to occasionally run git-unite against the folder.
+in GIT caused by this problem, it is necessary to occasionally run git-unite against the folder.
 
 ```cmd
 C:\dev\3rdParty\Git\git-unite\src\Git.Unite\bin\Debug>Git.Unite.exe C:\dev\AlphaHelp
