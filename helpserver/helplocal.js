@@ -695,8 +695,19 @@ events.calculateFeedback = function (title, page) {
     return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
 }
 
-events.beforePageIndex = function (fo, body) {
-    console.log("Before page index:" + JSON.stringify(args, null, "  "));
+events.beforePageIndex = function (fo, args) {
+    var path = fo.path.toLowerCase().split('/');
+    if (path.length > 2) {
+        if (path[1] === 'ref') {
+            args.category = "reference";
+            if (path[2] === 'api') {
+                args.language = "xbasic";
+            } else if (path[2] === 'client_api') {
+                args.language = "javascript";
+            }
+        }
+    }
+    console.log("Before page index:" + JSON.stringify(fo, null, "  ") + JSON.stringify(args, null, "  "));
 }
 events.parseQuery = function (args) {
     var words = args.pattern.split(" ");
@@ -704,13 +715,29 @@ events.parseQuery = function (args) {
         if (words[0] === "in:title") {
             args.lookIn = "title";
             args.pattern = args.pattern.substr(8).trim();
+        } else if (words[0] === "in:reference") {
+            args.category = "reference";
+        } else if (words[0] === "language:xbasic") {
+            args.language = "xbasic";
+        } else if (words[0] === "language:javascript") {
+            args.language = "javascript";
         }
     }
     console.log("Parse query:" + JSON.stringify(args, null, "  "));
 };
 events.beforeQuery = function (elast, args) {
+    if (args.language || args.category) {
+        elast.query.bool.must = [];
+        if (args.category) {
+            elast.query.bool.must.push({ match: { category: { query: args.category } } });
+        }
+        if (args.language) {
+            elast.query.bool.must.push({ match: { language: { query: args.language } } });
+        }
+    }
     console.log("Before query:" + JSON.stringify(elast, null, "  ") + JSON.stringify(args, null, "  "));
 };
+
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
