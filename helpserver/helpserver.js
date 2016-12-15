@@ -968,6 +968,26 @@ events.calculateFeedback = function(title,page) {
     return "?subject=Problem with page: "+title+" ["+page+"]"+"&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages"+replaceAll(page," ","%2520").replace(".xml_html",".xml")+"%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page.replace(".xml_html",".xml"),"/","\\")+"'):";
 }
 
+//Modify the body record posted to elastic search
+//events.beforePageIndex = function (fo, body) {    
+//}
+
+// Hook for parsing the query command
+events.parseQuery = function (args) {
+    var words = args.pattern.split(" ");
+    if (words.length > 1) {
+        if (words[0] === "in:title") {
+            args.lookIn = "title";
+            args.pattern = args.pattern.substr(8).trim();
+        }
+    }
+};
+
+// Modify elastic search query *before* it is run but *after* the default query has been built
+//events.beforeQuery = function (elast, args) {
+//};
+
+
 options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);
