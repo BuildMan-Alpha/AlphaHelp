@@ -1,7 +1,6 @@
 <page>
     <topic>a5_composite_picture_and_ink Function</topic>
     <description>Creates a composite annotated image created from a picture field and an ink field.</description>
- 
     <syntax>Composite_Image as P = a5_composite_picture_and_ink (A picutre , C ink [, C basepath])</syntax>
     <arguments>
         <argument>
@@ -12,15 +11,16 @@
         <argument>
             <name>ink</name>
             <type>C</type>
-            <description>The ink data that will be overlayed on top of the background picture.</description>
+            <description>The ink data that will be overlaid on top of the background picture.</description>
         </argument>
         <argument>
             <name>basepath</name>
             <type>C</type>
             <description>Optional. Defines a base path used to convert a relative image filename stored in the picture filed into an absolute filename. Basepath is only required if picture contains an Image File Reference.</description>
         </argument>
-    </arguments>   <discussion>
-        <p>*[xb:a5_composite_picture_and_ink()]* generates a composite image by combining a background picture with ink data. This function takes the name of the field that contains the picture, the name of the field that contains the ink, and (optionally) a base path. It creates a composite image with the ink overlayed on top of the picutre.</p>
+    </arguments>
+    <discussion>
+        <p>*[xb:a5_composite_picture_and_ink()]* generates a composite image by combining a background picture with ink data. This function takes the name of the field that contains the picture, the name of the field that contains the ink, and (optionally) a base path. It creates a composite image with the ink overlaid on top of the picture. The object returned by this function is a mime object. See [*mime_object] for more information about the mime object.</p>
     </discussion>
     <sections>
         <section>
@@ -28,19 +28,47 @@
             <description>
                 <p>For example, assume that your database has fields called *[xb:picture1]* and *[xb:annotation1]* and you want to print the ink in *[xb:annotation1]* over the picture in *[xb:picture1]*. You could create a calculated field called *[xb:compositeImage]* and add this calculated field to your report.</p>
             </description>
-            <example><![CDATA[compositeImage = a5_composite_picture_and_ink("picture1","annotation1")]]></example>            
+            <example>
+                <![CDATA[compositeImage = a5_composite_picture_and_ink("picture1","annotation1")]]>
+            </example>
         </section>
         <section>
-        <title>Caveats</title>
-        <warning>
-        <p>The Windows 10 custom scaling feature can interfere with the sizing of the SVG produced by the *[xb:a5_composite_picture_and_ink]* function.</p>
-        <p>If you are running under Windows 10, and Best Fit images in reports are showing up smaller than the space provided check the
-         Control Panel/Appearance and Personalization / Display Dialog, and make sure that the scaling is set to the default of 100%.</p>
-        <p>Credit goes to Ted Thomas for discovering this issue.</p>         
-        </warning>
+            <title>How to Convert SVG Composite Image to Another Format</title>
+            <description>The composite result from *[xb:a5_composite_picture_and_ink]* function can be converted to another file type, such as a PNG or JPEG file. This is done by converting the SVG stored in the mime object returned by the function to another format. For example:</description>
+            <example><![CDATA[dim composite as p = a5_composite_picture_and_ink(image_blob,ink_data)
+dim svg as c = composite.toString()
+
+dim scanner as p
+scanner = stringScanner.Create(svg)
+if (scanner.replaceSmatchI("style=\"width:*; height:*;","style=\"width:1024px; height:768px;")) then
+    svg = scanner.Text
+end if
+
+dim jpegImage as b = charting::Chart::SvgToJpeg(svg)
+
+file.from_blob("c:\testPhoto.jpeg",jpegImage)
+
+sys_open("c:\Carol\testPhoto.jpeg")]]></example>
         </section>
         <section>
-        <figure><link>images/windows10_scaling_issue.png</link></figure>
+            <title>Caveats</title>
+            <warning>
+                <p>The Windows 10 custom scaling feature can interfere with the sizing of the SVG produced by the *[xb:a5_composite_picture_and_ink]* function.</p>
+                <p>If you are running under Windows 10, and Best Fit images in reports are showing up smaller than the space provided check the Control Panel/Appearance and Personalization / Display Dialog, and make sure that the scaling is set to the default of 100%.</p>
+                <p>Credit goes to Ted Thomas for discovering this issue.</p>
+            </warning>
+        </section>
+        <section>
+            <figure>
+                <link>images/windows10_scaling_issue.png</link>
+            </figure>
         </section>
     </sections>
+    <links>
+        <link link="*mime_object Function">*mime_object</link>
+    </links>
+    <see>
+        <ref link="*mime_object Function">*mime_object()</ref>
+        <ref link="stringscanner.scansmatchi function">stringScanner.replaceSmatchI()</ref>
+    </see>
 </page>
