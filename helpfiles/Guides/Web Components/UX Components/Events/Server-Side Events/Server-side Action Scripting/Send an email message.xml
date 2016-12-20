@@ -247,10 +247,274 @@ This property appears when the send method is 'Internal' and
 
 <section>
     <title>Sending an Email Message Using a Server-side Event</title>
-    <description></description>
+    <description>A common experience for the end-user of a application frequently involves the following process. 
+        First the user enters some type data into the application such as personal data, shipping information, 
+        or payment data. When the user is finished they then click a 'Submit' button and wait to see if their 
+        data is validated. This [validation] can happen on either the client-side or the server. After the data is 
+        validated the user then usually recieves some sort of confirmation message that appears in the application 
+        itself, such as "Thank you for your order" or "Your application has been submitted".
+        This is then frequently followed by an email confirmation that is sent to the email address that the user 
+        specified when entering data.
+        
+        This section will cover the steps involved in creating a component that 
+        uses the send e-mail action after entered data is validated and saved on to a server. The first step will 
+        be to define the thank you message that the user receives once they are done entering data. This 
+        can be done by creating and publishing a simple A5W page in Alpha Anywhere. The second step will 
+        then be to create a UX component containing the controls that the user will enter their data into. In order 
+        to save this data it will be necessary to create a new DBF or SQL table, the third step. The controls in the 
+        component will be automatically bound to the fields in the table through [Data Binding].
+        From here it will be possible to tie a '[Save Submitted Data to Table(s)]' action to the [afterDialogValidate] 
+        server-side event and then finally add the action that sends the email after the data has been saved. 
+         
+    </description>
     
     
 </section>
+
+<section>
+    <title>Create an A5W Page to Load when Data is Saved</title>
+    <steps>
+        <step>
+            <description>In the Web Projects Control Panel click the 'New' button to create a 'New component or page'</description>
+            
+        </step>
+         <step>
+            <description>Select the 'A5W' option and click 'Next'.</description>
+            
+        </step>
+        <step>
+            <description>Select the 'Blank Page' option and click 'Next'.</description>
+            
+        </step>
+        <step>
+            <description>Open the 'WYSIWYG' (what you see is what you get) tab at the bottom of the A5W page.</description>
+            
+        </step>
+        <step>
+            <description>Type a message into the workspace. Use the tools in the toolbar to set the font, color, and alignment of the message.</description>
+            
+        </step>
+        <step>
+            <description>Click on the 'File' dropdown in the top left corner of Alpha Anywhere and select 'Save As'. 
+                Save the A5W page as 'ThankYou'
+            </description>
+            
+        </step>
+        <step>
+            <description>Go back to the Web Projects Control Panel and view the A5W using the side menu.</description>
+            
+        </step>
+        <step>
+            <description>Highlight the A5W page that you added. Right click and select the 'Page Security' open. Set to 'Always Allowed'.</description>
+            
+        </step>
+        <step>
+            <description>Right click again and select 'Publish' and 'Publish (local webroot)'.</description>
+            
+        </step>
+    </steps>
+</section>
+
+
+<section>
+    <title>Create the Controls to Enter Data into a Server</title>
+    
+    <steps>
+        <step>
+            <description>Return to the Web Projects Control Panel and create a new UX page.</description>
+            
+        </step>
+        <step>
+            <description>In the UX Builder on the UX controls page open the 'Data Controls' menu. Click on the [TextBox] 
+                option to add a textbox control to the component. Give the control the name and label of 'firstname'
+            </description>
+            
+        </step>
+        <step>
+            <description>Add a second textbox control to the component with the name and label of 'lastname'.</description>
+            
+        </step>
+        <step>
+            <description>Add a third textbox control. Give this control the name and label 'address'.</description>
+            
+        </step>
+        <step>
+            <description>Add a forth textbox control named and labeled 'city'.</description>
+            
+        </step>
+        <step>
+            <description>Add a fifth textbox with the name and label of 'state'.</description>
+            
+        </step>
+        <step>
+            <description>Finally add a sixth textbox with the name and label 'email'.</description>
+            
+        </step>
+        <step>
+            <description>Open the 'Defined Controls' menu and click on the 'Submit-Reset' option to add 
+                submit and reset buttons to the component. 'Submit' will send any entered data to the server.
+            </description>
+            
+        </step>
+        
+        
+    </steps>
+    
+    
+    
+    
+</section>
+
+
+
+
+<section>
+    <title>Create a New Table and Bind it to the Component</title>
+    <steps>
+        <step>
+            <description>Continuing from the section above, in the UX Builder open the 'UX Data Binding' page.</description>
+            
+        </step>
+        <step>
+            <description>Click the 'Create new table(s) to match the controls on your UX component' hyperlink.</description>
+            
+        </step>
+        <step>
+            <description>Click on the 'Step 1 - Define Table Aliases and Fields' tab.
+                 Highlight the <![CDATA[<Top Level>]]> section and click the 'Add' button in the 'Properties' section and add a new table alias. 
+            </description>
+            
+        </step>
+        <step>
+            <description>In the 'Fields in Logical Section' the 'Table Alias' should now be defined but not the Field Specification. 
+                This specification defines the length and type of each field in the table. Highlight the 'firstname' variable 
+                in the 'Fields in Logical Section:' list.
+            </description>
+            
+        </step>
+        <step>
+            <description>In the Properties section on the right set the Field 'Size' to '20'. Leave the 'Field 
+                type' set to 'Character'. If the 'Table alias' was not set automatically you can use the 'Set...' 
+                button to define an alias for this variable.
+            </description>
+            
+        </step>
+        <step>
+            <description>Define the 'Size' for each of the remaining variables. Set the 'email' variable to 
+                '30'.</description>
+            
+        </step>
+        <step>
+            <description>Click on the 'Step 2. Define Table Properties' tab. In the Table Properties fill 
+                in a name for the table, like 'Completed Orders'
+            </description>
+            
+        </step>
+        <step>
+            <description>In the 'Global Table Properties' section at the bottom of the tab click the dropdown next to the 
+                'Table type' property and select 'SQL'. 
+            </description>
+            
+        </step>
+        <step>
+            <description>Click the [...] button next to the 'Connection string' property. 
+            </description>
+            
+        </step>
+        <step>
+            <description>The Connection String dialog should open. If you already a connection string to the 
+                Northwind database defined click the 'Select' button and build a connection to the 
+                'Northwind' database. Otherwise choose the 'Specify a connection string' radio button and click the 
+                'Build' button to build a connection.
+            </description>
+            
+        </step>
+        <step>
+            <description>Open 'Step 3. Create table(s)' and click the 'Create table(s)' button and then close the 
+                make table(s) dialog.
+            </description>
+            
+        </step>
+      
+        
+    </steps>
+    
+    
+</section>
+
+<section>
+    <title>Save Data Entered on the Client to the Server</title>
+    <steps>
+        <step>
+            <description>In the UX Builder open the 'Events' menu and then open 'Server-side' events page. 
+                In the 'Server-Side Events' list highlight the 'afterDialogValidate' event. 
+            </description>
+            
+        </step>
+         <step>
+            <description>Place the mouse cursor inside the 'afterDialogValidate function definition on the right.</description>
+            
+        </step>
+         <step>
+            <description>Click on the 'Action Scripting' button in the page's toolbar. 
+               
+            </description>
+            
+        </step>
+         <step>
+            <description>Click on the 'Save Submitted Data to Table(s) action. Click OK.</description>
+            
+        </step>
+         <step>
+            <description>Give then action a name, or use the default name, and click OK.</description>
+            
+        </step>
+         <step>
+            <description>In the 'Save Submitted Data to Tables dialog click the 'After submit action' 
+                dropdown in the 'Save Data' section. Select 'Redirect to another page' option.
+            </description>
+            
+        </step>
+         <step>
+            <description>Next to the 'Target page' property type the name of the A5w page that you defined 
+                in the beginning section, "ThankYou.A5w". Click OK.
+            </description>
+            <example><![CDATA[ThankYou.A5w]]></example>
+            
+        </step>
+         <step>
+            <description></description>
+            
+        </step>
+        
+        
+    </steps>
+    
+    
+    
+</section>
+
+
+
+
+
+
+<section>
+    <title>Send an E-mail Stating that the Data was Saved</title>
+     <steps>
+        <step>
+            <description></description>
+            
+        </step>
+        
+        
+    </steps>
+    
+    
+    
+</section>
+
+
 
 <section>
     <title>Using a Work Queue</title>
@@ -271,6 +535,12 @@ This property appears when the send method is 'Internal' and
     <link link="http://www.ajaxvideotutorials.com/V11Videos/DialogComponent_SendingEmail_2.swf"></link>
     <link link="http://www.ajaxvideotutorials.com/V11Videos/DialogComponent_SendingEmail_3.swf"></link>
     <link link="http://www.ajaxvideotutorials.com/V11Videos/DialogComponent_SendingEmail_4.swf"></link>
+    <link link="ux Server-side actions Save Submitted Data to Tables">Save Submitted Data to Table(s)</link>
+    <link link="ux events afterdialogvalidate">afterDialogValidate</link>
+    <link link="ux components data binding">Data Binding</link>
+    <link link="ux properties validation and error reporting">validation</link>
+    <link link=""></link>
+    <link link=""></link>
     
 </links>    
     
