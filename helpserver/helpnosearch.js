@@ -541,10 +541,7 @@ events.generateLocalToc = function(localNames) {
         }
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
-        if( isTree )
-            localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
-        else
-            localToc = "<div id=\"local-toc\">\n" + localToc;
+        localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
         return localToc;  
    }
    return "";
