@@ -1,0 +1,141 @@
+<page>
+    <shortlink>Dynamically Compute Values for Added Rows in a Repeating Section</shortlink>
+    <topic>Dynamically Compute Values for Added Rows in a Repeating Section</topic>
+    <description>Create generated expressions for new rows in a repeating section using an Ajax callback.</description>
+   
+   <sections>
+       <section>
+           <description>You can use an expression in order to generate a GUID for a field in a repeating section. 
+        This can be done by defining the expression inside a function and then calling the function using the 
+        'Default value' property on the control that contains the field in question.  
+         The expression can then be used to populate the rows associated with that control dynamically.
+          </description>
+           <figure><title>Three added rows generate the same GUID, unlike the five initially loaded rows above them.</title><link>images/dcv14.png</link></figure>
+       </section>
+        <section>
+           <description>When the server initially renders the repeating section the default value expression
+        is automatically executed and then populates each existing row in the repeating section. 
+        However, if the user clicks on the 'Add row' button at the bottom of the 
+        repeating section, to add a new row, then the generated GUID for each added row will be exactly the same. 
+        This is because the default value expression is not rendered on the server when new rows are added to a repeating section.
+        One way to resolve this problem is to define an ajax callback that fires when the user clicks the add new row button.
+        The default value for the new row can then be evaluated on the server and sent back to the client
+         to populate the new row.</description>
+           
+       </section>
+       <section>
+           <description>This process is described in [this video]. You can also follow the guide below for more detail.</description>
+           
+       </section>
+       <section>
+           <title></title>
+           <steps>
+               <step>
+                   <description>In the UX Builder on the UX Controls page open the 'Data Controls' menu. Click on 
+                       on the [TextBox] option to add a textbox control to the component. Give the textbox the 
+                       name and label 'Address'. 
+                   </description>
+                   <figure><link>images/dcv2.png</link></figure>
+               </step>
+               <step>
+                   <description>Add a second textbox control to the component with the name and label 'City'.</description>
+                    <figure><link>images/dcv3.png</link></figure>
+               </step>
+                <step>
+                   <description>Highlight the 'City' textbox control. In the properties list on the right set the 
+                       'Default value' property in the 'Field Properties' section to this:
+                   </description>
+                   <example><![CDATA[=api_uuidcreate()]]></example>
+                    <figure><link>images/dcv4.png</link></figure>
+               </step>
+               <step>
+                   <description>From the 'Data Controls' menu add a third [TextBox] control to the component with the name and label 'Country'.</description>
+                    <figure><link>images/dcv5.png</link></figure>
+               </step>
+               <step>
+                   <description>Highlight all of the textbox controls in the controls tree. Open the Containers menu 
+                       click on the [Container] option.
+                   </description>
+                    <figure><link>images/dcv6.png</link></figure>
+               </step>
+               <step>
+                   <description>From the 'Container Type' list seclect the 'RepeatingSection' option. Click OK</description>
+                    <figure><link>images/dcv7.png</link></figure>
+               </step>
+               <step>
+                   <description>From the 'Events' section on the main menu open the 'Client-side' events page. 
+                       Highlight the 'afterRptSectionRowAdd' event in the Client-Side Events list.
+                   </description>
+                    <figure><link>images/dcv8.png</link></figure>
+               </step>
+               <step>
+                   <description>Add the following definition to the afterRptSectionRowAdd event:</description>
+                   <example><![CDATA[var r = {dialog.Object}.getRepeatingSectionActiveRow(e.sectionName);
+var data = 'rowNum=' + r;
+{dialog.object}.ajaxCallback('','','xb','',data)]]></example>
+                    <figure><link>images/dcv9.png</link></figure>
+                    <note><![CDATA[Here we are getting the row number of the repeating section row that was just added 
+                        by using the getRepeatingSectionActiveRow method. We then construct a name value pair, 
+                        ("var data = 'rowNum=' + r;")that will be sent back as part of an Ajax callback. This 
+                        name value pair becomes this last parameter in the Ajax callback. The Ajax callback also 
+                        calls an Xbasic function called 'xb', that is described in the next step.]]> 
+                        
+                    </note>
+               </step>
+               <step>
+                   <description>From the main menu's 'Code' section open the 'Xbasic functions' page. 
+                       Add the following definition:
+                   </description>
+                   <example><![CDATA[function xb as c (e as p)
+	dim js as c
+	js = "{dialog.object}.setValue('Address:"+e.rowNum+"','"+js_escape(remspecial(api_uuidcreate()))+"');"
+	xb = js
+end function ]]></example>
+                    <figure><link>images/dcv10.png</link></figure>
+                     <figure><link>images/dcv11.png</link></figure>
+                     
+                     <note>This function generates the javascript to set the value on the 'Address' field. The address 
+                         will be set on the row number for each row using 'e.rowNum'. This is the row number value 
+                         that is being passed using the Ajax Callback defined in the step before this. A new GUID 
+                         is then generated for that row on the server. The 'xb = js' simply sends the javascript 
+                         contained inside this Xbasic function as the response to the Ajax callback.
+                     </note>
+               </step>
+               <step>
+                   <description>Run the component in Live Preview. The initial rows should all be dynamically populated.</description>
+                    <figure><link>images/dcv12.png</link></figure>
+               </step>
+               <step>
+                   <description>Click the 'Add row' button at the bottom of the repeating section. Now a custom 
+                       expression value should appear for all of the rows in the 'Address' column. 
+                   </description>
+                    <figure><link>images/dcv13.png</link></figure>
+               </step>
+           </steps>
+           
+           
+           
+           
+       </section>
+       
+   </sections>
+   
+   
+   <links>
+       <link link="http://www.ajaxvideotutorials.com/V11Videos/repeatingSection_DynamicallyComputedValuesWhenAddingRepeatingSectionRows.swf">this video</link>
+       
+       
+   </links>
+   
+    
+    <see>
+        <ref link="repeatingsection">RepeatingSection</ref>
+        <ref link="repeating section">Repeating Section Properties</ref>
+        <ref link="ux clientside afterRptSectionRowAdd">afterRptSectionRowAd</ref>
+    </see>
+    
+    <terms>container,repeating section</terms>
+    
+    
+    
+</page>
