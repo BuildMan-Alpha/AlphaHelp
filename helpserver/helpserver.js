@@ -5,9 +5,14 @@ var linksFileName = "/home/AlphaHelp/links.json";
 var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
+var https_credentails = null;
+if( options.https_port && options.privatekey && options.certificate  ) {
+    https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }   
+}
 var replaceAll = function (str, find, replace) {
-    while (str.indexOf(find) >= 0)
+    while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
+    }
     return str;
 };
 var removeMarkup =  function(data) {
@@ -1086,4 +1091,13 @@ app.use("/", function (req, res) {
 });
 
 app.listen(options.port);
-console.log('Listening on port ' + options.port);
+if( https_credentails ) {
+    var https = require('https');
+    var httpsServer = https.createServer(https_credentails, app);
+    httpsServer.listen(options.https_port, function() {
+        console.log('Listening on ports ' + options.port+" and "+options.https_port);
+    });
+} else {
+    console.log('Listening on port ' + options.port);
+}
+
