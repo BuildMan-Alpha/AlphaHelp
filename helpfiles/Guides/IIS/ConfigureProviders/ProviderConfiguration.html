@@ -149,6 +149,8 @@ Provider definitions can have different types of sources based on the selected p
 	<li>Oracle</li>
 	<li>Custom</li>
 </ul>
+</p>
+<p>
 The SqlServer, MySQL, and Oracle providers are version specific. The versions that are selectable are based on the installed assemblies for the 
 provider. SqlServer's version is fixed at 2.0.0.0 and is already installed as part of ASP.NET. MySQL requires a version of the 
 <span style="font-weight: bold;">MySQL Connector/NET</span> to be installed.
@@ -158,6 +160,80 @@ installed. The packages for MySQL and Oracle also need to be installed on the II
 utility for installing MySql Connector/NET 6.7.4: <span class="fixedfont">A5InstallMySqlConnector.exe</span>. This utility is located in the installation folder
 which defaults to C:\Program Files (x86)\A5V12 Application Server for IIS.
 </p>
+
+<h3>Require Client Certificates</h3>
+<p>
+A client certificate (also known as PKI authentication) is a way a user can be authenticated instead of using a login page with 
+username and password prompts. This advanced feature is available for all "Specific IIS Providers" types.
+</p>
+<p>
+A client certificate is issued by a certificate authority just like a server certificate. Where as a server certificate validates 
+the identity of a server, a client certificate validates the identity of a client e.g. user. When <span style="font-style: italic;">Require Client Certificates</span> 
+is enabled, the server will request that the client sends a client certificate with its request. The server will validate the client 
+certificate as being issued by the stated certificate authority, is within the issued start and end date, and is not revoked. 
+Once the certificate is valid the user is authenticated. The email address for that user is extracted from the certificate and that 
+email address is used to authorize the user’s access to pages.
+</p>
+
+<div class="note">
+<span style="font-weight: bold;">Note</span>: In order for a  server to validate a client certificate, a certificate for the 
+certificate authority that issued the client certificate must be installed on the server. This certificate is typically stored 
+in the server machine’s Intermediate Certificate Authorities store or the Trusted Root Certificate Authorities store.
+</div>
+
+<p>
+Developing an application to use client certificates is the same as developing an application to use a login page with username and password
+prompts. The only special consideration that needs to be made is that user names must be an email address since an email address will be
+extracted from the client certificate to identify the user in the application.
+</p>
+<p>
+An application can add a new user and assign that user to groups using Context.Security() methods in an &quot;Administrator&quot; level 
+access pages as is typically done in Alpha Anywhere applications. 
+</p>
+<h4>Using Require Client Certificates</h4>
+<div class="note">
+<span style="font-weight: bold;">Prerequisite</span>: The IIS site must already exist and have an HTTPS binding set before publishing. Refer to the follow Microsoft documents for setting an HTTPS binding:
+<ul>
+	<li><a href="https://www.iis.net/learn/manage/configuring-security/how-to-set-up-ssl-on-iis">https://www.iis.net/learn/manage/configuring-security/how-to-set-up-ssl-on-iis</a></li>
+	<li><a href="https://technet.microsoft.com/en-us/library/cc731692(v=ws.10).aspx">https://technet.microsoft.com/en-us/library/cc731692(v=ws.10).aspx</a></li>
+</ul>
+</div>
+
+<p>
+The publish profile defines whether or not a client certificate is required or not. However, a user and group assignments for that user 
+must exist in the security tables before that user can be authenticated and authorized in the application. This is the same whether the 
+user is authenticated with a username and password or with a client certificate. So the membership and role providers must first be 
+defined as would be done when using usernames and passwords.
+</p>
+
+<p>
+The option to require client certificates is located on the &quot;Advanced Settings...&quot; dialog of the Membership tab of the 
+Security Store configuration page of the new publishing profile Genie.
+</p>
+
+<p>
+<a href="images/require-client-certificates-genie.png"><img src="images/require-client-certificates-genie.png" alt="Require client certificates setting in genie."></img></a>
+</p>
+
+<p>
+The option is also available in the publish profile property sheet in the membership provider group:
+</p>
+
+<p>
+<a href="images/require-client-certificates-property-sheet.png"><img src="images/require-client-certificates-property-sheet.png" alt="Require client certificates setting in property sheet."></img></a>
+</p>
+
+<p>
+Checking this option will configure the IIS site to require client certificates and will also disable anonymous authentication. 
+When anonymous authentication is disabled no page for file can be accessed without a client client certificate.
+</p>
+
+<p>
+After the application has been published with this setting, the browser will prompt the user for a client certificate to be sent 
+to the server when a page is requested.
+</p>
+
+<h3>Role, Session State, and Profile</h3>
 <p>
 The Role, Session State, and Profile providers can all use the same provider definition as the Membership provider. They have the 
 additional option of: 
@@ -524,9 +600,13 @@ publishing Application Server Demo web application.
 	<li><p>Click OK to create the connection string.</p></li>
 	<li><p>Back on the Genie page, leave the default value of "/" in the Security application name prompt.</p></li>
 	<li>
-		<p>Click on the "Use a different connection string than the provider configuration above." This will copy the provider connection
+		<p>Click on the "Advanced Settings..." button</p>
+		<p><a href="images/create-publish-connection-string-section.png"><img src="images/create-publish-connection-string-section.png" alt="Membership provider advanced settings."></img></a></p>
+	</li>
+	<li>
+		<p>Click on the "Use a different connection string for publishing security data." This will copy the provider connection
 	string into the Create/Publish connection string prompt. Click on the smart button to bring up the Create SQL Connection String dialog.</p>
-		<p><a href="images/create-publish-connection-string-section.png"><img src="images/create-publish-connection-string-section.png" alt="Create/publish connection string section."></img></a></p>
+		<p><a href="images/advanced-settings.png"><img src="images/advanced-settings.png" alt="Create/publish connection string section."></img></a></p>
 	</li>
 	<li><p>Click on the Use Windows Authentication check-box and then OK to save the connection string. If you are not using Windows authentication
 	enter the credentials for a user with permission to create databases such as the "sa" user.</p>
