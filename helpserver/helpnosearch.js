@@ -475,9 +475,9 @@ events.addPageSourceComment = function(page,symName) {
 events.getSharableLink = function(page,symName) {
     var shareLink;
     page = page.replace(".xml_html",".xml");
-    shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
+    shareLink = "https://www.alphasoftware.com/documentation/pages"+page;
     if( symName ) {
-        shareLink = encodeURI("http://www.alphasoftware.com/documentation/index/"+symName);
+        shareLink = encodeURI("https://www.alphasoftware.com/documentation/index/"+symName);
     }
     return shareLink;
 };

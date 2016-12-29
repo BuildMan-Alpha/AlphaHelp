@@ -354,9 +354,9 @@ events.addPageSourceComment = function (page, symName) {
 events.getSharableLink = function (page, symName) {
     var shareLink;
     page = page.replace(".xml_html", ".xml");
-    shareLink = "http://www.alphasoftware.com/documentation/pages" + page;
+    shareLink = "https://www.alphasoftware.com/documentation/pages" + page;
     if (symName) {
-        shareLink = "http://www.alphasoftware.com/documentation/index/" + symName;
+        shareLink = "https://www.alphasoftware.com/documentation/index/" + symName;
     }
     return shareLink;
 };
@@ -692,7 +692,7 @@ events.loadIndex = function (callback) {
     });
 };
 events.calculateFeedback = function (title, page) {
-    return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
+    return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://www.alphasoftware.com/documentation/pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
 }
 
 events.beforePageIndex = function (fo, args) {

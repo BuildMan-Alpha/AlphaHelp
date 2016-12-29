@@ -513,9 +513,9 @@ events.addPageSourceComment = function(page,symName) {
 events.getSharableLink= function(page,symName) {
     var shareLink;
     page = page.replace(".xml_html",".xml");
-    shareLink = "http://www.alphasoftware.com/documentation/pages"+page;
+    shareLink = "https://www.alphasoftware.com/documentation/pages"+page;
     if( symName ) {
-        shareLink = encodeURI("http://www.alphasoftware.com/documentation/index?search="+symName);
+        shareLink = encodeURI("https://www.alphasoftware.com/documentation/index?search="+symName);
     }
     return shareLink;
 };
@@ -970,7 +970,7 @@ events.canFlatten = function(pageName) {
 }
 
 events.calculateFeedback = function(title,page) {
-    return "?subject=Problem with page: "+title+" ["+page+"]"+"&body=Describe problem with the %22http://www.alphasoftware.com/documentation/pages"+replaceAll(page," ","%2520").replace(".xml_html",".xml")+"%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page.replace(".xml_html",".xml"),"/","\\")+"'):";
+    return "?subject=Problem with page: "+title+" ["+page+"]"+"&body=Describe problem with the %22https://www.alphasoftware.com/documentation/pages"+replaceAll(page," ","%2520").replace(".xml_html",".xml")+"%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page.replace(".xml_html",".xml"),"/","\\")+"'):";
 }
 
 //Modify the body record posted to elastic search

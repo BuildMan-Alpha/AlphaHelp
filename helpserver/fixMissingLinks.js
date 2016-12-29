@@ -75,9 +75,9 @@ var RobustLink = function(path) {
 
 // Look for an href
 var ResolveLink = function (href, fromPath) {
-    var prefix1 = "http://www.alphasoftware.com/testdoc";
-    var prefix2 = "http://www.alphasoftware.com/documentation";
-    var prefix3 = "http://documentation.alphasoftware.com/testdoc";
+    var prefix1 = "https://www.alphasoftware.com/testdoc";
+    var prefix2 = "https://www.alphasoftware.com/documentation";
+    var prefix3 = "https://documentation.alphasoftware.com/testdoc";
     if( !href )
        return href;
     if( !href.substring )
