@@ -320,7 +320,8 @@
 					</xsl:choose>
 				</xsl:for-each>
 			</ul>
-		</xsl:if>	
+		</xsl:if>
+        <xsl:if test="attribution">  <xsl:for-each select="attribution"><xsl:call-template name="attribution"/></xsl:for-each> </xsl:if>
 	</xsl:template>
 	<xsl:template match="list" name="list" >
 		<xsl:choose>
@@ -800,6 +801,15 @@
         <xsl:otherwise>
             <pre class="codeSection"><xsl:call-template name="string-trim"><xsl:with-param name="string" select="example" /></xsl:call-template></pre></xsl:otherwise>
         </xsl:choose>
+   </xsl:template>
+
+   <xsl:template match="attribution" name="attribution" >
+        <div class="attribution">
+        <xsl:if test="title"><div class="attributionTitle"><xsl:value-of select="title" /></div> </xsl:if>     
+        <xsl:if test="author"><div class="attributionAuthor"><xsl:value-of select="author" /></div> </xsl:if>
+        <xsl:if test="source"><div class="attributionSource"><xsl:value-of select="source" /></div> </xsl:if>
+        <xsl:if test="license"><div class="attributionLicense"><xsl:value-of select="license" /></div> </xsl:if>
+        </div>
    </xsl:template>
 
 	<xsl:attribute-set name="href-link">
