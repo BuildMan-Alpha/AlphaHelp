@@ -1,15 +1,19 @@
 <page generated="true">
 	<shortlink>api extension namespace json class jwt verify method</shortlink>
 	<topic>Extension::Json JWTVerify Method</topic>
-	<prototype static="true">.JWTVerify as c (token as C, secret as C)</prototype>
+	<prototype static="true">.JWTVerify as c (token as C, secret as C[,options as c])</prototype>
 	<arguments>
 		<argument>
 			<name>token</name>
-			<description>Character</description>
+			<description>JWT Token</description>
 		</argument>
 		<argument>
 			<name>secret</name>
-			<description>Character</description>
+			<description>Secret that token was hashed againstt.</description>
+		</argument>
+		<argument>
+			<name>options</name>
+			<description>Specify a Algorithm used to hash, or pass complext options.</description>
 		</argument>
 	</arguments>
 	<description>Verify a  javascript web token, return json if valid, otherwise return an empty string.</description>
@@ -26,6 +30,31 @@ dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lnam
 ' Pass it an incorrect secret - and verify will return a blank string
 ? extension::JSON::JWTVerify(token,"boo!")
 = ""
-
 	</example>
+    <sections> 
+        <section>
+            <title>Using the optional parameter to specifiy alternate algorithms.</title>
+            <description>
+            The default behaviour is to try the various hash schemas, you can specify the exact hash schemes using a comma separated list.
+            </description>
+            <example>
+            dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!","HS512")
+? token
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczNTY1MH0.EBW04-jWCb405BUzbSuzoq19pWiAo6gLKhHfPic2WBClD6TKKqPzfttYtzTEPr45JoxTmK8oIcYKaVg5FZ4CAg"
+
+' We are using a different hash
+? extension::JSON::JWTVerify(token,"shhhh!","HS256")
+= ""
+
+' So include the hash we are using
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= {"fname":"john","lname":"public","iat":1483735650}
+
+' Comma separated list of accepted hash encoding.s
+? extension::JSON::JWTVerify(token,"shhhh!","HS256,HS512")
+= {"fname":"john","lname":"public","iat":1483735650}
+
+            </example>
+        </section>
+    </sections>	
 </page>
