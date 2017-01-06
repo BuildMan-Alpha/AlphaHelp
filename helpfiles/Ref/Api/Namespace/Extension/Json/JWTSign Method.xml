@@ -1,15 +1,21 @@
 <page generated="true">
 	<shortlink>api extension namespace json class jwt sign method</shortlink>
 	<topic>Extension::Json JWTSign Method</topic>
-	<prototype static="true">.JWTSign as c (json as C, secret as C)</prototype>
+	<prototype static="true">.JWTSign as c (json as C, secret as C[,options as c])</prototype>
 	<arguments>
 		<argument>
 			<name>json</name>
-			<description>Character</description>
+			<description>Json to sign</description>
 		</argument>
 		<argument>
 			<name>secret</name>
-			<description>Character</description>
+			<description>Secret to hash against.</description>
+		</argument>
+		<argument>
+			<name>options</name>
+			<description>
+			<p>Options to override how the hash is generated (can be alogrithm).</p>
+			</description>
 		</argument>
 	</arguments>
 	<description>Sign a javascript web token.</description>
@@ -18,4 +24,55 @@ dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lnam
 ? token
 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ3Nzc3OTA2M30.xwGMV_POhwEoj-mH1PsgscL-uqOfBMLnNsD2SsOtqXE"
 	</example>
+    <sections> 
+        <section>
+            <title>Using The Options parameter</title>
+            <description>
+            <p>The third parameter will override the default alogrithm used to sign the key.</p>
+            <p>The Options can be passed as JSON as well</p>
+			<table>
+			<tr><th>Supported Algorithm</th><th>Description</th></tr>
+			<tr><td>HS256</td><td>HMAC using SHA-256 hash algorithm</td></tr>
+            <tr><td>HS384</td><td>HMAC using SHA-384 hash algorithm</td></tr>
+            <tr><td>HS512</td><td>HMAC using SHA-512 hash algorithm</td></tr>
+            <tr><td>RS256</td><td>RSASSA using SHA-256 hash algorithm</td></tr>
+            <tr><td>RS384</td><td>RSASSA using SHA-384 hash algorithm</td></tr>
+            <tr><td>RS512</td><td>RSASSA using SHA-512 hash algorithm</td></tr>
+            <tr><td>ES256</td><td>ECDSA using P-256 curve and SHA-256 hash algorithm</td></tr>
+            <tr><td>ES384</td><td>ECDSA using P-384 curve and SHA-384 hash algorithm</td></tr>
+            <tr><td>ES512</td><td>ECDSA using P-521 curve and SHA-512 hash algorithm</td></tr>
+			</table>
+            </description>
+        </section>
+        <section>
+            <title>Example using options to use RSA hash</title>
+            <description>
+            <p>In this example, we generate the hash for using RS512 instead of the default HS256.</p>
+            </description>
+            <example>
+<![CDATA[            
+' declare a string (or read from a key file using file.to_string())
+dim privateKey as c = <<%str%
+-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUp
+wmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ5
+1s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQABAoGAFijko56+qGyN8M0RVyaRAXz++xTqHBLh
+3tx4VgMtrQ+WEgCjhoTwo23KMBAuJGSYnRmoBZM3lMfTKevIkAidPExvYCdm5dYq3XToLkkLv5L2
+pIIVOFMDG+KESnAFV7l2c+cnzRMW0+b6f8mR1CJzZuxVLL6Q02fvLi55/mbSYxECQQDeAw6fiIQX
+GukBI4eMZZt4nscy2o12KyYner3VpoeE+Np2q+Z3pvAMd/aNzQ/W9WaI+NRfcxUJrmfPwIGm63il
+AkEAxCL5HQb2bQr4ByorcMWm/hEP2MZzROV73yF41hPsRC9m66KrheO9HPTJuo3/9s5p+sqGxOlF
+L0NDt4SkosjgGwJAFklyR1uZ/wPJjj611cdBcztlPdqoxssQGnh85BzCj/u3WqBpE2vjvyyvyI5k
+X6zk7S0ljKtt2jny2+00VsBerQJBAJGC1Mg5Oydo5NwD6BiROrPxGo2bpTbu/fhrT8ebHkTz2epl
+U9VQQSQzY1oZMVX8i1m5WUTLPz2yLJIBQVdXqhMCQBGoiuSoSjafUhV7i1cEGpb88h5NBYZzWXGZ
+37sJ5QsW+sJyoNde3xH8vdXhzU7eT82D6X/scw9RZz+/6rCJ4p0=
+-----END RSA PRIVATE KEY-----
+%str%
+dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),privateKey,"RS512")
+? token
+= "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczNjI4MH0.FbVyXf2k_Q779lWSNQKe6hCM2zNI9k6319jyb0IhrAS2yUI7pRyIHqQ_6Jd9rddOa5xHftKFncXBqp1DsIyw-wqWx8DNeB1jqCQp7BGMxPSUT7RZYIwhwzBcc_mP3wc09hVOtKz1TYk7gnsBuR5Ij3v_H288misTGeN4MEcboU8"
+]]>
+            </example>
+        </section>
+    </sections>
+	
 </page>
