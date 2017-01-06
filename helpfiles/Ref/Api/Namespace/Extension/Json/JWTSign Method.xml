@@ -100,8 +100,68 @@ dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lnam
 ' The token is no longer any good!
 ? extension::JSON::JWTVerify(token,"shhhh!","HS512")
 = ""       
-        </example>        
+        </example>
         </section>
+        <section>
+        <description>
+        <p>In a similiar example - we can create a token that isn't valid untill a specified time has passed.</p>
+        </description>
+        <example>
+dim options.algorithm as c = "HS512"
+dim options.notbefore as n = 30
+dim optionsjson as c  = json_generate(options)
+? optionsjson
+= {
+	"algorithm": "HS512",
+	"notbefore": 30
+}
+dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!",optionsjson)
+? token
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczODM1NywibmJmIjoxNDgzNzM4Mzg3fQ.nEZHZR_NtudTf6mn0P4OoFT4QtRLzSwBEJIMBmDLeXU98rM_fH0Tik5gWsw7wDOkiuytQ35hKi9RX-OJneHfEQ"
+
+' Not yet
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= ""
+
+' Wait for 30 seconds
+' Ok - now the token is valid!
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= {"fname":"john","lname":"public","iat":1483738357,"nbf":1483738387}
+        </example>
+        </section>       
+        <section>
+        <description>
+        <p>You can specify both expiresin and notbefore for a token that will be valid only from 30 seconds after it was issued to 60 seconds after it was issued.</p>
+        </description>
+        <example>        
+dim options.algorithm as c = "HS512"
+dim options.expiresin as n = 60
+dim options.notbefore as n = 30
+dim optionsjson as c  = json_generate(options)
+? optionsjson
+= {
+	"algorithm": "HS512",
+	"notbefore": 30,
+	"expiresin": 60
+}
+
+dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!",optionsjson)
+? token
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczOTI0NSwibmJmIjoxNDgzNzM5Mjc1LCJleHAiOjE0ODM3MzkzMDV9.1HWFTyzF4KUXhBcLACroca1-1rowKiVL9XZJAweMJon6sOJaHA3mXGU0oHtXTycZylbSV1TvS5F8nNJjSCOeXw"
+
+' Not ready yet
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= ""
+
+' Wait for 30 seconds
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= {"fname":"john","lname":"public","iat":1483739245,"nbf":1483739275,"exp":1483739305}
+
+' Wait another 30 seconds for a grand totla of 60 seconds
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= ""
+        </example>        
+        </section>        
         <section>
         <title>Options that can be specified</title>
         <description>
