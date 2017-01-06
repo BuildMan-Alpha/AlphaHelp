@@ -31,16 +31,16 @@ dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lnam
             <p>The third parameter will override the default alogrithm used to sign the key.</p>
             <p>The Options can be passed as JSON as well</p>
 			<table>
-			<tr><th>Supported Algorithm</th><th>Description</th></tr>
-			<tr><td>HS256</td><td>HMAC using SHA-256 hash algorithm</td></tr>
-            <tr><td>HS384</td><td>HMAC using SHA-384 hash algorithm</td></tr>
-            <tr><td>HS512</td><td>HMAC using SHA-512 hash algorithm</td></tr>
-            <tr><td>RS256</td><td>RSASSA using SHA-256 hash algorithm</td></tr>
-            <tr><td>RS384</td><td>RSASSA using SHA-384 hash algorithm</td></tr>
-            <tr><td>RS512</td><td>RSASSA using SHA-512 hash algorithm</td></tr>
-            <tr><td>ES256</td><td>ECDSA using P-256 curve and SHA-256 hash algorithm</td></tr>
-            <tr><td>ES384</td><td>ECDSA using P-384 curve and SHA-384 hash algorithm</td></tr>
-            <tr><td>ES512</td><td>ECDSA using P-521 curve and SHA-512 hash algorithm</td></tr>
+				<tr><th>Supported Algorithm</th><th>Description</th></tr>
+				<tr><td>HS256</td><td>HMAC using SHA-256 hash algorithm</td></tr>
+	            <tr><td>HS384</td><td>HMAC using SHA-384 hash algorithm</td></tr>
+	            <tr><td>HS512</td><td>HMAC using SHA-512 hash algorithm</td></tr>
+	            <tr><td>RS256</td><td>RSASSA using SHA-256 hash algorithm</td></tr>
+	            <tr><td>RS384</td><td>RSASSA using SHA-384 hash algorithm</td></tr>
+	            <tr><td>RS512</td><td>RSASSA using SHA-512 hash algorithm</td></tr>
+	            <tr><td>ES256</td><td>ECDSA using P-256 curve and SHA-256 hash algorithm</td></tr>
+	            <tr><td>ES384</td><td>ECDSA using P-384 curve and SHA-384 hash algorithm</td></tr>
+	            <tr><td>ES512</td><td>ECDSA using P-521 curve and SHA-512 hash algorithm</td></tr>
 			</table>
             </description>
         </section>
@@ -72,6 +72,52 @@ dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lnam
 = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczNjI4MH0.FbVyXf2k_Q779lWSNQKe6hCM2zNI9k6319jyb0IhrAS2yUI7pRyIHqQ_6Jd9rddOa5xHftKFncXBqp1DsIyw-wqWx8DNeB1jqCQp7BGMxPSUT7RZYIwhwzBcc_mP3wc09hVOtKz1TYk7gnsBuR5Ij3v_H288misTGeN4MEcboU8"
 ]]>
             </example>
+        </section>
+        <section>
+        <title>More Complex Options</title>
+        <description>
+        <p>If you need to do more that override the algorithm, options can hold settings stored as Json.</p>
+        <p>In the following example, we will create a token that expires in 30 seconds.</p>
+        </description>
+        <example>
+dim options.algorithm as c = "HS512"
+dim options.expiresin as n = 30
+dim optionsjson as c  = json_generate(options)
+? optionsjson
+= {
+	"algorithm": "HS512",
+	"expiresin": 30
+}
+dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!",optionsjson)
+? token
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczNzcyMCwiZXhwIjoxNDgzNzM3NzUwfQ.1mhtUd6nYuYK1H3gviJHeg_5GWBZX1gFvD_2Fc_s0BueUFSc_WjRk5YqxZy9Wbg19uLmKPJqsJmQWt2xfx10Sg"
+
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= {"fname":"john","lname":"public","iat":1483737720,"exp":1483737750}
+
+' Wait for 30 seconds
+
+' The token is no longer any good!
+? extension::JSON::JWTVerify(token,"shhhh!","HS512")
+= ""       
+        </example>        
+        </section>
+        <section>
+        <title>Options that can be specified</title>
+        <description>
+        <table>
+        	<tr><th>Field</th><th>Description</th></tr>
+			<tr><td>algorithm</td><td>Specifies which algorithm to use when hashing , if ommitted, HS256 will be used.</td></tr>
+			<tr><td>expiresin</td><td>Either a numeric - if expressed in seconds, or a string, if including scalar #(d-day,h-hour) - i.e. 8h is 8 hours, 2d is 2 days.</td></tr>
+			<tr><td>notbefore</td><td>numeric of string (like expire) will control delayed access to a token (will be available in a day).</td></tr>
+			<tr><td>audience</td><td>Identifies the recipients that the JWT is intended for.</td></tr>
+			<tr><td>issuer</td><td>Identifies principal that issued the JWT.</td></tr>
+			<tr><td>jwtid</td><td>Globally unique identifier of the token (if token is used between multiple issuers).</td></tr>
+			<tr><td>subject</td><td>Identifies the subject of the JWT.</td></tr>
+			<tr><td>notimestamp</td><td>Omit the 'iat' field from the packet.</td></tr>
+			<tr><td>header</td><td>Custom fields.</td></tr>
+        </table>
+        </description>
         </section>
     </sections>
 	
