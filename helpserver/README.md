@@ -37,6 +37,42 @@ can be fixed up by running this code:
 ```
 node repopulateLinks.js
 ```
+A robust link can contain the following characters:
+* Letters
+* Numbers
+* Spaces
+* Underscores
+
+### Finding Bad or Missing Robust Links
+
+
+If a robust link contains invalid characters, it will not be included in the links.json file when
+repopulateLinks.js is run.
+
+Use the listBannedTopicPages.js tool to find pages that violate the robust link criteria. 
+You can also use this tool to list every page that is missing a robust link.
+
+The following example lists every page with a robust link that has invalid characters in it:
+
+```
+node listBannedTopicPages.js
+```
+
+This example will list every page that has a robust link that contains either an "@" or "[" symbol:
+
+```
+node listBannedTopicPages.js -filter=@[
+```
+
+This example will list every page that doesn't have a robust link:
+```
+node listBannedTopicPages.js -logMissing
+```
+
+For more information, use the "-help" flag:
+```
+node listBannedTopicPages.js -help
+```
 
 ## Maintaining functionList.json
 
