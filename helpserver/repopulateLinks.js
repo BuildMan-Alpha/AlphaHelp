@@ -34,7 +34,7 @@ var removeCDATA = function (str) {
 
 var containsNoSpecialChar = function (str) {
     // The following characters are banned from shortlinks
-    return str.match(/[\+%&()<>?$]/g) === null;
+    return str.match(/[\+%&()<>?$*]/g) === null;
 }
 
 async.eachSeries(list, function (fo, callbackLoop) {
