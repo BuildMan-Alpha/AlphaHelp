@@ -24,6 +24,19 @@ var extractTag = function (page, startTag, endTag) {
     }
     return "";
 };
+
+var removeCDATA = function (str) {
+    if (str.substring(0, 9) === "<![CDATA[") {
+        str = str.substring(9).split("]]>")[0].trim();
+    }
+    return str;    
+}
+
+var containsNoSpecialChar = function (str) {
+    // The following characters are banned from shortlinks
+    return str.match(/[\+%&()<>?$]/g) === null;
+}
+
 async.eachSeries(list, function (fo, callbackLoop) {
     fo.file = fo.file.replace("/home/AlphaHelp/", "/dev/AlphaHelp/");
     if (fo.file.toLowerCase().indexOf('.xml') > 0 || fo.file.toLowerCase().indexOf('.html') > 0) {
@@ -31,14 +44,14 @@ async.eachSeries(list, function (fo, callbackLoop) {
             if (!err) {
                 var topic = null;
                 if (fo.file.toLowerCase().indexOf('.xml') > 0) {
-                    topic = extractTag(page, "<shortlink>", "</shortlink>").trim();
+                    topic = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim());
                     if (topic.length === 0) {
-                        topic = extractTag(page, "<topic>", "</topic>").trim();
+                        topic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
                     } else {
-                        var secondarytopic = extractTag(page, "<topic>", "</topic>").trim();
+                        var secondarytopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
                         if (secondarytopic.length !== 0) {
                             secondarytopic = secondarytopic.toLowerCase();
-                            if (secondarytopic !== topic.toLowerCase()) {
+                            if (secondarytopic !== topic.toLowerCase() && containsNoSpecialChar(secondarytopic)) {
                                 if (!secondaryLinks[secondarytopic]) {
                                     secondaryLinks[secondarytopic] = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
                                 }
@@ -69,37 +82,34 @@ async.eachSeries(list, function (fo, callbackLoop) {
                         }
                     }
                 }
-                if (topic.length > 0) {
-                    if (topic.substring(0, 9) === "<![CDATA[") {
-                        topic = topic.substring(9).split("]]>")[0].trim();
-                    }
-                    topic = topic.split("+").join("plus");
-                    var hasKey = usedNames[topic.toLowerCase()];
-                    var pathName = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
-                    if (hasKey) {
-                        if (hasKey !== pathName) {
+                var pathName = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
+                if (topic.length > 0 && containsNoSpecialChar(topic)) {
+                    topic = removeCDATA(topic);
+                    var usedName = usedNames[topic.toLowerCase()];
+                    if (usedName) {
+                        if (usedName !== pathName) {
                             var replacePage = false;
-                            if (hasKey.substring(0, 7) === "/pages/") {
+                            if (usedName.substring(0, 7) === "/pages/") {
                                 replacePage = true;
-                                hasKey = hasKey.substring(6).toLowerCase();
+                                usedName = usedName.substring(6).toLowerCase();
                                 for (var i = 0; i < list.length; ++i) {
-                                    if (list[i].file.toLowerCase().indexOf(hasKey) >= 0) {
+                                    if (list[i].file.toLowerCase().indexOf(usedName) >= 0) {
                                         replacePage = false;
                                         break;
                                     }
                                 }
                             }
-                            if (replacePage) {
-                                console.log("Replace stale link " + hasKey + " with " + pathName);
-                                usedNames[topic.toLowerCase()] = pathName;
-                                links[topic] = pathName;
-                            } else {
-                                console.log("Duplicate symbol " + topic + " path " + pathName + " old key = " + hasKey);
-                            }
+                            console.log("Duplicate symbol " + topic + " path " + pathName + " old key = " + usedName);
                         }
                     } else {
                         usedNames[topic.toLowerCase()] = pathName;
                         links[topic] = pathName;
+                    }
+                } else {
+                    if (topic.length === 0) {
+                        console.log("No topic for " + pathName);
+                    } else if (containsNoSpecialChar(topic) === false) {
+                        console.log("Topic for " + pathName + " contains banned symbols: " + topic);
                     }
                 }
             }
