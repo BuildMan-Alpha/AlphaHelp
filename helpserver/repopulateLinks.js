@@ -34,7 +34,7 @@ var removeCDATA = function (str) {
 
 var containsNoSpecialChar = function (str) {
     // The following characters are banned from shortlinks
-    return str.match(/[\+%&()]/g) === null;
+    return str.match(/[\+%&()<>?$]/g) === null;
 }
 
 async.eachSeries(list, function (fo, callbackLoop) {
@@ -45,7 +45,7 @@ async.eachSeries(list, function (fo, callbackLoop) {
                 var topic = null;
                 if (fo.file.toLowerCase().indexOf('.xml') > 0) {
                     topic = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim());
-                    if (topic.length === 0 ) {
+                    if (topic.length === 0) {
                         topic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
                     } else {
                         var secondarytopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
