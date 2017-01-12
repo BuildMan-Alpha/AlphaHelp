@@ -167,7 +167,8 @@ var generateXMLHelp = function (content) {
     var lines = content.split('\n');
     var i;
     var context = lastContext;
-    var method = null;
+	var methods = [];
+	var temp = null;
     var lastType = null;
     var description = null;
     var discussion = null;
@@ -177,6 +178,7 @@ var generateXMLHelp = function (content) {
     var deprecated = null;
     var obsolete = null;
     var returns = null;
+	var seeAlso = null;
     var endTag = null;
     var properties = [];
     var arguments = [];
@@ -266,14 +268,17 @@ var generateXMLHelp = function (content) {
                             }
                         }
                     }
-                } else if (type === "method") {
-                    method = line.substring(splitPos + 1).trim();
-                } else if (type === "function" || type === "funct" || type === "func" || type === "fun") {
-                    isFunction = true;
-                    method = line.substring(splitPos + 1).trim();
-                } else if (type === "constructor" || type === "cons") {
-                    isConstructor = true;
-                    method = line.substring(splitPos + 1).trim();
+                } else if (type === "method" || type === "function" || type === "funct" || type === "func" || type === "fun" || type === "constructor" || type === "cons") {
+					temp = line.substring(splitPos + 1).trim();
+					temp = temp.split('|');
+					if(temp.length > 1) {
+						methods.push(temp[0]);
+						for(var i=1;i<temp.length;i++){
+							methods.push(temp[0].split('(')[0]+temp[i]);
+						}
+					} else methods.push(temp[0]);
+					if(type === "function" || type === "funct" || type === "func" || type === "fun") isFunction = true;
+					else if (type === "constructor" || type === "cons") isConstructor = true;
                 } else if (type === "description" || type === "desc") {
                     description = line.substring(splitPos + 1);
                 } else if (type === "discussion" || type === "disc") {
@@ -288,6 +293,8 @@ var generateXMLHelp = function (content) {
                     obsolete = line.substring(splitPos + 1);                   
                 } else if (type === "returns") {
                     returns = line.substring(splitPos + 1);
+				} else if (type === "seealso" || type === "see") {
+                    seeAlso = line.substring(splitPos + 1);
                 } else if (type === "arguments" || type === "args") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length === 0) {
@@ -328,6 +335,8 @@ var generateXMLHelp = function (content) {
                 obsolete += "\r\n" + line;                
             } else if (lastType === "returns") {
                 returns += "\r\n" + line;
+			} else if (lastType === "seealso" || lastType === "see") {
+                seeAlso += "\r\n" + line;
             } else if (lastType === "example") {
                 examples += "\r\n" + line;
             } else if (lastType === "arguments"
@@ -407,7 +416,7 @@ var generateXMLHelp = function (content) {
         }
         lastIndentLevel = indentLevel;
     }
-    var pagename = method;
+    var pagename = methods[0] || false;
     if (pagename) {
         var methodArgsPos = pagename.indexOf('(');
         if (methodArgsPos > 0) {
@@ -422,7 +431,7 @@ var generateXMLHelp = function (content) {
             pagename += " Method";
         }
     } 
-    var xml = "<page>\r\n";
+    var xml = "<page api=\"js\">\r\n";
 
     if (pagename) {
         var map = build.context[context];
@@ -449,8 +458,12 @@ var generateXMLHelp = function (content) {
         }        
     }
 
-    if (method) {
-        xml += "\t<prototype>" + protectXml(method) + "</prototype>\r\n";
+    if (methods.length == 1) {
+        xml += "\t<prototype>" + protectXml(methods[0]) + "</prototype>\r\n";
+    } else if (methods.length > 1) {
+        xml += "\t<prototypes>\r\n";
+		for(var i=0;i<methods.length;i++) xml += "\t\t<prototype>"+protectXml(methods[i]) + "</prototype>\r\n";
+		xml += "</prototypes>\r\n";
     }
     if (arguments.length > 0) {
         xml += "\t<arguments>\r\n";
@@ -483,7 +496,7 @@ var generateXMLHelp = function (content) {
     }
     xml += RecursProperties(properties,"\t");
     if (examples) {
-        xml += "\t<example>" + protectXml(examples) + "</example>\r\n";
+        xml += "\t<example code=\"js\">" + protectXml(examples) + "</example>\r\n";
     }
     if( note ) {
         xml += "\t<note>" + protectXml(note) + "</note>\r\n";        
@@ -496,7 +509,15 @@ var generateXMLHelp = function (content) {
     }
     if( obsolete ) {
         xml += "\t<obsolete>" + protectXml(obsolete) + "</obsolete>\r\n";        
-    }   
+    }
+	if( seeAlso ) {
+		seeAlso = seeAlso.trim().replace(/\n/g,',').split(',');
+        xml += "\t<see>\r\n";
+		for(var i=0;i<seeAlso.length;i++) xml += "\t\t<ref>"+protectXml(seeAlso[i].trim()) + "</ref>\r\n";
+		xml += "</see>\r\n";      
+    }
+	
+	
     if (isConstructor) {
         pagename = "index";
         xml += "\t<!--list:.-->\r\n";
@@ -561,7 +582,7 @@ var extractJsHelp = function () {
                                 var map = build.context[ctx.files[j].topContext];
                                 if (map) {
                                     if (map.description) {
-                                        var topxml = "<page>\r\n";
+                                        var topxml = "<page api=\"js\">\r\n";
                                         topxml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
                                         topxml += "\t<description>" + protectXml( map.description ) + "</description>\r\n";
                                         topxml += "\t<!--list:.-->\r\n";
