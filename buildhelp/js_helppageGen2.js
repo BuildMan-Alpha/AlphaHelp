@@ -163,6 +163,52 @@ var RecursProperties = function(properties,indented) {
     return xml;
 };
 
+var buildContext = function (content) {
+	var lines = content.split('\n');
+	var line = null;
+	var type = null;
+	var context = lastContext;
+	for(i=0;i<lines.length;++i){
+		line = lines[i].trim().toLowerCase();
+		if(line.indexOf('class:') == 0 || line.indexOf('namespace:') == 0 || line.indexOf('object:') == 0) {
+			context = lines[i].substr(lines[i].indexOf(':')+1).trim();
+			type = line.split(':')[0].trim();
+			if(line.indexOf('object:') != 0){
+				lastContext = context;
+			} else if( context.indexOf('.') < 0) {
+				// Object does not have a fully qualified name
+				context = lastContext + '.' + context;
+			}
+			
+			if (!build.context[context]) {
+				console.log(context)
+				var allParts = context.split('.');
+				if (allParts.length > 1) {
+					var parentContext = build.context[allParts[0]];
+					if (parentContext) {
+						var tContext = allParts.shift();
+						var tParentContext = null;
+						for(var j=0;j<allParts.length-1;j++){
+							tParentContext = build.context[tContext+'.'+allParts[j]];
+							if(tParentContext){
+								allParts[j] += '_'+tParentContext.type;
+							} else{
+								allParts[j] += '_class';
+							}
+						}
+						build.context[context] = { path: parentContext.path + '/' + allParts.join('/')+'_'+type, classname: context, type: type };
+						console.log("Added context: " + context+" - path: "+allParts);
+					} else {
+						console.log("Could not find parent: "+allParts[0]);
+					}
+				}
+			}
+		} else if(line.indexOf('context:') == 0){
+			lastContext = lines[i].substr(lines[i].indexOf(':')+1).trim();
+		}
+	}
+}
+
 var generateXMLHelp = function (content) {
     var lines = content.split('\n');
     var i;
@@ -226,7 +272,6 @@ var generateXMLHelp = function (content) {
                 typePos += saveString.length;
                 line = saveString+line;
             }
-            
             var type = null;
             if (splitPos > 0) {
                 if (dashPos < 0 || splitPos < dashPos) {
@@ -235,46 +280,37 @@ var generateXMLHelp = function (content) {
                     }
                 }
             }
+			
             if (type) {
                 if (type === "context") {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
                 } else if (type === "namespace" || type === "class" || type === "object" ) {
-                    if( type === "class" ) {
-                        contextType = " Class";
-                        console.log("found a class "+context);
-
-                    } else if( type === "object" ) {
-                        contextType = " Object";
-                    }
-                    else    
-                        contextType = " Namespace";
                     context = line.substring(splitPos + 1).trim();
                     if( context.indexOf('.') < 0 && type === "object" && topContext ) {
                         // Object does not have a fully qualified name
                         titleContext = context;
                         context = topContext + '.' + context;
                     }
-                    if (!build.context[context]) {
-                        var allParts = context.split('.');
-                        if (allParts.length > 1) {
-                            var parentContext = build.context[allParts[0]];
-                            if (parentContext) {
-                                allParts.splice(0, 1);
-                                build.context[context] = { path: parentContext.path + '/' + allParts.join('/'), classname: context };
-                                console.log("Added context " + context);
-                            } else {
-                                console.log("Could not find parent "+allParts[0]);
-                            }
-                        }
-                    }
+					
+					if( type === "class" ) {
+                        contextType = " Class";
+                        console.log("Found a class: "+context);
+                    } else if( type === "object" ) {
+                        contextType = " Object";
+						console.log("Found an object: "+context);
+                    } else{
+                        contextType = " Namespace";
+						console.log("Found a namespace: "+context);
+					}
+					
                 } else if (type === "method" || type === "function" || type === "funct" || type === "func" || type === "fun" || type === "constructor" || type === "cons") {
 					temp = line.substring(splitPos + 1).trim();
 					temp = temp.split('|');
 					if(temp.length > 1) {
 						methods.push(temp[0]);
-						for(var i=1;i<temp.length;i++){
-							methods.push(temp[0].split('(')[0]+temp[i]);
+						for(var j=1;j<temp.length;j++){
+							methods.push(temp[0].split('(')[0]+temp[j]);
 						}
 					} else methods.push(temp[0]);
 					if(type === "function" || type === "funct" || type === "func" || type === "fun") isFunction = true;
@@ -431,10 +467,12 @@ var generateXMLHelp = function (content) {
             pagename += " Method";
         }
     } 
-    var xml = "<page api=\"js\">\r\n";
-
+    var xml = "<page api=\"js\" generated=\"true\">\r\n";
+	
     if (pagename) {
-        var map = build.context[context];
+		xml += "\t<shortlink>" + protectXml("api client api "+pagename.replace(/\./g," ").toLowerCase()) + "</shortlink>\r\n";
+		
+		var map = build.context[context];
         if (isConstructor) {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         } else if (map && map.classname) {
@@ -450,8 +488,9 @@ var generateXMLHelp = function (content) {
             xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
         }
     } else if( contextType.length > 0 ) {
+		xml += "\t<shortlink>" + protectXml("api client api "+(context+contextType).replace(/\./g," ").toLowerCase()) + "</shortlink>\r\n";
         if( titleContext ) {
-            xml += "\t<topic>" + protectXml(titleContext+contextType)+ "</topic>\r\n";
+			xml += "\t<topic>" + protectXml(titleContext+contextType)+ "</topic>\r\n";
             titleContext = null;                        
         } else {
             xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
@@ -528,7 +567,8 @@ var generateXMLHelp = function (content) {
             var contextI;        
             for( contextI in build.context ) {
                 if( contextI.length > context.length+1 ) {
-                    if( contextI.substring(0,context.length+1).toLowerCase() === (context.toLowerCase()+".") ) {
+                    //if( contextI.substring(0,context.length+1).toLowerCase() === (context.toLowerCase()+".") ) {
+                    if( contextI.indexOf(context+".") == 0 ) {
                         hasNonMethodChildren = true;
                         break;
                     }
@@ -540,12 +580,13 @@ var generateXMLHelp = function (content) {
             xml += "\t<!--list:* Method-->\r\n";
             xml += "\t<!--list:*index.xml-->\r\n";
         } else {
-			console.log("No children: "+context+" type: "+type);
+			console.log("No children: "+context);
             xml += "\t<!--list:.-->\r\n";
         }
     }
     xml += "</page>\r\n";
     lastContext = context;
+	pagename = pagename.split(".").pop();
     return { context: context.trim(), pagename: pagename, xml: xml, topContext: topContext };
 };
 
@@ -561,6 +602,18 @@ var extractJsHelp = function () {
                 var fileOps = [];
                 var contexts = {};
                 lastContext = null;
+				
+				console.log("---------- "+path.split("/").pop()+" ----------");
+				for (i = 0; i < syntax.comments.length; ++i) {
+                    if (syntax.comments[i].type === "Block") {
+                        var content = syntax.comments[i].value.trim();
+                        if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
+                            content = content.substring(5, content.length - 1).trim();
+                            buildContext(content);
+                        }
+                    }
+                }
+				console.log("");
                 for (i = 0; i < syntax.comments.length; ++i) {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
@@ -573,6 +626,8 @@ var extractJsHelp = function () {
                         }
                     }
                 }
+				console.log("\n");
+				
                 var ctxName;
                 for (ctxName in contexts) {
                     var ctx = contexts[ctxName];
@@ -583,7 +638,7 @@ var extractJsHelp = function () {
                                 var map = build.context[ctx.files[j].topContext];
                                 if (map) {
                                     if (map.description) {
-                                        var topxml = "<page api=\"js\">\r\n";
+                                        var topxml = "<page api=\"js\" generated=\"true\">\r\n";
                                         topxml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
                                         topxml += "\t<description>" + protectXml( map.description ) + "</description>\r\n";
                                         topxml += "\t<!--list:.-->\r\n";
