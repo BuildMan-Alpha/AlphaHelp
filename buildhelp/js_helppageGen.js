@@ -191,7 +191,7 @@ var generateXMLHelp = function (content) {
     var lastIndentLevel = 0;
     var nestingProps = [];
     var titleContext = null;
-
+	
     for (i = 0; i < lines.length; ++i) {
         var indentLevel = indentLevelCalc(lines[i]);
         var line = lines[i].trim();
@@ -540,6 +540,7 @@ var generateXMLHelp = function (content) {
             xml += "\t<!--list:* Method-->\r\n";
             xml += "\t<!--list:*index.xml-->\r\n";
         } else {
+			console.log("No children: "+context+" type: "+type);
             xml += "\t<!--list:.-->\r\n";
         }
     }

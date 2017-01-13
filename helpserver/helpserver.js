@@ -488,15 +488,29 @@ events.extractDescription = function(page) {
         }
     }
     return null;
-}
+};
 events.decorateTitle = function(title) {
    if( title.indexOf('Api') >= 0 ) {
-       if( title == 'Api' ) {
-           title = "Server API";
-       } else if( title == "Client_Api" ) {
+       if( title === 'Api' ) {
+           title = "API";
+       } else if( title === "Client_Api" ) {
            title = "Client API";
-       } else if( title == "Desktop_Api" ) {
+       } else if( title === "Desktop_Api" ) {
            title = "Desktop API";
+       }
+   } else if( title.indexOf(".") < 0 ) {
+       if( title.indexOf('_class') > 0 ) {
+           if( title.substring(title.length-6) === "_class" ) {
+               title = title.replace('_class','');
+           }
+       } else if( title.indexOf('_namespace') > 0 ) {
+           if( title.substring(title.length-10) === "_namespace" ) {
+               title = title.replace('_namespace','');
+           }
+       } else if( title.indexOf('_object') > 0 ) {
+           if( title.substring(title.length-7) === "_object" ) {
+               title = title.replace('_object','');
+           }
        }
    }
    return title;  

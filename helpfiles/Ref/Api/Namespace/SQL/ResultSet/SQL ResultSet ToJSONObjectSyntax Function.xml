@@ -1,88 +1,86 @@
 <page api="xb">
     <shortlink>api sql namespace result set object to json object syntax function</shortlink>
-   <topic>SQL::ResultSet::ToJSONObjectSyntax Function</topic>
-   <description>Convert a ResultSet to JSON object syntax.</description>  
-   
-   <syntax>C ToJSONObjectSyntax([ RowsToCopy = -1 as N [, StartRow = -1 as N [, UpperCaseNames = .f. as L [, ConvertToText = .t. as L [, DateTimeFormat =  as C [, DateFormat =  as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]]])</syntax>
-   <arguments>
-     <argument>
-         <name> RowsToCopy</name>
-         <description>(optional) number of rows to use</description>
-     </argument>
-     <argument>
-         <name> StartRow</name>
-         <description>(optional) first row to use</description>
-     </argument>
-     <argument>
-         <name> UpperCaseNames</name>
-         <description>(optional) Uppercase names if .T.</description>
-     </argument>
-     <argument>
-         <name> ConvertToText</name>
-         <description>(optional) If .T. (default) single-quote numeric and logical values</description>
-     </argument>
-     <argument>
-         <name> DateTimeFormat</name>
-         <description>(optional) Format string for dateTime values, as used by the time Function, e.g. "yyyy-MM-dd"</description>
-     </argument>
-     <argument>
-         <name> DateFormat</name>
-         <description>(optional) Format string for date values, as used by the time Function</description>
-     </argument>
-     <argument>
-         <name> ReferenceColumns</name>
-         <description>SQL::TableInfo</description>
-     </argument>
-     <argument>
-         <name> UserContext</name>
-         <description>Pointer</description>
-     </argument>
-   </arguments>
- 
-   <discussion>
-Takes an AlphaDAO resultset and converts the data to a JSON object. More efficient than the rsToJSON Function.
-   </discussion>
-   <sections>
-       <section>
-           <note>To be consistent with the official JSON syntax, values in the generated JSON are double quoted.</note>
-       </section>
-       <section>
-           <title>Example</title>
-       
-   <example><![CDATA[
+    <topic>SQL::ResultSet::ToJSONObjectSyntax Function</topic>
+    <description>Convert a ResultSet to JSON object syntax.</description>
+    <syntax>C ToJSONObjectSyntax([ RowsToCopy = -1 as N [, StartRow = -1 as N [, UpperCaseNames = .f. as L [, ConvertToText = .t. as L [, DateTimeFormat =  as C [, DateFormat =  as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]]])</syntax>
+    <arguments>
+        <argument optional="true">
+            <type>N</type>
+            <name> RowsToCopy</name>
+            <description>number of rows to use</description>
+        </argument>
+        <argument optional="true">
+            <type>N</type>
+            <name> StartRow</name>
+            <description>first row to use</description>
+        </argument>
+        <argument optional="true">
+            <type>L</type>
+            <name> UpperCaseNames</name>
+            <description>Uppercase names if .T.</description>
+        </argument>
+        <argument optional="true">
+            <type>L</type>
+            <name> ConvertToText</name>
+            <description>If .T. (default) single-quote numeric and logical values</description>
+        </argument>
+        <argument optional="true">
+            <type>C</type>
+            <name> DateTimeFormat</name>
+            <description>Format string for dateTime values, as used by the time Function, e.g. "yyyy-MM-dd"</description>
+        </argument>
+        <argument optional="true">
+            <type>C</type>
+            <name>DateFormat</name>
+            <description>Format string for date values, as used by the time Function</description>
+        </argument>
+        <argument optional="true">
+            <type>SQL::TableInfo</type>
+            <name>ReferenceColumns</name>
+            <description>When data is formatted for a column in the result set: (1) if ReferenceColumns has a column with a matching name, that object will be used to format the data; (2) otherwise the ColumnInfo property of the result set is used to format the data.</description>
+        </argument>
+        <argument optional="true">
+            <type>P</type>
+            <name>UserContext</name>
+            <description>The user context is passed into the evaluation of the expression when data is formatted.</description>
+        </argument>
+    </arguments>
+    <discussion>Takes an AlphaDAO resultset and converts the data to a JSON object. More efficient than the rsToJSON Function.   </discussion>
+    <sections>
+        <section>
+            <note>To be consistent with the official JSON syntax, values in the generated JSON are double quoted.</note>
+        </section>
+        <section>
+            <title>Example</title>
+            <example>
+                <![CDATA[
 dim cn as sql::connection
 cn.Open("::Name::Northwind")
-cn.Execute("select * from orders")
-rs=cn.ResultSet
-txt=rs.ToJSONObjectSyntax(10)
+cn.Execute("select * from orders") rs=cn.ResultSet txt=rs.ToJSONObjectSyntax(10)
 showvar(txt)
-]]></example>
-  </section>
-  <section>
-  <title>ConvertToText flag</title>
- <description>When you use the .ToJSONObjectSyntax() method to generate JSON data from a resultset, and you set the optional ConvertToText flag to .f. (it defaults to .t.), then date and date time values in the resultset now create Javascript date objects. For example:
-
-</description>
-  
-  <example><![CDATA[dim cn as sql::Connection
+]]>
+            </example>
+        </section>
+        <section>
+            <title>ConvertToText flag</title>
+            <description>When you use the .ToJSONObjectSyntax() method to generate JSON data from a resultset, and you set the optional ConvertToText flag to .f. (it defaults to .t.), then date and date time values in the resultset now create Javascript date objects. For example:</description>
+            <example>
+                <![CDATA[dim cn as sql::Connection
 cn.open("::Name::_northwind")
 
 cn.PortableSQLEnabled = .t.
 cn.Execute("select first 5 orderid, orderdate from orders") 
-rs = cn.ResultSet
-
-?rs.ToJSONObjectSyntax(-1,-1,.f.,.f.)
-= {"orderid" : 10255, "orderdate" : new Date(1952, 11, 18, 0, 0, 0, 0)}
+rs = cn.ResultSet ?rs.ToJSONObjectSyntax(-1,-1,.f.,.f.) = {"orderid" : 10255, "orderdate" : new Date(1952, 11, 18, 0, 0, 0, 0)}
 {"orderid" : 10249, "orderdate" : new Date(1996, 6, 5, 0, 0, 0, 0)}
 {"orderid" : 10250, "orderdate" : new Date(1996, 6, 8, 0, 0, 0, 0)}
 {"orderid" : 10251, "orderdate" : new Date(1996, 6, 8, 0, 0, 0, 0)}
-{"orderid" : 10252, "orderdate" : new Date(1996, 6, 9, 0, 0, 0, 0)}]]></example>
-  </section>
-  
-   </sections> 
-   <see>
-      <ref link="SQL::ResultSet Object">SQL ResultSet Object</ref>
-      <ref link="rsToJSON Function">rsToJSON Function</ref>
-   </see>
-   <terms>sql,function,logical,number,object,pointer,string,time</terms>
+{"orderid" : 10252, "orderdate" : new Date(1996, 6, 9, 0, 0, 0, 0)}]]>
+            </example>
+        </section>
+    </sections>
+    <see>
+        <ref link="SQL::ResultSet Object">SQL ResultSet Object</ref>
+        <ref link="rsToJSON Function">rsToJSON Function</ref>
+    </see>
+    <terms>sql,function,logical,number,object,pointer,string,time</terms>
 </page>
