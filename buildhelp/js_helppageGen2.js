@@ -379,7 +379,7 @@ var generateXMLHelp = function (content) {
 					examples += "\r\n" + line;
 					exampleIndent = lines[i].search(/\S/);
 				} else{
-					examples += "\r\n" + lines[i].substr(exampleIndent);
+					examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r","");
 				}
             } else if (lastType === "arguments"
                 || lastType === "args"
@@ -431,7 +431,7 @@ var generateXMLHelp = function (content) {
 				examples += "\r\n" + line;
 				exampleIndent = lines[i].search(/\S/);
 			} else{
-				examples += "\r\n" + lines[i].substr(exampleIndent);
+				examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r","");
 			}
         } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props") {
             if (lastPropOrArg) {
