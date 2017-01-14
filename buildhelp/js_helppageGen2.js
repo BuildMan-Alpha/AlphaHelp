@@ -181,7 +181,6 @@ var buildContext = function (content) {
 			}
 			
 			if (!build.context[context]) {
-				console.log(context)
 				var allParts = context.split('.');
 				if (allParts.length > 1) {
 					var parentContext = build.context[allParts[0]];
@@ -231,6 +230,7 @@ var generateXMLHelp = function (content) {
     var isFunction = false;
     var isConstructor = false;
     var endTagType = [];
+	var exampleIndent = null;
     var lastPropOrArg = null;
     var topContext = null;
     var contextType = "";
@@ -355,6 +355,7 @@ var generateXMLHelp = function (content) {
                         endTag = null;
                     }
                     examples = "";
+					exampleIndent = null;
                 }
                 lastType = type;
             } else if (lastType === "description" || lastType === "desc") {
@@ -374,7 +375,12 @@ var generateXMLHelp = function (content) {
 			} else if (lastType === "seealso" || lastType === "see") {
                 seeAlso += "\r\n" + line;
             } else if (lastType === "example") {
-                examples += "\r\n" + line;
+				if(exampleIndent == null){
+					examples += "\r\n" + line;
+					exampleIndent = lines[i].search(/\S/);
+				} else{
+					examples += "\r\n" + lines[i].substr(exampleIndent);
+				}
             } else if (lastType === "arguments"
                 || lastType === "args"
                 ) {
@@ -421,7 +427,12 @@ var generateXMLHelp = function (content) {
                 }
             }
         } else if (lastType === "example") {
-            examples += "\r\n" + line;
+            if(exampleIndent == null){
+				examples += "\r\n" + line;
+				exampleIndent = lines[i].search(/\S/);
+			} else{
+				examples += "\r\n" + lines[i].substr(exampleIndent);
+			}
         } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
