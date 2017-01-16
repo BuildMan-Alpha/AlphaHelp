@@ -1,0 +1,161 @@
+<page>
+	<shortlink>dt ref field field rules now honored during xbasic data entry</shortlink>
+	<topic>Field Rules Now Honored During Xbasic Data Entry</topic>
+<description></description>
+<sections>
+<section>
+<<description>When you do data entry using Xbasic, only a limited number of Field Rules (so called 'engine level' Field Rules) are honored. Rules for calculated fields and auto-increment fields are honored, but rules such as capitalization, validation, posting, cross-file validation, etc. are not honored. These Field Rules are only honored when you do data entry interactively, using a Form or Browse layout.</description>
+
+
+
+</section>
+
+<section>
+	<title>.enter_record(),  .change_record() and .delete_record() Methods</title>
+<description><![CDATA[Now, three new methods, <Tbl>.change_record(), <Tbl>.enter_record() and <Tbl>.delete_record() allow you to enter/edit/delete records using Xbasic, while still honoring Field Rules. These methods can be used instead of the older <Tbl>.enter_begin() and <Tbl>.chagne_begin() methods.]]> The example  below shows an Interactive Window session (assume that the table has defined Field Rules that specify that Lastname is required, and that the Company can't be 'alpha'):
+</description>
+	<example><![CDATA[t = table.open("customer")
+'DIM a dot variable with properties that match the fieldnames you want to enter
+dim r as p
+r.firstname = ""
+r.company = "alpha"
+ 
+DIM v as p
+v = t.enter_record(r)
+?v.has_errors
+= .T.
+?v.error.size()
+= 2
+
+?v.Format("$(field) = $(error)"+crlf())
+= CUSTOMER1->COMPANY = company can't be alpha
+CUSTOMER1->LASTNAME = Field is required: LASTNAME
+]]></example>
+</section>
+
+<section>
+	<description>Notice from the above example that the .enter_record() method returns a dot variable that contains information about any Field Rule violations that occured.
+Similarly, the example below shows how to use the .change_record() method:
+</description>
+	<example><![CDATA['DIM a dot variable with properties that match the fieldnames you want to change
+dim r as p
+r.firstname = ""
+r.company = "alpha"
+v = t.change_record(r)
+?v.has_errors
+= .T.
+?v.error.size()
+= 2
+
+?v.Format("$(field) = $(error)"+crlf())
+= CUSTOMER1->COMPANY = company can't be alpha
+CUSTOMER1->LASTNAME = Field is required: LASTNAME]]></example>
+	
+</section>
+<section>
+	<description><![CDATA[As the examples show, a dot variable is created with properties for all of the fields that you want to enter/change. In the above examples, we enter or change the 'firstname' and 'company' fields in the customer table.
+
+Once the dot variable has been created, the <Tbl>.enter_record() or 
+<Tbl>.change_record() method is called. 
+These methods take as their argument the dot variable with the field values.
+]]></description>
+	
+	
+	
+</section>
+<section>
+	<description><![CDATA[The methods return a dot variable. The dot variable has an 'has_errors' property which lets you know if the method succeeded or not. If not, then the errors are returned in an array called 'errors' which is a sub-property of the dot variable.
+The dot variable that is returned by the .change_record() or .enter_record() method is actually an object (the 'validation' object), and it has a .Format() method, which allows you to format the error message into a friendly text or html format ready for display to the user. The format() method can use these placeholders:
+
+]]></description>
+	
+	
+	
+</section>
+
+<section>
+	
+	<list>
+		<item>
+			<name>$(field)</name>
+			<description>Placeholder for the fieldname for which the error occurred</description>
+		</item>
+		<item>
+			<name>$(error)</name>
+			<description>Placeholder for the plain-text error message</description>
+		</item>
+		<item>
+			<name>$(errorhtml)</name>
+			<description>Placeholder for the HTML formatted error message</description>
+		</item>
+		
+		
+	</list>
+	
+</section>
+<section>
+	<description>In the above examples, you can see that we call the .Format() method with this argument:</description>
+	<example><![CDATA["$(field) = $(error)"+crlf()]]></example>
+	
+</section>
+
+	
+</sections>	
+<section>
+	<description>The crlf() is necessary because the .Format() method does not put in line breaks between each message.
+The string "$(field) = $(error)" contains two placeholders which get replaced by each field for which an error occurred and by the corresponding error message.
+
+</description>
+
+	
+</section>
+<section>
+	<title>Validating Data Before Committing It</title>
+	<description><p><![CDATA[In the above examples, the validation occurred at the time we actually tried to enter the record, or save the changes. However, the <Tbl> object also has a new .validate_record() method that allows you to validate the record against the Field Rules when you are using the older <Tbl>.enter_records() and <Tbl>.change_records() methods.]]></p>
+<p><![CDATA[
+<Tbl>.validate_record() returns a default formatted error string if there are any errors.
+You can pass in an optional format string to the .validate_record() method to control the formatting of the error message. The syntax for the format string is the same as the .Format() method of the validation object, described above.
+Example (assuming the same field rules are defined as in the above example)]]></p></description>
+	<example><![CDATA[DIM t as p
+t = table.open("customer")
+t.enter_begin()
+t.company = "XYZ Compay"
+?t.validate_record()
+<tr><td>customer->LASTNAME</td><td>Field is required: LASTNAME</td></tr>]]></example>
+	
+</section>
+
+<section>
+	<description>Notice that if you do not pass in a format string to the .validate_record() method, it returns an HTML table with the error messages.</description>
+
+	
+</section>
+	
+	
+	<section>
+		<title>Posting Rules Now Honored During Xbasic Data Entry</title>
+	<description>The following Interactive Window session (for AlphaSports) shows that Posting Field rules are now honored when data entry is performed using Xbasic. 
+		Previously, they were only honored when doing edits using the user interface.</description>
+	<example><![CDATA[pt = table.open("product")
+? pt.PRODUCT_ID
+= "P001 "
+? pt.QTY_IN_STO
+= 140
+
+pi = table.open("invoice_items")
+pi.enter_begin(.t.)
+pi.INVOICE_NUMBER = "1001"
+pi.PRODUCT_ID = pt.PRODUCT_ID
+pi.QUANTITY = 10
+pi.enter_end(.t.)
+
+? pt.QTY_IN_STO
+= 130
+
+pt.close()
+pi.close()]]></example>
+	
+
+	
+	
+</page>
