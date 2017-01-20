@@ -1,6 +1,6 @@
 # Editing Help Files
 
-An XML Markup is supported, and described here [Using the Documentation XML](Using the Documentation XML.HTM).
+An XML Markup is supported and described here [Using the Documentation XML](Using the Documentation XML.HTM).
 
 # Moving images
 
@@ -24,3 +24,4 @@ When you are satified with the validatity of the script generated, pipe it to a 
 C:\dev\AlphaHelp\helpserver>node fixupimageref.js /dev/AlphaHelp/helpfiles/foo >movethem.bat
 C:\dev\AlphaHelp\helpserver>movethem.bat
 ```
+
