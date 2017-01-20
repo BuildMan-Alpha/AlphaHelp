@@ -6,11 +6,21 @@ var client = new elasticsearch.Client({
 client.search({
     index: 'helpserver',
     body: {
-      query: {  match :  { "path" : "github"} } ,
+      query: {  match :  { "path" : "https"} } ,
       _source: [ "id"]
     }
   }, function (error, response) {
       if( !error ) {
-          console.log(JSON.stringify(response.hits.hits));
+          var i;
+          for( i = 0 ; i < response.hits.hits.length ; ++i ) {
+              var id = response.hits.hits[i]._id;
+              if( id.indexOf(":https://github.com") > 0 )  {
+                client.delete({
+                index: 'helpserver', 
+                type: 'helppage',
+                id: id,
+                }, function (error, response) { }); 
+              }
+          }
       }
 });
