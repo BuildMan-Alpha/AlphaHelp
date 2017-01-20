@@ -19,7 +19,7 @@ client.search({
                 index: 'helpserver', 
                 type: 'helppage',
                 id: id,
-                }, function (error, response) { }); 
+                }, function (error, response) { if(error) { console.log(error); } }); 
               }
           }
       }
