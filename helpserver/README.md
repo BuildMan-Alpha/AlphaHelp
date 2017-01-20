@@ -84,8 +84,18 @@ node updateFunctionRef.js
 
 ## Updating Known Issues
 
-The help server can integrate issues from GitHub. The generateKnownIssuesRef.js script will add them. This script needs to be run periodically to capture changes to known issues:
+The help server can integrate issues from GitHub. The genKnownIssuesExtRef.js script pulls the list of open issues from GitHub and generates a JSON object, which can be read by the help server and integrated into search results:
 
 ```
-node generateKnownIssuesRef.js
+node genKnownIssuesExtRef.js > known_issues.json
+```
+
+Note: The help server does not automate generating this list of issues, so this script must be run periodically to remove resolved issues and add new issues.
+
+### Required Packages
+genKnownIssuesExtRef.js requires the 'htmlparser2' and 'string' packages. These packages can be installed from nmp:
+
+```
+npm install htmlparser2
+npm install string
 ```
