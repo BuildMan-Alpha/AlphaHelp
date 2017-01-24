@@ -273,13 +273,15 @@ var generateXMLHelp = function (content) {
                 line = saveString+line;
             }
             var type = null;
-            if (splitPos > 0) {
-                if (dashPos < 0 || splitPos < dashPos) {
-                    if (typePos < 0 || splitPos < typePos) {
-                        type = line.substring(0, splitPos).toLowerCase();
-                    }
-                }
-            }
+			if (splitPos > 0) {
+				if (dashPos < 0 || splitPos < dashPos) {
+					if (typePos < 0 || splitPos < typePos) {
+						type = line.substring(0, splitPos).toLowerCase().trim();
+						if(type.indexOf(" ") != -1) type = null;
+					}
+				}
+			}
+			
 			
             if (type) {
                 if (type === "context") {
