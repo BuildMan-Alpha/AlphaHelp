@@ -1,1 +1,1 @@
-node \dev\AlphaHelp\buildhelp\js_helppageGen.js
+node \dev\AlphaHelp\buildhelp\js_helppageGen2.js
