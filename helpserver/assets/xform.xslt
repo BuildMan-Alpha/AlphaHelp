@@ -96,6 +96,7 @@
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="arguments">
+            <p class="A5">Arguments</p>
 			<xsl:call-template name="arguments"/>    
 		</xsl:if>
 		<xsl:if test="returns">
