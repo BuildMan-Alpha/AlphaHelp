@@ -71,6 +71,10 @@ var protectXml = function (content) {
     }
     return content;
 };
+var addPara = function(content){
+	content = content.trim().split("\r\n\r\n").join("\r\n</p>\r\n<p>\r\n");
+	return "\r\n<p>\r\n"+content+"\r\n</p>\r\n";
+}
 
 var processArgOrProc = function (line, dashPos, properties) {
     var argName = line.substring(0, dashPos).trim();
@@ -222,11 +226,11 @@ var generateXMLHelp = function (content) {
     var warning = null;
     var deprecated = null;
     var obsolete = null;
-    var returns = null;
 	var seeAlso = null;
     var endTag = null;
     var properties = [];
     var arguments = [];
+	var returns = [];
     var isFunction = false;
     var isConstructor = false;
     var endTagType = [];
@@ -329,8 +333,6 @@ var generateXMLHelp = function (content) {
                     deprecated = line.substring(splitPos + 1);
                 } else if (type === "obsolete") {
                     obsolete = line.substring(splitPos + 1);                   
-                } else if (type === "returns") {
-                    returns = line.substring(splitPos + 1);
 				} else if (type === "seealso" || type === "see") {
                     seeAlso = line.substring(splitPos + 1);
                 } else if (type === "arguments" || type === "args") {
@@ -343,6 +345,15 @@ var generateXMLHelp = function (content) {
                         endTagType.push(lastType);
                     }
                 } else if (type === "properties" || type === "props") {
+                    endTag = line.substring(splitPos + 1).trim();
+                    if (endTag.length === 0) {
+                        endTag = null;
+                        if( nestingProps.length === 0 )
+                            lastPropOrArg = null;
+                    } else {
+                        endTagType.push(lastType);
+                    }
+				} else if (type === "returns") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length === 0) {
                         endTag = null;
@@ -372,8 +383,6 @@ var generateXMLHelp = function (content) {
                 deprecated += "\r\n" + line;
             } else if (lastType === "obsolete") {
                 obsolete += "\r\n" + line;                
-            } else if (lastType === "returns") {
-                returns += "\r\n" + line;
 			} else if (lastType === "seealso" || lastType === "see") {
                 seeAlso += "\r\n" + line;
             } else if (lastType === "example") {
@@ -403,6 +412,26 @@ var generateXMLHelp = function (content) {
                         lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
                     } else {
                         lastPropOrArg = processArgOrProc(line, dashPos, arguments);
+                    }
+                }
+			} else if (lastType === "returns") {
+                if (dashPos > 0) {
+                    if( !endTag && lastPropOrArg ) {
+                        if( lastIndentLevel === (indentLevel - 1) ) {
+                            if( !lastPropOrArg.properties )
+                                lastPropOrArg.properties = [];
+                            nestingProps.push(lastPropOrArg);
+                        } else if( lastIndentLevel > indentLevel ) {
+                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                                lastPropOrArg = nestingProps.pop();
+                                --lastIndentLevel;
+                            }
+                        }
+                    }
+                    if( nestingProps.length > 0 ) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    } else {
+                        lastPropOrArg = processArgOrProc(line, dashPos, returns);
                     }
                 }
             } else if (lastType === "properties"
@@ -435,7 +464,7 @@ var generateXMLHelp = function (content) {
 			} else{
 				examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r","");
 			}
-        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props") {
+        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props" || lastType == "returns") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
                 var dashPos = line.indexOf("-");
@@ -454,6 +483,11 @@ var generateXMLHelp = function (content) {
                             lastPropOrArg.properties = [];
                         }
                         processArgOrProc(line, dashPos, lastPropOrArg.properties);
+					} else if( lastType === "returns" ) {
+                        if (!lastPropOrArg.returns) {
+                            lastPropOrArg.returns = [];
+                        }
+                        processArgOrProc(line, dashPos, lastPropOrArg.returns);
                     } else {
                         if (!lastPropOrArg.arguments) {
                             lastPropOrArg.arguments = [];
@@ -537,14 +571,32 @@ var generateXMLHelp = function (content) {
         }
         xml += "\t</arguments>\r\n";
     }
-    if( returns ) {
-        xml += "\t<returns>" + protectXml(returns) + "</returns>\r\n";
+	console.log(returns.length);
+	if (returns.length > 0) {
+        xml += "\t<returns>\r\n";
+        for (i = 0; i < returns.length; ++i) {
+            if( returns[i].flags !== "" ) {
+                xml += "\t\t<return "+returns[i].flags+" >\r\n";
+            } else {
+                xml += "\t\t<return>\r\n";
+            }
+            xml += "\t\t\t<name>" + returns[i].name + "</name>\r\n";
+            if( returns[i].type !== "" ) {
+                xml += "\t\t\t<type>" + returns[i].type + "</type>\r\n";
+            }
+            xml += "\t\t\t<description>" + protectXml(returns[i].description) + "</description>\r\n";
+            if (returns[i].properties && returns[i].properties.length ) {
+                xml += RecursProperties(returns[i].properties,"\t\t");
+            }            
+            xml += "\t\t</return>\r\n";
+        }
+        xml += "\t</returns>\r\n";
     }
     if (description) {
         xml += "\t<description>" + protectXml(description) + "</description>\r\n";
     }
     if (discussion) {
-        xml += "\t<discussion>" + protectXml(discussion) + "</discussion>\r\n";
+        xml += "\t<discussion>" + addPara(protectXml(discussion)) + "</discussion>\r\n";
     }
     xml += RecursProperties(properties,"\t");
     if (examples) {
@@ -580,7 +632,6 @@ var generateXMLHelp = function (content) {
             var contextI;        
             for( contextI in build.context ) {
                 if( contextI.length > context.length+1 ) {
-                    //if( contextI.substring(0,context.length+1).toLowerCase() === (context.toLowerCase()+".") ) {
                     if( contextI.indexOf(context+".") == 0 ) {
                         hasNonMethodChildren = true;
                         break;
