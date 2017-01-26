@@ -100,8 +100,7 @@
 			<xsl:call-template name="arguments"/>    
 		</xsl:if>
 		<xsl:if test="returns">
-			<p class="A5">Returns</p>
-			<p><xsl:value-of select="returns" /> </p>
+			<xsl:call-template name="returns-template" />
 		</xsl:if>
 		<xsl:if test="description">
 		    <xsl:choose>
@@ -207,7 +206,7 @@
                    </xsl:if>
 					<dd><xsl:call-template name="callouts-before"/>
                     <xsl:if test="arguments"><xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if></xsl:if>
-            		<xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>                    						
+                    <xsl:if test="returns"><xsl:call-template name="returns-template" /></xsl:if>                    						
                         <xsl:for-each select="description">
                             <xsl:call-template name="text-content"/>
                         </xsl:for-each>
@@ -629,7 +628,7 @@
                 </xsl:choose>
             </xsl:if>
             <xsl:if test="arguments"><xsl:call-template name="arguments"/></xsl:if>
-            <xsl:if test="returns"><p class="A5">Returns</p><p><xsl:value-of select="returns" /> </p> </xsl:if>
+            <xsl:if test="returns"><xsl:call-template name="returns-template" /> </xsl:if>
             <xsl:if test="properties">
                 <dl class="propertiesDL" >
                     <xsl:for-each select="properties/property">
@@ -648,7 +647,13 @@
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">
 			<xsl:for-each select="arguments/argument">
-                <dt>
+                <xsl:call-template name="inputs-outputs"></xsl:call-template>
+            </xsl:for-each>
+		</dl>
+	</xsl:template>
+
+     <xsl:template name="inputs-outputs">
+            <dt>
                 <xsl:value-of select="name" />
 				<xsl:if test="type"><span class="argumentType">
                     <xsl:choose>
@@ -716,9 +721,8 @@
 						<xsl:call-template name="list"/>
 					</xsl:if>
 				</dd>
-			</xsl:for-each>
-		</dl>
-	</xsl:template>
+     </xsl:template>
+     
      <xsl:template name="callouts-before">
         <xsl:if test="warning">
             <xsl:choose>
@@ -726,7 +730,7 @@
                     <div class="sectionWarning" ><xsl:for-each select="warning/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <div class="sectionWarning" ><xsl:value-of select="warning" /></div>
+                    <div class="sectionWarning" ><xsl:value-of select="warning" /></div> 
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -783,6 +787,20 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
+   </xsl:template>
+
+   <xsl:template name="returns-template">
+        <p class="A5">Returns</p>
+        <xsl:choose>
+            <xsl:when test="returns/return">
+                <dl>
+                    <xsl:for-each select="returns/return"><xsl:call-template name="inputs-outputs"/></xsl:for-each>
+                </dl>
+            </xsl:when>
+            <xsl:otherwise>
+                <p><xsl:value-of select="." /></p>
+            </xsl:otherwise>
+        </xsl:choose>
    </xsl:template>
 
    <xsl:template name="example-template">
