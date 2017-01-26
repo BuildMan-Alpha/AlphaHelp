@@ -793,7 +793,7 @@
         <p class="A5">Returns</p>
         <xsl:choose>
             <xsl:when test="returns/return">
-                <dl>
+                <dl class="argumentsDL">
                     <xsl:for-each select="returns/return"><xsl:call-template name="inputs-outputs"/></xsl:for-each>
                 </dl>
             </xsl:when>
