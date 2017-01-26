@@ -329,6 +329,10 @@ events.pageIndexer = function(args, savePage) {
 
 events.wrapIndex = function( args ) {
     var result = "";
+    if (args.content.trim().length === 0) {
+        return result;
+    }
+
     if( args.format == ".xml" ) {
         if( args.content.substring(0,10) == "<methodref" ) {
             result = "<methods>"+args.content+"</methods>"
