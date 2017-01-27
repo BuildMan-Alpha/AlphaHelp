@@ -655,24 +655,18 @@
      <xsl:template name="inputs-outputs">
             <dt>
                 <xsl:value-of select="name" />
-				<xsl:if test="type"><span class="argumentType">
-                    <xsl:choose>
-                        <xsl:when test="type='C'">Character </xsl:when>
-                        <xsl:when test="type='L'">Logical </xsl:when>
-                        <xsl:when test="type='N'">Numeric </xsl:when>
-                        <xsl:when test="type='P'">Pointer </xsl:when>
-                        <xsl:when test="type='D'">Date </xsl:when>
-                        <xsl:when test="type='T'">Time </xsl:when>
-                        <xsl:when test="type='B'">Binary </xsl:when>
-                        <xsl:when test="type='V'">Void </xsl:when>
-                        <xsl:when test="type='A'">Any Type </xsl:when>
-                        <xsl:when test="type='Y'">Shortime </xsl:when>
-                        <xsl:when test="type='U'">Collection </xsl:when>
-                        <xsl:when test="type='F'">Function </xsl:when>
-                        <xsl:otherwise><xsl:value-of select="type" /></xsl:otherwise>
-                    </xsl:choose>                
-                    <xsl:comment></xsl:comment>
-                </span></xsl:if>                
+                <xsl:if test="types/type">
+                    <span class="argumentTypes">
+                        <xsl:for-each select="types/type">
+                            <xsl:call-template name="type"></xsl:call-template>
+                        </xsl:for-each>
+                    </span>
+                </xsl:if>
+                <xsl:if test="type">
+                    <xsl:for-each select="type">
+                        <xsl:call-template name="type"></xsl:call-template>
+                    </xsl:for-each>
+                </xsl:if>
                 <xsl:choose>
                     <xsl:when test="./@readonly">
                         <span class="argReadonly" ><xsl:comment> </xsl:comment></span>
@@ -723,6 +717,27 @@
 				</dd>
      </xsl:template>
      
+     <xsl:template name="type">
+        <span class="argumentType">
+            <xsl:choose>
+                <xsl:when test=".='C'">Character </xsl:when>
+                <xsl:when test=".='L'">Logical </xsl:when>
+                <xsl:when test=".='N'">Numeric </xsl:when>
+                <xsl:when test=".='P'">Pointer </xsl:when>
+                <xsl:when test=".='D'">Date </xsl:when>
+                <xsl:when test=".='T'">Time </xsl:when>
+                <xsl:when test=".='B'">Binary </xsl:when>
+                <xsl:when test=".='V'">Void </xsl:when>
+                <xsl:when test=".='A'">Any Type </xsl:when>
+                <xsl:when test=".='Y'">Shortime </xsl:when>
+                <xsl:when test=".='U'">Collection </xsl:when>
+                <xsl:when test=".='F'">Function </xsl:when>
+                <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
+            </xsl:choose>
+            <xsl:comment></xsl:comment>
+        </span>
+     </xsl:template>
+
      <xsl:template name="callouts-before">
         <xsl:if test="warning">
             <xsl:choose>
