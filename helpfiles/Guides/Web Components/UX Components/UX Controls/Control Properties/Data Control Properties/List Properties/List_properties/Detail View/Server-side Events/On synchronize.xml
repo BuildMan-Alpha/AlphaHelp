@@ -1,0 +1,106 @@
+<page>
+    <shortlink>ux list detail view on synchronize server side</shortlink>
+    <topic>On synchronize</topic>
+    <description>The name of an Xbasic function to call when the data is synchronized.</description>
+    <discussion> </discussion>
+    <sections>
+        <section>
+            <important>Only applies to the top-most (parent) List control in a hierarchy of linked Lists with pre-fetched data.</important>
+        </section>
+        <section>
+            <figure>
+                <link>images/onSynch.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Called when the user synchronizes a List with a Detail view. This event is called before Alpha Anywhere does any work on the server to process the edited data.</p>
+                <p>If you want to take complete control of the synchronization process and handle it yourself, you can create an Xbasic function to handle the event that will be called when the *[ui:On synchronize]* event occurs.</p>
+                <p>The function will take an argument, *[xb:e]*, which has a number of properties:</p>
+            </description>
+        </section>
+        <section>
+            <pages>
+                <page>
+                    <arguments>
+                        <argument>
+                            <name>e</name>
+                            <type>P</type>
+                            <description>The e object that is passed in to the Xbasic function. The e object has the following properties:</description>
+                            <properties>
+                                <property>
+                                    <name>tmpl</name>
+                                    <type>P</type>
+                                    <description>UX definition</description>
+                                </property>
+                                <property>
+                                    <name>rtc</name>
+                                    <type>P</type>
+                                    <description>Object that includes many run-time calculation properties, including arguments</description>
+                                </property>
+                                <property>
+                                    <name>listData</name>
+                                    <type>Object Array</type>
+                                    <description>An array of objects. Each item in the array contains the data for the dirty records in the List. If the List has child Lists, the dirty child Lists are nested in the array</description>
+                                </property>
+                                <property>
+                                    <name>listDataJSON</name>
+                                    <type>C</type>
+                                    <description>The raw List data (in JSON format) that was submitted from the client (this is the data that is parsed into the e.listData object)</description>
+                                </property>
+                                <property>
+                                    <name>handled</name>
+                                    <type>L</type>
+                                    <description>Indiciates if synchronization was handled. The function *[MUST]* set *[xb:e.handled]* to .t. or .f.. </description>
+                                </property>
+                                <property optional="true">
+                                    <name>javascript</name>
+                                    <type>C</type>
+                                    <description>Optional JavaScript to execute in the client.</description>
+                                </property>
+                            </properties>
+                        </argument>
+                    </arguments>
+                </page>
+            </pages>
+        </section>
+        <section>
+            <description>If the *[ui:On synchronize]* Xbasic function handles the synchronization, it must set the *[xb:e.handled]* property to .t. to indicate to Alpha Anywhere that synchronization has been handled and no further processing is needed. Alpha Anywhere will synchronize the data if *[xb:e.handled]* is set to .f..</description>
+        </section>
+        <section>
+            <title>Executing JavaScript in the Client</title>
+            <description>You can optionally send back javascript using *[xb:e.javascript]*. For example:</description>
+            <example><![CDATA[function myOnSyncHandler as v (e as p) 
+
+e.javascript = <<%txt%
+var lObj =  DLG1_DlgObj.getControl('LIST1');
+lObj._cleanMediaFiles = lObj._harvestMediaFields({cleanOnly: true}); //only needed in a PhoneGap application if you have media (images, videos, audio) fields
+lObj.setRowClean([3]);
+lObj.setRowClean([4]);
+lObj.setServerSideError(true,[5],[
+    {
+        errorText: 'State cannot be blank.',
+        varName: 'State'
+    }
+]);
+DLG1_DlgObj.refreshClientSideComputations();
+lObj._pushMediaFieldArrayToList(lObj._cleanMediaFiles,true); //only needed in a PhoneGap application if you have media (images, videos, audio) fields
+delete lObj._cleanMediaFiles; //only needed in a PhoneGap application if you have media (images, videos, audio) fields
+lObj._populateAllChildLists(); 
+lObj._setRoute(r);
+lObj._fetchMediaFiles(-1,r); //only needed in a PhoneGap application if you have media (images, videos, audio) fields
+lObj._setRoute(r);
+%txt%
+
+end function]]></example>
+        </section>
+        <section>
+            <title>Synchronizing All Records in a Hierarchical List Structure</title>
+            <description>When synchronizing a List that is part of a parent-child hierarchy, all of the Lists in the hierarchy are synchronized. Only new and modified records in the parent and child Lists will be sent to the server. You can optionally submit all child records to the server (including child records that were not edited). Submitting all records is accomplished using the client-side event used to synchronize the data. This event uses the .saveListEdits() method. Edit the event handler and set the 'allChildRecords' flag in optional arguments parameter to true. For example:</description>
+            <example><![CDATA[{dialog.object}.saveListEdits('MYLIST',{rows: 'allRows', allChildRecords: true});]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="BuildingDisconnectedApplications">List Control Overview : Building Disconnected Applications</ref>
+    </see>
+</page>

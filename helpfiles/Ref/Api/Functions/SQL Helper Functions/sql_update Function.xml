@@ -1,0 +1,109 @@
+<page api="xb">
+    <shortlink>api sql update function</shortlink>
+    <topic>sql_update Function</topic>
+    <syntax>p result = sql_update(A connection,c tablename,c fieldValuePairs [,c primaryKey [, c primaryKeyValue [, L execute]]])</syntax>
+    <arguments>
+        <argument>
+            <name>connection</name>
+            <types>
+                <type>C</type>
+                <type>SQL::Connection</type>
+            </types>
+            <description>An open SQL::connection object, a connection string, or a named connection string.</description>
+        </argument>
+        <argument>
+            <name>tablename</name>
+            <type>C</type>
+            <description>Name of the table to update.</description>
+        </argument>
+        <argument>
+            <name>fieldValuePairs</name>
+            <type>C</type>
+            <description>Fields to update with corresponding values. A cr-lf list of the form fieldname=value. Or a JSON string (see example). Date values must be specified using *[xb:yyyy/mm/dd]* format.</description>
+        </argument>
+        <argument optional="true">
+            <name>primaryKey</name>
+            <type>C</type>
+            <description>Name of primary key field. If primaryKey is multi column use ||| to delimit (e.g. *[xb:OrderNumber|||PartNumber]*)</description>
+        </argument>
+        <argument optional="true">
+            <name>primaryKeyValue</name>
+            <type>C</type>
+            <description>Value of primary key. If primaryKey is multi-column, use ||| to delimit (e.g. *[xb:10245|||23]*)</description>
+        </argument>
+        <argument optional="true">
+            <name>execute</name>
+            <type>L</type>
+            <description>If false, the SQL is not executed. However, you can still examine the *[xb:result.sql]* and *[xb:result.arguments]* properties to see what SQL was generated.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>P</type>
+            <description>An object with the following properties:</description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Indicates whether or not an error occurred.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>A detailed description of the error - if any occurred.</description>
+                </property>
+                <property>
+                    <name>sql</name>
+                    <type>C</type>
+                    <description>The SQL that was generated to execute the update.</description>
+                </property>
+                <property>
+                    <name>Arguments</name>
+                    <type>C</type>
+                    <description>The XML arguments generated for the update.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <description>Updates a record in a SQL table.</description>
+    <discussion>This function is just a wrapper around the Xbasic AlphaDAO commands to execute a SQL update statement, but it convenient to use for simple cases.</discussion>
+    <sections>
+        <section>
+            <note>The record to update is specified by primary key, not by a generalized WHERE clause. This limitation is intentional so a to eliminate the possibility of unintentionally updating multiple records in the database. If you need to update multiple records you will need to write your own Xbasic code.</note>
+        </section>
+        <section>
+            <example code="xb"><![CDATA[ dim cn as sql::Connection
+
+cn.open("::Name::myconnstring")
+tablename = "mytable"
+fieldsValuePairs = <<%str%
+name=fred smith
+
+date of birth=1952/12/18
+
+salary=78000
+%str%
+ 
+
+'You can also specify field values using JSON
+fieldsValuePairs = <<%str%
+{
+    "name" : "fred smith",
+    "date of birth" : "1954/11/25",
+
+    "salary" : "78000"
+}
+%str%
+
+primaryKey = "id"
+primarykeyValue = "1"
+
+p = sql_update(cn,tablename,fieldsValuePairs,primaryKey,primaryKeyvalue)]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="api sql lookup function">sql_lookup Function</ref>
+        <ref link="api sql insert function">sql_insert Function</ref>
+    </see>
+</page>
