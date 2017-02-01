@@ -137,6 +137,31 @@ This needs needs to be every time we restart the machine, but also when we are i
 sudo service elasticsearch restart
 ```
 
+## Troubleshooting Linux server
+
+If the help server crashes, there are a number of logs to show what went wrong.
+The first place to look is the helpserver crash log file which exists in a generated file called
+helpserver_error.log.  The command to see the contents of this log file is this:
+
+```
+cat /home/AlphaHelp/generated/helpserver_error.log 
+```
+
+The node.js log exists here (this captures the output from the helpserver process, including tracking regeneration of indexes for pages).
+To see these dump node.log using this command:
+
+```
+cat /var/log/node.log
+```
+
+The Log for the helpserver service exists in a file called helpserver.log - in the upstart subfolder here:
+
+```
+cat /var/log/upstart/helpserver.log
+```
+
+If the logs are too big, 'rm' them and retry - if there is still a problem, the logs will be regenerated.
+
 ## Handling case sensitive path issues with Git-Unite
 
 There is a utility in 3rdParty to handle fixups should files appear to be missing on the documentation
