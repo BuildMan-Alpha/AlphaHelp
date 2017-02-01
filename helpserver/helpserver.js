@@ -78,6 +78,7 @@ var createBrokenLinkEmail =  function(problems) {
 fs.readFile("/home/AlphaHelp/generated/helpserver_error.log","utf8",function(err,contents) {
      if(!err && contents ) {
         fs.unlink("/home/AlphaHelp/generated/helpserver_error.log");
+        /*
         var emailcred = require("/home/AlphaHelp/helpserver/emailcred");
         var nodemailer = require('nodemailer'); 
         // create reusable transporter object using the default SMTP transport 
@@ -96,7 +97,7 @@ fs.readFile("/home/AlphaHelp/generated/helpserver_error.log","utf8",function(err
                 return console.log(error);
             }
             console.log('Message sent: ' + info.response);
-        });
+        });*/
      } else if( err ) {
          console.log("error loading last crash log "+err);
      } 
