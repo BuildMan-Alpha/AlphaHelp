@@ -453,12 +453,13 @@ function loaded() {
         showTooltip(e.trigger, fallbackMessage(e.action));
     });
     buildVersion();
+    /*
     var sharableEle = document.getElementById("get-sharable-link-form-input");
     if( sharableEle ) {
         if( sharableEle.value ) {
             history.pushState({},"URL Rewrite",sharableEle.value);
         }
-    }
+    }*/
 }
 
 
