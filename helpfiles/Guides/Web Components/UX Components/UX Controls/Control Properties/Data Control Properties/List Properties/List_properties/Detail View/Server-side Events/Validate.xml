@@ -1,0 +1,101 @@
+<page>
+    <shortlink>ux list detail view validate server side</shortlink>
+    <topic>Validate</topic>
+    <description>The name of an Xbasic function to call to perform validation on data submitted to the server when a List control is synchronized.</description>
+    <sections>
+        <section>
+            <figure>
+                <link>images/validate.png</link>
+            </figure>
+        </section>
+        <section>
+            <pages>
+                <page>
+                    <arguments>
+                        <argument>
+                            <name>e</name>
+                            <type>P</type>
+                            <description></description>
+                            <properties>
+                                <property>
+                                    <name>tmpl</name>
+                                    <type>P</type>
+                                    <description>UX Component definition</description>
+                                </property>
+                                <property>
+                                    <name>data</name>
+                                    <type>P</type>
+                                    <description>Data for the current row in the List. Each item in the array is an Xbasic dot variable with the current and old value of each field in the Detail View. You can change the value saved for a field by setting its value in *[xb:data]*. For example, *[xb:e.data.FIRSTNAME = "Paul"]*. In addition to a property for each field in the List row, *[xb:data]* also has the following properties:</description>
+                                        <properties>
+                                            <property>
+                                                <name>__primaryKey</name>
+                                                <type>C</type>
+                                                <description>The primary key for the row.</description>
+                                            </property>
+                                            <property>
+                                                <name>_isDirty</name>
+                                                <type>L</type>
+                                                <description>Whether or not the row is dirty. If *[xb:_isDirty]* is set to .f., the List data will not be saved.</description>
+                                            </property>
+                                            <property>
+                                                <name>_isNewRow</name>
+                                                <type>L</type>
+                                                <description>Whether or not the row is a new row.</description>
+                                            </property>
+                                            <property>
+                                                <name>_oldData</name>
+                                                <type>P</type>
+                                                <description>Contains the original values for each field. *[xb:_oldData]* contains a property for each field. For example, if the List row contains a field called "FIRSTNAME", you can access the original value for this field as follows: *[xb:e.data._oldData.FIRSTNAME]*.</description>
+                                            </property>
+                                        </properties>
+                                </property>
+                            </properties>
+                        </argument>
+                    </arguments>
+                    <returns>
+                        <return optional="true">
+                            <name>&lt;function_name&gt;</name>
+                            <type>P</type>
+                            <description>An error can be returned by the function by setting the following properties on the Xbasic function:</description>
+                            <properties>
+                                <property optional="true">
+                                    <name>hasError</name>
+                                    <type>L</type>
+                                    <description>Indicates whether or not there is a validation error. If *[xb:hasError]* is not set, Alpha Anywhere assumes no validation error occurred. Setting hasError to .t. will abort the synchronization.</description>
+                                </property>
+                                <property optional="true">
+                                    <name>errorText</name>
+                                    <type>C</type>
+                                    <description>The error message to display.</description>
+                                </property>
+                            </properties>
+                        </return>
+                    </returns>
+                </page>
+            </pages>
+        </section>
+        <section>
+            <title>Overwriting a Submitted Value</title>
+            <description>The Xbasic function can modify the data submitted by setting the value in the *[xb:e.data]* variable. Setting the value for the field in the *[xb:e.data]* overwrites the value submitted by the user. This method can be used for updating calculated fields server-side or prevent users from changing certain values. For example:</description>
+            <example code="xb"><![CDATA[function myValidateFunc as p (e as p)
+    ' Always change the LASTNAME to "Smith" for CUSTOMER_ID "1".
+    if (e.data.CUSTOMER_ID == "1") then
+        e.data.LASTNAME = "Smith"
+    end if
+end function]]></example>
+        </section>
+        <section>
+            <description>If you change the *[xb:e.data._isDirty]* property to .f., data in that row will not be saved.</description>
+        </section>
+        <section>
+            <title>Returning a Validation Error</title>
+            <description>A validation error is returned by setting the *[xb:hasError]* and *[xb:errorText]* properties for the function. For example:</description>
+            <example code="xb"><![CDATA[function myValidateFunc as p (e as p)
+    if (len(alltrim(e.data.FIRSTNAME)) == 0) then
+        myValidateFunc.hasError = .t.
+        myValidateFunc.errorText = "First name cannot be blank. Please enter the customer's first name."
+    end if
+end function]]></example>
+        </section>
+    </sections>
+</page>
