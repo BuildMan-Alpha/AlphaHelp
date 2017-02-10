@@ -1,0 +1,324 @@
+<page>
+    <shortlink>ux data controls dropdown box populate using a dropdown box control to populate a list with sql data</shortlink>
+    <topic>Using a Dropdown Box Control to Populate a List with SQL Data</topic>
+    <description>It is possible to create a dropdown box control with static choices that, when selected, will populate a 
+        static list with SQL based data.</description>
+
+ 
+
+<sections>
+    <section>
+        <description>For a visual explanation of this process watch this two part video: [Part 1], [Part 2].</description>
+        
+    </section>
+    <section>
+        <title>Create the Dropdown Box and List Controls</title>
+        <steps>
+            <step>
+                <description>In the UX Builder on the UX Controls page open the 'Data Controls' menu. 
+                    Click on the [DropdownBox] option to add a dropdown box control to the component. 
+                    Give the control the name and label 'country'.
+                </description>
+                <figure><link>images/pl2.png</link></figure>
+            </step>
+             <step>
+                <description>Highlight the dropdown box in the controls tree. In the properties list on the right 
+                    scroll down to the 'DropDownBox Properties' section and click on the [...] button 
+                    next to the 'Choices' property.
+                </description>
+                <figure><link>images/pl3.png</link></figure>
+            </step>
+             <step>
+                <description>In the 'Define Choices' dialog select 'Static' in the 'Choices are' menu. 
+                    In the 'Static Choices' section add the following static choices. Click OK.
+                </description>
+                <example><![CDATA[USA
+UK
+France
+Canada
+Italy
+Spain]]></example>
+                
+                <figure><link>images/pl4.png</link></figure>
+            </step>
+             <step>
+                <description>Scroll down the properties list to the 'Javascript' section. 
+                    Click the [...] button next to the 'onChange' property.
+                </description>
+                <figure><link>images/pl5.png</link></figure>
+            </step>
+             <step>
+                <description>In the 'Edit onChange Event' dialog select the 'Action Javascript' option in the editing mode 
+                    menu. Click the 'Add New Action' button.
+                </description>
+                <figure><link>images/pl6.png</link></figure>
+            </step>
+             <step>
+                <description>Type 'ajax' into the filter list textbox and select the 'Ajax Callback' action and click OK.</description>
+                <figure><link>images/pl7.png</link></figure>
+            </step>
+             <step>
+                <description>In the action's property settings set the 'Callback type' property to 
+                    'InternalXbasicFunction'.</description>
+                <figure><link>images/pl8.png</link></figure>
+            </step>
+             <step>
+                <description>Set the 'Function name' property to be 'populateList', this will be defined 
+                    in the next section. Click OK and 'Save'.
+                </description>
+                <figure><link>images/pl9.png</link></figure>
+            </step>
+         
+             <step>
+                <description>Return to the 'Data Controls' menu and click on the [List] option to add a list control 
+                    to the component. Leave the name of the list control set to 'list1'.
+                </description>
+                <figure><link>images/pl10.png</link></figure>
+            </step>
+             <step>
+                <description>Highlight the list control in the controls tree. Click the [...] button next to the 
+                    'List properties' property in the 'List Properties' section. The List Builder will open.
+                </description>
+                <figure><link>images/pl11.png</link></figure>
+            </step>
+            <step>
+                <description>In the List Builder open the 'Data Source' pane. Set the 'Data Source Type' to 
+                    'Static'.
+                </description>
+                <figure><link>images/pl12.png</link></figure>
+            </step>
+            <step>
+                <description>In the data source property settings click the [...] button next to the 
+                    'Static data' property.
+                </description>
+                <figure><link>images/pl13.png</link></figure>
+            </step>
+            <step>
+                <description>Add the following static choices to the 'Static Choices' dialog. Click OK.</description>
+                <example><![CDATA[CustomerId|ContactName|City|Country]]></example>
+                <figure><link>images/pl14.png</link></figure>
+            </step>
+            <step>
+                <description>Open the 'List Layout' pane. Use the blue > arrow to move the 'CustomerId', 
+                    'ContactName', 'City', and 'Country' fields from the 'Available Fields section to the 
+                    'Columns in List' section. Click OK to close the list builder.</description>
+                <figure><link>images/pl15.png</link></figure>
+            </step>
+        </steps>
+
+    </section>
+      <section>
+          <title>Define an Xbasic Function that Populates the List from the Dropdown Selection</title>
+        <steps>
+              <step>
+                <description>In the UX Builder's main menu expand the 'Code' menu and click on the 
+                    'Xbasic functions' page.
+                </description>
+                <figure><link>images/pl16.png</link></figure>
+            </step>
+            <step>
+                <description>Define the populateList function by adding the following code to the page.</description>
+                <example><![CDATA[function populateList as c (e as p)
+
+dim cn as sql::Connection
+flag = cn.open("::Name::AADemo-Northwind")
+if flag = .f. then
+	 dim js as c
+	 js = "alert('Could not connect to database.');"
+	 populateList = js
+	 exit function
+end if
+
+dim sql as c
+sql = "select CustomerId, ContactName, City, Country from Customers where Country = :whatcountry"
+dim args as sql::Arguments
+args.add("whatCountry",e.datasubmitted.country)
+flag = cn.Execute(sql,args)
+
+if flag = .f. then 
+	js = "alert('Could not execute query. Error: " + js_escape(cn.CallResult.text) + "');"
+	populateList = js
+	cn.close()
+	exit function
+end if
+
+dim rs as sql::ResultSet
+rs = cn.ResultSet
+dim json as c
+json = rs.ToJSONObjectSyntax()
+
+json = stritran(json,crlf(),"," + crlf())
+json = "[" + rtrim(json,",") + "]"
+
+dim js as c
+js = "var lObj = {dialog.object}.getControl('list1');" + crlf()
+js = js + "var _data = " + json + crlf()
+js = js + "lObj.populate(_data);"
+
+populateList = js
+
+cn.FreeResult()
+delete rs
+cn.close()
+
+end function]]></example>
+                <figure><title>A section of the populateList function</title><link>images/pl18.png</link></figure>
+            </step>
+          
+        </steps>
+        
+        
+        
+        
+    </section>
+    <section>
+       <title>An Explanation of the populateList() Function</title> 
+        
+        
+        <description>The populateList() function takes as an argument 'e', which represents a pointer to 
+            some data that was submitted. This pointer is used midway through the function. Inside the function 
+            definition, the first couple lines of code create a connection to the SQL database using the 
+            Open() method.  
+            
+            
+        </description>
+        <example><![CDATA[dim cn as sql::Connection
+flag = cn.open("::Name::AADemo-Northwind")]]></example>
+             
+    </section>
+    <section>
+        <description>If the connection string you are using has a different name than the one displayed, "AADemo-Northwind", 
+            then you can easily add the correct connection string to the Open() method by doing the following:</description>
+         <cases>
+           <case>
+                <description>Inside the cn.open() method's parenthesis, erase the existing connection string and 
+                   then re-type the opening "::Name::" inside the parenthesis. The bubble help for the SQL::Connection.Open() 
+                   method should appear.</description>
+                <figure><link>images/ex2.png</link></figure>
+              </case>
+             <case>
+                
+                <description>[SQLConnectionString as C[ should appear highlighted in black inside the bubble help. 
+                    With the mouse, right click on this black highlight. The 'AlphaDAO Connection Strings' genie will open. Select the named connection string 
+                    that you want to connect to and click OK.
+                </description>
+                <figure><link>images/ex3.png</link></figure>
+           
+            </case>
+             <case>
+                
+                <description>The connection string should now be inserted inside the method:</description>
+                <figure><link>images/ex4.png</link></figure>
+            </case>
+       </cases>
+        
+        
+    </section>
+    <section>
+        <description>If the connection fails then an alert is sent out stating that the connection could not be opened. 
+            A variable named 'sql' is set to be a SQL statement that defines the query against the sql table to
+            be executed. 
+        </description>
+        <example><![CDATA[dim sql as c
+sql = "select CustomerId, ContactName, City, Country from Customers where Country = :whatcountry"]]></example>
+        
+    </section>
+    <section>
+        <description>The end of this statement sets the 'Country' field in the SQL table equal to an argument 
+            named 'whatcountry'. The next line creates the sql argument object. By use of the add() method, 
+            this object is used to create an argument called 'whatCountry', that is then set to have the 
+            value of 'e.datasubmitted.country'. 'e.datasubmitted.country' uses the 'e' argument, that was passed in to 
+            the populateList function, to get a pointer to the selection that the user made from among 
+            the static choices listed in the 'country' dropdown box control.
+        </description>
+        <example><![CDATA[dim args as sql::Arguments
+args.add("whatCountry",e.datasubmitted.country)]]></example>
+    </section>
+    <section>
+        <description>Once the query against the sql database is defined, it is executed using the 'Execute()' method. 
+            If the query fails, then an alert is sent out that says "Could not execute query." ans then lists an error 
+            message. After the query executes a result set is created. The ToJSONObjectSyntax() method on the result set 
+            then called. This creates a crlf delimited string on JSON objects.
+        </description>
+        <example><![CDATA[dim rs as sql::ResultSet
+rs = cn.ResultSet
+dim json as c
+json = rs.ToJSONObjectSyntax()]]></example>
+        
+    </section>
+    <section>
+        <description>If you run the component at this point, and select a country from the dropdown list, 
+            then the string of JSON objects looks something like this:</description>
+        <figure><link>images/ex5.png</link></figure>
+        
+    </section>
+    <section>
+        <description>For this component, however, we need a json array; and so each of the json objects 
+            shown above will need to be seperated, or delimited, using a comma. The following lines of code are used 
+            to translate each 'crlf()' in the string to be a 'crlf()' plus a comma. 
+        </description>
+        <example><![CDATA[json = stritran(json,crlf(),"," + crlf())]]></example>
+   
+    </section>
+    <section>
+        <description>This almost completes the array except that json arrays should not have a trailing comma 
+            after the last item in the array. To remove any trailing commas the following code is used.
+        </description>
+        <example><![CDATA[json = "[" + rtrim(json,",") + "]"]]></example>
+              <figure><link>images/ex6.png</link></figure>
+    </section>
+    <section>
+        <description>Now that the json data that will be used to populate the list control has been created, 
+            it is necessary to craft a javascript response to send from the server back to the client. The 
+            first step is to get a pointer to the list control:
+        </description>
+        <example><![CDATA[js = "var lObj = {dialog.object}.getControl('list1');" + crlf()]]></example>
+    </section>
+    <section>
+        <description>All of the sql data to be used to populate the list is then assigned to a javascript 
+            variable named "_data". This is done by first creating the _data variable and then taking
+            all of the json data, that was generated from the query, and assigning it to the _data variable 
+            using the populate() method. 
+        </description>
+        <example><![CDATA[js = js + "var _data = " + json + crlf()
+js = js + "lObj.populate(_data);"]]></example>
+    </section>
+     <section>
+        <description>The list control is then populated by using the xbasic function 'populateList' and setting 
+            it equal to the returned value. Finally the result set is set to free, deleted, and then closed.</description>
+     
+    </section>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <section>
+        <title>Run the Component</title>
+         <description>Run the component in Live Preview. Click the dropdown and make a selection from 
+                    the static list of choices. 
+                </description>
+                <figure><link>images/pl19.png</link></figure>
+        
+    </section>
+    <section>
+        <description>The SQL data relating to the selection should be displayed.</description>
+        <figure><link>images/pl20.png</link></figure>
+        
+    </section>
+    
+</sections>
+
+<links>
+    <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_populateFromSQL_1.swf">Part 1</link>
+    <link href="http://www.ajaxvideotutorials.com/V12Videos/ux_populateFromSQL_2.swf">Part 2</link>
+    
+</links>
+
+</page>

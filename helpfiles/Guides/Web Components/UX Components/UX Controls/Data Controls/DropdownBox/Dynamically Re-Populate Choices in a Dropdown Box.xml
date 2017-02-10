@@ -7,8 +7,12 @@
   
 <sections>
     <section>
- <description>For a visual explanation watch this three part video: [Part 1], [Part 2], [Part 3], or follow 
-     the step by step guide below.
+ <description>This guide shows how to create a dropdown box control that is populated using an SQL table 
+     from the Northwinds database. Some Javascript is then used to create an entry named 'Add new choice' in the dropdown box
+      control's dropdown list. When the user clicks on the entry, a pop-up window opens that contains a textbox control and a submit 
+     button. The user enters data into the textbox control and then submits back to the SQL table which populates the dropdown 
+     control. This is done using an Ajax callback that calls the Xbasic function used to add the new data to the server and 
+     refresh the dropdown list. For a visual explanation also watch this three part video: [Part 1], [Part 2], [Part 3].
  </description>
     </section>
     
@@ -227,13 +231,13 @@
     
     
     
-    <section>
-        <title>Dynamically Populate the Drop Down List</title>
-        <description>This </description>
-        
-    </section>
+   
     <section>
         <title>Create the XBasic Function that Adds New Entries to the List</title>
+       <description>The 'xb_addProduct' function, shown in this section, enters user defined data into a dropdown list. 
+            This function is called after a user enters some data into a textbox and then submits this data using an Ajax callback. 
+            A button's click event will cause the Ajax callback to fire. Both the button and the Ajax callback are defined 
+            in later sections. </description>
         <steps>
             <step>
                 <description>Expand the 'Code' menu in the UX Builder's main menu. Click on 'Xbasic functions' to 
@@ -257,19 +261,79 @@ flag = cn.Execute(sql,args)
 dim js as c
 js = "{dialog.object}.refreshDropdownBoxChoices('product','','','"+newProd+"');"
 xb_addProduct = js
-
 end function]]></example>
                 <figure><link>images/dp3.png</link></figure>
             </step>
-
         </steps>
         
         
         
     </section>
-    
-    
-    
+    <section>
+        <description>In the first line of code, the argument 'e' is passed into the function to serve as a pointer to the 
+           value that the user submitted. This value is assigned to a variable named 'newProd'. 
+           The textbox control named 'newProdName' is specified as being the source of the data 
+           that the user submitted.
+        </description>
+        <example><![CDATA[dim newProd as c
+newProd = e.dataSubmitted.newProdName]]></example>
+        
+    </section>
+    <section>
+        <description>The next step defines an 'sql' variable. This variable is used to execute a statement that 
+            defines where the newly added data should go when it is inserted into the 'Products' table. In this 
+            example the data will be placed inside the 'ProductName' field, because this is the field that populates the 'product'' 
+            dropdown control. 
+        </description>
+        <example><![CDATA[dim sql as c
+sql = "insert into Products(ProductName)values(:ProductName)"]]></example>
+        
+    </section>
+    <section>
+        <description>The args.add() method adds an argument with the name 'ProductName', the field name, and then 
+            sets this argument equal to the 'newProd' variable, which is the value that the user submitted. The 
+            cn.open() method creates a connection string to the database that contains the table that you want to use, in this 
+            case the 'Products' table. In the event that the Northwind database you are using does not match the connection 
+            shown in this code, take the following steps:
+        </description>
+       <cases>
+           <case>
+                <description>Inside the cn.open() method's parenthesis, erase the existing connection string and 
+                   then re-type "::Name::" inside the parenthesis. The bubble help for the SQL::Connection.Open() 
+                   method should appear.</description>
+                <figure><link>images/ex2.png</link></figure>
+              </case>
+             <case>
+                
+                <description>[SQLConnectionString as C[ should appear highlighted in black. With the mouse, right click on 
+                    the black highlight. The 'AlphaDAO Connection Strings' genie will open. Select the named connection string 
+                    that you want to connect to and click OK.
+                </description>
+                <figure><link>images/ex3.png</link></figure>
+           
+            </case>
+             <case>
+                
+                <description>The connection string should appear inside the method:</description>
+                <figure><link>images/ex4.png</link></figure>
+            </case>
+       </cases>
+        
+    </section>
+    <section>
+        <description>The 'cn.Execute() method executes the query, actually adding the argument to the specfied sql table. 
+            After the new user entry is added a javascript response  is computed. This response is sent from the 
+            server back to the browser. The response calls the refreshDropdownBoxChoices() method. This method 
+            takes as its first argument the control to be refreshed, which in this case is the 'product' dropdown box control.
+            The last argument sets the focus on the refreshed control to the new data that the user entered. This means that 
+            when the user submits the data to the server, their entry will then show up again in their client-side browser. 
+            The line 'xb_addProduct = js' is responsible for actually sending the Javascript back to the client to execute 
+            at the end of the Ajax callback.
+        </description>
+        
+        
+        
+    </section>
     
     <section>
         <title>Add an Ajax Callback</title>
