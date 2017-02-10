@@ -1,7 +1,7 @@
 <page>
     <shortlink>ux data controls radio button control dynamically re-populate choices in a radiobutton control</shortlink>
     <topic>Dynamically Re-populate Choices in a Radiobutton Control</topic>
-    <description>In some cases it is necessary to repopulate the choices in a radiobutton control 
+    <description>In some cases it is necessary to re-populate the choices in a radiobutton control 
         after the component has been rendered. This can be done dynamically using an ajax callback.
     </description>
 
@@ -51,7 +51,7 @@ gamma]]></example>
             </step>
             <step>
                 <description>Highlight the button control in the controls tree. In the 
-                    properties list set the 'Button text' property to read 'ResetCheckbox'.
+                    properties list set the 'Button text' property to read 'Reset Radiobuttons'.
                 </description>
                 <figure><link>images/rc7.png</link></figure>
             </step>
@@ -118,37 +118,58 @@ id = "{dialog.componentname}.V.R1.RB1"
 dim js as c 
 js = "$('" + id + "').innerHTML = '"+js_escape(html)+"';"
 resetCB = js 
-end function 
-
-
-function resetCBSnaking as c (e as p)
-dim choices as c 
-choices = a5.Color_Enum()
-choices = sortsubstr(choices,crlf())
-dim orientation as c 
-orientation = "COLUMNS:LRTB:5" 
-dim html as c 
-html = a5w_checkboxes(choices,"V.R1.RB1","","",orientation,"","{dialog.componentname}.V.R1.RB1")
-dim id as c 
-id = "{dialog.componentname}.V.R1.RB1"
-dim js as c 
-js = "$('" + id + "').innerHTML = '"+js_escape(html)+"';"
-resetCBSnaking = js 
-end function]]></example>
+end function ]]></example>
                 <figure><link>images/rc14.png</link></figure>
             </step>
         </steps>
         
         
     </section>
-    a5w_radiobuttons() function is used on the server to compute HTML for the radiobutton control.
+    <section>
+        <description>The resetCB() function runs after the Ajax callback, that is tied to the 'Reset Radiobuttons' 
+            button, fires. The pointer 'e' is passed into the function as an argument. This is used to 
+            create a pointer to the 'newchoices' textbox, which contains the submitted choices for the radio buttons 
+            that will replace the existing ones.</description>
+        <example><![CDATA[dim choices as c 
+choices = e.datasubmitted.newchoices]]></example>
+    </section>
+    <section>
+        <description>When the list of choices is submitted, each choice in the list is separated by a comma, except the last entry. 
+            the comma_to_crlf() function is called to convert this comma delimited list into a crlf delimited list. If the 
+            submitted list of choices does not contain anything, then an alert is sent stating that no choices were specified.</description>
+           <example><![CDATA[choices = comma_to_crlf(choices)
+if choices = "" then 
+	resetCB = "alert('You did not specify any choices for the checkbox');"
+	exit function 
+end if ]]></example>
+        
+    </section>
+    <section>
+        <description>If the list is not blank then the function a5w_radiobuttons() is called. This is used on 
+            the server to compute HTML for the radiobutton control. If this was a checkbox control the a5w_checkboxes() function 
+            would be used here. In this example the "V.R1.RB1" is the name of the variable and "{dialog.componentname}.V.R1.RB1" 
+            represents the Id.</description>
+        <example><![CDATA[dim html as c 
+html = a5w_radiobuttons(choices,"V.R1.RB1","","","","","{dialog.componentname}.V.R1.RB1")]]></example>
+    </section>
+    <section>
+        <description>An id variable is created towards the end of the resetCB() function. The value of the id 
+            variable is set to the container to be repopulated, in this case {dialog.componentname}.V.R1.RB1. 
+            The Javascript to repopulate the html for the specified radio button container is then reset.
+        </description>
+        
+    </section>
+<section>
+    <description></description>
+    
+</section>
     
      <section>
          <title>Run the Component</title>
         <steps>
             <step>
                 <description>Run the component in Live Preview. Type a series of choices into the textbox control 
-                    and click the 'Reset Checkbox' button. Separate each choice with a comma.</description>
+                    and click the 'Reset Radiobuttons' button. Separate each choice with a comma.</description>
                 <figure><link>images/rc15.png</link></figure>
             </step>
             <step>
@@ -161,7 +182,9 @@ end function]]></example>
     </section>
 </sections>
 
-
+<links>
+    <link href="http://www.ajaxvideotutorials.com/V11Videos/Dialog_dynamicallyRepopulateAcheckboxOrRadioButton.swf">this video</link>
+</links>
 
 
 <see>
