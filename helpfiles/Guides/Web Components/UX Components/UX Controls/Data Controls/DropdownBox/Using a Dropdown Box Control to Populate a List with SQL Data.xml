@@ -1,10 +1,214 @@
 <page>
     <shortlink>ux data controls dropdown box populate using a dropdown box control to populate a list with sql data</shortlink>
     <topic>Using a Dropdown Box Control to Populate a List with SQL Data</topic>
-    <description>It is possible to create a dropdown box control that is populated using data from a field in an SQL table. 
-        Item selections in the generated dropdown list can then be used to fill in related data in a list control 
-        with a static data type.</description>
+    <description>It is possible to create a dropdown box control with static choices that, when selected, will populate a 
+        static list with SQL based data.</description>
 
  
+
+<sections>
+    
+    <section>
+        <steps>
+            <step>
+                <description>In the UX Builder on the UX Controls page open the 'Data Controls' menu. 
+                    Click on the [DropdownBox] option to add a dropdown box control to the component. 
+                    Give the control the name and label 'country'.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Highlight the dropdown box in the controls tree. In the properties list on the right 
+                    scroll down to the 'DropDownBox Properties' section and click on the [...] button 
+                    next to the 'Choices' property.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>In the 'Define Choices' dialog select 'Static' in the 'Choices are' menu. 
+                    In the 'Static Choices' section add the following static choices. Click OK.
+                </description>
+                <example><![CDATA[USA
+UK
+France
+Canada
+Italy
+Spain]]></example>
+                
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Scroll down the properties list to the 'Javascript' section. 
+                    Click the [...] button next to the 'onChange' property.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>In the 'Edit onChange Event' dialog select the 'Action Javascript' option in the editing mode 
+                    menu. Click the 'Add New Action' button.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Type 'ajax' into the filter list textbox and select the 'Ajax Callback' action and click OK.</description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>In the action's property settings set the 'Callback type' property to 
+                    'InternalXbasicFunction'.</description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Set the 'Function name' property to be 'populateList'. Click OK and 'Save'.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Return to the 'Data Controls' menu and click on the [List] option to add a list control 
+                    to the component. Leave the name of the list control set to 'list1'.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description>Highlight the list control in the controls tree. Click the [...] button next to the 
+                    'List properties' property in the 'List Properties' section. The List Builder will open.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description>In the List Builder open the 'Data Source' pane. Set the 'Data Source Type' to 
+                    'Static'.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description>In the data source property settings click the [...] button next to the 
+                    'Static data' property.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description>Add the following static choices to the 'Static Choices' dialog. Click OK.</description>
+                <example><![CDATA[CustomerId|ContactName|City|Country]]></example>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description>Open the 'List Layout' pane. Use the blue > arrow to move the 'CustomerId', 
+                    'ContactName', 'City', and 'Country' fields from the 'Available Fields section to the 
+                    'Columns in List' section. Click OK to close the list builder.</description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+        </steps>
+
+    </section>
+      <section>
+        <steps>
+              <step>
+                <description>In the UX Builder's main menu expand the 'Code' menu and click on the 
+                    'Xbasic functions' page.
+                </description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description>Define the populateList function by adding the following code to the page.</description>
+                <example><![CDATA[function populateList as c (e as p)
+
+dim cn as sql::Connection
+flag = cn.open("::Name::AADemo-Northwind")
+if flag = .f. then
+	 dim js as c
+	 js = "alert('Could not connect to database.');"
+	 populateList = js
+	 exit function
+end if
+
+dim sql as c
+sql = "select CustomerId, ContactName, City, Country from Customers where Country = :whatcountry"
+dim args as sql::Arguments
+args.add("whatCountry",e.datasubmitted.country)
+flag = cn.Execute(sql,args)
+
+if flag = .f. then 
+	js = "alert('Could not execute query. Error: " + js_escape(cn.CallResult.text) + "');"
+	populateList = js
+	cn.close()
+	exit function
+end if
+
+dim rs as sql::ResultSet
+rs = cn.ResultSet
+dim json as c
+json = rs.ToJSONObjectSyntax()
+
+json = stritran(json,crlf(),"," + crlf())
+json = "[" + rtrim(json,",") + "]"
+
+dim js as c
+js = "var lObj = {dialog.object}.getControl('list1');" + crlf()
+js = js + "var _data = " + json + crlf()
+js = js + "lObj.populate(_data);"
+
+populateList = js
+
+cn.FreeResult()
+delete rs
+cn.close()
+
+end function]]></example>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            
+            <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+             <step>
+                <description></description>
+                <figure><link>images/pl.png</link></figure>
+            </step>
+            
+            
+            
+            
+        </steps>
+        
+        
+        
+        
+    </section>
+    
+    
+    
+</sections>
+
+
 
 </page>
