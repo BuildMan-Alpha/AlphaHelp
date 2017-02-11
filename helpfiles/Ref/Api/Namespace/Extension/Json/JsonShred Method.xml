@@ -5,18 +5,199 @@
 		<argument>
 			<name>json</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Json to 'schred'</description>
 		</argument>
 		<argument>
 			<name>jsonFieldtemplate</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Shape of the json we want to 'shred'</description>
 		</argument>
 		<argument>
 			<name>topName</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Optional 'topname' (if ommit __top) is used.</description>
 		</argument>
 	</arguments>
-	<description>Shreads json levels described by template (which can contained added 'key' fields) into direct children on a top level JSON object.</description>
+	<description>Shreds json levels described by template (which can contained added 'key' fields) into direct children on a top level JSON object.</description>
+	
+    <sections> 
+        <section>
+            <title>Example Shred Parent/Child/Grandchild Json</title>
+            <description>
+                In this example, each levels already has all the keys required, we we just need to describe the 'shape' of data we want to shred.
+            </description>
+    <example>
+<![CDATA[    
+dim schema as c 
+schema = <<%str%
+[
+    {
+        "orders" : [
+            {
+                "OrderItems" : [
+                  { 
+                  }
+                ]
+            }
+        ]
+    }
+]
+%str%
+
+dim json as c = <<%str%
+[
+        {
+            "CustomerID": "ALFKI",
+            "CompanyName": "Alfreds Futterkistes",
+            "orders": [
+                {
+                    "OrderID": "10643",
+                    "CustomerID": "ALFKI",
+                    "OrderDate": "08/25/1997 12:00:00 000 am",
+                    "orderItems": [
+                        {
+                            "OrderID": "10643",
+                            "ProductID": "28",
+                            "Quantity": "15",
+                            "UnitPrice": "2"
+                        },
+                        {
+                            "OrderID": "10643",
+                            "ProductID": "39",
+                            "Quantity": "21",
+                            "UnitPrice": "18"
+                        }
+                    ]
+                },
+                {
+                    "OrderID": "10702",
+                    "CustomerID": "ALFKI",
+                    "OrderDate": "10/13/1997 12:00:00 000 am",
+                    "orderItems": [
+                        {
+                            "OrderID": "10702",
+                            "ProductID": "3",
+                            "Quantity": "6",
+                            "UnitPrice": "10"
+                        },
+                        {
+                            "OrderID": "10702",
+                            "ProductID": "76",
+                            "Quantity": "15",
+                            "UnitPrice": "18"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "CustomerID": "ANATR",
+            "CompanyName": "Ana Trujillo Emparedados y helados",
+            "orders": [
+                {
+                    "OrderID": "10308",
+                    "CustomerID": "ANATR",
+                    "OrderDate": "09/18/1996 12:00:00 000 am",
+                    "orderItems": [
+                        {
+                            "OrderID": "10308",
+                            "ProductID": "69",
+                            "Quantity": "1",
+                            "UnitPrice": "3"
+                        },
+                        {
+                            "OrderID": "10308",
+                            "ProductID": "70",
+                            "Quantity": "5",
+                            "UnitPrice": "12"
+                        }
+                    ]
+                }
+            ]
+        }
+]
+%str%
+
+dim out as c = extension::JSON::JsonShred(json,schema)	
+]]></example>            
+        </section>
+        <section>
+        <description>
+           Output Prdocued by the shred is an object where the nested data is collected into arrays under a single top level object.
+        </description>
+    <example>
+<![CDATA[
+{
+    "__top": [
+        {
+            "CustomerID": "ALFKI",
+            "CompanyName": "Alfreds Futterkistes"
+        },
+        {
+            "CustomerID": "ANATR",
+            "CompanyName": "Ana Trujillo Emparedados y helados"
+        }
+    ],
+    "orders": [
+        {
+            "OrderID": "10643",
+            "CustomerID": "ALFKI",
+            "OrderDate": "08/25/1997 12:00:00 000 am"
+        },
+        {
+            "OrderID": "10702",
+            "CustomerID": "ALFKI",
+            "OrderDate": "10/13/1997 12:00:00 000 am"
+        },
+        {
+            "OrderID": "10308",
+            "CustomerID": "ANATR",
+            "OrderDate": "09/18/1996 12:00:00 000 am"
+        }
+    ],
+    "OrderItems": [
+        {
+            "OrderID": "10643",
+            "ProductID": "28",
+            "Quantity": "15",
+            "UnitPrice": "2"
+        },
+        {
+            "OrderID": "10643",
+            "ProductID": "39",
+            "Quantity": "21",
+            "UnitPrice": "18"
+        },
+        {
+            "OrderID": "10702",
+            "ProductID": "3",
+            "Quantity": "6",
+            "UnitPrice": "10"
+        },
+        {
+            "OrderID": "10702",
+            "ProductID": "76",
+            "Quantity": "15",
+            "UnitPrice": "18"
+        },
+        {
+            "OrderID": "10308",
+            "ProductID": "69",
+            "Quantity": "1",
+            "UnitPrice": "3"
+        },
+        {
+            "OrderID": "10308",
+            "ProductID": "70",
+            "Quantity": "5",
+            "UnitPrice": "12"
+        }
+    ]
+}
+]]></example>        
+        </section>
+    </sections>
+
+
+
 </page>
