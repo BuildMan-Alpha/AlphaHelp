@@ -1,0 +1,100 @@
+<page generated="true" api="xb">
+	<topic>extension::json JsonAddFields Method</topic>
+	<prototype static="true">.JsonAddFields as c (json as C, jsonFieldtemplate as C)</prototype>
+	<arguments>
+		<argument>
+			<name>json</name>
+			<type>C</type>
+			<description>JSON to process.</description>
+		</argument>
+		<argument>
+			<name>jsonFieldtemplate</name>
+			<type>C</type>
+			<description>Template with 'shape' of JSON to process, including fields to add.</description>
+		</argument>
+	</arguments>
+	<description>Adds fields from a template that matches the 'shape' of the input json.</description>
+	<discussion>
+	    This function allows for fields to be added, populated using a template.  The template is populated from field references enclosed in '{}', 
+	    parent object fields can be pulled in using a "../" prefix on the field, multiple "../" prefix in front  of a field can look up multiple levels (i.e. 
+	    grandparent).
+	</discussion>
+	<example>
+<![CDATA[
+dim schema as c 
+schema = <<%str%
+[
+    {
+        "orders" : [
+            {
+                "RecordId" : "{../CustomerID} {OrderId}",                
+                "OrderItems" : [
+                  {
+                      "OrderID" : "{../OrderId}"
+                  }
+                ]
+            }
+        ]
+    }
+]
+%str%
+
+dim json as c = <<%str%
+[
+        {
+            "CustomerID": "ALFKI",
+            "CompanyName": "Alfreds Futterkistes",
+            "orders": [
+                {
+                    "OrderID": "10643",
+                    "OrderDate": "08/25/1997 12:00:00 000 am",
+                    "orderItems": [
+                        {
+                            "ProductID": "28",
+                            "Quantity": "15",
+                            "UnitPrice": "2"
+                        },
+                        {
+                            "ProductID": "39",
+                            "Quantity": "21",
+                            "UnitPrice": "18"
+                        }
+                    ]
+                } 
+            ]
+        }
+]
+%str%
+
+dim out as c = extension::JSON::JsonAddFields(json,schema)
+? out
+[
+    {
+        "CustomerID": "ALFKI",
+        "CompanyName": "Alfreds Futterkistes",
+        "orders": [
+            {
+                "RecordId": "ALFKI 10643",
+                "OrderID": "10643",
+                "OrderDate": "08/25/1997 12:00:00 000 am",
+                "orderItems": [
+                    {
+                        "OrderID": "10643",
+                        "ProductID": "28",
+                        "Quantity": "15",
+                        "UnitPrice": "2"
+                    },
+                    {
+                        "OrderID": "10643",
+                        "ProductID": "39",
+                        "Quantity": "21",
+                        "UnitPrice": "18"
+                    }
+                ]
+            }
+        ]
+    }
+]
+]]>	
+	</example>
+</page>
