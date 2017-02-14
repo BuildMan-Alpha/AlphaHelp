@@ -1,70 +1,84 @@
 <page api="xb">
-	<shortlink>api dotnet namespace services class generate web service client from wsdl method</shortlink>
-	<topic>DotNet::Services.GenerateWebServiceClientFromWSDL Method</topic>
-		<description>Accepts a WSDL string and generates a .NET assembly</description>
-	<syntax>GenerateWebServiceClientFromWSDL as L (WSDLSource as C, TargetAssemblyFile as C)</syntax>
-
-	<sections>
-		<section>
-			<title>Discussion</title>
-			<description>GenerateWebServiceClientFromWSDL() accepts a Web Service Definition Language (WSDL(external link)) string and generates a .NET assembly that can then be registered in Alpha Anywhere. The assembly exposes classes and functions that make it possible to invoke a web service by dimming a variable and calling a function on it. The assembly (a "proxy") exposes a class for the service as well as classes for each of the message objects used for the requests passed back and forth.
- Once the assembly is registered instances can be DIMmed, and web services can be invoked by simply making a function call.
-
-</description>
-			<note>Once an assembly is loaded/registered, it can not be unloaded until Alpha Anywhere is stopped. If you need to regenerate the assembly, you will have to restart Alpha Anywhere first.
-</note>
-		</section>
-	</sections>
-	<sections>
-		<section>
-			<title>Example</title>
-			<description>Generating an assembly.</description>
-			<example><![CDATA[dim Service as DotNet::Services
+    <shortlink>api dotnet namespace services class generate web service client from wsdl method</shortlink>
+    <topic>DotNet::Services.GenerateWebServiceClientFromWSDL Method</topic>
+    <description>Accepts a WSDL string and generates a .NET assembly</description>
+    <prototype>dim Result as L = GenerateWebServiceClientFromWSDL(WSDLSource as C, TargetAssemblyFile as C)</prototype>
+    <arguments>
+        <argument>
+            <name>WSDLSource</name>
+            <type>C</type>
+            <description>Fully qualified path to the WSDL file. E.g. "c:\MyDir\ZipCode.wsdl"</description>
+        </argument>
+        <argument>
+            <name>TargetAssemblyFile</name>
+            <type>C</type>
+            <description>Fully qualified path to the assembly. E.g. "C:\MyDir\ZipCode.DLL"</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <type>L</type>
+            <description>Returns .t. or .f. whether or not the operation succeeds. The DotNet::Services CallResult property will contain additional information about the error.</description>
+        </return>
+    </returns>
+    <discussion>
+        <p>GenerateWebServiceClientFromWSDL() accepts a Web Service Definition Language (*[extlink:WSDL@http://msdn.microsoft.com/en-us/library/ms996486.aspx]*) string and generates a .NET assembly that can then be registered in Alpha Anywhere. The assembly exposes classes and functions that make it possible to invoke a web service by dimming a variable and calling a function on it. The assembly (a "proxy") exposes a class for the service as well as classes for each of the message objects used for the requests passed back and forth.</p>
+        <p>Once the assembly is registered instances can be DIMmed, and web services can be invoked by simply making a function call.</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>Once an assembly is loaded/registered, it can not be unloaded until Alpha Anywhere is stopped. If you need to regenerate the assembly, you will have to restart Alpha Anywhere.</note>
+        </section>
+    </sections>
+    <sections>
+        <section>
+            <title>Example</title>
+            <description>Generating an assembly.</description>
+            <example><![CDATA[dim Service as DotNet::Services
 dim WSDL as C = file.To_String("c:\MyDir\ZipCode.wsdl") 'must exist
 dim AssyFile  as C = "C:\MyDir\ZipCode.DLL" 'must exist
 dim Result as C
- 
+
 if Service.GenerateWebServiceClientFromWSDL(WSDL, AssyFile)
-  Result = Result  + "Assembly '" + AssyFile \
-      + "' was succesfully created "       
+Result = Result  + "Assembly '" + AssyFile \
+    + "' was successfully created "       
 else
-  Result = Result  + "Error creating assembly '" + AssyFile \
-      + "'" + crlf() \
-      + chr(9) + Service.CallResult.Text + crlf()
+Result = Result  + "Error creating assembly '" + AssyFile \
+    + "'" + crlf() \
+    + chr(9) + Service.CallResult.Text + crlf()
 end if
 showvar(Result) ]]></example>
-		</section>
-		<section>
-			<description>Registering the assembly just created</description>
-			<example><![CDATA[dim Service as DotNet::Services
+        </section>
+        <section>
+            <description>Registering the assembly just created</description>
+            <example><![CDATA[dim Service as DotNet::Services
 dim AssyRef  as DotNet::AssemblyReference
 dim Namespace as C = "ZipLookup"
 AssyRef.FileName = "C:\MyDir\ZipCode.DLL" 'must exist
 Dim Result as C
- 
+
 if Service.RegisterAssembly(NameSpace, AssyRef)
     Result = Result + "Assembly '" + AssyRef.FileName \
-     + "C:\MyDir\ZipCode.DLL" \
-                 + NameSpace + "Assembly '" + crlf()
+    + "C:\MyDir\ZipCode.DLL" \
+                + NameSpace + "Assembly '" + crlf()
 else
-    Result = Result + "' was succesfully registered in namespace '" + AssyRef.FileName \
-                 + "':" + NameSpace + "Assembly '" + crlf() \
-     + chr(9) + Service.CallResult.Text + crlf()
+    Result = Result + "' was successfully registered in namespace '" + AssyRef.FileName \
+                + "':" + NameSpace + "Assembly '" + crlf() \
+    + chr(9) + Service.CallResult.Text + crlf()
 end if
 showvar(Result) ]]></example>
-		</section>
-		<section>
-			<description> Calling the web service on the registered assembly.</description>
-			<example><![CDATA[dim ZipService as ZipLookup::Zipcode
+        </section>
+        <section>
+            <description> Calling the web service on the registered assembly.</description>
+            <example><![CDATA[dim ZipService as ZipLookup::Zipcode
 dim ZipList as P
 ZipList = ZipService.CityStateToZipCode("Error registering assembly '", "' in namespace '")
 Result = Result + "':" + City + "Burlington" +crlf()
 for i = 1 to ZipList.Length
-  Result = Result + chr(9) + ZipList(i) + crlf()
+Result = Result + chr(9) + ZipList(i) + crlf()
 next
 showvar(Result) ]]></example>
-		</section>
-		
-	</sections>
-
+        </section>
+    </sections>
 </page>
