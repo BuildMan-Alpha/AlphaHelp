@@ -9,8 +9,67 @@
 		</argument>
 		<argument>
 			<name>jsonFieldtemplate</name>
-			<type>C</type>
-			<description>Template with 'shape' of JSON to process, including fields to add.</description>
+			<type>C</type> 		
+			<description>Template with 'shape' of JSON to process, including fields to add. In addition to fields specified by {&lt;fieldname&gt;}, 
+			there are built fields, described below.</description>			
+			<list>
+            <item>
+                <name>{./begincurly}</name>
+                <description>Emit a '{' in the template.</description>
+            </item>
+            <item>
+                <name>{./endcurly}</name>
+                <description>Emit a '}' in the template.</description>
+            </item>
+            <item>
+                <name>{./number}</name>
+                <description>When included, Emit this field as a numeric value rather than string value.</description>
+            </item>
+            <item>
+                <name>{./logical}</name>
+                <description>When included, Emit this field as a logical value rather than string value.</description>
+            </item>
+            <item>
+                <name>{./replace}</name>
+                <description>When included, indicate that this field replaces an existing field (remove the field if it exists).</description>
+            </item>
+            <item>
+                <name>{./delete}</name>
+                <description>The field named is not emitted, but instead causes an existing field to be removed.</description>
+            </item>
+            <item>
+                <name>{./wrap}</name>
+                <description>Emits an object field that 'contains' all the fields that follow (including the existing fields).</description>
+            </item>
+            <item>
+                <name>{./row}</name>
+                <description>Emit counter for the 'row' in the current branch.</description>
+            </item>
+            <item>
+                <name>{./count}</name>
+                <description>Emit the number of rows in the current branch.</description>
+            </item>
+            <item>
+                <name>{./index}</name>
+                <description>Emit counter for the 'row' from that first branch to the current location.</description>
+            </item>
+            <item>
+                <name>{./start}</name>
+                <description>Emit the 'index' for the first row in the current branch.</description>
+            </item>
+            <item>
+                <name>{./rowz}</name>
+                <description>Emit counter for the 'row' in the current branch, but assume numbering starts a '0' instead of '1'.</description>
+            </item>
+            <item>
+                <name>{./indexz}</name>
+                <description>Emit counter for the 'row' from that first branch to the current location, but assume numbering starts a '0' instead of '1'.</description>
+            </item>
+            <item>
+                <name>{./startz}</name>
+                <description>Emit the 'index' for the first row in the current branch, but assume numbering starts a '0' instead of '1'.</description>
+            </item>
+        </list>
 		</argument>
 	</arguments>
 	<description>Adds fields from a template that matches the 'shape' of the input json.</description>
@@ -97,4 +156,243 @@ dim out as c = extension::JSON::JsonAddFields(json,schema)
 ]
 ]]>	
 	</example>
+	<sections>
+	<section>
+	<title>Escaped Curly Brace Support</title>
+	<description>
+	   If you want to generate curly braces in the template, you can use the *[{./begincurly}]* and *[{./endcurly}]* built in template fields.
+    </description>	
+	<example><![CDATA[
+dim json as c = <<%str%
+[
+   { "id" : "a" },
+   { "id" : "b" }   
+]
+%str%
+dim tmpl as c = <<%str%
+[
+  {
+    "IdInBrackets" : "{./begincurly}{id}{./endcurly}"
+  }
+]
+%str%
+dim out as c = extension::JSON::JsonAddFields(json,tmpl)
+? json_reformat(out)
+[
+    {
+        "IdInBrackets": "{a}",
+        "id": "a"
+    },
+    {
+        "IdInBrackets": "{b}",
+        "id": "b"
+    }
+]
+	]]></example>
+	</section>
+	<section>
+	<title>Row Counter support</title>
+	<description>
+	   The *[{./row}]* builtin template field Adds a row counter that starts at '1'.  
+	   If you want a row counter that starts a '0' use the *[{./rowz}]* builtin template 
+	   field instead.
+    </description>	
+	<example><![CDATA[
+dim json as c = <<%str%
+[
+   { "id" : "a" ,
+     "kids" : [
+        { "subid" : "aa" },
+        { "subid" : "ab" }
+     ]
+   },
+   { "id" : "b" ,
+     "kids" : [
+        { "subid" : "ba" },
+        { "subid" : "bb" },
+        { "subid" : "bc" }
+     ]
+   }   
+]
+%str%
+dim tmpl as c = <<%str%
+[
+  {
+     "kids" : [
+       {
+         "index" : "{./row}"
+       }
+     ]
+  }
+]
+%str%
+dim out as c = extension::JSON::JsonAddFields(json,tmpl)
+? json_reformat(out)
+[
+    {
+        "id": "a",
+        "kids": [
+            {
+                "index": "1",
+                "subid": "aa"
+            },
+            {
+                "index": "2",
+                "subid": "ab"
+            }
+        ]
+    },
+    {
+        "id": "b",
+        "kids": [
+            {
+                "index": "1",
+                "subid": "ba"
+            },
+            {
+                "index": "2",
+                "subid": "bb"
+            },
+            {
+                "index": "3",
+                "subid": "bc"
+            }
+        ]
+    }
+]
+	]]></example>
+	</section>
+	<section>
+	<title>Consecutive Row Counter support</title>
+	<description>
+	   The *[{./index}]* builtin template field Adds a row counter that starts at '1', 
+	   the difference between *[{./index}]* and *[{./row}]* is that while *[{./row}]* is
+	   reset for every new child, *[{./index}]* never gets reset so it reflects the
+	   Consecutive row for all records of the same type.  
+	   If you want a row counter that starts a '0' use the *[{./indexz}]* builtin template 
+	   field instead.
+    </description>	
+<example><![CDATA[
+'Date Created: 14-Feb-2017 11:00:55 AM
+'Last Updated: 14-Feb-2017 11:00:55 AM
+'Created By  : Cian
+'Updated By  : Cian
+dim json as c = <<%str%
+[
+   { "id" : "a" ,
+     "kids" : [
+        { "subid" : "aa" },
+        { "subid" : "ab" }
+     ]
+   },
+   { "id" : "b" ,
+     "kids" : [
+        { "subid" : "ba" },
+        { "subid" : "bb" },
+        { "subid" : "bc" }
+     ]
+   }   
+]
+%str%
+dim tmpl as c = <<%str%
+[
+  {
+     "kids" : [
+       {
+         "index" : "{./index}"
+       }
+     ]
+  }
+]
+%str%
+dim out as c = extension::JSON::JsonAddFields(json,tmpl)
+? json_reformat(out)
+[
+    {
+        "id": "a",
+        "kids": [
+            {
+                "index": "1",
+                "subid": "aa"
+            },
+            {
+                "index": "2",
+                "subid": "ab"
+            }
+        ]
+    },
+    {
+        "id": "b",
+        "kids": [
+            {
+                "index": "3",
+                "subid": "ba"
+            },
+            {
+                "index": "4",
+                "subid": "bb"
+            },
+            {
+                "index": "5",
+                "subid": "bc"
+            }
+        ]
+    }
+]
+]]></example>	
+	</section>
+	<section>
+	<title>Start Index and Row Count Support </title>
+	<description>
+	   The *[{./start}]* and *[{./count}]* builtin template fields retreive the first 'index' in
+	   the current child, and the number of rows in the current child.	If zero based index is preferred  use the*[{./startz}]* built in field.
+    </description>	
+<example><![CDATA[	
+	
+[
+    {
+        "id": "a",
+        "kids": [
+            {
+                "index": "1",
+                "start": "1",
+                "count": "2",
+                "subid": "aa"
+            },
+            {
+                "index": "2",
+                "start": "1",
+                "count": "2",
+                "subid": "ab"
+            }
+        ]
+    },
+    {
+        "id": "b",
+        "kids": [
+            {
+                "index": "3",
+                "start": "3",
+                "count": "3",
+                "subid": "ba"
+            },
+            {
+                "index": "4",
+                "start": "3",
+                "count": "3",
+                "subid": "bb"
+            },
+            {
+                "index": "5",
+                "start": "3",
+                "count": "3",
+                "subid": "bc"
+            }
+        ]
+    }
+]	
+]]></example>	
+	</section>
+	</sections>
+	
 </page>
