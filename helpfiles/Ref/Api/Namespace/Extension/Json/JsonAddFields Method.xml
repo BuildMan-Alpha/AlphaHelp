@@ -69,6 +69,18 @@
                 <name>{./startz}</name>
                 <description>Emit the 'index' for the first row in the current branch, but assume numbering starts a '0' instead of '1'.</description>
             </item>
+            <item>
+                <name>{./&lt;child&gt;/./start}</name>
+                <description>Emit the 'start' Index of the first entry in a specified child array field.</description>
+            </item>
+            <item>
+                <name>{./&lt;child&gt;/./count}}</name>
+                <description>Emit the count  of the entries in a specified child array field.</description>
+            </item>
+            <item>
+                <name>{./&lt;child&gt;/./startz}</name>
+                <description>Emit the 'start' Index of the first entry in a specified child array field, but assume numbering starts a '0' instead of '1'.</description>
+            </item>
         </list>
 		</argument>
 	</arguments>
@@ -345,10 +357,41 @@ dim out as c = extension::JSON::JsonAddFields(json,tmpl)
 	<title>Start Index and Row Count Support </title>
 	<description>
 	   The *[{./start}]* and *[{./count}]* builtin template fields retreive the first 'index' in
-	   the current child, and the number of rows in the current child.	If zero based index is preferred  use the*[{./startz}]* built in field.
+	   the current set of rows, and the number of rows in the current set of rows.	If zero based index is preferred  use the*[{./startz}]* built in field.
     </description>	
 <example><![CDATA[	
-	
+dim json as c = <<%str%
+[
+   { "id" : "a" ,
+     "kids" : [
+        { "subid" : "aa" },
+        { "subid" : "ab" }
+     ]
+   },
+   { "id" : "b" ,
+     "kids" : [
+        { "subid" : "ba" },
+        { "subid" : "bb" },
+        { "subid" : "bc" }
+     ]
+   }   
+]
+%str%
+dim tmpl as c = <<%str%
+[
+  {
+     "kids" : [
+       {
+          "index" : "{./index}",
+          "start" : "{./start}",
+          "count" : "{./count}"
+       }
+     ]
+  }
+]
+%str%
+dim out as c = extension::JSON::JsonAddFields(json,tmpl)
+? json_reformat(out)	
 [
     {
         "id": "a",
@@ -392,6 +435,79 @@ dim out as c = extension::JSON::JsonAddFields(json,tmpl)
     }
 ]	
 ]]></example>	
+	</section>
+	<section>
+	<title>Count and Start of a Child</title>
+	<description>
+	   The *[{./&lt;child&gt;/./start}]* and *[{./&lt;child&gt;/./count}]* builtin template fields retreive the first 'index' in
+	   the specified child of the current row, and the number of rows in the specified child.	If zero based index is preferred 
+	   use the*[{./&lt;child&gt;/./startz}]* built in field.
+    </description>	
+<example><![CDATA[	
+dim json as c = <<%str%
+[
+   { "id" : "a" ,
+     "kids" : [
+        { "subid" : "aa" },
+        { "subid" : "ab" }
+     ]
+   },
+   { "id" : "b" ,
+     "kids" : [
+        { "subid" : "ba" },
+        { "subid" : "bb" },
+        { "subid" : "bc" }
+     ]
+   }   
+]
+%str%
+dim tmpl as c = <<%str%
+[
+  {
+     "kidstart" : "{./number}{./kids/./start}",
+     "nkid" : "{./number}{./kids/./count}",
+     "kids" : [
+       {
+       }
+     ]
+  }
+]
+%str%
+dim out as c = extension::JSON::JsonAddFields(json,tmpl)
+? json_reformat(out)
+[
+    {
+        "kidstart": 1,
+        "nkid": 2,
+        "id": "a",
+        "kids": [
+            {
+                "subid": "aa"
+            },
+            {
+                "subid": "ab"
+            }
+        ]
+    },
+    {
+        "kidstart": 3,
+        "nkid": 3,
+        "id": "b",
+        "kids": [
+            {
+                "subid": "ba"
+            },
+            {
+                "subid": "bb"
+            },
+            {
+                "subid": "bc"
+            }
+        ]
+    }
+]
+]]></example>
+
 	</section>
 	</sections>
 	
