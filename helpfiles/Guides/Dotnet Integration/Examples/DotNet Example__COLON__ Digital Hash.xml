@@ -13,9 +13,7 @@
             </note>
         </section>
         <section>
-            <description>
-                The C# code:
-            </description>
+            <description>The C# code used to create the DLL, "DigitalHash.dll":</description>
             <example>
                 <![CDATA[using System;
 using System.Collections.Generic;
@@ -83,73 +81,77 @@ namespace HashLib
             </example>
         </section>
         <section>
-            <description>The Xbasic wrapper function:</description>
+            <description>The Xbasic module that contains the wrapper function:</description>
             <example>
                 <![CDATA[FUNCTION HMAC_HASH as C(data as C, key as C, assembly_path as C, algorithm as C = "HMACSHA1")
-    ' <param name="data"></param>
-    dim alg as C = upper(algorithm) 
+  'debug(1)
+  dim alg as C = upper(algorithm)
+ 
+  'register .NET class
+  dim sv as DotNet::Services
+  dim assembly as DotNet::AssemblyReference
+  assembly.FileName = assembly_path+"DigitalHash.dll"
+ 
+  IF .not. file.exists(assembly.FileName)
+    ui_msg_box("File not found",assembly.FileName)
+    end
+  END IF
+ 
+  IF sv.RegisterClass("","","HashLib.HMAC",assembly) THEN
+  'Call appropriate .NET method if registration succeeds
+    dim hash as DotNet::HashLib::HMAC
+    SELECT
+      CASE alg="HMACSHA1"
+        HMAC_HASH = hash.Sign1(data,key)
+ 
+      CASE alg="HMACSHA256"
+        HMAC_HASH = hash.Sign256(data,key)
+ 
+      CASE else
+        HMAC_HASH = hash.SignUsing(data,key,alg)
+    END SELECT
+  END IF
+END FUNCTION
 
-    ' <param name="key"></param>
-    dim sv as DotNet::Services
-    dim assembly as DotNet::AssemblyReference
-    assembly.FileName = assembly_path + "HashLib.dll"
-    
-    IF .not. file.exists(assembly.FileName)
-        ui_msg_box("File not found",assembly.FileName)
-        end
-    END IF
-    
-    IF sv.RegisterClass("","","",assembly) THEN
-        ' <returns>Signature</returns>
-        dim hash as DotNet::HashLib::HMAC
-
-        SELECT
-            CASE alg = "HMACSHA1"
-                HMAC_HASH = hash.Sign1(data,key)
-            
-            CASE alg = "HashLib.HMAC"
-                HMAC_HASH = hash.Sign256(data,key)
-            
-            CASE else
-                HMAC_HASH = hash.SignUsing(data,key,alg)
-        END SELECT
-    END IF
-
-END FUNCTION]]>
+exports.HMAC_HASH = HMAC_HASH]]>
             </example>
         </section>
         <section>
             <description>An interactive session to test the function:</description>
-            <example>
-                <![CDATA[path = "HMACSHA1"
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path)
-= "my data"
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HMACSHA1")
-= "my data"
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HashLib.HMAC")
-= "my key"
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "Wnw05dPAEo44+bw1luJqAWksvhE=")
-= "my data"
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "my key")
+            <example><![CDATA[dim xbm as p
+xbm = require("hmac_hash")
+
+path = "c:\path\to\DigitalHash\DLL\\"
+? xbm.HMAC_HASH("my data", "my key", path)
+= "Wnw05dPAEo44+bw1luJqAWksvhE="
+
+? xbm.HMAC_HASH("my data", "my key", path, "HMACSHA1")
+= "Wnw05dPAEo44+bw1luJqAWksvhE="
+
+? xbm.HMAC_HASH("my data", "my key", path, "HMACSHA256")
+= "kBhEzgLKNjSjjzQw7s240hvoY62kDG/wHDjYXry++nA="
+
+? xbm.HMAC_HASH("my data", "my key", path, "HMACSHA384")
+= "1819IdbuGcIweTIhYBwIK1mOmNrlpgRKK98gnDlVJyXug36wQoDWuBoGlB/GfMqc"
+
+? xbm.HMAC_HASH("my data", "my key", path, "MACTripleDES")
 ERROR: command: HMAC_HASH = hash.SignUsing(data,key,alg)
 Exception has been thrown by the target of an invocation.
 Specified key is not a valid size for this algorithm.
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "HMACSHA1")
-= "Wnw05dPAEo44+bw1luJqAWksvhE="
- 
-?HMAC_HASH("HMACSHA256", "C:\Users\martin\Documents\Visual Studio 2010\Projects\HashLib\HashLib\bin\Release\\", path, "my data")
+
+? xbm.HMAC_HASH("my data", "my key", path, "hMACmd5")
+= "6YeAf6EEZBgdF4BqkAQe/w=="
+
+? xbm.HMAC_HASH("my data", "my key", path, "garbage")
 ERROR: command: HMAC_HASH = hash.SignUsing(data,key,alg)
 Exception has been thrown by the target of an invocation.
-Object reference not set to an instance of an object.]]>
-            </example>
+Object reference not set to an instance of an object.]]></example>
+            <note>Try it out! [Click here] to download the DigitalHash.dll and hmac_hash xbasic module used in this example.</note>
         </section>
         <section>
-            <description>A [modified version of the hmac_hash() function] and the required .NET DLL shipped with Alpha Anywhere. The .NET DLL needed for running this sample (if you don't want to compile the C# yourself) is attached. (See attachments button at bottom of page)</description>
+            <description>
+                <p>A [modified version of the hmac_hash() function] and the required .NET DLL shipped with Alpha Anywhere. The .NET DLL needed for running this sample (if you don't want to compile the C# yourself) is attached. (See attachments button at bottom of page)</p>
+            </description>
         </section>
     </sections>
     <sections>
@@ -179,6 +181,7 @@ showvar(*to_hex(result))]]>
     </sections>
     <links>
         <link link="hmac_hash Function">modified version of the hmac_hash() function</link>
+        <link href="components/hmac_hash.zip">Click here</link>
     </links>
     <see>
         <ref href="http://msdn.microsoft.com/en-us/library/system.security.cryptography.aspx">.NET System.Security.Cryptography Namespace</ref>
