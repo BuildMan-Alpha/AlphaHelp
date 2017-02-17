@@ -406,11 +406,7 @@ end function]]></example>
           
           
       </section>
-        <section>
-          <description>*[The GetCalendarEventDataJSON() Function]*</description>
-         
-          
-      </section>
+       
   <section>
     <title>Line by Line Xbasic</title>
      
@@ -491,15 +487,42 @@ end if ]]></example>
   </section>
   <section>
     <description>Next a SQL statement joins the 'OrderId' and 'Customer' table from the Northwinds database 
-      together. The built in function a5_GetCalendarEventDataJSON() is then called in order to help retrieve 
-      the data.
+      together. The built in function a5_GetCalendarEventDataJSON() is then called. 
     </description>
+    
      <example><![CDATA[dim jsonData as c 
 dim def as p
-dim defn as p
+
+//...some code//
+
+jsonData = a5_GetCalendarEventDataJSON(defn)]]></example>
+     
+     
+  </section>
+
+  <section>
+    <description>The a5_GetCalendarEventDataJSON() function is a helper function that helps to retrieve data in the 
+      form of a json object. 
+      This function takes a definition, 'defn', as an argument. This definition is defined in the 
+      Xbasic getEvents function with the line 'dim defn as p'. The 'defn' object contains a number 
+      of properties. First the 'defn.type' property defines the definition's type. 
+      In this case the type is 'sql' but it could also be 'dbf'. The 
+      'defn.connectionString' property specifies the database that the data will be pulled from. In the 
+      video this is "::Name::access_northwind_odbc". This guide uses the connection 
+      string "::Name::AADemo-Northwind", the sample database created from Alpha Anywhere's main toolbar. 
+    </description>
+    <example><![CDATA[dim defn as p
 defn.type = "sql"
-defn.connectionString = "::Name::AADemo-Northwind"
-defn.tableName = <<%sql%
+defn.connectionString = "::Name::AADemo-Northwind"]]></example>
+    
+  </section>
+  <section>
+    <description>The 'defn.tableName' property specifies the table or sql statement that the data 
+      will be retrieved from. 
+      This can be a single table, although here it is a select statement. The statement joins 
+      both both the 'OrderId' table and the 'Customer' table.
+    </description>
+    <example><![CDATA[defn.tableName = <<%sql%
 SELECT Orders.OrderID as OrderId, 
 	concatenate(orders.orderid,': ', customers.companyname) as eventName, 
 	Orders.OrderDate as orderDate, 
@@ -507,20 +530,93 @@ SELECT Orders.OrderID as OrderId,
 FROM Orders Orders
 	 INNER JOIN Customers Customers
 		 ON  Orders.CustomerID = Customers.CustomerID
-%sql%
-
-defn.startDate = year(startDate) + "-" + month(startDate) + "-" + day(startDate)
-defn.endDate = year(endDate) + "-" + month(endDate) + "-" + day(endDate)
-defn.eventDate = "orderDate"
-defn.eventId = "orderId"
-defn.eventName = "eventName"
-defn.eventDescription = "eventdescription"  
-
-jsonData = a5_GetCalendarEventDataJSON(defn)]]></example>
-     
-     
+%sql%]]></example>
+  </section>
+  <section>
+    <description>The 'defn.startDate' and the 'defn.endDate' properties describe the start date and 
+      end date in the form year, month, day. This will make the function portable across different internation 
+      locations. 
+    </description>
+    <example><![CDATA[defn.startDate = year(startDate) + "-" + month(startDate) + "-" + day(startDate)
+defn.endDate = year(endDate) + "-" + month(endDate) + "-" + day(endDate)]]></example>
   </section>
   
+  <section>
+    <description>The field in the sql table that contains the event date is identified using the 
+      'defn.eventDate' property. The property 'defn.eventId' then states which field contains the 
+      event id. Similarly, the 'defn.eventName' and 'defn.eventDescription' properties 
+      specify the fields containing the event name and event description.
+    </description>
+    <example><![CDATA[defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "eventName"
+defn.eventDescription = "eventdescription"  ]]></example>
+    
+  </section>
+  <section>
+    <description>After all of the definition properties are defined the a5_GetCalendarEventDataJSON() 
+      function is called. 
+    </description>
+    <example><![CDATA[jsonData = a5_GetCalendarEventDataJSON(defn)]]></example>
+  </section>
+  <section>
+    <description>The function then takes all of the properties that are passed to it and returns 
+      data in the form of a JSON string. This data can be viewed in Alpha Anywhere by placing 'debug(1)' in the code 
+      after the a5_GetCalendarEventDataJSON() function call and then examining the jsonData variable. Here 
+      is what it should look like:</description>
+    <example><![CDATA[{
+'1994-8-4' : [{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}],
+'1994-8-5' : [{id: 10249,name: '10249: Toms Spezialitäten',detail: 'Order: 10249: Karin Josephs Toms Spezialitäten'}],
+'1994-8-8' : [{id: 10250,name: '10250: Hanari Carnes',detail: 'Order: 10250: Mario Pontes Hanari Carnes'},{id: 10251,name: '10251: Victuailles en stock',detail: 'Order: 10251: Mary Saveley Victuailles en stock'}],
+'1994-8-9' : [{id: 10252,name: '10252: Suprêmes délices',detail: 'Order: 10252: Pascale Cartrain Suprêmes délices'}],
+'1994-8-10' : [{id: 10253,name: '10253: Hanari Carnes',detail: 'Order: 10253: Mario Pontes Hanari Carnes'}],
+'1994-8-11' : [{id: 10254,name: '10254: Chop-suey Chinese',detail: 'Order: 10254: Yang Wang Chop-suey Chinese'}],
+'1994-8-12' : [{id: 10255,name: '10255: Richter Supermarkt',detail: 'Order: 10255: Michael Holz Richter Supermarkt'}],
+'1994-8-15' : [{id: 10256,name: '10256: Wellington Importadora',detail: 'Order: 10256: Paula Parente Wellington Importadora'}],
+'1994-8-16' : [{id: 10257,name: '10257: HILARIÓN-Abastos',detail: 'Order: 10257: Carlos Hernández HILARIÓN-Abastos'}],
+'1994-8-17' : [{id: 10258,name: '10258: Ernst Handel',detail: 'Order: 10258: Roland Mendel Ernst Handel'}],
+'1994-8-18' : [{id: 10259,name: '10259: Centro comercial Moctezuma',detail: 'Order: 10259: Francisco Chang Centro comercial Moctezuma'}],
+'1994-8-19' : [{id: 10260,name: '10260: Ottilies Käseladen',detail: 'Order: 10260: Henriette Pfalzheim Ottilies Käseladen'},{id: 10261,name: '10261: Que Delícia',detail: 'Order: 10261: Bernardo Batista Que Delícia'}],
+'1994-8-22' : [{id: 10262,name: '10262: Rattlesnake Canyon Grocery',detail: 'Order: 10262: Paula Wilson Rattlesnake Canyon Grocery'}],
+'1994-8-23' : [{id: 10263,name: '10263: Ernst Handel',detail: 'Order: 10263: Roland Mendel Ernst Handel'}],
+'1994-8-24' : [{id: 10264,name: '10264: Folk och fä HB',detail: 'Order: 10264: Maria Larsson Folk och fä HB'}],
+'1994-8-25' : [{id: 10265,name: '10265: Blondel père et fils',detail: 'Order: 10265: Frédérique Citeaux Blondel père et fils'}],
+'1994-8-26' : [{id: 10266,name: '10266: Wartian Herkku',detail: 'Order: 10266: Pirkko Koskitalo Wartian Herkku'}],
+'1994-8-29' : [{id: 10267,name: '10267: Frankenversand',detail: 'Order: 10267: Peter Franken Frankenversand'}],
+'1994-8-30' : [{id: 10268,name: '10268: GROSELLA-Restaurante',detail: 'Order: 10268: Manuel Pereira GROSELLA-Restaurante'}],
+'1994-8-31' : [{id: 10269,name: '10269: White Clover Markets',detail: 'Order: 10269: Karl Jablonski White Clover Markets'}]
+}]]></example>
+  </section>
+  <section>
+    <description>The data for the month of August 1994 is displayed. This is the date choosen in the default value that 
+      was defined for the calendar control. Entries in the json object are keyed to each day that an event took place. 
+      The events that occurred on any given day are returned in the form of an array, which in json is defined using square 
+      brackets '[]'. For the day '1994-8-4' the array looks like this:
+    </description>
+    <example><![CDATA[[{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}]]]></example>
+  </section>
+  <section>
+    <description>Each event inside each array is defined as an individual object using curly braces '{}'. For example, here is the one event that 
+      occurred on '1994-8-4'.
+    </description>
+    <example><![CDATA[{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}]]></example>
+  </section>
+  <section>
+    <description>For days with more than one event, such as '1994-8-8', the array contains multiple objects separated by a comma. This means 
+      that on any particular day there can be as many orders as desired.
+      
+    </description>
+    
+  </section>
+  
+  
+  
+  
+   <section>
+          <description>*[The a5_GetCalendarEventDataJSON() Function]*</description>
+         
+          
+      </section>
   
   </sections>
 
