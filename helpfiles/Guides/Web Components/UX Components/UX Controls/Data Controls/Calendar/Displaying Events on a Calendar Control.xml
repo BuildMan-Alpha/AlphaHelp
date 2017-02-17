@@ -396,16 +396,224 @@ end function]]></example>
       </section>
       
       <section>
-        <description>*[Handling Days in the Calendar with More than One Event]*</description>
-         
+        <description>*[The calendarDrawItem() Function]*</description>
+        
+        <example><![CDATA[function calendarDrawItem(ele,date,type) {
+	var curObj = {dialog.object}.getControl('DT1');
+	var calData = curObj._data;
+	
+	if(typeof curObj._menuItems == 'undefined') {
+		curObj._menuItems = {};
+	}
+	if(type == 'date') {
+		if(typeof calData != 'undefined') {
+			var dateStr = date.getFullYear() + '-' +(date.getMonth() + 1) + '-' + date.getDate();
+			if(typeof calData[dateStr] != 'undefined') {
+				var tempData = calData[dateStr];
+				var maxItemsToShow = 1
+				if(tempData.length > maxItemsToShow ) {
+					var windowContent = '';
+					var menuItems = [];
+					for(var i = 0; i < tempData.length; i++) {
+						menuItems.push({
+							html: '<span title="'+tempData[i].detail+'">' + tempData[i].name + '</span>',
+							onClick: Function('editEvent(\'' + tempData[i].id + '\')')
+						});
+					}	
+					curObj._menuItems[dateStr] = menuItems;
+					ele.innerHTML = ele.innerHTML + '<br><span onmouseover="showEventList(this,\''+dateStr+'\');">Multiple... (' + tempData.length + ')</span>';
+				} else {
+					for(var i = 0; i < tempData.length; i++) {
+						ele.innerHTML = ele.innerHTML + '<br>' + '<a class="{dialog.style}Link" href="#" title="'+tempData[i].detail+'" onclick="editEvent(\''+tempData[i].id+'\');$e.stopEvent(event); return false;">' +tempData[i].name +'</a>' ;
+					}		
+				}
+			}
+		}
+	}
+}]]></example>
+      </section>
+      <section>
+        <description>The calendarDrawItem() function draws the events that happen on a given day. 
+          The 'Item' in the function's name means 'day'. In order to draw events this function 
+          uses json data that is created after an ajax callback is made to the xbasic getEvent() function on the server. 
+          The server-side function uses a date to retrieve SQL data from the Northwinds database, and then converts 
+          this data into JSON data. The returned JSON data is then stored in the calendar object itself.
+          The getEvent() function is described in detail in the 'Line by Line Xbasic' section below.
+        </description>
+        
+      </section>
+      <section>
+        <description>
+        </description>
+        
+      </section>
+      
+      
+      <section>
+        <description>The first thing the calendarDrawItem() function does is to get a pointer to the 
+          calendar object and assign this pointer to a javascript variable named 'curObj'. The variable 'calData' 
+          then uses this pointer to the calendar object to reference the json data that was placed inside the calendar object 
+          after the ajax callback in the calendarMonthNavigate() function was made. 
+          The json data is stored in a variable called '_data'.</description>
+        <example><![CDATA[var curObj = {dialog.object}.getControl('DT1');
+	var calData = curObj._data;]]></example>
+        
+      </section>
+      <section>
+        <description>An if statement states that if the variable named 'curObj._menuItems' is undefined then this 
+          variable should be defined as a javascript object. This statement is used in the case that a given day has 
+          more than one event or order.
+        </description>
+        <example><![CDATA[if(typeof curObj._menuItems == 'undefined') {
+		curObj._menuItems = {};
+	}]]></example>
+      </section>
+      <section>
+        <description>The calendarDrawItem() function is called multiple times during the drawing of the calendar. 
+          It gets called when the month navigators are drawn and when the date navigators are called. 
           
+          When the days or 'items' are drawn, the 'type' variable, that is passed into the calendarDrawItem() 
+      function as an argument, is equal to the date. The days in the control only need to be populated if the 'type' is 
+      equal to date. This is accomplished using a second if statement states. This states that if the 
+      calendar data is defined then a block of code should be executed.</description>
+        <example><![CDATA[if(type == 'date') {
+		if(typeof calData != 'undefined') {...}}]]></example>
+      </section>
+      
+      
+      <section>
+        <description>The calendarDrawItem() function also takes 'date' as an argument that is passed into the function. 
+          The 'date' argument represents the day, or item, that the function is currently drawing. The 'ele' argument represents 
+          the id of the element on the calendar that is currently being drawn.  </description>
+        
+        
+      </section>
+      <section>
+        <description>A javascript variable called 'dateStr', or date string, is constructed. This variable 
+          contains the year, month, and date of the item that is being drawn. The 'dateStr' variable exactly 
+          matches the format shown in the JSON object, i.e. year-month-day or, for example, '1994-8-4'.
+          Because the formats used in the JSON object and the variable are the same, 
+          it is easy to quickly lookup data inside the object using the variable; and return the orders or events 
+          for a particular day.
+        </description>
+        <example><![CDATA[var dateStr = date.getFullYear() + '-' +(date.getMonth() + 1) + '-' + date.getDate();]]></example>
       </section>
         <section>
-          <description>*[Creating the Pop-up Window to Display Each Event]*</description>
+          <description>If orders do exist for the day we are are currently drawing then a second code block is executed.</description>
+          <example><![CDATA[if(typeof calData[dateStr] != 'undefined') {...}]]></example>
+          
+        </section>
+      <section>
+        <description>This second code block determines whether if the orders, or events, should be displayed by 
+          themselves or in a menu. If there are multiple orders on a given day, then the menu option is used. 
+          A variable called 'maxItemsToShow' specifies that only 1 order should be shown on a given day. This number 
+          can be changed to allow more orders to be displayed.
+          
+        </description>
+        <example><![CDATA[var maxItemsToShow = 1]]></example>
+        
+      </section>
+      <section>
+        <description>An if statement then describes that if there are more orders than the 'maxItemsToShow' variable allows, 
+          then a block of code that creates a pop-up menu should be run.
+        </description>
+        <example><![CDATA[if(tempData.length > maxItemsToShow ) {...}]]></example>
+      </section>
+      <section>
+        <description>The pop-up menu definition contains two variables. The first 'windowContent' is an empty string and 
+          the second 'menuItems' is an empty array.
+        </description>
+        <example><![CDATA[var windowContent = '';
+					var menuItems = [];]]></example>
+        
+      </section>
+      <section>
+        <description>A for statement loops over all of the orders for the specified day. The statement then populates 
+          the empty 'menuItems' array using the orders it finds. To do this, the statement pushes a 
+          json object on to the array. The json object contains two properties, 'html' and 'onClick'. </description>
+        <example><![CDATA[for(var i = 0; i < tempData.length; i++) {
+						menuItems.push({
+							html: '<span title="'+tempData[i].detail+'">' + tempData[i].name + '</span>',
+							onClick: Function('editEvent(\'' + tempData[i].id + '\')')
+						});]]></example>
+      </section>
+   <section>
+     <description>The html 
+          property is what gets displayed in the pop-up menu. It contains a <![CDATA[<span> tag. Inside the 
+            <span> tag is a title property that contains the actual details of the order. The <span> also 
+              contains the customer name.]]></description>
+     <example><![CDATA[html: '<span title="'+tempData[i].detail+'">' + tempData[i].name + '</span>',]]></example>
+     
+   </section>
+   <section>
+     
+     
+   </section>
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+     
+        <section>
+          <description>The second half of this code block handles what to do if there is only one order, or event, on the 
+            specified day. 
+          </description>
          
           
           
       </section>
+         <section>
+        <description>This sets the innerHTML of 'ele', one of the three arguments passed in to the calendarDrawItem() function. 
+          The 'ele' argument is a pointer to the actual html element on the page. This represents the display value inside the 
+          item, or day. The html of that element is set to a hyperlink
+        </description>
+        <example><![CDATA[ele.innerHTML = ele.innerHTML + '<br>' + '<a class="{dialog.style}Link" href="#" title="'+tempData[i].detail+'" onclick="editEvent(\''+tempData[i].id+'\');$e.stopEvent(event); return false;">' +tempData[i].name +'</a>' ;]]></example>
+      </section>
+      
+      <section>
+        <description>Here the class on the hyperlink is set to the current dialog style using </description>
+        <example><![CDATA[a class="{dialog.style}Link"]]></example>
+        
+      </section>
+      <section>
+        <description>The hyperlink's href is set to be a hash, #, since the href will be handled using javascript.</description>
+      <example><![CDATA[href="#"]]></example>
+      </section>
+      <section>
+        <description>The hyperlink's title is set to be a description of the order.</description>
+        <example><![CDATA[title="'+tempData[i].detail+'"]]></example>
+      </section>
+      <section>
+        <description>The hyperlink also contains an 'onClick' event. This is set to call the editEvent() javascript function. 
+          This function takes as an argument the id of the day to be edited.
+        </description>
+        <example><![CDATA[onclick="editEvent(\''+tempData[i].id+'\');]]></example>
+      </section>
+      <section>
+        <description>The e.stopEvent() function is then called in order to stop the event from bubbling up to higher levels. This 
+          prevents other parts of the code from handling the onClick event.
+        </description>
+        <example><![CDATA[$e.stopEvent(event);]]></example>
+        
+      </section>
+      <section>
+        <description>The last bit of code returns the name of the customer who placed the order and the closing html anchor tag.</description>
+        <example><![CDATA[' +tempData[i].name +'</a>' ;]]></example>
+      </section>
+      
+      
+      
+      
+      
+      
+      
        
   <section>
     <title>Line by Line Xbasic</title>
@@ -608,14 +816,29 @@ defn.eventDescription = "eventdescription"  ]]></example>
     </description>
     
   </section>
-  
+  <section>
+    <description>After the a5_GetCalendarEventDataJSON() function call returns the json data to the getEvents() function, 
+    the Xbasic function defined some javascript to send back in response to the ajax callback.</description>
+    <example><![CDATA[dim js as c  = ""]]></example>
+    
+      </section>
+  <section>
+    <description>The first line of this javascript creates a variable named '_cal'. This variable gets a 
+      pointer to the calendar object using the getControl() method. All of the JSON data that was returned 
+      from the a5_GetCalendarEventDataJSON() function is then placed inside a javascript variable called '_data'. 
+      Finally, the calendar's refresh() method is called. This will re-draw the calendar control calling the 
+      itemDraw() function for each day on the calendar.
+    </description>
+       <example><![CDATA[js = js + "var _cal = {dialog.object}.getControl('DT1');" + crlf()
+js = js + "_cal._data = " + jsonData + ";" + crlf()
+js = js + "_cal.refresh();"]]></example>
+  </section>
   
   
   
    <section>
-          <description>*[The a5_GetCalendarEventDataJSON() Function]*</description>
-         
-          
+       
+       
       </section>
   
   </sections>
