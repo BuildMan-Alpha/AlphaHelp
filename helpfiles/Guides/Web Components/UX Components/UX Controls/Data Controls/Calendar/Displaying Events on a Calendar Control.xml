@@ -11,10 +11,9 @@
             user navigates to a new month and contains a 
             query against the 'Orders' table in the 'Northwind' database. This query gets 
             a list of the orders that occurred on each day in each month. In order to display the results of this 
-            query on the calendar
-            
-            The boxes for each day can also be enlarged so that this data can be displayed on the 
-      calendar on the day that the event occurred.
+            query on the calendar some adjustments to the default calendar settings must also be changed. 
+            The boxes for each day need to be enlarged so that this data can be displayed on the 
+      calendar on the day that the event occurred. 
             
             
             For a visual explanation on how to do this watch this seven part video: [Part 1]
@@ -40,6 +39,12 @@
         <description>Add the following definition for a 'hiddenItems' css class and click OK.</description>
         <example><![CDATA[.hiddenItem {display: none;}]]></example>
          <figure><link>images/de27.png</link></figure>
+         <note>This css class prevents the dates from previous or later months being displayed on the calendar. 
+           For example, if you were looking at the month of August, then the last day of July and the first 
+           day of September would not be displayed. This is different from the default setting, 
+           which is to number the days of other months but have them appear disabled; using the disabled css class. 
+           The .hiddenItem class is called in the calendar's 'Date item out of range class name' property. 
+         </note>
       </step>
       
       
@@ -83,11 +88,13 @@
                       'None' next to the property.
                   </description>
                   <figure><link>images/de6.png</link></figure>
+                  <note>This prevents a highlight from appearing when a user hovers over a date.</note>
               </step>
               <step>
-                  <description>Set the 'Date item selected calss name' property to be 'None' by writing 
+                  <description>Set the 'Date item selected class name' property to be 'None' by writing 
                       'None' next to this property as well.</description>
                   <figure><link>images/de7.png</link></figure>
+                  <note>This prevents a highlight from occuring when a user selects a date.</note>
               </step>
               <step>
                   <description>Set the 'Date item out of range class name' property to be 'hiddenItem'.</description>
@@ -102,6 +109,7 @@
                       and 'Height' properties to be "1.5in". Click OK.
                   </description>
                   <figure><link>images/de10.png</link></figure>
+                  <note>This setting increases the size of each day's box inside the calendar.</note>
               </step>
               <step>
                   <description>In the calendar's 'Date/Time Picker Properties' section check 
@@ -112,10 +120,14 @@
                   <description>Click the '+' button next to the 'Has events' property 
                       to expand the events list. Next to the onItemDraw event write 'calendarDrawItem'.</description>
                   <figure><link>images/de12.png</link></figure>
+                  <note>Every time an item is drawn this javascript function is called. An 'item' here refers 
+                    to a given day in a month.
+                  </note>
               </step>
                <step>
                   <description>Next to the 'onMonthNavigate' event write 'calendarMonthNavigate'.</description>
                   <figure><link>images/de13.png</link></figure>
+                  <note>This calls a javascript function that draws the events everytime you navigate to a new month.</note>
               </step>
               <step>
                   <description>Expand the 'Events' menu and click on the 'Client-side' events page. In the 'Client-Side Events' 
@@ -297,7 +309,7 @@ js = js + "_cal._data = " + jsonData + ";" + crlf()
 js = js + "_cal.refresh();" 
 getEvents = js 
 
-end function ]]></example>
+end function]]></example>
                   <figure><link>images/de19.png</link></figure>
                  
               </step>
@@ -321,11 +333,68 @@ end function ]]></example>
       
        <section>
            <title>Line by Line Javascript Explanation</title>
-       
+       <description>In the Calendars 'Has events' properties two events were defined. These were the onItemDraw event, that 
+         was tied to the calendarDrawItem() function, and the onMonthNavigate event, that was tied to the calendarMonthNavigate(). 
+         
+         </description>
          
           
           
       </section>
+      <section>
+        <description>*[calendarMonthNavigate()]*</description>
+        <example><![CDATA[function calendarMonthNavigate(date) {
+	var calObj = {dialog.object}.getControl('DT1');
+
+	delete calObj._menuItems;
+	var menuName = '_CalendarDetailsMenu';
+	if(typeof calObj[menuName] != 'undefined') {	
+		calObj[menuName].hide();
+	}
+	var data = '_month=' + (calObj._dp._month+1) + '&_year=' +  calObj._dp._year;
+	{grid.Object}.ajaxCallback('G','','getEvents','',data);
+}]]></example>
+        
+        
+      </section>
+      <section>
+      <description>The first thing that this function does is to get a pointer to the calendar control.
+        This is done using the dialog objects getControl() method. The method takes as an argument the 
+        variable name of the calendar control, 'dt1'. This pointer is then assigned to a variable named 'calObj'
+      </description>
+      <example><![CDATA[var calObj = {dialog.object}.getControl('DT1');]]></example>
+      </section>
+      <section>
+        <description>An if statement then handles the logic that will shut down any pop-up 
+          windows that occur in situations where a calendar has more than one event displayed. The 
+          pop-up will close when you navigate to a new month.
+        </description>
+        <example><![CDATA[delete calObj._menuItems;
+	var menuName = '_CalendarDetailsMenu';
+	if(typeof calObj[menuName] != 'undefined') {	
+		calObj[menuName].hide();
+	}]]></example>
+        
+      </section>
+      <section>
+        <description>A variable named 'data' gets the year and the month that the user navigated to.
+          This information is stored in the calendar control's _dp._month and _dp._year properties. 
+          The 'data' javascript variable is constructed in the form of a query string. First the variable 
+          gets the month value, '_month=', by using the pointer to the calendar control defined earlier, 
+          'calObj', to find the _dp._month value. 
+          Because the month array is zero based, '+1' must be added to the end of the query in order to get the 
+          correct month. After finding which month the user entered the query then finds 
+          the year that the user entered.</description>
+        <example><![CDATA[var data = '_month=' + (calObj._dp._month+1) + '&_year=' +  calObj._dp._year;
+	]]></example>
+      </section>
+      <section>
+        <description> When a user navigates to a new month an Ajax callback is made. This 
+          ajax callback calls an Xbasic function called 'getEvents' as well as the 'data' variable.</description>
+        <example><![CDATA[{grid.Object}.ajaxCallback('G','','getEvents','',data);]]></example>
+        
+      </section>
+      
       <section>
         <description>*[Handling Days in the Calendar with More than One Event]*</description>
          
@@ -342,6 +411,116 @@ end function ]]></example>
          
           
       </section>
+  <section>
+    <title>Line by Line Xbasic</title>
+     
+    
+    
+  </section>
+  <section>
+    <description>*[getEvents]*</description>
+    <example><![CDATA[function getEvents as c (e as p)
+dim month as c 
+dim year as c 
+dim startDate as d 
+dim endDate as d 
+
+startDate = date_value(val(e._year),val(e._month),1)
+if val(e._month) < 12 then 
+	endDate = date_value(val(e._year),val(e._month)+1,1) -1
+else
+	endDate = date_value(val(e._year)+1,1,1) -1
+end if 
+
+dim jsonData as c 
+dim def as p
+dim defn as p
+defn.type = "sql"
+defn.connectionString = "::Name::AADemo-Northwind"
+defn.tableName = <<%sql%
+SELECT Orders.OrderID as OrderId, 
+	concatenate(orders.orderid,': ', customers.companyname) as eventName, 
+	Orders.OrderDate as orderDate, 
+	concatenate('Order: ', orders.orderid, ': ', customers.contactname, ' ', customers.companyname)  AS eventdescription 
+FROM Orders Orders
+	 INNER JOIN Customers Customers
+		 ON  Orders.CustomerID = Customers.CustomerID
+%sql%
+
+defn.startDate = year(startDate) + "-" + month(startDate) + "-" + day(startDate)
+defn.endDate = year(endDate) + "-" + month(endDate) + "-" + day(endDate)
+defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "eventName"
+defn.eventDescription = "eventdescription"  
+
+jsonData = a5_GetCalendarEventDataJSON(defn)
+dim js as c  = ""
+
+js = js + "var _cal = {dialog.object}.getControl('DT1');" + crlf()
+js = js + "_cal._data = " + jsonData + ";" + crlf()
+js = js + "_cal.refresh();" 
+getEvents = js 
+
+end function]]></example>
+  </section>
+  <section>
+    <description>The values for e._year and e._month are passed into the getEvents() function. 
+      These are the variables that were sent back in the ajax callback created at the end of the 
+      calendarMonthNavigate() function, on the Javascript functions page. 
+      
+      Inside the getEvents() function these values are converted into a date value using 
+      the Xbasic date_value() expression. The converted values are used to create both a start date, 
+      'startDate', and an end date, 'endDate'. These dates represent the start date and end date of the 
+      month that contains the events that we want to display on the calendar.
+      
+      
+    </description>
+    <example><![CDATA[dim month as c 
+dim year as c 
+dim startDate as d 
+dim endDate as d 
+
+startDate = date_value(val(e._year),val(e._month),1)
+if val(e._month) < 12 then 
+	endDate = date_value(val(e._year),val(e._month)+1,1) -1
+else
+	endDate = date_value(val(e._year)+1,1,1) -1
+end if ]]></example>
+    
+  </section>
+  <section>
+    <description>Next a SQL statement joins the 'OrderId' and 'Customer' table from the Northwinds database 
+      together. The built in function a5_GetCalendarEventDataJSON() is then called in order to help retrieve 
+      the data.
+    </description>
+     <example><![CDATA[dim jsonData as c 
+dim def as p
+dim defn as p
+defn.type = "sql"
+defn.connectionString = "::Name::AADemo-Northwind"
+defn.tableName = <<%sql%
+SELECT Orders.OrderID as OrderId, 
+	concatenate(orders.orderid,': ', customers.companyname) as eventName, 
+	Orders.OrderDate as orderDate, 
+	concatenate('Order: ', orders.orderid, ': ', customers.contactname, ' ', customers.companyname)  AS eventdescription 
+FROM Orders Orders
+	 INNER JOIN Customers Customers
+		 ON  Orders.CustomerID = Customers.CustomerID
+%sql%
+
+defn.startDate = year(startDate) + "-" + month(startDate) + "-" + day(startDate)
+defn.endDate = year(endDate) + "-" + month(endDate) + "-" + day(endDate)
+defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "eventName"
+defn.eventDescription = "eventdescription"  
+
+jsonData = a5_GetCalendarEventDataJSON(defn)]]></example>
+     
+     
+  </section>
+  
   
   </sections>
 
