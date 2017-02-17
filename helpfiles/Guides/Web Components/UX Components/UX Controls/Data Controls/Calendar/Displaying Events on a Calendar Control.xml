@@ -396,10 +396,102 @@ end function]]></example>
       </section>
       
       <section>
-        <description>*[Handling Days in the Calendar with More than One Event]*</description>
-         
-          
+        <description>*[The calendarDrawItem() Function]*</description>
+        
+        <example><![CDATA[function calendarDrawItem(ele,date,type) {
+	var curObj = {dialog.object}.getControl('DT1');
+	var calData = curObj._data;
+	
+	if(typeof curObj._menuItems == 'undefined') {
+		curObj._menuItems = {};
+	}
+	if(type == 'date') {
+		if(typeof calData != 'undefined') {
+			var dateStr = date.getFullYear() + '-' +(date.getMonth() + 1) + '-' + date.getDate();
+			if(typeof calData[dateStr] != 'undefined') {
+				var tempData = calData[dateStr];
+				var maxItemsToShow = 1
+				if(tempData.length > maxItemsToShow ) {
+					var windowContent = '';
+					var menuItems = [];
+					for(var i = 0; i < tempData.length; i++) {
+						menuItems.push({
+							html: '<span title="'+tempData[i].detail+'">' + tempData[i].name + '</span>',
+							onClick: Function('editEvent(\'' + tempData[i].id + '\')')
+						});
+					}	
+					curObj._menuItems[dateStr] = menuItems;
+					ele.innerHTML = ele.innerHTML + '<br><span onmouseover="showEventList(this,\''+dateStr+'\');">Multiple... (' + tempData.length + ')</span>';
+				} else {
+					for(var i = 0; i < tempData.length; i++) {
+						ele.innerHTML = ele.innerHTML + '<br>' + '<a class="{dialog.style}Link" href="#" title="'+tempData[i].detail+'" onclick="editEvent(\''+tempData[i].id+'\');$e.stopEvent(event); return false;">' +tempData[i].name +'</a>' ;
+					}		
+				}
+			}
+		}
+	}
+}]]></example>
       </section>
+      <section>
+        <description>The calendarDrawItem() function draws the events that happen on a given day. 
+          The 'Item' in the function's name means 'day'. In order to draw events this function 
+          uses json data that is created after an ajax callback is made to the xbasic getEvent() function on the server. 
+          The server-side function uses a date to retrieve SQL data from the Northwinds database, and then converts 
+          this data into JSON data. The returned JSON data is then stored in the calendar object itself.
+          The getEvent() function is described in detail in the 'Line by Line Xbasic' section below.
+        </description>
+        
+      </section>
+      <section>
+        <description>
+        </description>
+        
+      </section>
+      
+      
+      <section>
+        <description>The first thing the calendarDrawItem() function does is to get a pointer to the 
+          calendar object and assign this pointer to a javascript variable named 'curObj'. The variable 'calData' 
+          then uses this pointer to the calendar object to reference the json data that was placed inside the calendar object 
+          after the ajax callback in the calendarMonthNavigate() function was made. 
+          The json data is stored in a variable called '_data'.</description>
+        <example><![CDATA[var curObj = {dialog.object}.getControl('DT1');
+	var calData = curObj._data;]]></example>
+        
+      </section>
+      <section>
+        <description>An if statement states that if the variable named 'curObj._menuItems' is undefined then this 
+          variable should be defined as a javascript object. This statement is used in the case that a given day has 
+          more than one event or order.
+        </description>
+        <example><![CDATA[if(typeof curObj._menuItems == 'undefined') {
+		curObj._menuItems = {};
+	}]]></example>
+      </section>
+      <section>
+        <description>The calendarDrawItem() function is called multiple times during the drawing of the calendar. 
+          It gets called when the month navigators are drawn and when the date navigators are called. 
+          
+          When the days or 'items' are drawn, the 'type' variable, that is passed into the calendarDrawItem() 
+      function as an argument, is equal to the date. The days in the control only need to be populated if the 'type' is 
+      equal to date. This is accomplished using a second if statement states. This states that if the 
+      calendar data is defined then a block of code should be executed.</description>
+        <example><![CDATA[if(type == 'date') {...}]]></example>
+      </section>
+      
+      
+      <section>
+        <description>A  </description>
+        
+        
+      </section>
+        
+      
+      
+      
+      
+      
+     
         <section>
           <description>*[Creating the Pop-up Window to Display Each Event]*</description>
          
@@ -608,14 +700,29 @@ defn.eventDescription = "eventdescription"  ]]></example>
     </description>
     
   </section>
-  
+  <section>
+    <description>After the a5_GetCalendarEventDataJSON() function call returns the json data to the getEvents() function, 
+    the Xbasic function defined some javascript to send back in response to the ajax callback.</description>
+    <example><![CDATA[dim js as c  = ""]]></example>
+    
+      </section>
+  <section>
+    <description>The first line of this javascript creates a variable named '_cal'. This variable gets a 
+      pointer to the calendar object using the getControl() method. All of the JSON data that was returned 
+      from the a5_GetCalendarEventDataJSON() function is then placed inside a javascript variable called '_data'. 
+      Finally, the calendar's refresh() method is called. This will re-draw the calendar control calling the 
+      itemDraw() function for each day on the calendar.
+    </description>
+       <example><![CDATA[js = js + "var _cal = {dialog.object}.getControl('DT1');" + crlf()
+js = js + "_cal._data = " + jsonData + ";" + crlf()
+js = js + "_cal.refresh();"]]></example>
+  </section>
   
   
   
    <section>
-          <description>*[The a5_GetCalendarEventDataJSON() Function]*</description>
-         
-          
+       
+       
       </section>
   
   </sections>
