@@ -1,11 +1,14 @@
-<page>
-    <shortlink>ux data controls calendar property displaying events on a calendar control</shortlink>
-    <topic>Displaying Events on a Calendar Control</topic>
+﻿<page>
+    <shortlink>ux data controls calendar property displaying events on a calendar control from an external database</shortlink>
+    <topic>Displaying Events on a Calendar Control from an External Database</topic>
     <description>You can customize the calendar control to display events drawn from an SQL 
-      database. 
+      database. The first half of this guide gives step by step instructions on how to build a calendar control 
+      that can do this. The second half of the guide looks at the Javascript and Xbasic involved.
     </description>
   <sections>
-     
+     <section>
+          <figure><title>A calendar control populated by events drawn from an SQL database.</title><link>images/de20.png</link></figure>
+     </section>
       <section>
           <description>One way to accomplish this is through an ajax callback. The ajax callback is executed everytime a 
             user navigates to a new month and contains a 
@@ -334,7 +337,8 @@ end function]]></example>
        <section>
            <title>Line by Line Javascript Explanation</title>
        <description>In the Calendars 'Has events' properties two events were defined. These were the onItemDraw event, that 
-         was tied to the calendarDrawItem() function, and the onMonthNavigate event, that was tied to the calendarMonthNavigate(). 
+         was tied to the calendarDrawItem() function, and the onMonthNavigate event, that was tied to the calendarMonthNavigate() 
+         function. 
          
          </description>
          
@@ -359,15 +363,15 @@ end function]]></example>
       </section>
       <section>
       <description>The first thing that this function does is to get a pointer to the calendar control.
-        This is done using the dialog objects getControl() method. The method takes as an argument the 
+        This is done using the dialog object's getControl() method. This method takes as an argument the 
         variable name of the calendar control, 'dt1'. This pointer is then assigned to a variable named 'calObj'
       </description>
       <example><![CDATA[var calObj = {dialog.object}.getControl('DT1');]]></example>
       </section>
       <section>
         <description>An if statement then handles the logic that will shut down any pop-up 
-          windows that occur in situations where a calendar has more than one event displayed. The 
-          pop-up will close when you navigate to a new month.
+          menus that occur in situations where a calendar has more than one event displayed. Any 
+          pop-up menus are forced to close when you navigate to a new month.
         </description>
         <example><![CDATA[delete calObj._menuItems;
 	var menuName = '_CalendarDetailsMenu';
@@ -390,7 +394,10 @@ end function]]></example>
       </section>
       <section>
         <description> When a user navigates to a new month an Ajax callback is made. This 
-          ajax callback calls an Xbasic function called 'getEvents' as well as the 'data' variable.</description>
+          ajax callback calls an Xbasic function called 'getEvents' as well as the 'data' variable. The 
+          getEvents function, discussed in the 'Line by Line Xbasic' section, returns 
+          orders or events for a given month in json format. These orders and events are originally stored in an SQL database 
+          and this data is converted to json on the server. The data is then stored as a property of the calendar object.</description>
         <example><![CDATA[{grid.Object}.ajaxCallback('G','','getEvents','',data);]]></example>
         
       </section>
@@ -434,9 +441,10 @@ end function]]></example>
       </section>
       <section>
         <description>The calendarDrawItem() function draws the events that happen on a given day. 
-          The 'Item' in the function's name means 'day'. In order to draw events this function 
-          uses json data that is created after an ajax callback is made to the xbasic getEvent() function on the server. 
-          The server-side function uses a date to retrieve SQL data from the Northwinds database, and then converts 
+          The 'Item' in the function's name effectively means 'day'. In order to draw events this function 
+          uses json data that is created after the ajax callback from the calendarMonthNavigate() javascript function is made 
+          to the xbasic getEvent() function on the server. 
+          The server-side function uses a date passed to it to retrieve SQL data from the Northwinds database, and then converts 
           this data into JSON data. The returned JSON data is then stored in the calendar object itself.
           The getEvent() function is described in detail in the 'Line by Line Xbasic' section below.
         </description>
@@ -452,7 +460,7 @@ end function]]></example>
       <section>
         <description>The first thing the calendarDrawItem() function does is to get a pointer to the 
           calendar object and assign this pointer to a javascript variable named 'curObj'. The variable 'calData' 
-          then uses this pointer to the calendar object to reference the json data that was placed inside the calendar object 
+          then uses this pointer to the calendar object to reference the json data; that was placed inside the calendar object 
           after the ajax callback in the calendarMonthNavigate() function was made. 
           The json data is stored in a variable called '_data'.</description>
         <example><![CDATA[var curObj = {dialog.object}.getControl('DT1');
@@ -461,7 +469,7 @@ end function]]></example>
       </section>
       <section>
         <description>An if statement states that if the variable named 'curObj._menuItems' is undefined then this 
-          variable should be defined as a javascript object. This statement is used in the case that a given day has 
+          variable should be defined as a javascript object. This statement is used for cases where a given day or item has 
           more than one event or order.
         </description>
         <example><![CDATA[if(typeof curObj._menuItems == 'undefined') {
@@ -490,16 +498,16 @@ end function]]></example>
       </section>
       <section>
         <description>A javascript variable called 'dateStr', or date string, is constructed. This variable 
-          contains the year, month, and date of the item that is being drawn. The 'dateStr' variable exactly 
+          contains the year, month, and date of the day or item that is being drawn. The 'dateStr' variable exactly 
           matches the format shown in the JSON object, i.e. year-month-day or, for example, '1994-8-4'.
           Because the formats used in the JSON object and the variable are the same, 
-          it is easy to quickly lookup data inside the object using the variable; and return the orders or events 
+          it is easy to quickly lookup data inside the object using only the variable; and return the orders or events 
           for a particular day.
         </description>
         <example><![CDATA[var dateStr = date.getFullYear() + '-' +(date.getMonth() + 1) + '-' + date.getDate();]]></example>
       </section>
         <section>
-          <description>If orders do exist for the day we are are currently drawing then a second code block is executed.</description>
+          <description>If orders do exist for the day that is currently being drawn, then a second code block is executed.</description>
           <example><![CDATA[if(typeof calData[dateStr] != 'undefined') {...}]]></example>
           
         </section>
@@ -507,7 +515,7 @@ end function]]></example>
         <description>This second code block determines whether if the orders, or events, should be displayed by 
           themselves or in a menu. If there are multiple orders on a given day, then the menu option is used. 
           A variable called 'maxItemsToShow' specifies that only 1 order should be shown on a given day. This number 
-          can be changed to allow more orders to be displayed.
+          can be changed to allow more orders to be displayed before the pop-up menu option is used.
           
         </description>
         <example><![CDATA[var maxItemsToShow = 1]]></example>
@@ -520,15 +528,16 @@ end function]]></example>
         <example><![CDATA[if(tempData.length > maxItemsToShow ) {...}]]></example>
       </section>
       <section>
-        <description>The pop-up menu definition contains two variables. The first 'windowContent' is an empty string and 
-          the second 'menuItems' is an empty array.
+        <description>The first half of the code block refers to the pop-up menu. 
+          The pop-up menu definition contains two variables. The first, 'windowContent', is an empty string and 
+          the second, 'menuItems', is an empty array.
         </description>
         <example><![CDATA[var windowContent = '';
 					var menuItems = [];]]></example>
         
       </section>
       <section>
-        <description>A for statement loops over all of the orders for the specified day. The statement then populates 
+        <description>A 'for' statement loops over all of the orders for the specified day. The statement then populates 
           the empty 'menuItems' array using the orders it finds. To do this, the statement pushes a 
           json object on to the array. The json object contains two properties, 'html' and 'onClick'. </description>
         <example><![CDATA[for(var i = 0; i < tempData.length; i++) {
@@ -538,23 +547,42 @@ end function]]></example>
 						});]]></example>
       </section>
    <section>
-     <description>The html 
-          property is what gets displayed in the pop-up menu. It contains a <![CDATA[<span> tag. Inside the 
+     <description>The html property is what gets displayed in the pop-up menu. It contains a <![CDATA[<span> tag. Inside the 
             <span> tag is a title property that contains the actual details of the order. The <span> also 
               contains the customer name.]]></description>
      <example><![CDATA[html: '<span title="'+tempData[i].detail+'">' + tempData[i].name + '</span>',]]></example>
      
    </section>
    <section>
-     
+     <description>The 'onClick' property fires when a user selects an item from the menu. When the 
+       event fires, a function is constructed that is called 'editEvent()'. The event id, i.e. the html element being clicked on, 
+       is also included in this function.
+     </description>
+      <example><![CDATA[onClick: Function('editEvent(\'' + tempData[i].id + '\')')]]></example>
+   </section>
+   <section>
+     <description>The 'menuItems' object is then set inside the date object using the empty menuItems array. The following code 
+       sets the menu items for the current date in the menuItems array.
+     </description>
+     <example><![CDATA[curObj._menuItems[dateStr] = menuItems;]]></example>
+   </section>
+   
+   <section>
+     <description>The menuItems array now has an array containing the actual data that the pop-up menu will display. 
+       The innerhtml is simply some text that contains the word 'Multiple...' and the number of orders or events 
+       for the day where the menu is displayed. The word 'Multiple' is placed inside a <![CDATA[<span>. This <span> 
+         contains an onmouseover event. When the mouse is moved over the word 'Multiple', the onmouseover event fires and 
+         a javascript function called 'showEventList()' is called. Several arguments are passed into this function. The first, 
+         'this', is a pointer to the element which the mouse is hovering over. 'dateStr' is the key into the calendar object, 
+         that allows the proper date to be displayed.]]> 
+     </description>
+     <example><![CDATA[ele.innerHTML = ele.innerHTML + '<br><span onmouseover="showEventList(this,\''+dateStr+'\');">Multiple... (' + tempData.length + ')</span>';
+]]></example>
      
    </section>
    
-   
-   
-   
-   
-   
+   <section>
+  
    
    
    
@@ -578,12 +606,12 @@ end function]]></example>
       </section>
       
       <section>
-        <description>Here the class on the hyperlink is set to the current dialog style using </description>
+        <description>The class on the hyperlink is set to be the current dialog style.</description>
         <example><![CDATA[a class="{dialog.style}Link"]]></example>
         
       </section>
       <section>
-        <description>The hyperlink's href is set to be a hash, #, since the href will be handled using javascript.</description>
+        <description>Because the hyperlink's href will be handled using javascript, the href is set to be a hash, #.</description>
       <example><![CDATA[href="#"]]></example>
       </section>
       <section>
@@ -611,6 +639,83 @@ end function]]></example>
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+         <description>*[The showEventList() Function]*</description>
+     <example><![CDATA[function showEventList(objEle, dateStr) {
+	var menuName = '_CalendarDetailsMenu';
+	var curObj = {dialog.object}.getControl('DT1');
+	if(typeof curObj[menuName] == 'undefined') {
+		curObj[menuName] = new A5.Menu([],{
+			theme: '{dialog.style}',
+			iconColumn: {show: false}
+		});
+	}
+	
+	curObj[menuName].populate(curObj._menuItems[dateStr]);
+	curObj[menuName].show('popup',objEle);
+}]]></example>
+     
+     
+     
+   </section>
+   <section>
+     <description>The showEventList() function takes as arguments 'objEle' and 'dateStr'. The 
+       key that is passed in, 'dateStr', helps identify which day in the calendar should have its orders displayed.  
+       The variable 'menuName' assigns the name '_CalendarDetailsMenu'. Next a pointer to the 
+       calendar object is obtained using the getControl() method. As in other functions, here this 
+       variable is given the name 'curObj'. 
+     </description>
+     <example><![CDATA[function showEventList(objEle, dateStr) {
+	var menuName = '_CalendarDetailsMenu';
+	var curObj = {dialog.object}.getControl('DT1');]]></example>
+     
+   </section>
+   <section>
+     <description>An if statement states that if the menu is undefined, then a new A5
+       menu object will be created using the menuName variable. The new menu object has two properties, 'theme' and 'iconColumn'. 
+       The theme is assigned to be the set dialog style and the iconColumn property is set to not be shown.
+     </description>
+      <example><![CDATA[if(typeof curObj[menuName] == 'undefined') {
+		curObj[menuName] = new A5.Menu([],{
+			theme: '{dialog.style}',
+			iconColumn: {show: false}
+		});
+	}]]></example>
+     
+   </section>
+   <section>
+     <description>Near the end of the function the populate() method is called. 
+       This uses the array for the current date, that was created in the 
+       calendarDrawItem() function, to populate the pop-up menu. The populated menu 
+       is then displayed using the show() method. The information in the pop-up menu 
+       is displayed underneath the hyperlink that was clicked on.
+     </description>
+      <example><![CDATA[curObj[menuName].populate(curObj._menuItems[dateStr]);
+	curObj[menuName].show('popup',objEle);]]></example>
+     
+   </section>
+   
+   
+   
       
       
       
@@ -695,7 +800,7 @@ end if ]]></example>
   </section>
   <section>
     <description>Next a SQL statement joins the 'OrderId' and 'Customer' table from the Northwinds database 
-      together. The built in function a5_GetCalendarEventDataJSON() is then called. 
+      together. The built-in function a5_GetCalendarEventDataJSON() is then called. 
     </description>
     
      <example><![CDATA[dim jsonData as c 
@@ -726,9 +831,8 @@ defn.connectionString = "::Name::AADemo-Northwind"]]></example>
   </section>
   <section>
     <description>The 'defn.tableName' property specifies the table or sql statement that the data 
-      will be retrieved from. 
-      This can be a single table, although here it is a select statement. The statement joins 
-      both both the 'OrderId' table and the 'Customer' table.
+      will be retrieved from. This example uses a select statement, but a single table could also be used here. 
+      The statement joins both the 'OrderId' table and the 'Customer' table.
     </description>
     <example><![CDATA[defn.tableName = <<%sql%
 SELECT Orders.OrderID as OrderId, 
@@ -742,7 +846,7 @@ FROM Orders Orders
   </section>
   <section>
     <description>The 'defn.startDate' and the 'defn.endDate' properties describe the start date and 
-      end date in the form year, month, day. This will make the function portable across different internation 
+      end date in the form year, month, day. This makes the function portable across different international 
       locations. 
     </description>
     <example><![CDATA[defn.startDate = year(startDate) + "-" + month(startDate) + "-" + day(startDate)
@@ -750,10 +854,10 @@ defn.endDate = year(endDate) + "-" + month(endDate) + "-" + day(endDate)]]></exa
   </section>
   
   <section>
-    <description>The field in the sql table that contains the event date is identified using the 
+    <description>The field in the sql table that contains the order, or event, date is identified using the 
       'defn.eventDate' property. The property 'defn.eventId' then states which field contains the 
-      event id. Similarly, the 'defn.eventName' and 'defn.eventDescription' properties 
-      specify the fields containing the event name and event description.
+      order/event id. Similarly, the 'defn.eventName' and 'defn.eventDescription' properties 
+      specify the fields containing the order/event name and description.
     </description>
     <example><![CDATA[defn.eventDate = "orderDate"
 defn.eventId = "orderId"
@@ -768,9 +872,9 @@ defn.eventDescription = "eventdescription"  ]]></example>
     <example><![CDATA[jsonData = a5_GetCalendarEventDataJSON(defn)]]></example>
   </section>
   <section>
-    <description>The function then takes all of the properties that are passed to it and returns 
-      data in the form of a JSON string. This data can be viewed in Alpha Anywhere by placing 'debug(1)' in the code 
-      after the a5_GetCalendarEventDataJSON() function call and then examining the jsonData variable. Here 
+    <description>This function takes all of the properties that are passed to it and returns 
+      data in the form of a JSON string. This data can be viewed in Alpha Anywhere by placing 'debug(1)' in the code just 
+      after the a5_GetCalendarEventDataJSON() function call, and then examining the resulting jsonData variable. Here 
       is what it should look like:</description>
     <example><![CDATA[{
 '1994-8-4' : [{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}],
@@ -796,29 +900,29 @@ defn.eventDescription = "eventdescription"  ]]></example>
 }]]></example>
   </section>
   <section>
-    <description>The data for the month of August 1994 is displayed. This is the date choosen in the default value that 
-      was defined for the calendar control. Entries in the json object are keyed to each day that an event took place. 
-      The events that occurred on any given day are returned in the form of an array, which in json is defined using square 
+    <description>The data for the month of August 1994 is displayed. This is the date choosen in the default value 
+      defined for the calendar control. Entries in the json object are keyed to each day that an order/event took place. 
+      The orders that occurred on a given day are returned in the form of an array, which in json is defined using square 
       brackets '[]'. For the day '1994-8-4' the array looks like this:
     </description>
     <example><![CDATA[[{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}]]]></example>
   </section>
   <section>
-    <description>Each event inside each array is defined as an individual object using curly braces '{}'. For example, here is the one event that 
+    <description>Each order/event inside a given array is defined as an individual object using curly braces '{}'. For example, here is the one event that 
       occurred on '1994-8-4'.
     </description>
     <example><![CDATA[{id: 10248,name: '10248: Vins et alcools Chevalier',detail: 'Order: 10248: Paul Henriot Vins et alcools Chevalier'}]]></example>
   </section>
   <section>
-    <description>For days with more than one event, such as '1994-8-8', the array contains multiple objects separated by a comma. This means 
-      that on any particular day there can be as many orders as desired.
+    <description>When a day has more than one order/event, such as '1994-8-8', then the array contains multiple objects separated by a comma. 
+      This means that on any particular day there can be as many orders as desired.
       
     </description>
     
   </section>
   <section>
     <description>After the a5_GetCalendarEventDataJSON() function call returns the json data to the getEvents() function, 
-    the Xbasic function defined some javascript to send back in response to the ajax callback.</description>
+    the Xbasic function defines some javascript to send back in response to the ajax callback.</description>
     <example><![CDATA[dim js as c  = ""]]></example>
     
       </section>
@@ -856,4 +960,9 @@ js = js + "_cal.refresh();"]]></example>
     <link link="ux properties date format">Date format</link>
     
 </links>
+
+<see>
+  <ref link="ux data controls calendar property">Calendar Control</ref>
+  
+</see>
 </page>
