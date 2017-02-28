@@ -1,60 +1,81 @@
 <page>
+    <shortlink>ux onlogin server side event</shortlink>
     <topic>onLogin</topic>
-    <description>Fires after the user is authenticated. The event fires regardless of whether the authentication was successful or not.  The e.loginSucceeded flag indicates if the login was successful or not. An important use of this event is to force a reload of the component on login. See the discussion below on 'Forcing a Reload of the UX Component After Login' for more details. This event can also be used to set the 'friendly user name'. The 'friendly user name' is made available in client-side 'afterLogin' event. It can also be used in client-side watch expressions.</description>
- 
- 
- <sections>
-     
-     <section>
-         <title>Variables</title>
-         <description>Variables in the 'e' object include:</description>
-         <list>
-             <item>
-                 <name>e.username</name>
-                 <description>user name entered by user to log in</description>
-             </item>
-             <item>
-                 <name>e.loginSucceeded</name>
-                 <description>either .t. or .f. depending on whether the user was successfully logged in or not.</description>
-             </item>
-             <item>
-                 <name>e.flagUserWasAlreadyLoggedIn</name>
-                 <description>if the user was already logged in when the page was initially loaded, this flag is .t. </description>
-             </item>
-             <item>
-                 <name>e.errorText</name>
-                 <description>error message if login failed</description>
-             </item>
-             <item>
-                 <name>e.tmpl</name>
-                 <description>definition of the UX component</description>
-             </item>
-             
-             
-         </list>
-     </section>
-     <section>
-         <description>Your event handler can set these variables</description>
-         <list>
-             <item>
-                 <name>e.userNameFriendly</name>
-                 <description>This is the value that will be used in the 'FriendlyName' property passed to the client-side 'afterLogin' event.</description>
-             </item>
-             <item>
-                 <name>e.javascript</name>
-                 <description>any Javascript you want to execute</description>
-             </item>
-             <item>
-                 <name>e.url</name>
-                 <description><![CDATA[(optional) the target URL after a sucessful login. TIP: To reload the current component after a sucessful login, set e.url to '<thisComponent>']]></description>
-             </item>
-             
-         </list>
-         
-     </section>
-
-
- </sections>
- 
- 
+    <description>Fires after the user has been authenticated.</description>
+    <discussion>
+        <p>The *[ui:onLogin]* event is triggered when the user logins in using the integrated login feature in the UX Component. The event fires regardless of whether the authentication was successful or not.</p>
+        <p>The e.loginSucceeded flag indicates if the login was successful or not. An important use of this event is to force a reload of the component on login. See the discussion below on 'Forcing a Reload of the UX Component After Login' for more details.</p>
+        <p>This event can also be used to set the 'friendly user name'. The 'friendly user name' is made available in client-side 'afterLogin' event. It can also be used in client-side watch expressions.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Variables</title>
+            <description>Variables in the 'e' object include:</description>
+            <list>
+                <item>
+                    <name>e.username</name>
+                    <description>user name entered by user to log in</description>
+                </item>
+                <item>
+                    <name>e.loginSucceeded</name>
+                    <description>either .t. or .f. depending on whether the user was successfully logged in or not.</description>
+                </item>
+                <item>
+                    <name>e.flagUserWasAlreadyLoggedIn</name>
+                    <description>if the user was already logged in when the page was initially loaded, this flag is .t.</description>
+                </item>
+                <item>
+                    <name>e.errorText</name>
+                    <description>error message if login failed</description>
+                </item>
+                <item>
+                    <name>e.tmpl</name>
+                    <description>definition of the UX component</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>Your event handler can set these variables:</description>
+            <list>
+                <item>
+                    <name>e.userNameFriendly</name>
+                    <description>This is the value that will be used in the 'FriendlyName' property passed to the client-side 'afterLogin' event.</description>
+                </item>
+                <item>
+                    <name>e.javascript</name>
+                    <description>any Javascript you want to execute</description>
+                </item>
+                <item>
+                    <name>e.url</name>
+                    <description>(optional) the target URL after a successful login. TIP: To reload the current component after a successful login, set e.url to '&lt;thisComponent&gt;'</description>
+                </item>
+                <item>
+                    <name>e._state</name>
+                    <description>(optional) a dot variable used to set/create state variables.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Forcing a Reload of the UX Component After Login</title>
+            <description>
+                <p>After the user has logged in you might want to force the UX component to reload. Consider the following scenario which explains a use case for this option:</p>
+                <p>Assume that the application you have built is a single UX component, and it has integrated login functionality. Assume also that this component has certain controls that have security on them (for example a 'Set Salary' button that is only visible to member of the 'Manager' group).</p>
+                <p>When the UX is initially loaded, the 'Set Salary' button will not be visible (because the user is not yet logged in).</p>
+                <p>Now assume that the user enters their username and password and clicks the login button. This will fire an Ajax callback and the user will be authenticated. Assume that the user is now authenticated and is part of the 'Manager' group.</p>
+                <p>This user should now see the 'Set Salary' button, but does not because when the UX was originally rendered, the user was not logged in.</p>
+                <p>However, by forcing a reload after login, the component will be re-rendered on the server and the user will see the 'Set salary' button.</p>
+                <p>The way in which you force a reload of the UX component after login is by setting the e.url property in the onLogin server-side event. For example, you could add this code to the onLogin server-side event:</p>
+            </description>
+            <example code="xb"><![CDATA[e.url = "<thisComponent>"]]></example>
+            <note>If you are forcing a reload after the UX component loads, you will likely also want to set the '[Logout does full page reload]' property to true.</note>
+        </section>
+        <section>
+            <title>Setting State Variables</title>
+            <description>State variables can be set in the onLogin event. State variables can be added to the *[xb:e._state]* variable.</description>
+            <example><![CDATA[e._state.loginTime = time("dd/MM/yyyy 0h:0m am", now())]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="logout does a full page reload">Logout does full page reload</link>
+    </links>
 </page>
