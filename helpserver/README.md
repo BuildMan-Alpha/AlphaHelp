@@ -99,3 +99,24 @@ genKnownIssuesExtRef.js requires the 'htmlparser2' and 'string' packages. These 
 npm install htmlparser2
 npm install string
 ```
+
+### Checklist If the Helpserver stops Updating 
+
+1. Log in to the helpserver
+2. Change to the help folder -  
+```
+cd /home/AlphaHelp
+```
+3. Perform a manual git pull - 
+```
+git pull
+```
+4. If the git pull brought down files, the git agent must have stopped responding - restart the server.
+5. Jiggle the handle:
+```
+restart helpserver
+```
+6. Force an update by doing a post from localhost.  
+```
+curl -d "" http:/127.0.0.1/refresh
+```
