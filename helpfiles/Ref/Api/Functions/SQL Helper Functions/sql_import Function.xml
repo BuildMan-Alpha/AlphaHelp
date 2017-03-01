@@ -1,0 +1,104 @@
+<page api="xb" build="4167">
+    <shortlink>api sql import function</shortlink>
+    <topic>sql_import Function</topic>
+    <prototypes>
+        <prototype>result as P = sql_import(connectionString as C, tableName as C, tableOwner as C, data as C [, replicateIdentity as L [, fieldMap as C]])</prototype>
+        <prototype>result as P = sql_import(connectionString as SQL::Connection, tableName as C, tableOwner as C, data as C [, replicateIdentity as L [, fieldMap as C]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>connectionString</name>
+            <types>
+                <type>C</type>
+                <type>SQL::Connection</type>
+            </types>
+            <description>The connection string (either a named or explicit connection string. If named, the *[xb:::name::]* prefix is optional)</description>
+        </argument>
+        <argument>
+            <name>tableName</name>
+            <type>C</type>
+            <description>The name of the table into which you want to import data.</description>
+        </argument>
+        <argument>
+            <name>tableOwner</name>
+            <type>C</type>
+            <description>The owner of the table into which you want to import data.</description>
+        </argument>
+        <argument>
+            <name>data</name>
+            <type>C</type>
+            <description>The data to be imported. Can either be in CSV (comma separated value) or JSON format. See examples below.</description>
+        </argument>
+        <argument optional="true">
+            <name>replicateIdentity</name>
+            <type>L</type>
+            <description>.t. or .f. - defaults to .f.. Should only be set to .t. if you are importing into an empty table. If .t. then values for the auto-increment primary key (if any) that are supplied in the input data are explicitly set in the target table.</description>
+        </argument>
+        <argument optional="true">
+            <name>fieldMap</name>
+            <type>C</type>
+            <description>If the columns in the input data do not match the field names in the target SQL table you can specify a map. The map is a crlf delimited string of field pairs. See example below.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>P</type>
+            <description>Returns an object with these properties:</description>
+            <properties>
+                <property readonly="true">
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Either .t. or .f., depending on whether the operation succeeded.</description>
+                </property>
+                <property readonly="true">
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>The description of the error if an error occurred.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <description>Imports CSV or JSON data into a SQL table.</description>
+    <discussion>The *[xb:sql_import()]* function is a helper function that imports CSV or JSON data into a SQL table.</discussion>
+    <sections>
+        <section>
+            <note>The function is called a 'helper' function because it simply wraps the low level AlphaDAO methods for doing a bulk insert into a SQL table.</note>
+        </section>
+        <section>
+            <title>Example fieldMap</title>
+            <description>Assume that the input data is as follows</description>
+            <example><![CDATA[fname,lname
+fred,smith
+john,jones]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Assume that the target table has column names of *[xb:firstName]* and *[xb:lastName]*.</p>
+                <p>You would need to specify the following *[xb:fieldMap]*:</p>
+            </description>
+            <example><![CDATA[fname=firstName
+lname=lastName]]></example>
+        </section>
+        <section>
+            <description>Example:</description>
+            <example code="xb"><![CDATA[dim cs as c
+cs = "mydata"
+tablename = "table1"
+data = <<%str%
+id,name,notes,dob,number
+1,"Jones, Amy","Here are some notes",1992-12-18,34.56
+%str%
+
+'replicateIdentity = .f.
+map = "name=fullname"
+
+dim p as p
+p = sql_import(cs,tablename,"", data,replicateIdentity,map)
+
+?p.error
+
+= .f.]]></example>
+        </section>
+    </sections>
+</page>
