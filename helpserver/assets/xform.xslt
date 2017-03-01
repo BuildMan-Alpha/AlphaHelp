@@ -105,9 +105,11 @@
 		</xsl:if>
 		<xsl:if test="description">
 		    <xsl:choose>
-                <xsl:when test="description='here' or description='Here'">   
-                   <p class="A5">Page is under Construction</p>                
-                   <div class="underConstruction"><br/><br/><br/><br/><br/><br/><br/></div>
+                <xsl:when test="description='here' or description='Here' or description='here...' or description='Here...'">   
+                   <p class="A5">Under Construction</p>
+                   <p>This section is incomplete.</p>
+                   <div class="underConstruction">&#160;</div>
+                   <p>We're working on filling in the missing information as quickly as possible. If there's something you'd like to see here, use the "Report an Issue with this Page" link at the bottom of this page to let us know.</p>
                 </xsl:when>
                 <xsl:otherwise>            
                     <meta name="description" content="{description}"/>
