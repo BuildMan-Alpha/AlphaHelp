@@ -1,0 +1,264 @@
+<page api="xb" build="4157">
+    <shortlink>api json shred function</shortlink>
+    <topic>json_shred Function</topic>
+    <prototype>result as C = JSON_shred(JSON as C, schema as C [, ParentArrayName as C])</prototype>
+    <arguments>
+        <argument>
+            <name>JSON</name>
+            <type>C</type>
+            <description>The JSON to be shredded</description>
+        </argument>
+        <argument>
+            <name>schema</name>
+            <type>C</type>
+            <description>The description of the 'shape' of the input JSON and the definition of any 'key' fields that should be added to the result.</description>
+        </argument>
+        <argument optional="true">
+            <name>ParentArrayName</name>
+            <type>C</type>
+            <description>The name of the top level array in the result.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>C</type>
+            <description>The shredded JSON.</description>
+        </return>
+    </returns>
+    <description>Converts a complex JSON string representing an array of objects with nested arrays into individual arrays that do not have any nested arrays.</description>
+    <discussion>Consider the following JSON string:</discussion>
+    <sections>
+        <section>
+            <example code="json"><![CDATA[[
+    {"Firstname": "John", "Lastname" : "Smith", "City" : "Boston", "State" : "MA", "Children": [
+        {"Name" : "Callie", "Age" : 5},
+        {"Name" : "Griffin", "Age" :3},
+        {"Name" : "Luke", "Age" : 1}
+        ]
+    }, 
+    {"Firstname": "Henry", "Lastname" : "Rhodes", "City" : "New York", "State" : "NY", "Children": [
+        {"Name" : "Howard", "Age" : 15},
+        {"Name" : "Robert", "Age" : 11}
+        ]
+    }
+]]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The JSON is an array in which each object in the array has a nested array of 'children'.</p>
+                <p>This JSON can be 'shredded' to produce this result:</p>
+            </description>
+            <example code="json"><![CDATA[{
+    "__top": [
+        {
+            "Firstname": "John",
+            "Lastname": "Smith",
+            "City": "Boston",
+            "State": "MA"
+        },
+        {
+            "Firstname": "Henry",
+            "Lastname": "Rhodes",
+            "City": "New York",
+            "State": "NY"
+        }
+    ],
+    "Children": [
+        {
+            "Name": "Callie",
+            "Age": 5
+        },
+        {
+            "Name": "Griffin",
+            "Age": 3
+        },
+        {
+            "Name": "Luke",
+            "Age": 1
+        },
+        {
+            "Name": "Howard",
+            "Age": 15
+        },
+        {
+            "Name": "Robert",
+            "Age": 11
+        }
+    ]
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The result is an object with two arrays: *[xb:__top]* and *[xb:Children]*. Notice however, that since the 'Children' array is no longer nested inside each object in the top level array, the linkage between the entries in the 'Children' array and their parent has been lost. </p>
+                <p>In the above example, the *[xb:JSON_shred()]* function was called using a schema that did not specify that any key fields should be added to the *[xb:Children]* array.</p>
+                <p>The schema used to produce the above result was:</p>
+            </description>
+            <example><![CDATA[[
+    {
+        "Children" : [
+            {
+            }
+        ]
+    }
+]]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice how the  schema defines the 'shape' of the input JSON but does not specify that any additional 'key' fields should be added to the Children array. </p>
+                <p>In order not to loose the relationship between each object in the Children array to its parent, a key field must be added to each object in the Children array that points to its parent record. The desired output from the shredding operation is shown below:</p>
+            </description>
+            <example><![CDATA[{
+    "__top": [
+        {
+            "Firstname": "John",
+            "Lastname": "Smith",
+            "City": "Boston",
+            "State": "MA"
+        },
+        {
+            "Firstname": "Henry",
+            "Lastname": "Rhodes",
+            "City": "New York",
+            "State": "NY"
+        }
+    ],
+    "Children": [
+        {
+            "key": "John Smith",
+            "Name": "Callie",
+            "Age": 5
+        },
+        {
+            "key": "John Smith",
+            "Name": "Griffin",
+            "Age": 3
+        },
+        {
+            "key": "John Smith",
+            "Name": "Luke",
+            "Age": 1
+        },
+        {
+            "key": "Henry Rhodes",
+            "Name": "Howard",
+            "Age": 15
+        },
+        {
+            "key": "Henry Rhodes",
+            "Name": "Robert",
+            "Age": 11
+        }
+    ]
+}]]></example>
+        </section>
+        <section>
+            <description> Notice that each record in the 'Children' array now has a property called 'key' that points to its parent record. To obtain the above result, the following schema is used:</description>
+            <example><![CDATA[[
+    {
+        "Children" : [
+            {
+            	"key": "{../Firstname} {../LastName}"
+            }
+        ]
+    }
+]]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The schema specifies that each object in the 'Children' array should have a property called 'key' whose value is the "Firstname' and "Lastname" property in the immediate parent object. The syntax used to specify a value from a parent object is *[xb:../]*.  You can reference properties at the grand parent level using *[xb:../../]*, and so on.</p>
+                <p>Here is a more complex example that shows multiple levels of nested arrays in the input JSON. Notice that the "Hobbies" array is an array of strings, not an array of objects. This array is converted into an array of objects in the result.</p>
+            </description>
+            <example><![CDATA[[
+    {"Firstname": "John", "Lastname" : "Smith", "City" : "Boston", "State" : "MA", "Children": [
+        {"Name" : "Callie", "Age" : 5},
+        {"Name" : "Griffin", "Age" :3, "Hobbies" : ["Leggo","Star Wars"]},
+        {"Name" : "Luke", "Age" : 1}
+        ]
+    }, 
+    {"Firstname": "Henry", "Lastname" : "Rhodes", "City" : "New York", "State" : "NY", "Children": [
+        {"Name" : "Howard", "Age" : 15},
+        {"Name" : "Robert", "Age" : 11, "Hobbies" : ["Soccer"]}
+        ]
+    }
+]]]></example>
+        </section>
+        <section>
+            <description>Here is the schema that could be used to shred the above JSON: </description>
+            <example><![CDATA[[
+    {
+        "Children" : [
+            {
+                "Hobbies" : [ 
+                    { 
+                        "hobbyKey" : "{../../Firstname} {../../Lastname}|{../Name}" 
+                    }
+                ],
+                "key": "{../Firstname} {../LastName}"
+            }
+        ]
+    }
+]]]></example>
+        </section>
+        <section>
+            <description>And here is the resulting output from the shredding operation:</description>
+            <example><![CDATA[{
+    "__top": [
+        {
+            "Firstname": "John",
+            "Lastname": "Smith",
+            "City": "Boston",
+            "State": "MA"
+        },
+        {
+            "Firstname": "Henry",
+            "Lastname": "Rhodes",
+            "City": "New York",
+            "State": "NY"
+        }
+    ],
+    "Children": [
+        {
+            "key": "John Smith",
+            "Name": "Callie",
+            "Age": 5
+        },
+        {
+            "key": "John Smith",
+            "Name": "Griffin",
+            "Age": 3
+        },
+        {
+            "key": "John Smith",
+            "Name": "Luke",
+            "Age": 1
+        },
+        {
+            "key": "Henry Rhodes",
+            "Name": "Howard",
+            "Age": 15
+        },
+        {
+            "key": "Henry Rhodes",
+            "Name": "Robert",
+            "Age": 11
+        }
+    ],
+    "Hobbies": [
+        {
+            "hobbyKey": "John Smith|Griffin",
+            "__value": "Leggo"
+        },
+        {
+            "hobbyKey": "John Smith|Griffin",
+            "__value": "Star Wars"
+        },
+        {
+            "hobbyKey": "Henry Rhodes|Robert",
+            "__value": "Soccer"
+        }
+    ]
+}]]></example>
+        </section>
+    </sections>
+</page>
