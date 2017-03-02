@@ -582,38 +582,178 @@
             <xsl:when test="$depth = '1'">
                 <xsl:choose>
                     <xsl:when test="./@readonly">
-                        <dt class="propertyReadonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyReadonly" >
+                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@writeonly">
-                        <dt class="propertyWriteonly" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyWriteonly" >
+                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@pseudo">
-                        <dt class="propertyPseudo" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyPseudo" >
+                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@optional">
-                        <dt class="propertyOptional" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyOptional" >
+                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:otherwise>
-                        <dt class="propertyReadwrite" ><a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyReadwrite" >
+                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:otherwise>
                 </xsl:choose>        
             </xsl:when>
             <xsl:otherwise>
                 <xsl:choose>
                     <xsl:when test="./@readonly">
-                        <dt class="propertyReadonly" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyReadonly" >
+                            <a><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@writeonly">
-                        <dt class="propertyWriteonly" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyWriteonly" >
+                            <a><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@pseudo">
-                        <dt class="propertyPseudo" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyPseudo" >
+                            <a><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:when test="./@optional">
-                        <dt class="propertyOptional" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyOptional" >
+                            <a><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                    <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:when> 
                     <xsl:otherwise>
-                        <dt class="propertyReadwrite" ><a><xsl:value-of select="name" /></a><xsl:if test="type"><span class="propertyType"><xsl:value-of select="type" /></span></xsl:if></dt>
+                        <dt class="propertyReadwrite" >
+                            <a><xsl:value-of select="name" /></a>
+                            <xsl:if test="types/type">
+                                <span class="propertyTypes">
+                                    <xsl:for-each select="types/type">
+                                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                    </xsl:for-each>
+                                </span>
+                            </xsl:if>
+                            <xsl:if test="type">
+                                <xsl:for-each select="type">
+                                    <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'propertyType'" /></xsl:call-template>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </dt>
                     </xsl:otherwise>
                 </xsl:choose>        
             </xsl:otherwise>
@@ -647,6 +787,7 @@
             <xsl:call-template name="callouts-after"/>            
         </dd>
     </xsl:template>
+
 	<xsl:template match="arguments" name="arguments" >
 		<dl class="argumentsDL">
 			<xsl:for-each select="arguments/argument">
@@ -661,13 +802,13 @@
                 <xsl:if test="types/type">
                     <span class="argumentTypes">
                         <xsl:for-each select="types/type">
-                            <xsl:call-template name="type"></xsl:call-template>
+                            <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'argumentType'" /></xsl:call-template>
                         </xsl:for-each>
                     </span>
                 </xsl:if>
                 <xsl:if test="type">
                     <xsl:for-each select="type">
-                        <xsl:call-template name="type"></xsl:call-template>
+                        <xsl:call-template name="type"><xsl:with-param name="typeClass" select="'argumentType'" /></xsl:call-template>
                     </xsl:for-each>
                 </xsl:if>
                 <xsl:choose>
@@ -719,9 +860,13 @@
 					</xsl:if>
 				</dd>
      </xsl:template>
-     
+
      <xsl:template name="type">
-        <span class="argumentType">
+        <xsl:param name="typeClass" />
+        <span>
+            <xsl:attribute name="class">
+                <xsl:value-of select="$typeClass" />
+            </xsl:attribute>
             <xsl:choose>
                 <xsl:when test=".='C'">Character </xsl:when>
                 <xsl:when test=".='L'">Logical </xsl:when>
@@ -812,6 +957,7 @@
         <xsl:choose>
             <xsl:when test="returns/return">
                 <dl class="argumentsDL">
+                    <xsl:variable name="typeClass" select="'argumentType'" />
                     <xsl:for-each select="returns/return"><xsl:call-template name="inputs-outputs"/></xsl:for-each>
                 </dl>
             </xsl:when>
