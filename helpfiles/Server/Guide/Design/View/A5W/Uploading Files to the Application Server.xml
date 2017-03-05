@@ -1,82 +1,79 @@
 <page>
-	<shortlink>server a5w Uploading Files to the Application Server</shortlink>
-	<topic>Uploading Files to the Application Server</topic>
-		<description><![CDATA[Web publishing applications only. To upload a file, your <form> tag must use the POST method and set the enctype to multipart/form-data as follows:]]></description>
-	
-<sections>
-	<section>
-		<example><![CDATA[<form method="POST" action="upload.a5w" enctype="multipart/form-data" >]]></example>
-	</section>
-	<section>
-		<description>This enables the user's browser to correctly encode the data in your file so it can be sent across the Internet.
-Next you need a form field to specify the file to be uploaded. This is done with a File input type, as in:
-</description>
-		<example><![CDATA[<input type="file" name="FileToUpload" value="">]]></example>
-	</section>
-	
-	<section>
-		<description><![CDATA[This creates what appears to be a textbox with a Browse button directly next to it.
+    <shortlink>server a5w uploading files to the application server</shortlink>
+    <!--Uploading Files to the Web Application Server-->
+    <topic>Uploading Files to the Application Server</topic>
+    <deprecated>This technique is deprecated. Use Action Javascript instead.</deprecated>
+    <limitations>Web Applications Only</limitations>
+    <description>Web publishing applications only. To upload a file, your &lt;form&gt; tag must use the POST method and set the enctype to multipart/form-data as follows:</description>
 
-When the form is then submitted, the browser will encode the specified file and upload it as part of the HTTP request being sent to the server. The server decodes the file and then makes an object available to your A5W environment. In the example here, that object will be named FileToUpload because that was the name that was specified in the file input field.
-]]></description>
-		<cases>
-			<case>
-				<title>FileToUpload</title>
-				<description>Will have two properties - filename and data.</description>
-			</case>
-			<case>
-				<title>FileToUpload.filename </title>
-				<description>Is a character string and it contains the name of the file as it had existed on the user's system. This will be just the bare filename with no path information.</description>
-			</case>
-			<case>
-				<title>FileToUpload.data</title>
-				<description>Contains the contents of the uploaded file.</description>
-			</case>
-			
-		</cases>
-		
-	</section>
-	
-	
-	<section>
-		<description>The type of FileToUpload.data is blob, even if the file that has been uploaded is plain ASCII.
+    <sections>
+        <section>
+            <example code="html"><![CDATA[<form method="POST" action="upload.a5w" enctype="multipart/form-data">]]></example>
+        </section>
+        <section>
+            <description>
+                This enables the user's browser to correctly encode the data in your file so it can be sent across the Internet.
+                Next you need a form field to specify the file to be uploaded. This is done with a File input type, as in:
+            </description>
+            <example code="html"><![CDATA[<input type="file" name="FileToUpload" value="">]]></example>
+        </section>
 
-To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at FileToUpload.data.size().
+        <section>
+            <description>
+                <p>An input field with type "file" creates a textbox control with a Browse button used to open the file explorer and select a file on the computer.</p>
+                <p>When the form is submitted, the browser encodes the selected file and uploads it as part of the HTTP request sent to the server. The server decodes the file, making the file available in the A5W environment as an [INET::UploadedFile] object. In this example, the INET::UploadedFile object is assigned the name of the value for the *[html:name]* attribute for the HTML input field.</p>
+            </description>
+            <description>If the file to upload is large, using *[xb:FileToUpload.data]* is not recommended. When referenced, the *[xb:FileToUpload.data]* variable is loaded into memory. For very large files, *[xb:FileToUpload.data]* can potentially consume all of the virtual memory on the system resulting in errors.</description>
+        </section>
+        <section>
+            <description>
+                <p>To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at UplaodedFile.size().</p>
+                <p>If the file meets your criteria, you can then save FileToUpload.data to a file, put it into a field in your table, etc. If it does not meet your criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading.</p>
+                <p>The following example shows how to implement file uploading to the Application Server. Place this code into a page named "fileupload.a5w". The uploaded file will be placed in the document root as defined on the General tab of the Application Server Control Panel.</p>
+            </description>
+            <tip>To save the uploaded file, use UploadedFile.SaveToFile(filename).</tip>
+            <example code="html"><![CDATA[<html>
+    <head>
+        <title>File Upload to Storage</title>
+    </head>
+    <body>
+    <%a5
+        if eval_valid("FileToUpload")
+            dim Filename as c = ""
+            dim MimeType as c = ""
+        
+            dim Container as A5Storage::DataContainer = null_value()
+            dim StorageConnString as c = "Provider='Disk';Timeout='10000';Container='c:\Temp\Uploads';"
+            dim Result as CallResult
+            Result = A5Storage::DataContainer::Open(Container, StorageConnString)
+            if Result.Success
+                if FileToUpload.SaveToStorage(Container, FileToUpload.Filename, FileToUpload.ContentType)
+                    Context.Response.Write("<p>Uploaded file was saved to storage.</p>")
+                else
+                    Context.Response.Write("<p>Could not save uploaded file to storage.</p>")
+                end if
+            else
+                Context.Response.Write("<p>Could not open storage: " + Result.Text + "</p>")
+            end if
+        end if
+    %>
+    <form action="<%a5?Request.ScriptName%>" method="post" enctype="multipart/form-data">
+        <input type="file" name="FileToUpload"/><br/>
+        <input type="submit" name="cmd" value="Upload File"/>
+    </form>
+    </body>
+</html>]]></example>
+        </section>
+        <section>
 
-If the file meets your criteria, you can then save FileToUpload.data to a file, put it into a field in your table, etc. If it does not meet your criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading. Tip: To save the data in blob variable to a file, use File.From_blob().
 
-The following example shows how to implement file uploading to the Application Server. Place this code into a page named "fileupload.a5w". The uploaded file will be placed in the document root as defined on the General tab of the Application Server Control Panel. 
-</description>
-		
-		<example><![CDATA[<html>
-<%a5
-dim msg as c = ""
-if eval_valid("cmd")
-    file.from_blob(ServerSetting.Document_Root + "\\" + FileToUpload.filename, FileToUpload.data)
-    msg = "<a href=\"/" + FileToUpload.filename + "\" target=\"_blank\">" + FileToUpload.filename + "</a> was uploaded<br /><br />"
-end if
-%>
-<head>
-<title>File Upload example</title>
-</head>
-<body bgcolor="#ffffff">
-<%a5 ? msg %>
-<form action=" <%a5 ? request.script_name %> " method="POST" enctype="multipart/form-data">
-<input type="file" name="FileToUpload" value=""><br />
-<input type="submit" name="cmd" value="Upload File">
-</form>
-</body>
-</html> ]]></example>
-	</section>
-	<section>
-		
-		
-	</section>
-	
-</sections>	
-	<see>
-		<ref>A5W Page HTML FORM Syntax</ref>
-	</see>
-	
-	
+        </section>
+
+    </sections>
+    <links>
+        <link link="api inet namespace uploaded file class index">INET::UploadedFile</link>
+    </links>
+    <see>
+        <ref link="api inet namespace uploaded file class index">INET::UploadedFile Class</ref>
+    </see>
 </page>
