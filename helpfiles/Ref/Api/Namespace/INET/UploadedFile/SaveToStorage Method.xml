@@ -1,20 +1,132 @@
 <page generated="true">
-	<shortlink>api inet namespace uploaded file class save to storage method</shortlink>
-	<topic>INET::UploadedFile SaveToStorage Method</topic>
-	<prototype>.SaveToStorage as L (DestinationStorage as P, TargetMember as C, ContentType as C)</prototype>
-	<arguments>
-		<argument>
-			<name>DestinationStorage</name>
-			<description>Pointer</description>
-		</argument>
-		<argument>
-			<name>TargetMember</name>
-			<description>Character</description>
-		</argument>
-		<argument>
-			<name>ContentType</name>
-			<description>Character</description>
-		</argument>
-	</arguments>
-	<description>Save the data to the storage member requested</description>
+    <shortlink>api inet namespace uploaded file class save to storage method</shortlink>
+    <topic>INET::UploadedFile SaveToStorage Method</topic>
+    <prototypes>
+        <prototype>.SaveToStorage as L (DestinationStorage as A5Storage::DataContainer, TargetMember as C, ContentType as C)</prototype>
+        <prototype>.SaveToStorage as L (DestinationStorage as A5Storage::SubContainer, TargetMember as C, ContentType as C)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>DestinationStorage</name>
+            <types>
+                <type>A5Storage::DataContainer</type>
+                <type>A5Storage::SubContainer</type>
+            </types>
+            <description>The Storage container to upload the file.</description>
+        </argument>
+        <argument>
+            <name>TargetMember</name>
+            <type>C</type>
+            <description>The name of the object to set or create in the Storage container.</description>
+        </argument>
+        <argument>
+            <name>ContentType</name>
+            <type>C</type>
+            <description>The content type. E.g. "text/html"</description>
+        </argument>
+    </arguments>
+    <description>Save the uploaded file directly to Storage. This method saves the file from disk directly to the Storage using buffered reads and writes.</description>
+    <sections>
+        <section>
+            <title>Example: Basic Example</title>
+            <example><![CDATA[if eval_valid("Request.Variables.File1")
+
+    DiskContainerName = "C:\Temp\Disk"
+    DiskConnectionString = "Provider='Disk';Container='" + DiskContainerName + "';"
+
+    File = Request.Variables.File1
+    FileName = File.FileName
+    FileSize = File.Size
+    FileContentType = File.ContentType
+
+    ? "File uploaded: " + FileName + " (" + FileSize + " bytes)<br/>"
+
+    dim Storage as A5Storage::SubContainer = null_value()
+
+    CallResult = A5Storage::SubContainer::Open(Storage, DiskConnectionString, "Test1")
+    if CallResult.Success
+        if File.SaveToStorage(Storage, FileName, FileContentType)
+            ? "File written to storage: " + FileName + " (" + FileSize + " bytes."
+        else
+            ? "File write to storage failed: " + File.CallResult.Text + "<br/>"
+        end if
+    else
+        ? "File upload failed.  Unable to open storage." + CallResult.Text + "<br/>"
+    end if
+end if]]></example>
+        </section>
+        <section>
+            <title>Example: Complete A5W Page Example</title>
+            <description>This example demonstrates how to upload to each of the Storage provider types available: 'Azure', 'AmazonS3', and 'Disk'.</description>
+            <example><![CDATA[<html>
+<head><title>File Upload</title></head>
+<body>
+<%a5 
+if eval_valid("Request.Variables.File1")
+
+    DiskContainerName = "C:\Temp\Disk"
+    DiskConnectionString = "Provider='Disk';Container='" + DiskContainerName + "';"
+
+    AzureAccountName = "a5webservertest"
+    AzureAccessKey = "<your access key here>"
+    AzureContainerName = "a5webservertest"
+    AzureConnectionString = "Provider='Azure';Account='" + AzureAccountName + "';AccessKey='" + AzureAccessKey + "';Container='" + AzureContainerName +"';"
+
+    AzureTestContainerName = "a5webservertest"
+    AzureTestConnectionString = "Provider='Azure';UseDevelopmentStorage='true';Container='" + AzureContainerName +"';"
+
+    AmazonAccessKey = "<your access key>"
+    AmazonSecretKey = "<your amazon secret key>"
+    AmazonContainerName = "A5WebServerTest-Application"
+    AmazonConnectionString = "Provider='AmazonS3';AccessKey='" + AmazonAccessKey + "';SecretKey='" + AmazonSecretKey + "';Container='" + AmazonContainerName +"';"
+
+    dim ConnectionStrings[4] as C = [ DiskConnectionString, AzureConnectionString, AzureTestConnectionString, AmazonConnectionString ]
+
+    dim Timer as Util::Timer 
+    File = Request.Variables.File1
+    FileName = File.FileName
+    FileSize = File.Size
+    FileContentType = File.ContentType
+
+    ? "File uploaded: " + FileName + " (" + FileSize + " bytes)<br/><br/>"
+
+    dim Storage as A5Storage::SubContainer = null_value()
+    for i = 1 to ConnectionStrings.Size()
+        ConnectionString = ConnectionStrings[i]
+        ? "Opening connection string at index " + i + " - " + ConnectionString + "." + "<br/>"
+
+
+        Storage = null_value()
+
+        CallResult = A5Storage::SubContainer::Open(Storage, ConnectionString, "Test1")
+        if CallResult.Success
+            dim UploadTimer as Util::Timer
+            UploadTimer.Start()
+
+            if File.SaveToStorage(Storage, FileName, FileContentType)
+                ? "File written to storage: " + FileName + " (" + FileSize + " bytes in " + UploadTimer.ElapsedMilliseconds + " milliseconds.)<br/>"
+            else
+                ? "File write to storage failed: " + File.CallResult.Text + "<br/>"
+            end if
+        else
+            ? "File upload failed.  Unable to open storage." + CallResult.Text + "<br/>"
+        end if
+        ? "<br/>"
+    next
+    Response.Write("<hr/>")
+    ? "Total time to save: " + Timer.ElapsedMilliseconds + " milliseconds." + "<br/>"
+    Response.Write("<hr/>")
+
+end if
+%>
+
+<form action="<%a5 ?Request.ScriptName%>" method="post" enctype="multipart/form-data">
+<input type="file" name="File1"/><br/>
+<input type="submit" name="cmd" value="Upload File"/>
+</form>
+
+</body>
+</html>]]></example>
+        </section>
+    </sections>
 </page>
