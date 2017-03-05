@@ -2,10 +2,8 @@
     <shortlink>server a5w uploading files to the application server</shortlink>
     <!--Uploading Files to the Web Application Server-->
     <topic>Uploading Files to the Application Server</topic>
-    <deprecated>This technique is deprecated. Use Action Javascript instead.</deprecated>
     <limitations>Web Applications Only</limitations>
     <description>Web publishing applications only. To upload a file, your &lt;form&gt; tag must use the POST method and set the enctype to multipart/form-data as follows:</description>
-
     <sections>
         <section>
             <example code="html"><![CDATA[<form method="POST" action="upload.a5w" enctype="multipart/form-data">]]></example>
@@ -20,18 +18,17 @@
 
         <section>
             <description>
-                <p>An input field with type "file" creates a textbox control with a Browse button used to open the file explorer and select a file on the computer.</p>
+                <p>An input field with type "file" creates a text control with a Browse button used to open the file explorer and select a file on the computer.</p>
                 <p>When the form is submitted, the browser encodes the selected file and uploads it as part of the HTTP request sent to the server. The server decodes the file, making the file available in the A5W environment as an [INET::UploadedFile] object. In this example, the INET::UploadedFile object is assigned the name of the value for the *[html:name]* attribute for the HTML input field.</p>
             </description>
-            <description>If the file to upload is large, using *[xb:FileToUpload.data]* is not recommended. When referenced, the *[xb:FileToUpload.data]* variable is loaded into memory. For very large files, *[xb:FileToUpload.data]* can potentially consume all of the virtual memory on the system resulting in errors.</description>
+            <description>If the file to upload is large, using *[xb:FileToUpload.data]* is not recommended. When referenced, the *[xb:FileToUpload.data]* variable is loaded into memory. For very large files, *[xb:FileToUpload.data]* can potentially consume all of the virtual memory on the system resulting in errors. Use either the *[xb:SaveToFile]* or *[xb:SaveToStorage]* methods for the file object to save the file without loading it into memory.</description>
         </section>
         <section>
             <description>
-                <p>To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at UplaodedFile.size().</p>
-                <p>If the file meets your criteria, you can then save FileToUpload.data to a file, put it into a field in your table, etc. If it does not meet your criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading.</p>
-                <p>The following example shows how to implement file uploading to the Application Server. Place this code into a page named "fileupload.a5w". The uploaded file will be placed in the document root as defined on the General tab of the Application Server Control Panel.</p>
+                <p>To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at *[xb:size]* property of the uploaded file object.</p>
+                <p>If the file meets your criteria, you can then save the uploaded to a file on the server, in AmazonS3 or Azure storage, inserted it into a table, etc. If it does not meet the upload criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading.</p>
+                <p>The following example shows how to implement file uploading to the Application Server using Storage containers. Place this code into a page named "fileupload.a5w". The uploaded file will be placed in the document root as defined on the General tab of the Application Server Control Panel.</p>
             </description>
-            <tip>To save the uploaded file, use UploadedFile.SaveToFile(filename).</tip>
             <example code="html"><![CDATA[<html>
     <head>
         <title>File Upload to Storage</title>
@@ -65,15 +62,42 @@
 </html>]]></example>
         </section>
         <section>
+            <title>Using SaveToFile</title>
+            <description>The *[xb:SaveToFile]* method can also be used to save the file. For example:</description>
+            <example><![CDATA[<html>
+    <head>
+        <title>File Upload to Using SaveToFile</title>
+    </head>
+    <body>
+    <%a5
+        if eval_valid("FileToUpload")
+            dim Filepath as c = "C:\myapp\data\uploadedFiles\\"
 
+            if FileToUpload.SaveToFile(Filepath + FileToUpload.Filename)
+                Context.Response.Write("<p>Uploaded file was saved.</p>")
+            else
+                Context.Response.Write("<p>Could not save uploaded file.</p>")
+            end if
 
+        end if
+    %>
+    <form action="<%a5?Request.ScriptName%>" method="post" enctype="multipart/form-data">
+        <input type="file" name="FileToUpload"/><br/>
+        <input type="submit" name="cmd" value="Upload File"/>
+    </form>
+    </body>
+</html>]]></example>
         </section>
-
     </sections>
     <links>
         <link link="api inet namespace uploaded file class index">INET::UploadedFile</link>
     </links>
     <see>
         <ref link="api inet namespace uploaded file class index">INET::UploadedFile Class</ref>
+        <ref link="api a5storage namespace">A5Storage Namespace</ref>
+        <ref link="PhoneGap - File Upload">PhoneGap - File Upload (Action Javascript)</ref>
+        <ref link="file upload">File Upload (Action Javascript)</ref>
+        <ref link="File Upload Amazon S3 Storage or Alpha Anywhere Server">File Upload - Amazon S3 Storage or Alpha Anywhere Server (Action Javascript)</ref>
+        <ref link="File Upload User Defined">File Upload - User Defined (Action Javascript)</ref>
     </see>
 </page>
