@@ -868,18 +868,18 @@
                 <xsl:value-of select="$typeClass" />
             </xsl:attribute>
             <xsl:choose>
-                <xsl:when test=".='C'">Character </xsl:when>
-                <xsl:when test=".='L'">Logical </xsl:when>
-                <xsl:when test=".='N'">Numeric </xsl:when>
-                <xsl:when test=".='P'">Pointer </xsl:when>
-                <xsl:when test=".='D'">Date </xsl:when>
-                <xsl:when test=".='T'">Time </xsl:when>
-                <xsl:when test=".='B'">Binary </xsl:when>
-                <xsl:when test=".='V'">Void </xsl:when>
-                <xsl:when test=".='A'">Any Type </xsl:when>
-                <xsl:when test=".='Y'">Shortime </xsl:when>
-                <xsl:when test=".='U'">Collection </xsl:when>
-                <xsl:when test=".='F'">Function </xsl:when>
+                <xsl:when test=".='C' or .='c'">Character </xsl:when>
+                <xsl:when test=".='L' or .='l'">Logical </xsl:when>
+                <xsl:when test=".='N' or .='n'">Numeric </xsl:when>
+                <xsl:when test=".='P' or .='p'">Pointer </xsl:when>
+                <xsl:when test=".='D' or .='d'">Date </xsl:when>
+                <xsl:when test=".='T' or .='t'">Time </xsl:when>
+                <xsl:when test=".='B' or .='b'">Binary </xsl:when>
+                <xsl:when test=".='V' or .='v'">Void </xsl:when>
+                <xsl:when test=".='A' or .='a'">Any Type </xsl:when>
+                <xsl:when test=".='Y' or .='y'">Shortime </xsl:when>
+                <xsl:when test=".='U' or .='u'">Collection </xsl:when>
+                <xsl:when test=".='F' or .='f'">Function </xsl:when>
                 <xsl:otherwise><xsl:value-of select="." /></xsl:otherwise>
             </xsl:choose>
             <xsl:comment></xsl:comment>
