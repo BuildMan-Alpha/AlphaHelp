@@ -1,0 +1,62 @@
+<page generated="true">
+	<shortlink>api A5Storage DataContainer WriteItemToStream Method</shortlink>
+	<topic>A5Storage::DataContainer WriteItemToStream Method</topic>
+	<prototype>.WriteItemToStream as L (Data as System::IO::Stream, BYREF LengthReturned as N, BYREF ContentType as C, TargetPath as C)</prototype>
+	<arguments>
+		<argument>
+			<name>Data</name>
+			<type>System::IO::Stream</type>
+			<description>The stream to which data is written.</description>
+		</argument>
+		<argument>
+			<name>BYREF LengthReturned</name>
+			<type>N</type>
+			<description>The amount of data returned in the stream.</description>
+		</argument>
+		<argument>
+			<name>BYREF ContentType</name>
+			<type>C</type>
+			<description>The content type. E.g. "text/html"</description>
+		</argument>
+		<argument>
+			<name>TargetPath</name>
+			<type>C</type>
+			<description>The item in the Storage container to write to stream.</description>
+		</argument>
+	</arguments>
+	<returns>
+		<return>
+			<name>Result</name>
+			<type>L</type>
+			<description>Returns .T. if the operation succeeds, otherwise .F. (see .CallResult for additional error information.)</description>
+		</return>
+	</returns>
+	<description>Retrieves an item from the Storage container using the name provided and writes it to the provided stream variable.</description>
+	<discussion>You must DIM variables for Stream, LengthReturned, and ContentType prior to making the call.</discussion>
+	<example><![CDATA[dim Stream as System::IO::Stream = null_value()
+dim ContentType as C
+dim Length as N
+dim Buffer as B
+dim CallResult as CallResult
+dim Container as A5Storage::DataContainer = null_value()
+
+Stream = new System::IO::MemoryStream()
+CallResult = A5Storage::DataContainer::Open(Container, "Provider='Disk';Container='c:\A5Webroot';")
+if CallResult.Success
+    if Container.WriteItemToStream(Stream, Length, ContentType, "Speak.a5w")
+        Stream.Seek(0, System::IO::SeekOrigin::Begin)
+
+        dim Reader as System::IO::BinaryReader = new System::IO::BinaryReader(Stream)
+        Buffer = Reader.ReadBytes(Length)
+        Stream.close()
+    else
+        CallResult = Container.CallResult
+    end if
+end if
+
+if CallResult.Success
+    showvar("Type: " + ContentType + crlf() + "Length: " + Length + crlf(2) + buffer, "Success")
+else
+    showvar(CallResult.Text, "Error")
+end if]]></example>
+</page>

@@ -1,0 +1,148 @@
+<page>
+	<shortlink>api a5storage NameCache class</shortlink>
+	<topic>A5Storage::NameCache Class</topic>
+	<description>A container for named connection strings.</description>
+	<properties>
+		<property readonly="true">
+			<name>CallResult</name>
+			<type>CallResult</type>
+			<description>Contains the status of the last call made on the instance.</description>
+		</property>
+		<property readonly="true">
+			<name>NamedConnectionPrefix</name>
+			<type>C</type>
+			<description>The prefix used for named connections. E.g. *[xb:"::NAME::"]*.</description>
+		</property>
+		<property>
+			<name>Names</name>
+			<type>C</type>
+			<description>
+				<p>Gets or sets the entire cache from or to a string of the format: *[xb:"name&lt;tab&gt;connectionstring&lt;crlf&gt;"]*</p>
+				<p>Each row contains a tab separated name and connection string pair. The rows are delimited with a carriage return and line feed (CR-LF).</p>
+			</description>
+		</property>
+	</properties>
+	<discussion>The caller is responsible for managing the contents and for providing the cache to use when calling [A5Storage::DataContainer::Open()] or [A5Storage::SubContainer::Open()].</discussion>
+	
+	<prototypes>
+		<prototype>A5Storage::NameCache()</prototype>
+		<prototype>A5Storage::NameCache(Storages as C)</prototype>
+	</prototypes>
+	<arguments>
+		<argument>
+			<name>Storages</name>
+			<type>C</type>
+			<description>A CR-LF delimited list of storages. See examples below.</description>
+		</argument>
+	</arguments>
+	<!--list:.-->
+	<sections>
+		<section>
+			<title>Creating an A5Storage::NameCache Object</title>
+			<description>A NameCache object can be created using the A5Storage::NameCache constructor. Storages can be specified in the constructor or added later using the [AddItems] method. For example:</description>
+			<example><![CDATA[dim Storages as C = <<%txt%
+Storage1	Provider='Disk';Container='C:\A5WebRoot1';
+Storage2	Provider='Disk';Container='C:\A5WebRoot2';
+%txt%
+
+dim Cache as A5Storage::NameCache
+if Cache.AddItems(Storages)
+    ' do stuff here
+else
+    ' Oops!
+    showvar("Oops!" + crlf() + Cache.CallResult.Text)
+end if]]></example>
+		</section>
+		<section>
+			<description>This example demonstrates adding storages when the A5Storage::NameCache item is created using the constructor:</description>
+			<example><![CDATA[dim Storages as C = <<%txt%
+Storage1	Provider='Disk';Container='C:\A5WebRoot1';
+Storage2	Provider='Disk';Container='C:\A5WebRoot2';
+%txt%
+
+dim Cache as A5Storage::NameCache = new A5Storage::NameCache(Storages)]]></example>
+		</section>
+		<section>
+			<title>Using A5Storage::NameCache with Containers</title>
+			<description>The example script below shows how you can create and use a cache of names with A5Storage::Container to automatically translate named connections.</description>
+			<example><![CDATA[dim Storages as C = <<%txt%
+Store1	Provider='Disk';Container='C:\A5WebRoot1';
+Store2	Provider='Disk';Container='C:\A5WebRoot2';
+Invalid	Provider='Disk';Container='AA:\abc';
+%txt%
+
+dim TestStorages as C = <<%txt%
+Store1
+Store2
+Invalid
+NotFound
+%txt%
+
+Result = RunTest(Storages, TestStorages)
+showvar(Result)
+
+FUNCTION RunTest as C (Storages as C, TestStorages as C)
+    dim Result as C
+    dim cache as a5storage::NameCache = new a5storage::NameCache(Storages)
+
+    for i = 1 to w_count(TestStorages, crlf())
+        CurrentItem = word(TestStorages, i, crlf())
+        CurrentName = word(CurrentItem, 1, chr(9))
+        Result = Result + "Testing Name: " + CurrentName + crlf() + TestName(Cache, "::name::" + CurrentName)
+    next 
+
+    RunTest = Result
+END FUNCTION
+
+
+FUNCTION TestName(Cache as A5Storage::NameCache, Name as C)
+
+    dim Result as C
+
+    dim sc as a5storage::DataContainer = null_value()
+
+    CallResult = A5Storage::DataContainer::Open(sc, Cache, Name)
+    if CallResult.Success
+        dim ItemName as C = "test/Data.Txt"
+        dim ItemValue as C = "StorageData"
+        dim ItemContentType as C = "text"
+
+        if sc.SetItem(ItemValue, ItemContentType, ItemName)
+
+            dim di as A5Storage::DataItem = null_value()
+
+            if sc.ReferenceItem(di, ItemName)
+                dim Text AS C
+                dim ContentType as C
+                di.Get(Text, ContentType)
+                Result = "Item: " + ItemName + " = " + Text + crlf()
+                Result = Result + chr(9) + chr(9) + "Modified: 	  " + di.ModifiedTime + crlf()
+                Result = Result + chr(9) + chr(9) + "ContentType: " + di.ContentType + crlf()
+                Result = Result + chr(9) + chr(9) + "Size:        " + di.Size + crlf(2)
+            else
+                Result = "Error referencing item '" + ItemName + "':" + sc.CallResult.Text
+            end if
+        else
+            Result = "Error setting item: " + sc.CallResult.Text + crlf()
+        end if
+    else
+        Result = "Error opening container '" + Name + ": " + CallResult.Text + crlf()
+    end if
+    TestName = Result
+END FUNCTION]]></example>
+		</section>
+	</sections>
+	<links>
+		<link link="api a5storage DataContainer open method">A5Storage::DataContainer::Open()</link>
+		<link link="api A5Storage SubContainer Open Method">A5Storage::SubContainer::Open()</link>
+		<link link="api a5storage NameCache additems method">AddItems</link>
+	</links>
+    <see>
+        <ref link="a5storage_deleteItem Function">a5storage_deleteItem Function</ref>
+        <ref link="a5storage_getItem_as_blob Function">a5storage_getItem_as_blob Function</ref>
+        <ref link="a5storage_getItem_as_file Function">a5storage_getItem_as_file Function</ref>
+        <ref link="a5storage_listItems Function">a5storage_listItems Function</ref>
+        <ref link="a5storage_saveData Function">a5storage_saveData Function</ref>
+        <ref link="a5storage_saveFile Function">a5storage_saveFile Function</ref>
+    </see>
+</page>

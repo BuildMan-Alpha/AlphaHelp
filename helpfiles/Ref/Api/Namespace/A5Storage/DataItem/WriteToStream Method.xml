@@ -1,0 +1,61 @@
+<page generated="true">
+	<shortlink>api A5Storage DataItem WriteToStream Method</shortlink>
+	<topic>A5Storage::DataItem WriteToStream Method</topic>
+	<prototype>.WriteToStream as L (Data as System::IO::Stream, BYREF Length as N, BYREF ContentTypeResult as C)</prototype>
+	<arguments>
+		<argument>
+			<name>Data</name>
+			<type>System::IO::Stream</type>
+			<description>The stream to which data is written.</description>
+		</argument>
+		<argument>
+			<name>BYREF Length</name>
+			<type>N</type>
+			<description>The amount of data returned in the stream.</description>
+		</argument>
+		<argument>
+			<name>BYREF ContentTypeResult</name>
+			<type>C</type>
+			<description>The content type. E.g. "text/html"</description>
+		</argument>
+	</arguments>
+	<returns>
+		<return>
+			<name>Result</name>
+			<type>L</type>
+			<description>Returns .T. if the operation succeeds, otherwise .F. (see .CallResult for additional error information.)</description>
+		</return>
+	</returns>
+	<description>Retrieves the item data and writes it to a System::IO::Stream object. The content type and length written are also returned.</description>
+	<discussion>You must dimension the resulting Stream and ContentType and Length variables prior to making the call.</discussion>
+	<example><![CDATA[dim Stream as System::IO::Stream = null_value()
+dim ContentType as C
+dim Length as N
+dim Buffer as B
+dim CallResult as CallResult
+dim Container as A5Storage::DataContainer = null_value()
+dim Item as A5Storage::DataItem = null_value()
+
+Stream = new System::IO::MemoryStream()
+CallResult = A5Storage::DataContainer::Open(Container, "Provider='Disk';Container='c:\A5Webroot';")
+if CallResult.Success
+    if Container.ReferenceItem(Item, "Speak.a5w")
+        if Item.WriteToStream(Stream, Length, ContentType)
+            Stream.Seek(0, System::IO::SeekOrigin::Begin)
+            dim Reader as System::IO::BinaryReader = new System::IO::BinaryReader(Stream)
+            Buffer = Reader.ReadBytes(Length)
+            Stream.close()
+        else
+            CallResult = Item.CallResult
+        end if
+    else
+        CallResult = Container.CallResult
+    end if
+end if
+
+if CallResult.Success	
+    showvar("Type: " + ContentType + crlf() + "Length: " + Length + crlf(2) + buffer, "Success")
+else
+    showvar(CallResult.Text, "Error")
+end if]]></example>
+</page>
