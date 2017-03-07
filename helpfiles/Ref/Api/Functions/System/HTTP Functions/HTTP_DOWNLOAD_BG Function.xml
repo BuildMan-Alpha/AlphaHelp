@@ -1,7 +1,7 @@
 <page api="xb">
     <shortlink>api http download bg function</shortlink>
     <topic>HTTP_DOWNLOAD_BG Function</topic>
-    <description>Creates a background thread which uses the HTTP protocol to download from source_url and save the data to target_file.</description>
+    <description>Downloads the resource at the specified Source_URL using the HTTP protocol and saves it to Target_File.</description>
     <prototype>Result as P = http_download_bg(source_url as C, target_file as C)</prototype>
     <arguments>
         <argument>
@@ -19,62 +19,155 @@
         <return>
             <name>Result</name>
             <type>P</type>
-            <description>A dot variable containing the server's response.</description>
+            <description>A dot variable containing the result of the download request, as well as control information regarding the request.</description>
             <properties>
-                <property readonly="true">
-                    <name>error_text</name>
-                    <type>C</type>
-                    <description>The error message, if any. If no error occurs, error_text will be empty.</description>
+               	<property readonly="true">
+                    <name>connect_timeout</name>
+                    <type>n</type>
+                    <description>The amount of time, in milliseconds, that the download process will wait for a sucessful connection to the remote server.</description>
+                </property>
+                <property readonly="false">
+                    <name>ctrl</name>
+                    <type>P</type>
+                    <description>A pointer with control variables that can be used to monitor and interrupt a long-running download.</description>
+                    <properties>
+                     	<property readonly="true">
+	                    	<name>bytes</name>
+		                    <type>N</type>
+		                    <description>A running counter of the size of the data downloaded so far.</description>
+		                </property>
+		                 <property>
+		                    <name>exit</name>
+		                    <type>L</type>
+		                    <description>If set to true, this will cancel the download currently in process.</description>
+		                </property>
+		           </properties>
                 </property>
                 <property readonly="true">
-                    <name>error_code</name>
-                    <type>N</type>
-                    <description>The error number, if any. If no error occurs, error_code will be 0.</description>
+                    <name>download_cancelled</name>
+                    <type>L</type>
+                    <description>Indicates if the download was cancelled, either because of error or user intervention.</description>
+                </property>
+                <property readonly="true">
+                    <name>download_complete</name>
+                    <type>L</type>
+                    <description>Indicates if the download completed sucessfully.</description>
                 </property>
                 <property readonly="true">
                     <name>headers</name>
                     <type>C</type>
-                    <description>Response headers. If error_code is 0, the result will contain a dot variable, parsed_headers, with a property representing each response header.</description>
+                    <description>The headers of the HTTP response received from the server, if any.</description>
                 </property>
-                <property readonly="true">
-                    <name>body</name>
-                    <type>C</type>
-                    <description>Response body.</description>
-                </property>
-                <property readonly="true">
-                    <name>parsed_headers</name>
+				<property readonly="true">
+                    <name>pParsedURL</name>
                     <type>P</type>
-                    <description>Contains all the headers in the response split out into individual properties. If an error occurred when trying to communicate with the server, parsed_headers will be empty. parsed_headers will always contain the following properties in addition to the headers in the response:</description>
-                    <properties>
-                        <property readonly="true">
-                            <name>http_version</name>
-                            <type>C</type>
-                            <description>The HTTP version used.</description>
-                        </property>
-                        <property readonly="true">
-                            <name>reason_phrase</name>
-                            <type>C</type>
-                            <description>A description of the status code.</description>
-                        </property>
-                        <property readonly="true">
-                            <name>status_code</name>
-                            <type>N</type>
-                            <description>The response status code. See [Status Codes] for a list of status codes.</description>
-                        </property>
-                    </properties>
+                    <description>A parsed representation of the target_url that was supplied. This will be equivelent to the result of *[xb:a5_split_url(source_url,.t.)]*</description>
                 </property>
+               	<property readonly="true">
+                    <name>read_start</name>
+                    <type>t</type>
+                    <description>A timestamp indicating when the download began.</description>
+                </property>
+               <property readonly="true">
+                    <name>read_timeout</name>
+                    <type>n</type>
+                    <description>The amount of time, in milliseconds, that the download process will wait to receive data from the server. This is not the total download time allowed. It is the amount of time that HTTP_DOWNLOAD_BG() will wait for a server it the server temporarily pauses while sending the response.</description>
+                </property>
+    			<property readonly="true">
+                    <name>req</name>
+                    <type>C</type>
+                    <description>The full HTTP request that has been assembled in order to retrieve the specified source_url.</description>
+                </property>
+    			<property readonly="true">
+                    <name>response</name>
+                    <type>B</type>
+                    <description>The full HTTP response received from the server. This value will continue to change as the download progresses, and will not be complete until download_complete is .t.</description>
+                </property>
+                <property readonly="true">
+                    <name>result_code</name>
+                    <type>C</type>
+                    <description>The HTTP status code from of the server's response, if any.</description>
+                </property>
+    			<property readonly="true">
+                    <name>sock</name>
+                    <type>P</type>
+                    <description>The underlying TCP socket used for communication with the remote server.</description>
+                </property>
+               <property readonly="true">
+                    <name>source_url</name>
+                    <type>C</type>
+                    <description>The URL from which the download is being attempted. This will match the source_url value that was passed in to the function.</description>
+                </property>               
+                <property readonly="true">
+                    <name>status</name>
+                    <type>C</type>
+                    <description>A textual description of the result of the download attempt. This status is set to various values as the download progresses.</description>
+                </property>
+               	<property readonly="true">
+                    <name>target_file</name>
+                    <type>C</type>
+                    <description>The file location that will contain the download contents upon completion. This will match the target_file value that was passed in to the function.</description>
+                </property>
+               	<property readonly="true">
+                    <name>timed_out_on_headers</name>
+                    <type>L</type>
+                    <description>Indicates if the request timed out while waiting for response headers from the server.</description>
+                </property> 
             </properties>
         </return>
     </returns>
-    <discussion>The HTTP_DOWNLOAD_BG() function creates a background thread which uses the HTTP protocol to download from Source_URL and save the data to Target_File.</discussion>
+    <discussion>The HTTP_DOWNLOAD_BG() downloads the resource at the specified Source_URL using the HTTP protocol and saves it to Target_File. The download is performed in the background, using a separate thread. This allows other Xbasic code to continue running. That other Xbasic code can also interact with the background download to monitor it, or even cancel the download, if desired. Once Result.download_complete is .t., target_file will contain the contents of source_url.</discussion>
     <sections>
         <section>
-            <note>When the server responds with a 30* code, HTTP_DOWNLOAD_BG() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</note>
+            <note>When Result is held on to in your Xbasic code, Result.response includes the full response from the server, even after the downloaded resource has been saved to disk. This means that a copy of the downloaded file is loaded into system memory until your code deletes Result. This may lead to high memory utilization when downloading large files.</note>
+        </section>
+        <section>
+            <note>When the server responds with a 30* code, HTTP_DOWNLOAD_BG() does not automatically follow the redirect to the new URL. The developer needs to examine Result.download_cancelled, and in the event that it is .t., examine Result.headers to see if the server issued a redirect. If so, a new HTTP_DOWNLOAD_BG() request will need to be constructed to retrieve the new URL.</note>
         </section>
         <section>
             <title>Example</title>
             <description>Download the Alphasports Explained PDF from the Learning center and save to a predetermined location.</description>
             <example code="xb"><![CDATA[http_download_bg("http://downloads.alphasoftware.com/Books/AlphaSports.pdf", "c:\alphasports.pdf")]]></example>
+        </section>
+        <section>
+            <title>Example</title>
+            <description>Demonstration of Result.status changing as the download progresses.</description>
+            <example code="xb">*[xb:dim Result as p
+Result = http_download_bg("http://www.alphasoftware.com/","c:\Temp\alpha.html")
+
+?Result.status
+= "Initializing..."
+
+?Result.Status
+= "Connecting to server..."
+
+?Result.Status
+= "Downloading file..."
+
+?Result.Status
+= "Download complete"]*</example>
+        </section>
+        <section>
+            <title>Example</title>
+            <description>Demonstration of cancelling a download</description>
+            <example code="xb">*[xb:dim Result as p
+Result = http_download_bg("http://www.alphasoftware.com/","c:\Temp\alpha.html")
+
+?Result.Status
+= "Downloading file..."
+
+Result.ctrl.Exit = .t.
+
+?Result.Status
+= "Download cancelled"
+
+?Result.download_complete
+= .F.
+
+?Result.download_cancelled
+= .T.
+
+]*</example>
         </section>
     </sections>
     <links>
