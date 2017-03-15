@@ -14,7 +14,7 @@
         <section>
             <title>Storing State in Components Using the stateInfo Object</title>
             <description>
-                <p>Grid and UX components provide a built-in state object that can be accessed in both server-side and client-side code to store state information. Several built-in JavaScript methods are available for getting and setting state info. The *[js:.getStateInfo('ItemName')]* can be used to fetch the value of a stored item with the name *[js:ItemName]*. The *[js:.setStateInfo(obj)]* can be used to store state information in the component's state object. State info item names are case-sensitive in all client-side (JavaScript) code.</p>
+                <p>Grid and UX components provide a built-in state object that can be accessed in both server-side and client-side code to store state information. Several built-in JavaScript methods and properties are available for setting and getting state info. The *[js:.setStateInfo(obj)]* can be used to store state information in the component's state object. The *[js:.getStateInfo()]* method and *[js:.stateInfo]* object can be used to fetch the value of a stored item with the name *[js:ItemName]*. State info item names are case-sensitive in all client-side (JavaScript) code.</p>
             </description>
         </section>
         <section>
@@ -64,11 +64,46 @@ end function]]></example>
         <section>
             <title nested="2">Reading State Info</title>
             <description>
-                <p>State information can be read by checking the *[xb:e.__si2]* object in UX Components and *[xb:request.variables.__si2]* in Grids. State info in a component will persist beyond a session if a session ends while the user is using the component.</p>
+                <p>Values in the state info object can be queried in client-side JavaScript using the *[js:getStateInfo()]* method or *[js:stateInfo]* property for the component's JavaScript object in the Grid and UX Component. The easiest way to retrieve state info is using the *[js:stateInfo]* property. The *[js:getStateInfo()]* method can be used to read state information, however *[js:getStateInfo()]* gets the data from the state object in the form of a text string of name value pairs delimited with &amp; characters.</p>
+                <p>The *[js:stateInfo]* property, on the other hand, is a JSON object where each state info item can be referenced as if it were a property. For example:</p>
+            </description>
+            <note>The examples in this section are for the UX Component. However, the concepts are the same for Grid components.</note>
+            <example code="js"><![CDATA[var stateInfo = {dialog.object}.stateInfo;
+var myvar1 = stateInfo["myvar1"];
+alert("myvar1 = " + myvar1);]]></example>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <title nested="3">Case Matters</title>
+                    <description>JavaScript is a case-sensitive langauge. When retrieveing the value of an item in the state info object, the name of the item to lookup must match the case used when assigned. For example, consider the following Xbasic:</description>
+                    <example code="xb"><![CDATA[e._state.ThisIsMyVar = "some value"]]></example>
+                </case>
+                <case>
+                    <description>When the state info object, *[xb:e._state.ThisIsMyVar]* is added to the client-side state info object, a property called "ThisIsMyVar" is added to the component's *[js:stateInfo]* property. When referencing the item, the case must match exactly. EG:</description>
+                    <example code="js"><![CDATA[var stateInfo;
+stateInfo = {dialog.object}.stateInfo;
+alert("ThisIsMyVar: " + stateInfo["ThisIsMyVar"]);
+
+// "thisismyvar" doesn't exist
+alert("thisismyvar: " + stateInfo["thisismyvar"]);]]></example> 
+                </case>
+                <case>
+                    <description>When this code executes, the first alert will display the message "ThisIsMyVar: some value". The second alert, however, will display "thisismyvar: undefined". This is because *[js:stateInfo["thisismyvar"]]* is not defined in the stateInfo object.</description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <description>
+                <p>In server-side events and ajax callbacks, state information can be read by checking the *[xb:e.__si2]* object in UX Components and *[xb:request.variables.__si2]* in Grids. State info in a component will persist beyond a session if a session ends while the user is using the component.</p>
             </description>
             <example code="xb"><![CDATA[function myCallbackExample2 as c (e as p)
     dim myvar3 as C = ""
+    
+    ' Verify the e.__si2.myvar3 state info item exists
+    ' before trying to assign it to the myvar3 variable.
     if (variable_exists("e.__si2.myvar3")) then
+        ' It exists!
         myvar3 = e.__si2.myvar3
     end if
 
@@ -89,7 +124,7 @@ end function]]></example>
             </description>
         </section>
         <section>
-            <title>Using State Info to Store Default Values for New Records in a Grid with a Detail View</title>
+            <title nested="2">Example:Using State Info to Store Default Values for New Records in a Grid with a Detail View</title>
             <description>
                 <p>This example demonstrates how to store defaults for a new record in the state info object in the Grid Component with a Detail View. In the case of continuous record entry, there may be some values entered by the user in a new record that you would like to use as the default value for every new record. In this example, we capture the "lastname" entered by the user when a new record is submitted and use the value as the default value for all new records.</p>
             </description>
@@ -123,6 +158,18 @@ if defaultValue <> ""
     e.newvalues.lastname = defaultValue
 end if ]]>
             </example>
+        </section>
+        <section>
+            <title>Videos</title>
+            <description>Check out the videos below to learn more about the Grid and UX Component's state object:</description>
+            <videos>
+                <title>Setting State Variables in Grid and UX Components</title>
+                <description> This video is for advanced developers. It shows how "state" information can be stored in the "state" object in the Grid or UX object. The data in the "state" object can be read in both client-side and server-side events. It can also be set in either client-side or server-side events. In many cases, storing state information in the Grid or UX object's "state" object is preferable to using session variables.</description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>http://www.viddler.com/v/ad93943c</link>
+                </video>
+            </videos>
         </section>
     </sections>
     <links>
