@@ -1,95 +1,137 @@
 <page>
     <shortlink>server grid ux and Custom Components Storing state information</shortlink>
-    <topic>How to Store State Information in Grid, UX, and Custom Components</topic>
-    <description>The Grid, UX and Custom Components have two new methods, .setStateInfo() and .getStateInfo(), which allow you to store arbitrary information in the Grid object. Any information stored in the state object will be automatically submitted to the server on every Ajax callback. The UX and Custom component also have the same two methods.</description>
+    <topic>How to Store State Information</topic>
+    <description>State information can be stored and persisted in the Grid, UX and Custom Components and accessed in JavaScript scripts using the setStateInfo() and getStateInfo() methods. Any information stored in the state object will be also be submitted to the server on every Ajax callback, making state info available for use in Xbasic. Session variables can also be used to store state information.</description>
     <sections>
         <section>
-            <description>The .setStateInfo() method is useful for persisting information for use in all Ajax callbacks.</description>
-        </section>
-        <section>
+            <title>Storing State in Components Using the stateInfo Object</title>
             <description>
-                <p>To explain the use of the .setStateInfo() method using a practical example, consider the case of a Grid with an updatable Detail View. When the user enters a new record, and sets the value of a field such as 'lastname', you would like to use the value that the user entered for 'lastname' as the default value for the subsequent new record that the user might enter.</p>
-                <p>Here is how this could be done.</p>
+                <p>Grid, UX, and Custom components provide a built-in state object that can be accessed in both server-side and client-side code to store state information. Several built-in JavaScript methods are available for getting and setting state info. The *[js:.getStateInfo('ItemName')]* can be used to fetch the value of a stored item with the name *[ItemName]*. The *[js:.setStateInfo(JSON_Obj)]* can be used to store state information in the component's state object. State info item names are case-sensitive in all client-side (JavaScript) code.</p>
+                <p>State information will persist beyond a session if the user's session times out while they are using the app. If the page on which a component resides is reloaded (F5), however, state information will be lost. If state info needs to be persisted across pages, session variables or local storage can be utilized to persist data beyond the lifetime of component instance.</p>
             </description>
         </section>
         <section>
-            <description>In the AfterInsertRecord event in the Grid builder, return JavaScript to populate the state information from a JSON object:</description>
-            <example>
-                <![CDATA[dim js as c 
-dim ar as p
-ar.defaultValue_LastName = e.dataSubmitted.lastname
-dim json as c 
-json = vartojson(ar,.f.,.t.)
- 
-'Construct the javascript command that sets the 
-'defaultValue_Lastname' variable in the 'state' info object
-js = "{grid.object}.setStateInfo(" + json + ");"
-e.rtc.A_AjaxResponses[].text = js
- 
-'This defines the order in which the Javascript responses are emitted. 
-'In this case the order is not important, so we just set a value of 1
-e.rtc.A_AjaxResponses[..].id = 1 ]]>
-            </example>
+            <title nested="2">Storing State Info</title>
+            <description>
+                <p>State info can be created and stored in both client-side and server-side events and callbacks. On the client, use the *[js:.setStateInfo()]* method to store information the component's state object:</p>
+            </description>
+            <example code="js"><![CDATA[{dialog.object}.setStateInfo({myvar1: 'value for myvar1'});]]></example>
         </section>
         <section>
-            <description>In the [onInitialValueCalculate] event, initialize the value "defaultValue_LastName" in the state info object, referred to as *[xb:__si2]* in this event:</description>
-            <example>
-                <![CDATA[dim defaultValue as c = ""
+            <description>Multiple values can be added to the state object as an object of name-value pairs. For example:</description>
+            <example code="js"><![CDATA[var obj = {};
+obj['myvar1'] = 'value for myvar1';
+obj['myvar2'] ='value for myvar2';
+
+{dialog.object}.setStateInfo(obj);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Data that is added to the state object on the client will be made available in Ajax callbacks to the server. Most server-side component events have access to state information. The auto-generated comments in an Xbasic event or Ajax callback function created using Action Javascript include instructions for accessing and setting state information. In general, most events set state information using the *[xb:e._state]* variable. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[function myCallbackExample as c (e as p)
+
+    e._state.myvar3 = "value for myvar3";
+
+    ' Return optional JavaScript to execute on the client
+    myCallbackExample = "alert("created myvar3");"
+end function]]></example>
+        </section>
+        <section>
+            <description>State information can also be set from an Xbasic script by returning JavaScript to to execute on the client. EG:</description>
+            <example code="xb"><![CDATA[function myCallbackExample_JS as c (e as p)
+    ' Define the javascript to execute on the client
+    dim js as c =<<%js%
+var obj = {};
+obj['myvar1'] = 'value for myvar1';
+obj['myvar2'] ='value for myvar2';
+
+{dialog.object}.setStateInfo(obj);
+%js%
+
+    ' Return the javascript from the callback:
+    myCallbackExample_JS = js
+end function]]></example>
+        </section>
+        <section>
+            <title nested="2">Reading State Info</title>
+            <description>
+                <p>State information can be read by checking the *[xb:e.__si2]* object in UX Components and *[xb:request.variables.__si2]* in Grids. State info in a component will persist beyond a session if a session ends while the user is using the component.</p>
+            </description>
+            <example code="xb"><![CDATA[function myCallbackExample2 as c (e as p)
+    dim myvar3 as C = ""
+    if (variable_exists("e.__si2.myvar3")) then
+        myvar3 = e.__si2.myvar3
+    end if
+
+    ' ...
+
+    myCallbackExample2 = "/*optional JavaScript to return*/"
+end function]]></example>
+        </section>
+        <section>
+            <title>Storing State in Components Using Session Variables</title>
+            <description>
+                <p>State information can also be stored using session variables. Data stored in the *[xb:session]* object can be accessed in any Xbasic script on the server. Session variables, however are not available on the client unless they are explicitly published. Published session variables are read-only and cannot be modified using client-side code. Further more, if a session variable changes after the component is initially rendered, the published session information on the client is not updated.</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>Session variables are lost when the user's session ends or the session is cleared manually using the [Context.Session.Clear()] method. See [Understanding and Using Session Variables] to learn more about working with Sessions.</p>
+            </description>
+        </section>
+        <section>
+            <title>Working with State Information on the Client</title>
+            <description>The setStateInfo() method is useful for persisting information for use in all Ajax callbacks.</description>
+        </section>
+        <section>
+            <title>Using State Info to Store Default Values for New Records in a Grid with a Detail View</title>
+            <description>
+                <p>This example demonstrates how to store defaults for a new record in the state info object in the Grid Component with a Detail View. In the case of continuous record entry, there may be some values entered by the user in a new record that you would like to use as the default value for every new record. In this example, we capture the "lastname" entered by the user when a new record is submitted and use the value as the default value for all new records.</p>
+            </description>
+        </section>
+        <section>
+            <description>The "lastname" submitted for a new record can be captured in the Grid Component's [AfterInsertRecord] event. The *[xb:e.dataSubmitted]* variable contains all values submitted when the user saves the new record. The code below captures the new "lastname" value and stores it in the Grid's stateInfo object. Data can be added to the state info object by setting values in the *[xb:e._state]* object:</description>
+            <example code="xb"><![CDATA[' Get the "lastname" value submitted by the user
+dim lastname as c
+lastname = e.dataSubmitted.lastname
+
+' store the "lastname" in the state info object:
+e._state.defaultValue_LastName = lastname]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Code can be added to the [onInitialValueCalculate] event set the default value for a new record. The onInitialValueCalculate event is triggered whenever the user clicks the "New Record" hyperlink to create a new record using the Detail View.</p>
+                <p>In the onInitialValueCalculate event, we need to get the stored lastname value from *[xb:defaultValue_LastName]* in the state info object. The state info object is passed to the onInitialValueCalculate event through the *[xb:Context.Request.Variables]* object: *[xb:__si2]*. Our code needs to test that the *[xb:e.__si2.defaultValue_LastName]* variable exists and, if it does, set the default value for "lastname" to the stored value in the state object.</p>
+            </description>
+            <example code="xb">
+                <![CDATA[' define a variable that will hold the default for "lastname"
+dim defaultValue as c = ""
 
 'Any data that was stored in the stateInfo object is submitted in the __si2 object.
-if eval_valid("Request.Variables.__si2.defaultValue_LastName") then 
- defaultValue = Request.Variables.__si2.defaultValue_LastName
+if variable_exists("Request.Variables.__si2.defaultValue_LastName") then 
+    defaultValue = Request.Variables.__si2.defaultValue_LastName
 end if 
 
+' If defaultValue is not empty, set the default for "lastname"
 if defaultValue <> ""
- e.newvalues.lastname = defaultValue
+    ' e.newvalues contains the default values for new records:
+    e.newvalues.lastname = defaultValue
 end if ]]>
             </example>
-            <note>Every time the user clicks the New Record hyperlink to enter a new record in the Detail View, this event is fired</note>
-        </section>
-        <section>
-            <description>
-                <![CDATA[The .getStateInfo() method can be used in your Javascript code to read the values in the State info object. The data is returned as a text string of name value pairs, delimited with '&' characters. For example:]]>
-            </description>
-            <example>
-                <![CDATA[myvar1=Value of myvar1&myvar2=Value of myvar2&myvar3=Value of myvar3 ]]>
-            </example>
-        </section>
-        <section>
-            <description>
-                Your Javascript code can read the stateInfo object directly, For example:
-            </description>
-            <example>
-                <![CDATA[var si = this.stateInfo;
-alert(si.myvar1) ]]>
-            </example>
-        </section>
-        <section>
-            <description>JavaScript can also be used to set the value of variables in the stateInfo object. For example:</description>
-            <example>
-                <![CDATA[var si = this.stateInfo;
-si.myvar1 = 'new value for myvar1'; ]]>
-            </example>
-        </section>
-
-        <section>
-            <title>A Shortcut for UX Component Server-side events</title>
-            <description>
-                <p>In a UX Component you can also store state in a server-side event handler simply by setting values in e._state.</p>
-                <p>For example, writing</p>
-            </description>
-            <example>
-                <![CDATA[e._state.myvar = "alpha" ]]>
-            </example>
-        </section>
-        <section>
-            <description>This is much easier than writing the Xbasic code to generate the Javascript to send back as part of the response generated by the server side event.</description>
         </section>
     </sections>
+    <links>
+        <link link="grid onInitialValueCalculate event">onInitialValueCalculate</link>
+        <link link="grid AfterInsertRecord event">AfterInsertRecord</link>
+        <link link="api objects session object clear method">Context.Session.Clear()</link>
+        <link link="understanding and using session variables">Understanding and Using Session Variables</link>
+    </links>
     <see>
         <ref link="grid component getStateInfo method">{grid.object}.getStateInfo()</ref>
         <ref link="grid component setStateInfo method">{grid.object}.setStateInfo()</ref>
         <ref link="ux component getStateInfo Method">{dialog.object}.getStateInfo()</ref>
         <ref link="ux component setStateInfo Method">{dialog.object}.setStateInfo()</ref>
+        <ref link="context.session">Context.Session Object</ref>
     </see>
 </page>
