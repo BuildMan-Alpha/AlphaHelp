@@ -3,31 +3,57 @@
    <topic>SET.FETCH_FIND Function</topic>
    <description>Using the current index, find specified key value, return record number.</description>
    
-   <syntax>Record_Number as N = Fetch_Find(A key)</syntax>
+   <syntax>Record_Number as N = Fetch_Find(A Matching_Expression)</syntax>
    <arguments>
      <argument>
-         <name>key</name>
-         <description>An expression used to select a record. The Matching_Expression and the table's or set's primary index key must have the same data type. Alpha Anywhere will automatically pad the Matching_Expression with trailing blanks if necessary so that the length of Matching_Expression matches the index key length. If the table's or set's primary index is record number order, then Matching_Expression is the record number that you want to find.
-</description>
+         <name>Matching_Expression</name>
+         <type>A</type>
+         <description>An expression used to select a record. The *[xb:Matching_Expression]* and the table's or set's primary index key must have the same data type. Alpha Anywhere will automatically pad the *[xb:Matching_Expression]* with trailing blanks if necessary so that the length of *[xb:Matching_Expression]* matches the index key length. If the table's or set's primary index is record number order, then *[xb:Matching_Expression]* is the record number that you want to find.</description>
      </argument>
    </arguments>
-   
+   <returns>
+    <return>
+      <name>Record_Number</name>
+      <type>N</type>
+      <description>Returns the first record number matching the  *[xb:Matching_Expression]*. If no matching record is found, returns the closest matching record as a negative value.</description>
+    </return>
+   </returns>
    <discussion>
-The .FETCH_FIND() method retrieves the first record in the table or set referenced by  with a primary index key equal to the Matching_Expression parameter.
-If .FETCH_FIND()is successful, the found record is retrieved and its Record_Number is returned. If no exact match is found, a negative number corresponding to the record number of the closest matching record is returned.
+    <p>The .FETCH_FIND() method retrieves the first record in the table or set referenced by with a primary index key equal to the *[xb:Matching_Expression]* parameter.</p>
+    <p>If .FETCH_FIND()is successful, the found record is retrieved and its Record_Number is returned. If no exact match is found, a negative number corresponding to the record number of the closest matching record is returned.</p>
    </discussion>
   
    <sections>
        <section><title>Example</title>
             <description>This script finds the tenth record and returns the value of a field from the set's primary table.</description>
-            <example><![CDATA[
-dim ptr as P
+            <example><![CDATA[dim ptr as P
 ptr = set.open("invoice")
 ? ptr.fetch_find(10)
 = 10.000000
 ? invoice_header->date
-= {01/14/2002}
-]]></example>
+= {01/14/2002}]]></example>
+       </section>
+       <section>
+           <description>This script illustrates setting the order for the primary table of the set and the results of fetch_find() on non-existing and existing customer_id values.</description>
+           <example><![CDATA[dim ptr as P
+ptr = set.open("invoice")
+t = ptr.table_get("invoice_header")
+t.index_primary_put("customer_id")
+
+' search for record with customer_id = 00000000
+' The negative result means a match was not found.
+rec = ptr.fetch_find("00000000")
+? rec
+= -19
+
+rec = ptr.fetch_find("00000019")
+? rec
+= 15
+
+? invoice_header->date
+= {01/17/2007}
+
+ptr.close()]]></example>
        </section>
    </sections>
    <see>
