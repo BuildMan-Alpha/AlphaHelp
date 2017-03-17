@@ -1,94 +1,103 @@
 <page>
     <shortlink>api objects table object open map function</shortlink>
-   <topic>TABLE.OPENMAP Function</topic>
-   <description>Open a table with just the specified fieldnames.</description>
-   
-   
-   <syntax>as P = Table.OpenMap(C tablename ,C fieldlist [,N mode [,C alias [,C encryption_key ]]])</syntax>
-   <arguments>
-     <argument>
-         <name>tablename</name>
-         <description>The table file's path and name. The .DBF file extension is automatically added to the filename if you do not specify a file extension. To open a set, you must supply the .SET extension.
-</description>
-     </argument>
-     <argument>
-         <name>fieldlist</name>
-         <description>A comma delimited list of fields to open. There should not be any space characters between field names. The list should be formatted: field1,field2,field3.
-</description>
-     </argument>
-     <argument>
-         <name>mode</name>
-         <description>Optional. Determines the access privileges that apply to the open table file. You can use one of the following system variables:
-</description>
-<list>
-<item>
-<name-title>Variable</name-title>
-<description-title>Function</description-title>
-</item>
-
-<item>
-<name>FILE_RO_EXCLUSIVE</name>
-<description>Read Only (Exclusive)</description>
-</item>
-
-<item>
-<name>FILE_RW_EXCLUSIVE</name>
-<description>Read or Write (Exclusive)</description>
-</item>
-
-<item>
-<name>FILE_RO_SHARED</name>
-<description>Read Only (Shared)</description>
-</item>
-
-<item>
-<name>FILE_RW_SHARED</name>
-<description>Read or Write (Shared)</description>
-</item>
-
-<item>
-<name>FILE_REUSE_EXISTING</name>
-<description>Intended for internal use only. Allows you to create another pointer to an open file.</description>
-</item>
-
-
-</list>
-     </argument>
-     <argument>
-         <name>alias</name>
-         <description>Optional. Specifies the alias that the table will have. By default, the table alias is automatically derived from the table name. For example, if the table name is "customer", the first instance of the table that is opened will have an alias of "customer", the second instance will have an alias of "customer0" and so on. It is rare that you would need to specify a specific alias for a table when opening it. If you specify a NULL Alias, Alpha Anywhere automatically computes the alias name.
-PasswordOptional. Only needed if the table has been encrypted, and the default encryption key has not been set (using the DEFAULT_ENCRYPTION_KEY_SET() function), of if the table was encrypted using a different encryption key than the default encryption key.
-</description>
-     </argument>
-     <argument>
-         <name>encryption_key</name>
-         <description>Character</description>
-     </argument>
-   </arguments>
-   
-   <discussion><![CDATA[
-The TABLE.OPENMAP() method opens an existing table or set, and creates an object pointer that references the table, or in the case of a set, the parent table of the set. The function is similar to the TABLE.OPEN() method, but limits the fields that are visible to those in a specified field list. This command is especially useful in conjunction with the <ARRAY>.INITIALIZE_FROM_TABLE() method to load an array with data from a table.
-Note : If you have set a Master Password for your database, and have encrypted tables using the Tools > Security menu, then the default encryption key is automatically set when the database is opened, and you do not need to specify the Password parameter when opening tables.
-The TABLE.OPEN() method automatically finds and opens an associated index file (.cdx) matching the table name and its related data dictionary.
-Note : In addition to the above modes, another mode flag can be used in conjunction with the above modes. The flag, FILE_REUSE_EXISTING indicates to Alpha Anywhere that rather than opening a new instance of the table, it should attempt to find an already open instance of the table (if possible) and use that instead. For example, specify an Open Mode of FILE_REUSE_EXISTING + FILE_RW_SHARED, indicates that you want to get a pointer to an existing instance of a table in read/write/shared mode.
-The table opened by the TABLE.OPEN() method does not become the primary table of the session. For example, if a session is started by opening a form, the table for that form is the primary table in the session. The user interface menus and buttons on the form apply to the session's primary table. The table opened by the TABLE.OPEN() method can only be manipulated by Xbasic methods, not by the user interface. You can change the primary table of a session with the TABLE.RESET() method, however this method should only be used in the Interactive session.
-If you use the <TBL>.ENTER_BEGIN() or .CHANGE_BEGIN() methods to do data entry into a table opened with the TABLE.OPEN() method, not all field rules are in effect. Engine level field rules, such as auto-increment, and validation expressions are enforced. However, user interface level field rules, such as Lookups and case conversion are not enforced. If you want all field rules to be enforced, you should open a form based on the table (you can use the FORM.LOAD() method to open the form invisibly) and then use form methods to enter data.
-The TABLE.CURRENT() method automatically assigns a unique alias to the table. To determine the alias for a particular pointer, use the <TBL>.NAME_GET() method. The alias is the table name, modified with a trailing "1", "2", "3", etc. if necessary, to ensure that the alias is unique.
-The .OPEN() method will fail if you try to open a set, and any of the tables in the set are already open. This is because Alpha Anywhere assumes that the aliases for all of the tables in the set will be the same as the table names. If, however, one of the tables in the set is already open in the session, the table name will have already been assigned as the alias name to the open table.
-Refer to ((Contrasting TABLE.OPEN Functionwith TABLE.CURRENT Functionand TABLE.GET Function|Contrasting  TABLE.OPEN()with TABLE.CURRENT()and TABLE.GET())).
-Use the <TBL>.FETCH_FIRST(), <TBL>.FETCH_LAST(), <TBL>.FETCH_FIND(), or <TBL>.FETCH_GOTO() methods to position the record pointer in the table after you first open it.
-]]>
-   </discussion>
-   
-   <sections>
-       <section><title>Example</title>
+    <topic>TABLE.OPENMAP Function</topic>
+    <description>Creates a pointer to an open table and only contains the fields specified in the fieldList.</description>
+    <syntax>tbl as P = TABLE.OpenMap(C tableName ,C fieldList [,N mode [, C alias [,C password ]]])</syntax>
+    <arguments>
+        <argument>
+            <name>tableName</name>
+            <type>C</type>
+            <description>The table file's path and name. The .DBF file extension is automatically added to the filename if you do not specify a file extension. To open a set, you must supply the .SET extension.</description>
+        </argument>
+        <argument>
+            <name>fieldList</name>
+            <type>C</type>
+            <description>A comma delimited list of fields to open. There should not be any space characters between field names. The list should be formatted: *[xb:field1,field2,field3]*.</description>
+        </argument>
+        <argument optional="true">
+            <name>mode</name>
+            <type>N</type>
+            <description>Determines the access privileges that apply to the open table file. You can use one of the following system variables:</description>
+            <list>
+                <item>
+                    <name-title>Variable</name-title>
+                    <description-title>Function</description-title>
+                </item>
+                <item>
+                    <name>FILE_RO_EXCLUSIVE</name>
+                    <description>Read Only (Exclusive)</description>
+                </item>
+                <item>
+                    <name>FILE_RW_EXCLUSIVE</name>
+                    <description>Read or Write (Exclusive)</description>
+                </item>
+                <item>
+                    <name>FILE_RO_SHARED</name>
+                    <description>Read Only (Shared)</description>
+                </item>
+                <item>
+                    <name>FILE_RW_SHARED</name>
+                    <description>Read or Write (Shared)</description>
+                </item>
+                <item>
+                    <name>FILE_REUSE_EXISTING</name>
+                    <description>Intended for internal use only. Allows you to create another pointer to an open file.</description>
+                </item>
+            </list>
+        </argument>
+        <argument optional="true">
+            <name>alias</name>
+            <type>C</type>
+            <description>
+                <p>Default = "". Specifies the alias for the table. A table alias is automatically generated if the *[xb:alias]* parameter is blank or null *[xb:alias]*.</p>
+                <p>By default, the table alias is automatically derived from the table name. For example, if the table name is "customer", the first instance of the table that is opened will have an alias of "customer", the second instance will have an alias of "customer0" and so on.</p>
+                <p>Specifying an alias when opening a table is rarely required.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>password</name>
+            <type>C</type>
+            <description>Required if the table has been encrypted, and the default encryption key has not been set (using the [DEFAULT_ENCRYPTION_KEY_SET()] function), or if the table was encrypted using a different encryption key than the default encryption key.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>tbl</name>
+            <type>P</type>
+            <description>Returns a pointer that references the table, or in the case of a set, the parent table of the set.</description>
+        </return>
+    </returns>
+    <discussion>The TABLE.OPENMAP() method opens an existing table or set, and creates an object pointer that references the table, or in the case of a set, the parent table of the set. The function is similar to the [TABLE.OPEN()] method, but limits the fields that are visible to those in a specified field list. This command is especially useful in conjunction with the [&lt;ARRAY&gt;.INITIALIZE_FROM_TABLE()] method to load an array with data from a table.</discussion>
+    <sections>
+        <section>
+            <note>If you have set a Master Password for your database, and have encrypted tables using the *[ui:Tools]* &gt; *[ui:Security]* menu on the *[ui:Control Panel]*, then the default encryption key is automatically set when the database is opened, and you do not need to specify the *[xb:password]* parameter when opening tables.</note>
+        </section>
+        <section>
+            <description>The TABLE.OPEN() method automatically finds and opens an associated index file (.cdx) matching the table name and its related data dictionary.</description>
+        </section>
+        <section>
+            <note>In addition to the above modes, another mode flag can be used in conjunction with the above modes. The flag, *[xb:FILE_REUSE_EXISTING]* indicates to Alpha Anywhere that rather than opening a new instance of the table, it should attempt to find an already open instance of the table (if possible) and use that instead. For example, specify an Open Mode of *[xb:FILE_REUSE_EXISTING + FILE_RW_SHARED]*, indicates that you want to get a pointer to an existing instance of a table in read/write/shared mode.</note>
+        </section>
+        <section>
+            <description>
+                <p>The table opened by the TABLE.OPEN() method does not become the primary table of the session. For example, if a session is started by opening a form, the table for that form is the primary table in the session. The user interface menus and buttons on the form apply to the session's primary table. The table opened by the TABLE.OPEN() method can only be manipulated by Xbasic methods, not by the user interface. You can change the primary table of a session with the [TABLE.RESET()] method, however this method should only be used in the Interactive session.</p>
+                <p>If you use the [&lt;TBL&gt;.ENTER_BEGIN()] or [&lt;TBL&gt;.CHANGE_BEGIN()] methods to do data entry into a table opened with the TABLE.OPEN() method, not all field rules are in effect. Engine level field rules, such as auto-increment, and validation expressions are enforced. However, user interface level field rules, such as Lookups and case conversion are not enforced. If you want all field rules to be enforced, you should open a form based on the table (you can use the [FORM.LOAD()] method to open the form invisibly) and then use form methods to enter data.</p>
+                <p>The [TABLE.CURRENT()] method automatically assigns a unique alias to the table. To determine the alias for a particular pointer, use the [&lt;TBL&gt;.NAME_GET()] method. The alias is the table name, modified with a trailing "1", "2", "3", etc. if necessary, to ensure that the alias is unique.</p>
+                <p>The .OPEN() method will fail if you try to open a set, and any of the tables in the set are already open. This is because Alpha Anywhere assumes that the aliases for all of the tables in the set will be the same as the table names. If, however, one of the tables in the set is already open in the session, the table name will have already been assigned as the alias name to the open table.</p>
+                <p>Refer to [Contrasting TABLE.OPEN with TABLE.CURRENT and TABLE.GET].</p>
+                <p>Use the [&lt;TBL&gt;.FETCH_FIRST()], [&lt;TBL&gt;.FETCH_LAST()], [&lt;TBL&gt;.FETCH_FIND()], or [&lt;TBL&gt;.FETCH_GOTO()] methods to position the record pointer in the table after you first open it.</p>
+            </description>
+        </section>
+        <section>
+            <title>Example</title>
             <description>The following example shows how you can open a view on the customer table in AlphaSports.</description>
-            <example><![CDATA[
-dim fieldlist as C
+            <example>
+                <![CDATA[
+dim fieldList as C
 dim tbl as P
 dim cn as sql::connection
 
-fieldlist = <<%txt%
+fieldList = <<%txt%
 fname = firstname
 lastname
 fullname = alltrim(lastname) + ", " + alltrim(firstname)
@@ -96,7 +105,7 @@ date = date()
 number = 123.45
 %txt%
 
-tbl = table.OpenMap("customer",fieldlist)
+tbl = table.OpenMap("customer",fieldList)
 ui_msg_box("Fullname",tbl.fullname)
 
 'Get a resultset from the open table
@@ -118,18 +127,18 @@ export.field2 = "lastname"
 export.field3 = "fullname"
 export.field4 = "date"
 export.field5 = "number"
-t.export()
+tbl.export()
 sys_open(export.file)
 
 tbl.close()
 
-]]></example>
-       </section>
-       
-       
-<section>
+]]>
+            </example>
+        </section>
+        <section>
             <description>This script opens the same table but with only two fields.</description>
-            <example><![CDATA[
+            <example>
+                <![CDATA[
 dim tt as P
 tt = table.openmap("customer","firstname,lastname")
 ? tt.fields_get()
@@ -143,13 +152,29 @@ a.initialize_from_table(tt)
 = FIRSTNAME = "Fred"
 LASTNAME = "Harrison"
 
-]]></example>
-       </section>       
-       
-   </sections>
-   <see>
+]]>
+            </example>
+        </section>
+    </sections>
+    <links>
+        <link link="default_encryption_key_set function">DEFAULT_ENCRYPTION_KEY_SET()</link>
+        <link link="table.open function">TABLE.OPEN()</link>
+        <link link="array.initialize_from_table function">&lt;ARRAY&gt;.INITIALIZE_FROM_TABLE()</link>
+        <link link="table.reset function">TABLE.RESET()</link>
+        <link link="table.enter_begin function">&lt;TBL&gt;.ENTER_BEGIN()</link>
+        <link link="table.change_begin function">&lt;TBL&gt;.CHANGE_BEGIN()</link>
+        <link link="form.load function">FORM.LOAD()</link>
+        <link link="table.current function">TABLE.CURRENT()</link>
+        <link link="table.name_get function">&lt;TBL&gt;.NAME_GET()</link>
+        <link link="table.fetch_first function">&lt;TBL&gt;.FETCH_FIRST()</link>
+        <link link="table.fetch_last function">&lt;TBL&gt;.FETCH_LAST()</link>
+        <link link="table.fetch_find function">&lt;TBL&gt;.FETCH_FIND()</link>
+        <link link="table.fetch_goto function">&lt;TBL&gt;.FETCH_GOTO()</link>
+        <link link="contrasting table.open with table.current and table.get">Contrasting TABLE.OPEN with TABLE.CURRENT and TABLE.GET</link>
+    </links>
+    <see>
         <ref link="Table Object Functions and Methods">Table Object Functions and Methods</ref>
         <ref link="Table Functions">Other Table Functions</ref>
-   </see>
-<terms>table,defaults,encryption,field,file,filename,function,list,pointer,script,set,system</terms>
+    </see>
+    <terms>table,defaults,encryption,field,file,filename,function,list,pointer,script,set,system</terms>
 </page>
