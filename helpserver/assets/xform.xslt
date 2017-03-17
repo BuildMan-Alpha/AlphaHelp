@@ -70,10 +70,11 @@
         <xsl:call-template name="callouts-before"/>
 		<xsl:if test="syntax">
 			<p class="A5">Syntax</p>
-			<xsl:value-of select="syntax" />
+			<div class="syntax"><xsl:value-of select="syntax" /></div>
 		</xsl:if>
 		<xsl:if test="prototype">
-			<p class="A5">Syntax</p>            
+			<p class="A5">Syntax</p>
+            <div class="prototype">            
                <xsl:choose>
                     <xsl:when test="prototype/@static">
                         <span class="methodStatic"><xsl:value-of select="prototype" /></span>
@@ -82,9 +83,11 @@
                         <xsl:value-of select="prototype" />
                     </xsl:otherwise>
                </xsl:choose>
+            </div>
 		</xsl:if>
 		<xsl:if test="prototypes">
-			<p class="A5">Syntax</p>          
+			<p class="A5">Syntax</p>
+            <div class="prototype">
 			<xsl:for-each select="prototypes/prototype">
                <xsl:choose>
                     <xsl:when test="./@static">
@@ -95,6 +98,7 @@
                     </xsl:otherwise>
                </xsl:choose>			
 			</xsl:for-each>
+            </div>
 		</xsl:if>
 		<xsl:if test="arguments">
             <p class="A5">Arguments</p>
