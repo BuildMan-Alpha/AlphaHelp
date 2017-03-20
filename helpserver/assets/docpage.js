@@ -452,6 +452,7 @@ function loaded() {
     clippy.on('error', function(e) {
         showTooltip(e.trigger, fallbackMessage(e.action));
     });
+    getGitTimestamp();
     buildVersion();
     /*
     var sharableEle = document.getElementById("get-sharable-link-form-input");
@@ -491,5 +492,42 @@ function buildVersion() {
        }
        ele.setAttribute('class', versionClass);
    }
+}
+
+function getGitTimestamp() {
+    var path = window.location.href
+    path = path.split("pages")[1];
+    var url = "https://api.github.com/repos/BuildMan-Alpha/AlphaHelp/commits?page=1&per_page=1&path=/helpfiles" + path;
+
+    var callbackFunc = function (status, jsonObj) {
+        if (status == null && jsonObj.length > 0) {
+            var d = new Date(jsonObj[0].commit.author.date);
+            var month = d.getMonth() + 1;
+            month = (month < 10)? "0" + month:""+month;
+            var day = d.getDate();
+            day = (day < 10) ? "0" + day:""+day;
+            var dateStr = d.getFullYear() + "/" + month + "/" + day;
+
+            var ele = document.getElementById('report-issue-timestamp')
+            ele.innerHTML = "Page Last Modified on " + dateStr;
+        }
+    }
+
+    var response = function(url, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'json';
+        xhr.onload = function() {
+        var status = xhr.status;
+        if (status == 200) {
+            callback(null, xhr.response);
+        } else {
+            callback(status);
+        }
+        };
+        xhr.send();
+    };
+
+    response(url, callbackFunc);
 }
 
