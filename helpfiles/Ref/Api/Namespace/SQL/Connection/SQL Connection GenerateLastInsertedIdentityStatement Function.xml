@@ -1,50 +1,52 @@
 <page api="xb">
-        <shortlink>api sql namespace connection class generate last inserted identity statement function</shortlink>
-   <topic>SQL::Connection::GenerateLastInsertedIdentityStatement Function</topic>
-     <description>Generate a SQL statement to retrieve the identity from the last insert statement (may be specific to the table passed in).</description>
- 
-   <prototype>SQL_Statement as C = GenerateLastInsertedIdentityStatement as C ([TableInfo as SQL::TableInfo])</prototype>
-   <arguments>
-    <argument>
-         <name>SQL_Statement</name>
-         <description>A SQL select statement.
-</description>
-     </argument>
-     
-      <argument>
-         <name>SQL::Connection</name>
-         <description>A SQL::Connection object.
-</description>
-     </argument>
-     
-     
-     <argument>
-         <name>TableInfo</name>
-         <description>SQL::TableInfo</description>
-     </argument>
-   </arguments>
-   <discussion>
-The SQL::Connection::GenerateLastInsertedIdentityStatement() method retrieves the last identity value generated for an insert on the currently open connection.
-   </discussion>
-   <sections>
-       <section>
-<list>
-<item>
-<name>1. This is current connection specific for most databases. For databases that use sequences to maintain identity (such as Oracle), the sequence may not be correct after the transaction has been completed.</name>
-</item>
-<item>
-<name>2. For databases that use sequences to generate identities  is a required parameter. It must include an identity column in its definition. That column must specify the sequence name to be used.</name>
-</item>
-</list>
-       </section>
-   </sections>
-   
-   
-   
-   
-  
-   <see>
-      <ref link="SQL::Connection Object">SQL::Connection Object</ref>
-   </see>
-   <terms>sql,connection,column,database,function,insert,object,transactions</terms>
+    <shortlink>api sql namespace connection class generate last inserted identity statement function</shortlink>
+    <topic>SQL::Connection::GenerateLastInsertedIdentityStatement Function</topic>
+    <description>Generate a SQL statement to retrieve the identity from the last insert statement (may be specific to the table passed in).</description>
+    <prototype>SQL_Statement as C = GenerateLastInsertedIdentityStatement as C ([TableInfo as SQL::TableInfo])</prototype>
+    <arguments>
+        <argument optional="true">
+            <name>TableInfo</name>
+            <type>SQL::TableInfo</type>
+            <description>The table to retrieve the last inserted identity. If not specified, the identity will be retrieved for the table from the last INSERT statement.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>SQL_Statement</name>
+            <type>C</type>
+            <description>Returns a SQL SELECT statement that will retrieve the last inserted identity.</description>
+        </return>
+    </returns>
+    <discussion>The SQL::Connection::GenerateLastInsertedIdentityStatement() method retrieves the last identity value generated for an insert on the currently open connection.</discussion>
+    <sections>
+        <section>
+            <title>Notes</title>
+            <steps>
+                <step>
+                    <description>This is current connection specific for most databases. For databases that use sequences to maintain identity (such as Oracle), the sequence may not be correct after the transaction has been completed.</description>
+                </step>
+                <step>
+                    <description>For databases that use sequences to generate identities the SQL::TableInfo is a required parameter. It must include an identity column in its definition.  That column must specify the sequence name to be used.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <title>Example</title>
+            <example code="xb"><![CDATA[dim cn as SQL::Connection
+
+?cn.open("::Name::SQLServer2014Test")
+= .T.
+
+dim TableInfo as SQL::TableInfo
+?cn.gettableinfo(TableInfo, "Proposals")
+= .T.
+
+?cn.GenerateLastInsertedIdentityStatement(TableInfo)
+= "select isnull(scope_identity(), @@identity) OPTION (MAXDOP 1)"]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="SQL::Connection Object">SQL::Connection Object</ref>
+    </see>
+    <terms>sql,connection,column,database,function,insert,object,transactions</terms>
 </page>
