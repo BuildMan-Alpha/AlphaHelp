@@ -1,0 +1,70 @@
+<page>
+    <shortlink>using http fetch to send http post</shortlink>
+    <topic>Using HTTP_FETCH to Send an XML POST Request</topic>
+    <description>XML requests can be sent using the HTTP_FETCH method.</description>
+    <sections>
+        <section>
+            <description>When sending a request using HTTP_POST, you may receive content type errors, such as the one shown below indicating that the expected Content-type header needs to be "application/xml":</description>
+            <example><![CDATA[? response
+= body = <?xml version="1.0" encoding="UTF-8"?>
+<response success="false">
+  <messages>
+    <message key="invalid-xml">Illegal Input. Input data must be an XML document.</message>
+  </messages>
+</response>]]></example>
+        </section>
+        <section>
+            <description>
+                <p>HTTP_POST() is an Xbasic function for sending an HTTP POST requests. HTTP_POST() does not allow full control over the request that is being sent, and it makes assumptions about the type of data sent to the server. It always sets the Content-Type header to *[xb:application/x-www-form-urlencoded]*.</p>
+                <p>When POSTing any other content type, HTTP_POST() will not work as expected. Instead, HTTP_FETCH() must be used, as it allows any header to be set to any value.</p>
+                <p>Additionally, HTTP_FETCH() supports using other HTTP protocols (e.g. HTTP/1.0.) HTTP_FETCH() will default to *[xb:HTTP/1.1]*. HTTP_POST() (and HTTP_GET()) only use HTTP/1.1.</p>
+                <p>In the example below, an HTTP POST request is created and sent through HTTP_FETCH to generate an authentication ticket for accessing the Quickbase API:</p>
+            </description>
+            <example><![CDATA[dim settings as p
+settings.host = "mycompany.quickbase.com"
+settings.page = "/db/main"
+settings.protocol = "HTTP/1.0"
+settings.port = 443
+settings.ssl_on = .t.
+settings.method = "POST"
+settings.header =<<%txt%
+Content-Type: application/xml
+QUICKBASE-ACTION: API_Authenticate
+%txt%
+settings.body =<<%body%
+<qdbapi>
+    <username>sarah@mycompany.com</username>
+    <password>SomePassword123</password>
+</qdbapi>
+%body%
+
+dim results as p
+results = HTTP_FETCH(settings)]]></example>
+        </section>
+        <section>
+            <description>Once the response is received, the status code must be checked first to verify that the request was successful (i.e. a status code "200") The status code should always be checked when using any HTTP_* function. The status code can be found in the *[xb:response.parsed_headers]* property returned by the HTTP_FETCH() function:</description>
+            <example><![CDATA[? response.parsed_headers.status_code
+= 200]]></example>
+            <note>HTTP_FETCH (or any other HTTP_* function) does not automatically redirect the request when a 301 or 302 (redirect) code is received. You must examine the results in result.parsed_headers.status_code and try the URL in result.parsed_headers.location, if appropriate.</note>
+        </section>
+        <section>
+            <description>If the request succeeds, the *[xb:response.body]* will contain the conent from the response. In this example, the content returned is XML:</description>
+            <example><![CDATA[? results.body
+= <?xml version="1.0" ?>
+<qdbapi>
+    <action>API_Authenticate</action>
+    <errcode>0</errcode>
+    <errtext>No error</errtext>
+    <ticket>db4d5y4bd76u86dsd27px44inx72nanzdacmnkwicb3hxxkct7aqr6d</ticket>
+    <userid>123456789</userid>
+</qdbapi>]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="http_fetch function">HTTP_FETCH</ref>
+        <ref link="how to pick an http function">How to Pick an HTTP Function</ref>
+        <ref link="xml functions">XML Functions</ref>
+        <ref link="json_from_xml function">json_from_xml Function</ref>
+    </see>
+    <terms>http post, http_fetch, xml, response, illegal input,web services,data integration</terms>
+</page>
