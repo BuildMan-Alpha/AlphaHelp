@@ -372,7 +372,6 @@ function localToClickHandler(e) {
 }
 
 function initializeSearch() {
-    alert("searchin");
     var addressTags = document.getElementsByClassName("search-address");
     if( addressTags && addressTags.length ) {
         var i;
@@ -381,6 +380,11 @@ function initializeSearch() {
                  addressTags[i].innerHTML = document.location.host + addressTags[i].innerHTML;
              }
         }
+    } else {
+        var s = document.getElementById("search-result-content");
+        var pattern = document.getElementsByName("pattern")[0].value;
+        var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
+        s.innerHTML = '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="'+url+'">Contact us!</a></p></div>';
     }
 }
 
@@ -402,13 +406,13 @@ function gotoFlattenPage(isFlat) {
 
 
 function loaded() {
-    var btns = document.querySelectorAll('.clipboardButton');
-    for (var i = 0; i < btns.length; i++) {
-        btns[i].addEventListener('mouseleave', function(e) {
-            e.currentTarget.setAttribute('class', 'clipboardButton');
-            e.currentTarget.removeAttribute('aria-label');
-        });
-    }
+    //var btns = document.querySelectorAll('.clipboardButton');
+    //for (var i = 0; i < btns.length; i++) {
+    //    btns[i].addEventListener('mouseleave', function(e) {
+    //        e.currentTarget.setAttribute('class', 'clipboardButton');
+    //        e.currentTarget.removeAttribute('aria-label');
+    //    });
+    //}
     function showTooltip(elem, msg) {
         elem.setAttribute('class', 'clipboardButton tooltipped tooltipped-s');
         elem.setAttribute('aria-label', msg);
@@ -425,15 +429,15 @@ function loaded() {
         }
         return actionMsg;
     }
-    hljs.initHighlightingOnLoad();    
+    //hljs.initHighlightingOnLoad();    
     // Load the included clipboard.js
-    clippy = new Clipboard('.clipboardButton');
-    clippy.on('success', function(e) {
-        showTooltip(e.trigger, 'Copied!');
-    });
-    clippy.on('error', function(e) {
-        showTooltip(e.trigger, fallbackMessage(e.action));
-    });
+    //clippy = new Clipboard('.clipboardButton');
+    //clippy.on('success', function(e) {
+    //    showTooltip(e.trigger, 'Copied!');
+    //});
+    //clippy.on('error', function(e) {
+    //    showTooltip(e.trigger, fallbackMessage(e.action));
+    //});
     getGitTimestamp();
     buildVersion();
 }
