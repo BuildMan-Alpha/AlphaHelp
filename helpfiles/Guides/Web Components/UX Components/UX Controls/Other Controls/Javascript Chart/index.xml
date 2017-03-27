@@ -1,0 +1,369 @@
+<page build="4223">
+    <shortlink>ux javascript chart control</shortlink>
+    <topic>Javascript Chart</topic>
+    <description></description>
+    <sections>
+        <section>
+            <title>Contrasting Javascript Charts with the Chart Control</title>
+            <description>
+                <p>The *[ui:Chart]* controls is a server-side control. The chart is rendered as a bitmap on the server and then the client-displays the bitmap image. Because the *[ui:Chart]* control is a server-side control, it is not suited for disconnected applications. Also, since the *[ui:Chart]* control is a server-side control, it will be slower than *[ui:Javascript Charts]*.</p>
+                <p>To add a Javascript Chart to a UX component, select the *[ui:[Javascript Chart]]* control in the *[ui:Other Controls]* section of the UX toolbox.</p>
+            </description>
+            <figure>
+                <link>images/toolbox_jschart.jpg</link>
+            </figure>
+            <note>
+                <p>The *[ui:Chart]* control (i.e. the server-side charting control) is available in the *[ui:Data Controls]* section of the UX toolbox.</p>
+                <p>[chartToolbox]</p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>After you add a Javascript Chart to your UX, you can then edit the Javascript Chart properties by clicking the smart field for the *[ui:Chart properties]* property.</p>
+            </description>
+            <figure>
+                <link>images/jschartprpsheet.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will open the Javascript Chart builder, as shown below.</p>
+                <p>The top half of the screen is where you enter the Javascript code that generates the chart and the bottom half of the screen allows you to get a quick preview of the Chart.</p>
+                <p>In most cases you will get a quick start by selecting one of the Sample Charts. This will enter the Javascript for the selected chart and you can then tweak the Javascript to get the chart appearance that you want. You will likely also want to base the chart on real data, not the sample data shown in the sample chart.</p>
+            </description>
+            <figure>
+                <link>images/jschartbuilder.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>To select a sample chart, click the *[ui:Select Sample Chart]* button. This will open up a dialog showing the available sample charts:</p>
+            </description>
+            <figure>
+                <link>images/samplecharts.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Select the sample chart that you want. It will then fill in the Javascript for that chart into the builder. For example:</p>
+            </description>
+            <figure>
+                <link>images/rgraphgenieshowingjavascript.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>The Javascript shown in the window is the Javascript used by the RGraph charting library to render the Javascript chart.</description>
+        </section>
+        <section>
+            <title>Understanding the Pattern Used for the Chart Javascript</title>
+            <description>
+                <p>All of the sample charts insert Javascript that follows the same pattern. </p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() {
+    //function that returns an RGraph settings object
+}
+
+var _chart = new RGraph.SVG.Bar(_settings()).draw()
+
+{dialog.object}._jsCharts['{chartName}'] = {};
+{dialog.object}._jsCharts['{chartName}'].settings = [_settings];
+{dialog.object}._jsCharts['{chartName}'].object = [_chart];]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Depending the RGraph chart type (e.g. Pie, Line, Bar, etc.), the appropriate RGraph function is called to render the chart. </p>
+                <p>A settings object is passed to the RGraph function. This settings object is created by calling the *[js:_settings()]* function. </p>
+            </description>
+            <note>
+                <p>You do not need to include the RGraph charting Javascript libraries yourself in your UX component. The libraries are automatically loaded by Alpha Anywhere. </p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>The Chart settings are stored in the *[js:_jsCharts]* object in the UX component object. These settings are stored to enable the chart to be refreshed with new data, to be changed on the fly by changing any of the chart properties, or to be dynamically resized. Notice that the *[js:settings]* object and the *[js:object]* object are arrays. This is because a chart can actually be composed of multiple charts each drawn on the same DIV.</p>
+                <p>The Javascript for the chart uses two special placeholders:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Placeholder</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>{chartDiv}</name>
+                    <description>The id of the div where the chart will be rendered.</description>
+                </item>
+                <item>
+                    <name>{chartName}</name>
+                    <description>The name of the chart. This resolves to the Chart Id shown in the Javascript Chart property sheet.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Using Real Data in a Chart</title>
+            <description>
+                <p>When you select a Sample Chart, the Javascript that is inserted into the Javascript window in the Javascript Chart builder uses static data. This is fine initially when you are designing a chart, but at some point you will want to replace the static sample data with 'real' data.</p>
+                <p>The source of this 'real' data must be client-side data. For example, it might be data from a column in a List control. You will need to create a Javascript function that gets the data from the List and then set the *[js:data]* property in the Chart settings to the this function.</p>
+                <p>In many cases the 'real' data will be data that you want to get by querying a database, calling a service (REST, SOAP, etc.), or running some custom server-side code. In the case where the data you want to use in your chart originates on the server, you will need to define a *[ui:Data Series]* that retrieves the necessary data. (When you define the *[ui:Data Series]* you will need to specify that the *[ui:Data Series]* data should be 'published' to the client-side.)</p>
+                <p>For example, here are the settings for a simple bar chart that uses static sample data:</p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() {
+    var settings = {
+        id: '{chartDiv}',
+        data: [8,5,9,3,5,2,4],
+        options: {
+            gutterTop: 50,
+            hmargin: 20,
+            xaxisLabels: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+            tooltips: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],                
+            title: 'A basic Bar chart',
+            titleSubtitle: 'A chart showing daily values for a week',
+            titleSubtitleItalic: true,                
+            colors: ['#7e9cf6'],
+            shadow: true,
+            shadowOpacity: 0.2,
+            attribution: false
+        }
+    };
+    return settings;
+}
+var _chart = new RGraph.SVG.Bar(_settings()).draw();]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the chart data is defined by the *[js:data]* property in the *[js:settings]* object.</p>
+                <p>Say we have a Javascript function that returns an array of values and we want to use the data returned by this function in the Chart. For example, the function that return an array of values could be defined as follows:</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+    return [1,2,3,4,5,6,7];
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>To base the Javascript Chart on the data returned by this function, we simply change the data property in the Chart settings to:</p>
+            </description>
+            <example code="js"><![CDATA[....
+id: '{chartDiv}',
+data: getData(),
+options: {....]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the case where the data comes from a column in a List control, the Javascript function that gets the data would be something like this (assuming that the column in the List that contains the data is called 'Sales'):</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+    var lObj = {dialog.object}.getControl('myList');
+    var _d = lObj._data //get list data
+    var _a = []; //make empty array
+    for(var i = 0; i < _d.length; i++) {
+        _a.push(_d[i].Sales); //push data from the 'Sales' column onto the array
+    };
+    return _a;
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If the data you want to use in your chart originates server-side, then you will need to create a *[ui:Data Series]*. Assume you have created a Data Series called *[js:Sales]*, with two sub-series, *[js:Amount]* and *[js:Month]*.</p>
+                <p>The data in the Sales *[ui:Data Series]* might look something like this:</p>
+            </description>
+        </section>
+        <section>
+            <content><![CDATA[<table style="width:100%; max-width:300px; text-align:center;" border="1px" cellpadding="0" cellspacing="0">
+                    <tr><th style="width:50%;">Month</th><th style="width:50%;">Amount</th></tr>
+                    <tr><td>Jan</td><td>200</td></tr>
+                    <tr><td>Feb</td><td>220</td></tr>
+                    <tr><td>Mar</td><td>190</td></tr>
+                    <tr><td>Apr</td><td>250</td></tr>
+                    <tr><td>May</td><td>270</td></tr>
+                    <tr><td>Jun</td><td>210</td></tr>
+                    <tr><td>Jul</td><td>300</td></tr>
+                    <tr><td>Aug</td><td>320</td></tr>
+                    <tr><td>Sep</td><td>290</td></tr>
+                    <tr><td>Oct</td><td>330</td></tr>
+                    <tr><td>Nov</td><td>300</td></tr>
+                    <tr><td>Dec</td><td>350</td></tr>
+                </table>]]></content>
+        </section>
+        <section>
+            <description>
+                <p>You can reference data from *[js:Amount]* column in the above Data Series using this syntax:</p>
+            </description>
+            <example code="js"><![CDATA[{dialog.object}._dataSeriesData.Sales.Amount]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Using this syntax, you could change the *[js:settings]* object for the example bar chart to:</p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() { 
+    var settings = {
+        id: '{chartDiv}',
+        data: {dialog.object}._dataSeriesData.Sales.Amount,
+        options: {
+            gutterTop: 50,
+            hmargin: 20,
+            xaxisLabels: {dialog.object}._dataSeriesData.Sales.Month,
+            tooltips: {dialog.object}._dataSeriesData.Sales.Month,
+            title: 'A basic Bar chart',
+            titleSubtitle: 'A chart showing sales by month',
+            titleSubtitleItalic: true,
+            colors: ['#7e9cf6'],
+            shadow: true,
+            shadowOpacity: 0.2,
+            attribution: false
+        }
+    };
+    return settings;
+}
+var _chart = new RGraph.SVG.Bar(_settings()).draw();]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the chart data, X axis labels and tooltips are all based on Data Series data.</p>
+            </description>
+        </section>
+        <section>
+            <title>Any Property in the Chart Can Be Dynamic</title>
+            <description>
+                <p>In the above examples we have set the Chart's *[js:data]* property to the result of a Javascript function call (first example), or to the value in a Data Series (second example). However, it is not just the Chart's *[js:data]* property that can be dynamic. Any property in the Chart settings can be set to a Javascript function, or Data Series value.</p>
+                <p>For example, in the above example, the Chart Title is defined using this settings:</p>
+            </description>
+            <example code="js"><![CDATA[titleSubtitle: 'A chart showing sales by month']]></example>
+        </section>
+        <section>
+            <description>
+                <p>This could be changed to:</p>
+            </description>
+            <example code="js"><![CDATA[titleSubtitle: getChartTitle()]]></example>
+        </section>
+        <section>
+            <title>Working in the Javascript Chart Builder</title>
+            <description>When you are working in the Javascript Chart builder, the dialog has these buttons and hyperlinks.</description>
+            <figure>
+                <link>images/chartWindowTools.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>The purpose of each of these tools is:</description>
+            <list>
+                <item>
+                    <name-title>Tool</name-title>
+                    <description-title>Action</description-title>
+                </item>
+                <item>
+                    <name>Select Sample Chart </name>
+                    <description>Opens a window showing sample charts. You can select a chart and the Javascript for the selected chart will be entered into the builder.</description>
+                </item>
+                <item>
+                    <name>Preview Chart</name>
+                    <description>Previews the chart in the bottom half of the window.</description>
+                </item>
+                <item>
+                    <name>Define Chart CSS</name>
+                    <description>In some cases your Chart settings will use CSS classes for some aspect of the Chart (for example, formatting tooltips). You can define the CSS classes here.</description>
+                </item>
+                <item>
+                    <name>Color</name>
+                    <description>Allows you to insert the value of a color into the Javascript code. If you highlight an existing color in the Javascript code before you click on the Color hyperlink, the highlighted color will be shown in the color picker. The color you select will be inserted into the Chart Javascript.</description>
+                </item>
+                <item>
+                    <name>Property name</name>
+                    <description>The Javascript shown in the code window after you select a Sample Chart typically only sets a small number of the available properties for the Chart. If you click the hyperlink you get a list of some of the other available properties. Note: This list may include properties that are not appropriate for the type of chart you are designing. To read documentation about the available properties, please refer to the RGraph web site. (*[extlink:http://RGraph.net]*)</description>
+                </item>
+                <item>
+                    <name>Validate Javascript</name>
+                    <description>The code you enter into the Code window in the Javascript Chart builder is Javascript. It must, of course, be valid Javascript. This hyperlink lets you validate the Javascript so you can check that you have not made any syntax errors when editing the sample code.</description>
+                </item>
+                <item>
+                    <name>Select Data Series</name>
+                    <description>If you want to set the value of any property in the Chart Settings to data in a *[ui:Data Series]* you can click this hyperlink to insert the Javascript to reference a *[ui:Data Series]*. When you click the hyperlink, a window showing all of the available *[ui:Data Series]* will be shown. You can define new *[ui:Data Series]* in this window. When you select a *[ui:Data Series]* (and sub-series if the selected *[ui:Data Series]* has sub-series) the appropriate Javascript is entered into the code.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Setting a Chart's Background Color or Border</title>
+            <description>In some cases, you will want to set the background color or border of a chart. For example, the Chart shown below has a black background.</description>
+            <figure>
+                <link>images/chartblackbackground.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>You can set the Chart background color and border using the Javascript Chart's *[ui:Style]* property.</description>
+            <figure>
+                <link>images/chartstyleproperty.gif</link>
+            </figure>
+        </section>
+        <section>
+            <title>Setting Javascript Chart Size to 100%</title>
+            <description>You can set the Javascript Chart width to 100% (useful when the Chart is shown in a Panel Card). However, setting the Chart's height to 100% is not supported. You must specify an explicit height for the Chart. Also, unlike many other UX controls, Javascript Charts do not have a *[ui:Fill Container]* property. </description>
+            <note>If you set the Javascript Chart width to 100% and the Javascript Chart is contained inside a Panel Card, the Javascript Chart will automatically be resized when the device orientation is changed.</note>
+        </section>
+        <section>
+            <title>Action Javascript Javascript Chart Actions</title>
+            <description>The *[ui:Javascript Chart Action]* in Action Javascript allows you to:</description>
+            <list>
+                <item>
+                    <name-title>Action</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>Refresh Data in Chart(s)</name>
+                    <description>Allows you to refresh the data in one or more Charts. If any of the selected Charts have any properties that are set to a Data Series, this action makes an Ajax callback to the server and refreshes the data in all of the referenced Data Series.</description>
+                </item>
+                <item>
+                    <name>Resize a Chart</name>
+                    <description>Resizes a chart. You can specify a new height and width for the Chart using CSS syntax. e.g. '500px'. You can use percentages for the width property, but not the height property. When the Chart is redrawn at its new size, by default, it will use the same draw method that was defined in the Chart settings. For example if the Chart is set to use animation when it is rendered, the Chart's 'draw method' will be 'grow' (or one of the other animation methods supported by RGraph). You might want the Chart to render at its new size without using animation. You can override the default draw method and specify an explicit draw method. For example, if the Chart was defined to use the 'grow' method, you can specify 'draw' to redraw the Chart without using animation.</description>
+                </item>
+                <item>
+                    <name>Redraw a chart</name>
+                    <description>Redraws a Chart. Like the Resize a Chart action, you can override the default 'draw method' when the Chart is redrawn. Typically used when one or more properties in the Chart settings are based on Javascript functions to re-render the Chart with new settings values returned by the Javascript functions.</description>
+                </item>
+                <item>
+                    <name>Set Chart Properties</name>
+                    <description>Allows you to explicitly set any of the Chart's properties and then redraw the Chart. Like the Resize a Chart action, you can override the default 'draw method' when the Chart is redrawn after its properties have been set.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Methods</title>
+            <description>The following methods are available for working with Javascript charts:</description>
+            <cases>
+                <case>
+                    <title nested="2">{dialog.Object}.jsChartResize(UXJavascriptChart, width, height [,redrawMethod [,methodParameter]])</title>
+                    <description>Resizes a Javascript chart. You can optionally pass in a draw method to redraw the chart without animation, or with a specified animation option. See [jsChartResize()] for more details.</description>
+                </case>
+                <case>
+                    <title nested="2">{dialog.Object}.jsChartSetProperties(UXJavascriptChart, properties [,drawMethod [,methodParameters]])</title>
+                    <description>Resizes a Javascript chart. You can optionally pass in a draw method to redraw the chart without animation, or with a specified animation option. See [jsChartSetProperties()] for more details.</description>
+                </case>
+                <case>
+                    <title nested="2">{dialog.Object}.jsChartSetRefreshData(UXJavascriptChart)</title>
+                    <description>Refreshes the data in Data Series that the Chart uses and then redraws the Chart.  An Ajax callback is made to the server to refresh the Data Series and then the Chart is redrawn using the new data. If the Chart is not based on any Data Series, then no Ajax callback is necessary and the Chart is redrawn. See [jsChartSetRefreshData()] for more details.</description>
+                </case>
+                <case>
+                    <title nested="2">{dialog.Object}.jsChartRedraw(UXJavascriptChart [,drawMethod [,drawMethodParameters [,properties]]])</title>
+                    <description>Redraws a Javascript chart. You can optionally pass in a draw method to redraw the chart without animation, or with a specified animation option. You can also  optionally change chart property values when it is redrawn. See [jsChartRedraw()] for more details.</description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Building Dashboard Applications</title>
+            <description>
+                <p>Javascript Charts are ideal for 'dashboard' applications. You can design a UX component with multiple Javascript Charts each of which displays data on one of the metrics your dashboard is designed to monitor.</p>
+                <p>In situations where a large number of users are connected to the dashboard, and where you want to update the dashboards frequently, you can use Alpha Anywhere's Web-sockets feature to create an efficient application. Instead of having the UX component make periodic callbacks to the server to refresh the data shown in the dashboard charts, a scheduled CRON job on the server can update data for the dashboard, then when broadcast the data to all of the connected UX components.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link href="images/chartToolbox.jpg">chartToolbox</link>
+        <link link="ux component jschartresize method">jsChartResize()</link>
+        <link link="ux component jsChartSetProperties method">jsChartSetProperties()</link>
+        <link link="ux component jsChartSetRefreshData method">jsChartSetRefreshData()</link>
+        <link link="ux component jsChartRedraw method">jsChartRedraw()</link>
+    </links>
+    <see>
+        <ref link="ux component jschartresize method">{dialog.object}.jsChartResize()</ref>
+        <ref link="ux component jsChartSetProperties method">{dialog.object}.jsChartSetProperties()</ref>
+        <ref link="ux component jsChartSetRefreshData method">{dialog.object}.jsChartSetRefreshData()</ref>
+        <ref link="ux component jsChartRedraw method">{dialog.object}.jsChartRedraw()</ref>
+        <ref href="http://RGraph.net">RGraph Library</ref>
+    </see>
+</page>
