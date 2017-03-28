@@ -448,7 +448,10 @@ function buildVersion() {
     * Alpha versions table
     */
     var builds = [
-       { "version" : "versionTag12_4_3_2" , upto : 4119 }
+        {
+            "version": "versionTag12_4_3_2", upto: 4119,
+            "version": "versionTag12_4_4_0", upto: 4238
+        }
    ];
    /*
     * ---- end
