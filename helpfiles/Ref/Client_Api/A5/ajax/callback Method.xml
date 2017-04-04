@@ -1,0 +1,74 @@
+<page api="js">
+    <shortlink>js a5 ajax callback method</shortlink>
+    <topic>A5.ajax.callback Method</topic>
+    <prototypes>
+        <prototype>A5.ajax.callback(url,data)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>url</name>
+            <type>string</type>
+            <description>The URL of the .a5w page that will handle the callback</description>
+        </argument>
+        <argument>
+            <name>data</name>
+            <type>string</type>
+            <description>The value pairs to send back to the page. These are the values that would be seen after the "?" in a URL, commonly referred to as the GET or query string. This parameter should have the same syntax as any GET.</description>
+        </argument>
+    </arguments>
+    <description>Makes an Ajax callback to the server.</description>
+    <discussion>
+        <p>It is often desirable to make a call back to a server side page to return some value or action, and there is no need to actually submit a form element. The *[js:A5.ajax.callback()]* method allows sending values back to a page for processing.</p>
+        <p>For example, a common need is to send a couple values back to the page to tell the page that some action must be taken and there are some values available for that action. The URL is the callback page, and the data includes any values to meet that need.</p>
+        <p>For example, consider a code page named "calculatesale.a5w" contains some Xbasic code to populate a control named 'salestax'.  To do this, it needs to be told to run that code section, and send along a value for state to determine what tax table to use. The call back function call could be:</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>Prefer to use the [{dialog.object}.ajaxCallback()] or [{grid.object}.ajaxCallback()] methods when possible.</note>
+        </section>
+        <section>
+            <example code="js"><![CDATA[A5.ajax.callback('calculatesale.a5w','action=gettaxtable&state='+$gvs('state_ID'))]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In this example, the state value was in a control with an ID attribute of 'state_ID'.  The function $gvs() is a function the core.js Javascript library to harvest the value in the control.  It is similar to document.getElementById(), but will harvest a value from any control by ID or name.</p>
+                <p>The page "calculatesale.a5w" may have some code similar to:</p>
+            </description>
+            <example code="xb"><![CDATA[dim __formAction as c = default ""
+dim action as c
+
+if (__formAction = "Submit") then 
+    if  onFormValidate(local_variables())
+         afterFormValidate(local_variables())
+    end if
+else if (__formAction =  "Initialize") then 
+    onFormInitialize(local_variables())
+else if (action  = "gettaxtable") then
+    gettax_table(local_variables())
+end  if
+ 
+function gettax_table as l(vars as p)
+    with vars
+        if (variable_exists("state") = .f.) then ' the state value was not sent
+            'can’t  evaluate, quit
+            exit function 
+        else if (state = "") then
+            'state has no  value, can’t evaluate, quit
+            exit function
+        end if
+
+        ' ok, all values  known - do something
+    end with
+end function
+ ]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="ux component ajaxcallback method">{dialog.object}.ajaxCallback()</link>
+        <link link="grid component ajaxcallback method">{grid.object}.ajaxCallback()</link>
+    </links>
+    <see>
+        <ref link="ux component ajaxcallback method">{dialog.object}.ajaxCallback()</ref>
+        <ref link="grid component ajaxcallback method">{grid.object}.ajaxCallback()</ref>
+    </see>
+</page>
