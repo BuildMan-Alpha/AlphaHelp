@@ -1,0 +1,144 @@
+<page>
+    <shortlink>manual iis deployment package</shortlink>
+    <topic>How to Build an IIS Deployment Package</topic>
+    <description>If there is completely no access to the IIS server, Alpha Anywhere does not currently support creating a package that can be independently deployed on the IIS server. However, by using the following steps, a deployment package can be created outside of Alpha Anywhere.</description>
+    <sections>
+        <section>
+            <description>
+                <p>The following instructions assume that Application Initialization is installed in IIS. Refer to the [Installation Guide] for more about Application Initialization.</p>
+            </description>
+        </section>
+        <section>
+            <steps>
+                <step>
+                    <description>WebDeploy needs to be installed on the client/developer machine and the server/IIS machine.</description>
+                </step>
+                <step>
+                    <description>Publish the application to localhost on the client/developer machine.</description>
+                </step>
+                <step>
+                    <description>Portions of the web.config file may be encrypted to protect passwords for some settings, e.g. connection strings. An example of an encrypted section looks like this: </description>
+                    <cases>
+                        <case>
+                            <example code="xml"><![CDATA[<connectionStrings configProtectionProvider="RsaProtectedConfigurationProvider">
+    <EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
+      xmlns="http://www.w3.org/2001/04/xmlenc#">
+      <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc" />
+      <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <EncryptedKey xmlns="http://www.w3.org/2001/04/xmlenc#">
+          <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5" />
+          <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <KeyName>Rsa Key</KeyName>
+          </KeyInfo>
+          <CipherData>         <CipherValue>Y28XAy79FHqQIxn5UPM3oF8SDz6cvBcfoIPD39mIwhwQq5RqsgdsyARcAkLjQ5I3t5kVd/KqBs/zECgxjRVIXQ5XJL/a9DeAsUuk5g88sTqqSUmBCyXE/jzChaqK6/Wz7UJhwI4e1Ixg6+BBMJM0p/A38beclGsCUlwwlML6q9tx8cfLltgtu3MP24iiYQbxU4WmxjEJLuhd3F56C7KrYYdQzTNPH7sL7sqW387AkAk1BhljgCIC3xbz9pO9SMElxvMAzM0KJA1UBS9Yote/Nb3g+NEXhiW8i2dh3+n8Sr+XFXs2c0qndeD7gGQALtVdwKApi4OM02vqCGAQZ7h3Rw==</CipherValue>
+          </CipherData>
+        </EncryptedKey>
+      </KeyInfo>
+      <CipherData>       <CipherValue>IbRBhhWQIwVKF0swwKzZNQxPZCaQn7SUJJZGvhkWAXkeFs4RJUHUJ5ytXzCmnbeAcUtpjbUdybcxI4NKnYQ51oHjIC7iezHpp70IlFOi8H1MrUwpVsrfhGxwv5S2NfjBkUaFtYNylwrvixRy7/4oyGEOmBdiuUn8E+pXrpdIBUXYxz/lX1Pt4IihGT4enEoaiM/EFyGmuz2dfM2Fb31Cd6MhPY9TiUxNWnXBSVbctD2c+W1cgcmZmcjaFS4aGG5BVyNFUuB4tElRB/Utp7kK2XSl+ff+xAXt9OrmghtCVSvO9Npa730uxFfZt2gUT9FryYqeyFlxtawIAazwIEp1z+yM0XVKVocA</CipherValue>
+      </CipherData>
+    </EncryptedData>
+</connectionStrings>]]></example>
+                        </case>
+                        <case>
+                            <description>These sections will need to be decrypted before exporting the application. To decrypt a section open a command line as administrator and run the following command:</description>
+                            <example><![CDATA[c:\windows\Microsoft.NET\Framework\v4.0.30319\aspnet_regiis.exe -pd "connectionStrings" -site "Default Web Site" -app "/TestApp"]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The example encrypted section above is for connectionString and uses the XML tag &lt;connectionStrings&gt;. Use the section name for the command line argument after the -pd. This is a case sensitive value and use it without the surrounding "&lt;" and "&gt;" characters. Use the name of the site as it appears in IIS Manager for the -site argument, and use the application name for the -app argument. This must be prefixed with a forward slash "/". If the application has no name and is therefore the default app, use "/" for the -app name.</p>
+                                <p>Other sections that could be encrypted are</p>
+                            </description>
+                            <example><![CDATA[system.web/membership
+system.web/roleManager]]></example>
+                        </case>
+                        <case>
+                            <description>Once the app is deployed to the new location, the sections can be encrypted again. That will be in a step below.</description>
+                        </case>
+                    </cases>
+                </step>
+                <step>
+                    <description>Go into IIS Manager and right click on the application and choose *[ui:Deploy]* &gt; *[ui:Export Application...]*</description>
+                    <figure>
+                        <link>images/deployPackage2.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Follow the prompts to create a deployment package.</description>
+                </step>
+                <step>
+                    <description>Move the deployment package to the server/IIS machine</description>
+                </step>
+                <step>
+                    <description>Create a new application pool in IIS Manager setting</description>
+                    <list>
+                        <item>
+                            <name>.NET Framework Version</name>
+                            <description>v4.0</description>
+                        </item>
+                        <item>
+                            <name>Enable 32-Bit Applications</name>
+                            <description>True</description>
+                        </item>
+                        <item>
+                            <name>Managed Pipeline Mode</name>
+                            <description>Integrated</description>
+                        </item>
+                        <item>
+                            <name>Start Mode</name>
+                            <description>AlwaysRunning</description>
+                        </item>
+                        <item>
+                            <name>Maximum Worker Processes</name>
+                            <description>5 (this may be set to more if needed.)</description>
+                        </item>
+                    </list>
+                    <figure>
+                        <link>images/deployPackage2b.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Right click on the site the app will be deployed. Select *[ui:Deploy]* &gt; *[ui:Import Application...]*</description>
+                    <figure>
+                        <link>images/deployPackage3.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Select the application in IIS Manager and display the *[ui:Basic Settings...]*</description>
+                    <figure>
+                        <link>images/deployPackage4.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Set the Application Pool to the one created earlier</description>
+                </step>
+                <step>
+                    <description>Check *[ui:Enable Preload]*</description>
+                    <figure>
+                        <link>images/deployPackage5.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Note the *[ui:Physical path]* and use Windows Explorer to check the folder permissions for the path. The folder will need to grant read and execute access to the local machine group IIS_IUSRS or to the local machine virtual account which is based on the application pool name. In the image for the step above, the application pool name is "Default Web Site_ADsecurity". This means the local machine virtual account name will be:</description>
+                    <example><![CDATA[IIS APPPOOL\Default Web Site_ADsecurity]]></example>
+                </step>
+                <step>
+                    <description>If any web.config sections were decrypted in a previous step, now they can be encrypted again. The open a command line as administrator and run the same command as for decrypting above except change the -pd argument to -pe:</description>
+                    <cases>
+                        <case>
+                            <example><![CDATA[c:\windows\Microsoft.NET\Framework\v4.0.30319\aspnet_regiis.exe -pe "connectionStrings" -site "Default Web Site" -app "/TestApp"]]></example>
+                        </case>
+                        <case>
+                            <description>This shows the connectionString section being encrypted. Run the command for any of the other sections that were decrypted substituting that section name for the "connectionStrings" argument.</description>
+                        </case>
+                    </cases>
+                </step>
+                <step>
+                    <description>Start the application pool and test the application.</description>
+                </step>
+            </steps>
+        </section>
+    </sections>
+    <links>
+        <link link="iis installation guide">Installation Guide</link>
+    </links>
+</page>
