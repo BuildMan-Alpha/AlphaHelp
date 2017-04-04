@@ -372,6 +372,8 @@ function localToClickHandler(e) {
 }
 
 function initializeSearch() {
+    showAnnouncement();
+
     var addressTags = document.getElementsByClassName("search-address");
     if( addressTags && addressTags.length ) {
         var i;
@@ -440,8 +442,25 @@ function loaded() {
     //});
     getGitTimestamp();
     buildVersion();
+    showAnnouncement();
 }
 
+function showAnnouncement() {
+    // start and end should be in GMT time!
+    var maintenance = {
+        start: new Date("Wed, 05 Apr 2017 03:00:00 GMT"),
+        end: new Date("Wed, 05 Apr 2017 04:00:00 GMT")
+    };
+    
+    var now = new Date();
+    if (now >= maintenance.end) {
+        return;
+    }
+    
+    var ele = document.getElementById("announcement");
+    ele.innerHTML = "The documentation servers will be down for scheduled maintenance between " + maintenance.start.toLocaleString() + " and " + maintenance.end.toLocaleString() + ".  During this time, the Alpha Anywhere help documentation may be temporarily unavailable as we make improvements to our system. Thank you for your patience during this time.";
+    ele.style.display = "block";
+}
 
 function buildVersion() {
    /*
