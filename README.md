@@ -90,10 +90,11 @@ nodejs updateserver.js
 ```
 ## Create the helpserver Service
 
-Copy the configuration file to the /etc/init folder
+Copy the configuration file(s) to the /etc/init folder
 
 ```sh
 cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
+cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
 ```
 
 Then start the server...
