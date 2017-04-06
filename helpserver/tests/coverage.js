@@ -3,7 +3,11 @@
  * Build the generated files for the help system.
  */
 var urls = [];
+var cmdoption = process.argv[2] || "";
 var testPath = function(path) {
+    if( cmdoption === "flatten")  {
+        path += "?flatten=true";       
+    }
     urls.push("/documentation/pages"+path);
 };
 
@@ -89,7 +93,7 @@ var walkAll = function (folder, callback) {
                         var extensionPos = file.lastIndexOf('.');
                         if (extensionPos > 0) {
                             var extensionName = file.substring(extensionPos).toLowerCase();
-                            if (extensionName == ".html" || extensionName == ".md" || extensionName == ".xml") {
+                            if (extensionName === ".html" || extensionName === ".md" || extensionName === ".xml") {
                                 cleanName = cleanupName(html);
                                 duplicateEntry = names.indexOf(cleanName);
                                 pagePath = cleanupFileName(file);

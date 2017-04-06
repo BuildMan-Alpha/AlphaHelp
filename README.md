@@ -163,6 +163,16 @@ cat /var/log/upstart/helpserver.log
 
 If the logs are too big, 'rm' them and retry - if there is still a problem, the logs will be regenerated.
 
+## Setting GIT Webhook for Repository
+
+Log in as buildman@alphasoftware.com to set the repository links on the AlphaHelp project
+
+```
+https://github.com/BuildMan-Alpha/AlphaHelp/settings/hooks
+```
+
+Add the server to the webhooks - remember to copy the secret from your 'settings.json' file in the helpserver folder.
+
 ## Handling case sensitive path issues with Git-Unite
 
 There is a utility in 3rdParty to handle fixups should files appear to be missing on the documentation
