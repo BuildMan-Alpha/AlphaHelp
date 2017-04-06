@@ -1008,6 +1008,11 @@ events.parseQuery = function (args) {
     }
 };
 
+events.noSearchResults = function(pattern) {
+    var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";    
+    return  '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="'+url+'">Contact us!</a></p></div>';
+}
+
 // Modify elastic search query *before* it is run but *after* the default query has been built
 //events.beforeQuery = function (elast, args) {
 //};
