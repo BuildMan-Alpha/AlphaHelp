@@ -3,30 +3,29 @@
     <!--Uploading Files to the Web Application Server-->
     <topic>Uploading Files to the Application Server</topic>
     <limitations>Web Applications Only</limitations>
-    <description>Web publishing applications only. To upload a file, your &lt;form&gt; tag must use the POST method and set the enctype to multipart/form-data as follows:</description>
+    <description>Web publishing applications only. To upload a file, the &lt;form&gt; tag must use the POST method and set the enctype to multipart/form-data as follows:</description>
     <sections>
         <section>
             <example code="html"><![CDATA[<form method="POST" action="upload.a5w" enctype="multipart/form-data">]]></example>
         </section>
         <section>
-            <description>
-                This enables the user's browser to correctly encode the data in your file so it can be sent across the Internet.
-                Next you need a form field to specify the file to be uploaded. This is done with a File input type, as in:
-            </description>
-            <example code="html"><![CDATA[<input type="file" name="FileToUpload" value="">]]></example>
+            <description>This enables the user's browser to correctly encode the data in the file so it can be sent across the Internet. The other component of the form is a field to specify what file to upload. This is done with an input field that has a type of *[html:file]*:</description>
+            <example code="html"><![CDATA[<input type="file" name="FileToUpload">]]></example>
         </section>
-
         <section>
             <description>
                 <p>An input field with type "file" creates a text control with a Browse button used to open the file explorer and select a file on the computer.</p>
-                <p>When the form is submitted, the browser encodes the selected file and uploads it as part of the HTTP request sent to the server. The server decodes the file, making the file available in the A5W environment as an [INET::UploadedFile] object. In this example, the INET::UploadedFile object is assigned the name of the value for the *[html:name]* attribute for the HTML input field.</p>
+                <p>When the form is submitted, the browser encodes the selected file and uploads it as part of the HTTP request sent to the server. The server decodes the file, making the file available in the A5W environment as an [INET::UploadedFile] object. The variable name of the INET::UploadedFile object is the value for the input field's *[html:name]* attribute. For example, if the name attribute for the input field is "FileToUpload", the variable name would be:</p>
             </description>
-            <description>If the file to upload is large, using *[xb:FileToUpload.data]* is not recommended. When referenced, the *[xb:FileToUpload.data]* variable is loaded into memory. For very large files, *[xb:FileToUpload.data]* can potentially consume all of the virtual memory on the system resulting in errors. Use either the [SaveToFile] or [SaveToStorage] methods for the file object to save the file without loading it into memory.</description>
+            <example code="xb"><![CDATA[FileToUpload]]></example>
+        </section>
+        <section>
+            <description>If the uploaded file is large, using INET::UploadedFile data property is not recommended. When the data property is referenced, the file is loaded into memory. For very large files, this can potentially consume all of the virtual memory on the system and cause errors. Use either the [SaveToFile] or [SaveToStorage] methods for the INET::UploadedFile object to save the file without loading it into memory. The file's size can be checked using the INET::UploadedFile *[xb:size]* property.</description>
         </section>
         <section>
             <description>
-                <p>To enforce a restriction on what is uploaded, you must first allow the user to upload the file, then you can use Xbasic to see if it meets your criteria. This is a limitation of HTML and not of the Application server. For example, to enforce a maximum file upload size, you would look at *[xb:size]* property of the uploaded file object.</p>
-                <p>If the file meets your criteria, you can then save the uploaded to a file on the server, in AmazonS3 or Azure storage, inserted it into a table, etc. If it does not meet the upload criteria, simply don't do anything with the uploaded data and it will be deleted from memory when the page finishes loading.</p>
+                <p>To enforce a restriction on what is uploaded, the user must upload the file first. Once the file is uploaded, the file can be validated. This is a limitation of HTML and not the Application Server.</p>
+                <p>If the file meets the upload criteria, the file can be saved to the server, uploaded to AmazonS3 or Azure storage, inserted it into a table, etc. If it does not meet the upload criteria, simply don't do anything with the uploaded data, and the file will be deleted from memory when the page finishes loading.</p>
             </description>
             <example><![CDATA[if (FileToUpload.size > 1000000) then
     Context.Response.Write("<p>File is too large</p>")
@@ -44,7 +43,9 @@ end if]]></example>
     </head>
     <body>
     <%a5
-        if eval_valid("FileToUpload")
+        if eval_valid("Request.Variables.singlefile")
+            FileToUpload = Request.Variables.singlefile
+
             dim Filename as c = ""
             dim MimeType as c = ""
         
@@ -64,8 +65,8 @@ end if]]></example>
         end if
     %>
     <form action="<%a5?Context.Request.ScriptName%>" method="post" enctype="multipart/form-data">
-        <input type="file" name="FileToUpload"/><br/>
-        <input type="submit" name="cmd" value="Upload File"/>
+        <input type="file" name="singlefile"/><br/>
+        <input type="submit"/>
     </form>
     </body>
 </html>]]></example>
@@ -73,13 +74,16 @@ end if]]></example>
         <section>
             <title>Uploading Files Using SaveToFile</title>
             <description>The *[xb:SaveToFile]* method can also be used to save the file. For example:</description>
-            <example><![CDATA[<html>
+            <important>SaveToFile will fail if the destination folder does not exist.</important>
+            <example code="html"><![CDATA[<html>
     <head>
         <title>File Upload Using SaveToFile</title>
     </head>
     <body>
     <%a5
-        if eval_valid("FileToUpload")
+        if eval_valid("Request.Variables.singlefile")
+            FileToUpload = Request.Variables.singlefile
+
             dim Filepath as c = "C:\myapp\data\uploadedFiles\\"
 
             if FileToUpload.SaveToFile(Filepath + FileToUpload.Filename)
@@ -91,8 +95,51 @@ end if]]></example>
         end if
     %>
     <form action="<%a5?Context.Request.ScriptName%>" method="post" enctype="multipart/form-data">
-        <input type="file" name="FileToUpload"/><br/>
-        <input type="submit" name="cmd" value="Upload File"/>
+        <input type="file" name="singlefile"/><br/>
+        <input type="submit"/>
+    </form>
+    </body>
+</html>]]></example>
+        </section>
+        <section>
+            <title>Uploading Multiple Files</title>
+            <description>
+                <p>Multiple files can be uploaded from single HTML element by adding the *[html:multiple]* attribute to the input field. For example: </p>
+            </description>
+            <example code="html"><![CDATA[<input type="file" name="multifile[]" multiple="true">]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The name of the input element must end with square brackets ("[]"). This indicates to Alpha Anywhere that multiple files may be uploaded.</p>
+                <p>The example below demonstrates how to upload multiple files:</p>
+            </description>
+            <example code="html"><![CDATA[<html>
+    <head>
+        <title>Uploading Multiple Files</title>
+    </head>
+    <body>
+    <%a5
+        if eval_valid("Request.Variables.multifile")
+            FilesToUpload = Request.Variables.multifile
+
+            dim Filepath as c = "C:\myapp\data\uploadedFiles\\"
+            dim numFiles as n = FilesToUpload.size()
+
+            ' FilesToUpload is an array of INET::UploadedFile objects
+            ' iterate over all files and upload them individually:
+            for i = 1 to numFiles
+                currFile = FilesToUpload[i]
+                if currFile.SaveToFile(Filepath + currFile.Filename)
+                    Context.Response.Write("<p>File "+currFile.Filename+" was saved.</p>")
+                else
+                    Context.Response.Write("<p>Could not save file "+currFile.Filename+". <br>Error reported:<br>"+currFile.CallResult.Text+"</p>")
+                end if
+            next
+        end if
+    %>
+    <form action="<%a5?Context.Request.ScriptName%>" method="post" enctype="multipart/form-data">
+        <input type="file" name="multifile[]" multiple="true"/><br/>
+        <input type="submit"/>
     </form>
     </body>
 </html>]]></example>
