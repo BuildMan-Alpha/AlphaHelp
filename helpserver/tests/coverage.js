@@ -4,9 +4,11 @@
  */
 var urls = [];
 var cmdoption = process.argv[2] || "";
-var testPath = function(path) {
+var testPath = function(path,cleanName) {
     if( cmdoption === "flatten")  {
         path += "?flatten=true";       
+    } else if( cmdoption === "search")  {
+        path = "/search?pattern="+cleanName;
     }
     urls.push("/documentation/pages"+path);
 };
@@ -103,7 +105,7 @@ var walkAll = function (folder, callback) {
                                 } else {
                                     results[duplicateEntry].path = pagePath;
                                 }                                
-                                testPath(pagePath);
+                                testPath(pagePath,cleanName);
                             }
                         }
                         if (!--pending) done(null, results);
