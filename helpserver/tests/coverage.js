@@ -3,8 +3,8 @@
  * Build the generated files for the help system.
  */
 var urls = [];
-var testPath = function(po) {
-    urls.push("/documentation/pages"+po.path);
+var testPath = function(path) {
+    urls.push("/documentation/pages"+path);
 };
 
 var walkAll = function (folder, callback) {
@@ -99,7 +99,7 @@ var walkAll = function (folder, callback) {
                                 } else {
                                     results[duplicateEntry].path = pagePath;
                                 }                                
-                                testPath({ title: cleanName, file: file, path: pagePath });
+                                testPath(pagePath);
                             }
                         }
                         if (!--pending) done(null, results);
@@ -126,7 +126,9 @@ walkAll("c:/dev/AlphaHelp/helpfiles/",function(err) {
         console.log("Starting the test access "+urls.length+" Pages");
         var index = 0;
         var cleanup = function(path) {
-            return path.split(" ").join("%20");                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            if( path )
+                return path.split(" ").join("%20");                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            return "";    
         };
         var http = require('http');
         var callback = function(response) {
@@ -136,7 +138,9 @@ walkAll("c:/dev/AlphaHelp/helpfiles/",function(err) {
             });
             response.on('end', function () {
                 console.log( "returned "+ len+" bytes");
-                nextRequest();
+                if( index < urls.length ) {
+                    nextRequest();
+                }
             });
         };
         var nextRequest = function() {
