@@ -373,7 +373,6 @@ function localToClickHandler(e) {
 
 function initializeSearch() {
     showAnnouncement();
-
     var addressTags = document.getElementsByClassName("search-address");
     if( addressTags && addressTags.length ) {
         var i;
@@ -382,11 +381,6 @@ function initializeSearch() {
                  addressTags[i].innerHTML = document.location.host + addressTags[i].innerHTML;
              }
         }
-    } else {
-        var s = document.getElementById("search-result-content");
-        var pattern = document.getElementsByName("pattern")[0].value;
-        var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
-        s.innerHTML = '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="'+url+'">Contact us!</a></p></div>';
     }
 }
 
