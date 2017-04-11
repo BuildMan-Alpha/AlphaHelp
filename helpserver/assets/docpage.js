@@ -549,6 +549,9 @@ function getGitTimestamp() {
     var url = "https://api.github.com/repos/BuildMan-Alpha/AlphaHelp/commits?page=1&per_page=1&path=/helpfiles" + path;
 
     var callbackFunc = function (status, jsonObj) {
+        if (typeof (jsonObj) == "string") {
+            jsonObj = JSON.parse(jsonObj);
+        }
         if (status == null && jsonObj.length > 0) {
             var d = new Date(jsonObj[0].commit.author.date);
             var month = d.getMonth() + 1;
