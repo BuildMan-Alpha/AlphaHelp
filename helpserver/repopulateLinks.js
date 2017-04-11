@@ -63,7 +63,7 @@ async.eachSeries(list, function (fo, callbackLoop) {
                     var i;
                     for (i = 1; i < metatags.length; ++i) {
                         var metatag = metatags[i].split(">")[0];
-                        if (metatag.replace(" ", "").indexOf('name="shortlink"') > 0) {
+                        if (metatag.replace(" ", "").indexOf('name="shortlink"') >= 0) {
                             if (metatag.indexOf('content=') > 0) {
                                 metatag = metatag.split('content=')[1].trim();
                                 var metatags = metatag.split(metatag.substring(0, 1));
