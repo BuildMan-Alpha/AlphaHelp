@@ -348,7 +348,6 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                         }
                         errPage = lines.join("\n");
                         errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
-                        console.log("Error in XML "+err+" for page "+errPage+"\n");
                         callback(null, errPage);
                     };
                     if( index < 0 ) {
@@ -356,6 +355,7 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                         parseString(errPage, function(err, result) {
                             var description = null;
                             if (err) {
+                                console.log("Error in XML "+err+" for page "+xmlFile+"\n");
                                 var lineArg = (''+err).split('Line:');
                                 if( lineArg.length > 1 ) {
                                     index = parseInt( lineArg[1].split('\n')[0].trim() );
