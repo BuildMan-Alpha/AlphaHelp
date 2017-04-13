@@ -1,0 +1,107 @@
+<page>
+    <shortlink>how to return binary data from a node service</shortlink>
+    <topic>How to Return Binary Data from a Node Service</topic>
+    <description>A node service can return binary data to an Xbasic script using optional attachments sent using the *[js:sendResponse()]* callback function.</description>
+    <discussion>If you use Node with you Xbasic scripts in your Alpha Anywhere applications, binary data can be sent to and received from Node. Sending binary data may be necessary if the service loads or generates a file, such as an image, that needs to be returned to the calling script.</discussion>
+    <sections>
+        <section>
+            <description>
+                <p>A node service takes three parameters: a *[js:packet]* that contains data passed to the service, a *[js:response]* which is used to send data from the service, and a *[js:sendResponse]* function that takes two parameters: the *[js:response]* object and an optional *[js:attachments]* JSON object that contains one or more binary objects to return to the calling script.</p>
+                <p>For example, consider the example below which loads an image using the Node File System library 'fs' and returns the image data with the *[js:response]* using the *[js:attachments]* object:</p>
+            </description>
+            <example code="js"><![CDATA[exports.handler = function(packet,response,sendResponse) {
+    var fs = require('fs');
+    var fn = packet.filename;
+
+    function _cb(error,data) {
+        if (error) {
+            response.error = error;
+            sendResponse(response,null);
+        } else {
+            var attachments = [{name: fn, data: data}];
+            response.result = true;
+            sendResponse(response,attachments);
+        }
+    };
+
+    fs.readFile(fn,_cb);
+}]]></example>
+            <important>If the node service does not call *[js:sendResponse()]*, either because a JavaScript error occurs or a callback fails to execute, the service will not terminate until the Node timeout is reached. This can create the impression that an Xbasic script has become unresponsive.</important>
+        </section>
+        <section>
+            <description>Each entry in the *[js:attachments]* JSON object can define the following properties:</description>
+            <list>
+                <item>
+                    <name>name</name>
+                    <description>A string that uniquely identifies the data. E.g. "image1". Not required, but recommended.</description>
+                </item>
+                <item>
+                    <name>data</name>
+                    <description>The binary or text data.</description>
+                </item>
+                <item>
+                    <name>mimetype</name>
+                    <description>Optional. Specifies the MIME type of the data. E.g. "image/png".</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>The node service in the example above requires a filename passed into the packet parameter. It can be called from Xbasic as follows:</description>
+            <example code="xb"><![CDATA[dim filename as c = "c:/moiveimages/4772.JPG"
+
+dim pIn as p
+pIn.filename = filename
+
+dim pOut as p
+pOut = node_request_result("getBinary", pIn)
+
+if (pOut.result = .T.) then
+    dim attachments as Helper::NodeAttachments
+    attachments = pOut.attachments
+
+    dim data as Helper::NodeAttachment
+    data = attachments.attachments[1]
+    
+    encoded = base64encode(data.data)
+    
+    Context.Response.Write("<p>Loaded " + data.name + "</p>")
+    Context.Response.Write("<img src=\"data:image/jpg;base64,"+encoded+"\">")
+else 
+    ' an error occurred
+    Context.Response.Write("An error occurred when calling 'getBinary'. Details below:<br>")
+    Context.Response.Write("<br>" + stritran(properties_enum(pOut.error,"R;O=p=v"),crlf(),"<br/>"))
+end if]]></example>
+        </section>
+        <section>
+            <description>The Xbasic script above can be inserted into an .a5w page. The script calls the *[js:getBinary]* node service, passing in an image. If the request succeeds, the binary image data is base64 encoded and displayed in the .a5w page. If the request fails, it prints all of the properties and values of the *[xb:pOut.error]* object. For example, if the file doesn't exist, the Xbasic script prints the following information:</description>
+            <example><![CDATA[An error occurred when calling 'getBinary'. Details below:
+
+Errno=-4058
+Code="ENOENT"
+Syscall="open"
+Path="c:\moiveimages\4772.JPG"]]></example>
+        </section>
+        <section>
+            <description>To learn more, watch the video below.</description>
+            <videos>
+                <title>Calling a Node Service that Returns Binary Data</title>
+                <description> When you call a Node service from Xbasic, the service can return both text and binary data. In this video we show how a Node Service can return binary data.</description>
+                <date>2017-02-28</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/cf1ca0a2</link>
+                </video>
+                <resources>
+                    <resource>
+                        <name>Download the getBinary.js Node Service shown above</name>
+                        <link>components/getBinary.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <see>
+        <ref link="helper::nodeattachments class">Helper::NodeAttachments Class</ref>
+        <ref link="helper::nodeattachment class">Helper::NodeAttachment Class</ref>
+    </see>
+</page>
