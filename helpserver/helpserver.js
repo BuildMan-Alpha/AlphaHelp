@@ -46,61 +46,10 @@ var events = {};
 var tocData = { altTocs : [] , defaultPathMetadata : [] };
 options.library = library;
 
-var createBrokenLinkEmail =  function(problems) {
-    /*
-    var i;
-    var message = "";
-    for( i = 0 ; i < problems.length ; ++i ) {
-        message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
-    }
-    var emailcred = require("/home/AlphaHelp/helpserver/emailcred");
-    var nodemailer = require('nodemailer'); 
-    // create reusable transporter object using the default SMTP transport 
-    var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
-    
-    // setup e-mail data with unicode symbols 
-    var mailOptions = {
-        from: emailcred.user, // sender address 
-        to: 'documentation@alphasoftware.com', // list of receivers 
-        subject: 'Problem with links', // Subject line 
-        text: message, 
-    };
-    
-    // send mail with defined transport object 
-    transporter.sendMail(mailOptions, function(error, info){
-        if(error){
-            return console.log(error);
-        }
-        console.log('Message sent: ' + info.response);
-    });*/
-} 
-
-
 fs.readFile("/home/AlphaHelp/generated/helpserver_error.log","utf8",function(err,contents) {
      if(!err && contents ) {
         fs.unlink("/home/AlphaHelp/generated/helpserver_error.log");
-        /*
-        var emailcred = require("/home/AlphaHelp/helpserver/emailcred");
-        var nodemailer = require('nodemailer'); 
-        // create reusable transporter object using the default SMTP transport 
-        var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
-        
-        // setup e-mail data with unicode symbols 
-        var mailOptions = {
-            from: emailcred.user, // sender address 
-            to: 'documentation@alphasoftware.com', // list of receivers 
-            subject: 'Helpserver crashed', // Subject line 
-            text: contents, 
-        };
-        // send mail with defined transport object 
-        transporter.sendMail(mailOptions, function(error, info){
-            if(error){
-                return console.log(error);
-            }
-            console.log('Message sent: ' + info.response);
-        });*/
-     } else if( err ) {
-         console.log("error loading last crash log "+err);
+        console.log("Last crash report:\n"+contents+"\n");
      } 
 });
 
@@ -440,8 +389,6 @@ events.beforeRefresh = function() {
     validateLinks(linksFileName, "/home/AlphaHelp/helpfiles",function(result) {
         if( result.problems ) {
             console.log("Found problems with links.json\n"+JSON.stringify(result.problems));
-            //console.log("Found problems with links.json - sending an email.")
-            //createBrokenLinkEmail(result.problems);
         }
     });    
 };
