@@ -44,9 +44,9 @@ async.eachSeries(list, function (fo, callbackLoop) {
             if (!err) {
                 var topic = null;
                 if (fo.file.toLowerCase().indexOf('.xml') > 0) {
-                    topic = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim());
+                    topic = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim()).toLowerCase();
                     if (topic.length === 0) {
-                        topic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
+                        topic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim()).toLowerCase();
                     } else {
                         var secondarytopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
                         if (secondarytopic.length !== 0) {
@@ -63,19 +63,19 @@ async.eachSeries(list, function (fo, callbackLoop) {
                     var i;
                     for (i = 1; i < metatags.length; ++i) {
                         var metatag = metatags[i].split(">")[0];
-                        if (metatag.replace(" ", "").indexOf('name="shortlink"') > 0) {
+                        if (metatag.replace(" ", "").indexOf('name="shortlink"') >= 0) {
                             if (metatag.indexOf('content=') > 0) {
                                 metatag = metatag.split('content=')[1].trim();
                                 var metatags = metatag.split(metatag.substring(0, 1));
                                 if (metatags.length > 2) {
-                                    topic = metatags[1];
+                                    topic = metatags[1].toLowerCase();
                                     break;
                                 }
                             }
                         }
                     }
                     if (!topic) {
-                        topic = extractTag(page, "<title>", "</title>").trim();
+                        topic = extractTag(page, "<title>", "</title>").trim().toLowerCase();
                         if (!topic) {
                             console.log("Warning no title or shortlink defined for " + fo.file);
                             topic = "";
@@ -84,8 +84,8 @@ async.eachSeries(list, function (fo, callbackLoop) {
                 }
                 var pathName = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
                 if (topic.length > 0 && containsNoSpecialChar(topic)) {
-                    topic = removeCDATA(topic);
-                    var usedName = usedNames[topic.toLowerCase()];
+                    topic = removeCDATA(topic).toLowerCase();
+                    var usedName = usedNames[topic];
                     if (usedName) {
                         if (usedName !== pathName) {
                             var replacePage = false;

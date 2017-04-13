@@ -1,0 +1,163 @@
+<page build="2614">
+    <shortlink>server xb Web Applications Xbasic Modules</shortlink>
+    <topic>Xbasic Modules</topic>
+    <description>The Web Projects Control Panel now has a new category called Xbasic Module.</description>
+    <sections>
+        <section>
+            <figure>
+                <link>images/xbasicmodules.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>An Xbasic Module is a text file with a .a5xbm extension. It is stored in the web project folder. The purpose of an Xbasic Module is to allow you to package Xbasic function definitions so that they can easily be used in other Xbasic code you write.</p>
+            </description>
+            <videos>
+                <title>Xbasic Modules</title>
+                <video>
+                    <name>Watch Video</name>
+                    <link>http://www.viddler.com/v/3059c9a8</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <note>
+                Xbasic Modules are very similar to the concept of Node modules.
+                An Xbasic Module must end with an exports command that defines which functions the Module 'exports' (makes available to the calling code).
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>To use an Xbasic Module in your Xbasic code you use the require() function to 'register' the Module.</p>
+                <p>The require() function can take an optional CRLF delimited string of search paths. By default the require() function will look in the Web Root (if you are running live) and in the Web Project Folder (if you are in Working Preview). If the file is not found there, it will search for the module in the \Xbasic_modules folder. If you pass in a CRLF delimited string of folder names as the second parameter to the require() function, these folders will also be searched for the module.</p>
+                <p>For example, assume you had defined the following Xbasic Module called MyXBModule.a5xbm.</p>
+                <p>The module file was defined as follows:</p>
+            </description>
+            <example>
+                <![CDATA[function greeting as c (name as c )
+ greeting = "Hello " + ut(name) + " the time is now: " + currentDate()
+end function 
+
+function currentDate as c ()
+ currentDate = date()
+end function 
+
+exports.sayHello = greeting]]>
+            </example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the module defines two functions, but only the greeting() function is 'exported' (i.e. made public). Also notice that the greetings() function was exported as sayHello. This means that to the calling code the function sayHello() can be called (but not the internal greetings() function).</p>
+                <p>Now assume you had define an .a5w page with this code:</p>
+            </description>
+            <example>
+                <![CDATA[<%a5
+ dim pxb as p
+ pxb = require("myxbmodule")
+ ? pxb.sayHello("jim")
+ %>]]>
+            </example>
+        </section>
+        <section>
+            <description>
+                <p>The Xbasic code in the .A5w page uses the require() function to register the 'myxbmodule' Xbasic Module and assigns the function to a namespace called pxb. Then, to call any of the exported functions, you must use the pxb prefix.</p>
+                <p>Modules can be loaded recursively. For example, in the definition of a module can reference another module.</p>
+            </description>
+        </section>
+        <section>
+            <title>What is the Difference between an Xbasic Function Library and an Xbasic Module?</title>
+            <description>
+                <p>On the surface an Xbasic Function Library and an Xbasic Module seem similar in that they are both files in which you can define multiple Xbasic functions.</p>
+                <p>However an Xbasic Module only makes 'public' certain of the functions it defines (through use of the 'exports' keyword) and the exported functions are all in their own namespace and must be called using the namespace prefix.</p>
+                <p>On the other hand an Xbasic Function Library must be linked into a component before any of the functions defined in the library can be called. The functions defined in the Xbasic Function Library are in the same namespace as any locally defined functions in the component itself.</p>
+            </description>
+        </section>
+        <section>
+            <title>Exporting Classes</title>
+            <description>Xbasic classes cannot be defined in nor exported from an Xbasic module. Instead, classes can be saved in a separate file with the .a5xbclass extension. See [Creating and Loading External Xbasic Class Files] for more information.</description>
+        </section>
+        <!--For example, suppose the following class has been created:</description>
+            <example><![CDATA[define class helloClass
+    ' English
+    function Hello as C()
+        Hello="Hello World!"
+    end function
+
+    ' Spanish
+    function Hola as C()
+        Hola="Hola Mundo!"
+    end function
+
+    ' Swedish
+    function Hej as C()
+        Hej="Hej världen!"
+    end function
+end class]]></example>
+        </section>
+        <section>
+            <description>The class, *[xb:helloClass]*, can be saved in a file with the .a5xbclass extension, allowing it to be referenced anywhere in an application. Alpha Anywhere automatically locates and loads the class files from the webroot. The filename for the class must match the name of the class in order for Alpha Anywhere to find and load the class. E.g. the filename for the *[xb:helloClass]* would be</description>
+            <example><![CDATA[helloClass.a5xbclass]]></example>
+        </section>
+        <section>
+            <description>If the *[xb:helloClass]* class is defined within a namespace...</description>
+            <example><![CDATA[define class Hello::helloClass
+    ' English
+    function Hello as C()
+        Hello="Hello World!"
+    end function
+
+    ' Spanish
+    function Hola as C()
+        Hola="Hola Mundo!"
+    end function
+
+    ' Swedish
+    function Hej as C()
+        Hej="Hej världen!"
+    end function
+end class
+]]></example>
+        </section>
+        <section>
+            <description>...the filename for the class must include the namespace. E.g.</description>
+            <example><![CDATA[Hello.helloClass.a5xbclass]]></example>
+        </section>
+        <section>
+            <description>Code inside Xbasic modules can create instances of the helloClass class without any extra code to load the class. For example, the Xbasic module *[xb:helloWorld.a5xbm]* shown below defines a function that prints the phrase "Hello World" in one of three languages available in the *[xb:Hello::helloClass]*. The language used is passed in as a parameter, *[xb:language]*. The function is exported using *[xb:exports]* as a function named *[xb:helloWorld]*:</description>
+            <example><![CDATA[function hello as c (language as c)
+    dim hi as Hello::helloClass
+
+    SELECT
+        CASE language == "Spanish"
+            hello = hi.Hola()
+        CASE language == "Swedish"
+            hello = hi.Hej()
+        CASE language == "English"
+            hello = hi.Hello()
+        CASE ELSE
+            hello = hi.Hello()
+    END SELECT
+end function
+
+exports.helloWorld=hello]]></example>
+        </section>
+        <section>
+            <description>The Xbasic module can then be used in an Xbasic script in a component or .a5w page to call the exported *[xb:helloWorld]* function as follows:</description>
+            <example><![CDATA[dim hi as p
+hi = require("helloWorld")
+dim msg as c = hi.helloWorld("Spanish")
+
+' print to page in an .a5w page:
+? msg]]></example>
+        </section>-->
+    </sections>
+    <links>
+        <link link="Xbasic class files">Creating and Loading External Xbasic Class Files</link>
+    </links>
+    <see>
+        <ref link="xbasic encrypting webproject xbasic files">Encrypting Xbasic function libraries, Modules, and Classes</ref>
+        <ref link="server xb Web Applications Xbasic Function Libraries">Xbasic Function Libraries</ref>
+        <ref link="Xbasic class files">Creating and Loading External Xbasic Class Files</ref>
+        <ref link="what is the difference between an xbasic module and xbasic function library">What is the Difference Between an Xbasic Module and an Xbasic Function Library?</ref>
+    </see>
+</page>

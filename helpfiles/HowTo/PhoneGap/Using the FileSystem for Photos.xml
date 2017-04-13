@@ -1,0 +1,163 @@
+<page build="2970">
+    <shortlink>howto use the phonegap filesystem for list photos</shortlink>
+    <topic>How to use the File System for Photos in a PhoneGap Application</topic>
+    <description>Media files (images, videos, and audio files) can be stored on a device's file system rather than Local Storage in PhoneGap applications, letting you provide access to media files when the application goes offline.</description>
+    <discussion>
+        <p>If you build a disconnected application (using List controls with associated Detail Views) and store photos in the List control as base64 encoded images, the number of photos that can be stored in the List control is limited by the browser's Local Storage cache (typically 5MB) when the device is offline.</p>
+        <p>If an application uses PhoneGap, the device file system can be used to store images (and other media files) instead of using Local Storage. By using the file system, you can capture a large number of photos while you are disconnected. You can also capture other *[media]* files such as video and audio and store the data on the file system.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Quick Summary of Steps to Use PhoneGap File System for Photos</title>
+            <steps>
+                <step>
+                    <description>Configure the photo fields in your SQL database as character fields. This is required.</description>
+                </step>
+                <step>
+                    <description>Create a List control with a Detail View on your UX component.</description>
+                </step>
+                <step>
+                    <description>In the Detail View, set the control type for the Photo fields to *[ui:Image]*.</description>
+                </step>
+                <step>
+                    <description>In the List builder go to the *[ui:Detail View]* pane and set the *[ui:Media and other Linked Files]* properties. Most importantly, specify if the media files should be uploaded to Amazon S3 or the Alpha Anywhere server. It is also recommended that you check the *[ui:Automatically download media files...]* property so that your photos in your existing data are available when you go offline.</description>
+                </step>
+                <step>
+                    <description>In the List builder, go to the *[ui:Fields]* pane and set the control type for the Photo fields to *[ui:Image]*. Also, if you have specified that the media files should be uploaded to the Alpha Anywhere server, edit the *[ui:Image Capture and Storage]* properties to specify the folder where the uploaded photos should be stored.</description>
+                </step>
+                <step>
+                    <description>Add a button to the Detail View to capture an image using the camera. Define the click event for this button using the *[ui:Image Capture for List-Detail View]* action in Action Javascript. In the builder for this action set the *[ui:Image Capture Method]* to *[ui:PhoneGap]* and set the *[ui:Data capture]* mode to *[ui:Filename]*.</description>
+                </step>
+            </steps>
+            <note>In order to use this feature, your PhoneGap application must include these PhoneGap plug-ins: Camera, Console, Device, File, File Transfer, Media, Media Capture.</note>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <videos>
+                        <title>Capturing Photos in a Disconnected Application Using PhoneGap</title>
+                        <description>These videos provide full step-by-step instructions for configuring a List Control with a Detail View to use the file system in a PhoneGap application for storing images.</description>
+                        <video>
+                            <name>Watch Video - Using the Device File System</name>
+                            <link>http://www.viddler.com/v/cd3b44c1</link>
+                        </video>
+                        <video>
+                            <name>Watch Video - Configuring the List Control</name>
+                            <link>http://www.viddler.com/v/231667c2</link>
+                        </video>
+                    </videos>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Downloading Media Files to the File System</title>
+            <description>
+                <p>Similarly, when you retrieve data from the server to store on your device, there is no need to store the photos in Local Storage. The photos can be downloaded and stored in files on the device. This will substantially increase the amount of data you can load onto your device.</p>
+                <p>In order to use the file system for your images (rather than Local Storage), you configure the [Image Capture for List-Detail View - Camera/Photo Library] action in action Javascript to use the 'Filename' option (rather than the 'Base64' option). See below for more detail.</p>
+                <p>When you sync the List with the server database, the photos (and other media files, once support for videos and audios is made available) are first uploaded (to the Alpha server or to Amazon S3) and then once the media files are all uploaded, the data in the Lists are synchronized.</p>
+                <p>Before examining how to configure the [Image Capture for List-Detail View - Camera/Photo Library] action in action Javascript and the List Detail View to use this option, it is helpful to understand more about what happens behind the scenes when you capture photos, and then sync the data in your List controls.</p>
+            </description>
+        </section>
+        <section>
+            <title>Behind the Scenes</title>
+            <description>When you take a picture, the List data for a row in the List might look like this (where the file in the picture field is a local file on the mobile device):</description>
+            <example code="json"><![CDATA[ {Name: 'Fred Smith', picture: 'xysshdh24g22334hack46h2dk43hahdh...........'}]]></example>
+        </section>
+        <section>
+            <description>When you sync the List data, the media files (the photo in this case) are first uploaded to the server. Let's assume you are uploading media files to S3. The URI of the image on S3 might be something like:</description>
+            <example><![CDATA[https://yourS3bucketName.s3.amazonaws.com/image1.jpg]]></example>
+        </section>
+        <section>
+            <description>After the media files have been successfully uploaded to the server, the data in the List are changed as follows:</description>
+            <example code="json"><![CDATA[{Name: 'Fred Smith', picture: 'https://yourS3bucketName.s3.amazonaws.com/image1.jpg'}]]></example>
+        </section>
+        <section>
+            <description>The data in the List can then be synchronized with the server database. The following record would be written to the database:</description>
+            <list>
+                <item>
+                    <name-title>Name</name-title>
+                    <description-title>Picture</description-title>
+                </item>
+                <item>
+                    <name>Fred Smith</name>
+                    <description> https://yourS3bucketName.s3.amazonaws.com/image1.jpg</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>Once the data synch operation has completed, the data in the List is again changed back to:</description>
+            <example code="json"><![CDATA[{Name: 'Fred Smith', picture: 'file://folder_in_the_file_system/image1.jpg'}]]></example>
+        </section>
+        <section>
+            <description>The reason to change the data in the List back to its original state is that there is no need to reference a remote image (on say S3) when the local copy of the image is already available in the device file system.</description>
+        </section>
+        <section>
+            <title>Taking Your Media Files With You When You Go Off-line</title>
+            <description>
+                <p>If the data in your List has references to remote files (e.g. photos, videos, audio files, etc.) that are located on remote servers (such as the Alpha server, or Amazon S3), you can retrieve those files and store them in the file system on the mobile device. By doing this, you ensure that even when you are disconnected, your application can still reference these files.</p>
+                <p>Assume that a typical row in the SQL table that you are querying to populate the List contains data like this:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Name</name-title>
+                    <description-title>Picture</description-title>
+                </item>
+                <item>
+                    <name>Fred Smith</name>
+                    <description>https://yourS3bucketName.s3.amazonaws.com/image1.jpg</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>When you retrieve data from the server, the JSON representation of the data in a typical row in the List might look like this:</description>
+            <example code="json"><![CDATA[{Name: 'Fred Smith', picture: 'https://yourS3bucketName.s3.amazonaws.com/image1.jpg'}]]></example>
+        </section>
+        <section>
+            <description>The picture field is pointing to an image on Amazon S3 and this image will *[not]* be available if you are not connected. However you can fetch the image while you do have a connection, store the image in the file system, and update the data in the List to something like this:</description>
+            <example code="json"><![CDATA[{Name: 'Fred Smith', picture: 'file://folder_in_the_file_system/image1.jpg'}]]></example>
+        </section>
+        <section>
+            <description>Notice that the picture field in the List no longer points to the remote server, but instead is pointing to a file on the mobile device.</description>
+        </section>
+        <section>
+            <title>Orphaned Files</title>
+            <description>Assume that when the List is initially populated, the data in the List are:</description>
+            <example code="json"><![CDATA[[
+   {Name: 'Tom Smith', picture: 'https://yourS3bucketName.s3.amazonaws.com/image1.jpg'},
+   {Name: 'Jan Toms', picture: 'https://yourS3bucketName.s3.amazonaws.com/image2.jpg'}
+]]]></example>
+        </section>
+        <section>
+            <description>When you fetch the media files, the following files will be stored in the file system on the mobile device:</description>
+            <list bullet="true">
+                <item>
+                    <name>image1.jpg</name>
+                </item>
+                <item>
+                    <name>image2.jpg</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>Assume that the user then does another query and retrieves this data with which to populate the List:</description>
+            <example code="json"><![CDATA[[
+  {Name: 'Tom Smith', picture: 'https://yourS3bucketName.s3.amazonaws.com/image1.jpg'},
+  {Name: 'Ian King', picture: 'https://yourS3bucketName.s3.amazonaws.com/image3.jpg'},
+  {Name: 'Jack Jon', picture: 'https://yourS3bucketName.s3.amazonaws.com/image4.jpg'}
+]]]></example>
+        </section>
+        <section>
+            <description>At this point, the file system on the device will contain these files: 'image1.jpg', 'image2.jpg', 'image3.jpg' and 'image4.jpg', Notice that it still contains a file called 'image2.jpg', but there is no data in the List that references this file. 'image2.jpg' is an 'orphan' file and it can be deleted. The List Detail View has settings that allow you to automatically delete orphan files (see [Media files (photos, videos, audio recordings, other) settings] to learn more). There are also events that are fired before and after orphan files are deleted.</description>
+        </section>
+    </sections>
+    <links>
+        <link link="ux list detail view properties media files settings">Media files (photos, videos, audio recordings, other) settings</link>
+        <link link="action javascript image capture for listdetail view cameraphoto library">Image Capture for List-Detail View - Camera/Photo Library</link>
+    </links>
+    <see>
+        <ref link="ux listdetailview image capture and storage properties property">Image Capture and Storage</ref>
+        <ref link="ux list detail view properties media files settings">Media files (photos, videos, audio recordings, other) settings</ref>
+        <ref link="action javascript image capture for listdetail view cameraphoto library">Image Capture for List-Detail View - Camera/Photo Library</ref>
+        <ref link="action javascript phonegap file system actions">PhoneGap - File System Actions</ref>
+    </see>
+</page>
