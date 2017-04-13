@@ -439,8 +439,9 @@ events.beforeRefresh = function() {
     var validateLinks = require("/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js");
     validateLinks(linksFileName, "/home/AlphaHelp/helpfiles",function(result) {
         if( result.problems ) {
-            console.log("Found problems with links.json - sending an email.")
-            createBrokenLinkEmail(result.problems);
+            console.log("Found problems with links.json\n"+JSON.stringify(result.problems));
+            //console.log("Found problems with links.json - sending an email.")
+            //createBrokenLinkEmail(result.problems);
         }
     });    
 };
