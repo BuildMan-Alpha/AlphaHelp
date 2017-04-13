@@ -355,7 +355,7 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                         parseString(errPage, function(err, result) {
                             var description = null;
                             if (err) {
-                                console.log("Error in XML "+err+" for page "+xmlFile+"\n");
+                                console.log("Error running XSLT for page "+xmlFile+"\n");
                                 var lineArg = (''+err).split('Line:');
                                 if( lineArg.length > 1 ) {
                                     index = parseInt( lineArg[1].split('\n')[0].trim() );
