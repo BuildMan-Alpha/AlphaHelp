@@ -847,7 +847,7 @@ events.postProcessContent = function(data) {
                                         if( !isURI(linkdef) ) {
                                             var newlinkdef = help.lookupLink(linkdef);
                                             if( newlinkdef || implicitType ) {
-                                                console.log("Set linkdef to "+newlinkdef);
+                                                //console.log("Set linkdef to "+newlinkdef);
                                                  linkdef = newlinkdef;
                                             }
                                         }
