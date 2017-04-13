@@ -348,6 +348,7 @@ events.translateXML = function(xmlFile,htmlFile,callback) {
                         }
                         errPage = lines.join("\n");
                         errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
+                        console.log("Error in XML "+err+" for page "+errPage+"\n");
                         callback(null, errPage);                        
                     };
                     if( index < 0 ) {
