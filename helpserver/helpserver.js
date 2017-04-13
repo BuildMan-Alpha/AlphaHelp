@@ -6,6 +6,7 @@ var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
 var https_credentails = null;
+console.log("\n\n\n#########################################################\n### Starting the server - time "+new Date()+"\n");
 if( options.https_port && options.privatekey && options.certificate  ) {
     https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }   
 }
