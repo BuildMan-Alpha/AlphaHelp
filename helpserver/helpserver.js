@@ -112,7 +112,7 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args, description, type, topic ) {
+var outputSnippet = function(args, description, type, topic, isStatic) {
     var result = "";
     if (args.isFolder) {
         if (args.format == ".xml") {
@@ -148,7 +148,7 @@ var outputSnippet = function(args, description, type, topic ) {
                 }
             }
             if (type == "method") {
-                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+                result = "<methodref"+(isStatic?" static=\"true\"":"")+"><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
                 result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
@@ -158,7 +158,7 @@ var outputSnippet = function(args, description, type, topic ) {
     } else {
         if (args.format == ".xml") {
             if (type == "method") {
-                result = "<methodref><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
+                result = "<methodref"+(isStatic?" static=\"true\"":"")+"><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
             } else {
                 result = "<item><name href=\"" + args.path + "\">" + topic + "</name></item>";
             }
@@ -211,12 +211,13 @@ events.pageIndexer = function(args, savePage) {
         fs.readFile(filename, "utf8", function(err, data) {
             if (err) {
                 console.log(filename + " was not found");
-                savePage(outputSnippet(args, null, type));
+                savePage(outputSnippet(args, null, type, false));
             } else {
                 var parseString = require('xml2js').parseString;
                 parseString(data, function(err, result) {
                     var description = null;
                     var topic = null;
+                    var static = false;
                     if (err) {
                         console.log(err + " processing file " + filename);
                     } else {
@@ -237,13 +238,18 @@ events.pageIndexer = function(args, savePage) {
                                         description = result.page.description;
                                     }
                                 }
+                                if (result.page.prototype && Object.prototype.toString.call((result.page.prototype)) === '[object Array]') {
+                                    if (result.page.prototype[0].$ && result.page.prototype[0].$.static) {
+                                        static = result.page.prototype[0].$.static === "true";
+                                    }
+                                }
                             }
                         }
                     }
                     if( filename.indexOf("/index.xml") > 0 ) {
-                        savePage(outputSnippet(args, description, null , topic ));
+                        savePage(outputSnippet(args, description, null , topic, static));
                     } else {
-                        savePage(outputSnippet(args, description, type , topic ));
+                        savePage(outputSnippet(args, description, type , topic, static));
                     }
                 });
             }
@@ -276,10 +282,10 @@ events.pageIndexer = function(args, savePage) {
                     }
                 }
             }
-            savePage(outputSnippet(args, description, type));
+            savePage(outputSnippet(args, description, type, false));
         });        
     } else {
-        savePage(outputSnippet(args, null, type));
+        savePage(outputSnippet(args, null, type, false));
     }
 };
 
