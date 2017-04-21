@@ -1070,7 +1070,21 @@ app.use("/", function (req, res) {
                 console.log("favicon is missing"); 
             }
         });
-   } else {
+    } else if (req.path === '/' || req.path === '/documentation/pages/index.html') {
+        var path = "/index.html";
+        help.get(path, function (err, data, type) {
+                    if (err) {
+                        help.onSendExpress(res);
+                        res.send(err);
+                    } else {
+                        if (type) {
+                            res.type(type);
+                        }
+                        help.onSendExpress(res);
+                        res.send(data);
+                    }
+                });
+    } else {
         help.expressuse(req, res);
     }
 });

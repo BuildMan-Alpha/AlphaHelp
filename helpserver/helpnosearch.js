@@ -776,10 +776,10 @@ var help = Help(options);
 var reqhandler = function(req, res) {
     if (req.path == "/test") {
         res.end(JSON.stringify(req.body, null, 2))
-    } else if( req.path == "/validateLinks") {
+    } else if (req.path == "/validateLinks") {
         var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
-        validateLinks("../links.json", "../helpfiles",function(result) {
-            if( result.problems ) {
+        validateLinks("../links.json", "../helpfiles", function (result) {
+            if (result.problems) {
                 createBrokenLinkEmail(result.problems);
             }
             res.end(JSON.stringify(result, null, 2));
@@ -788,7 +788,7 @@ var reqhandler = function(req, res) {
         var relPath = req.path.substring(9);
         if (req.path.substring(0, 14) == "/web/describe/")
             relPath = req.path.substring(13);
-        help.getmetadata(relPath, function(data) {
+        help.getmetadata(relPath, function (data) {
             var htmlResult = "<table>";
             htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(decodeURI(relPath), "/", "\\") + "\" style=\"width:7in;\" /><td></tr>";
             if (data.status) {
@@ -812,7 +812,7 @@ var reqhandler = function(req, res) {
         var relPath = req.path.substring(10);
         var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
         var fs = require("fs");
-        fs.readFile(manifestFile, function(err, data) {
+        fs.readFile(manifestFile, function (err, data) {
             var subtoc = {};
             if (!err && data && data !== "") {
                 mdata = JSON.parse(data);
@@ -823,7 +823,7 @@ var reqhandler = function(req, res) {
             res.send(JSON.stringify(subtoc));
         });
     } else if (req.path == "/apihelp" || req.path == "/web/apihelp") {
-        help.search(req.query.topic, function(err, data) {
+        help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
                 res.send("Error doing search " + err);
@@ -856,15 +856,29 @@ var reqhandler = function(req, res) {
         }, 0, 20);
     } else if (req.path.substring(0, 8) == '/images/') {
         res.redirect("/help" + req.path);
-    } else if( (req.path+".").indexOf('/favicon.') >= 0 ) {
-        require('fs').readFile(options.assetpath + "assets/favicon.ico" ,function(err,data) {
-           if( !err && data ) {
+    } else if ((req.path + ".").indexOf('/favicon.') >= 0) {
+        require('fs').readFile(options.assetpath + "assets/favicon.ico", function (err, data) {
+            if (!err && data) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);
             } else {
-                console.log("favicon is missing"); 
+                console.log("favicon is missing");
             }
         });
+    } else if (req.path === '/' || req.path === '/documentation/pages/index.html') {
+        var path = "/index.html";
+        help.get(path, function (err, data, type) {
+                    if (err) {
+                        help.onSendExpress(res);
+                        res.send(err);
+                    } else {
+                        if (type) {
+                            res.type(type);
+                        }
+                        help.onSendExpress(res);
+                        res.send(data);
+                    }
+                });
     } else {
         help.expressuse(req, res);
     }
