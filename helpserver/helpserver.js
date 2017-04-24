@@ -1070,7 +1070,7 @@ app.use("/", function (req, res) {
                 console.log("favicon is missing"); 
             }
         });
-    } else if (req.path === '/' || req.path === '/pages/index.html') {
+    } else if (req.path === '/pages/index.html') {
         var path = "/index.html";
         help.get(path, function (err, data, type) {
                     if (err) {
