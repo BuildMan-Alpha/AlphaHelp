@@ -1,0 +1,91 @@
+<page>
+    <shortlink>howto add web2cal serverside events</shortlink>
+    <topic>How to Add Server-side Event Handlers to the Web2Cal Calendar to Respond to Event Changes</topic>
+    <description>Event handlers can be added to the Web2Cal Calendar when an event is added, edited, moved, or deleted.</description>
+    <discussion>
+        <p>When using the Web2Cal calendar control you might want to execute server-side code for the following events:</p>
+    </discussion>
+    <sections>
+        <section>
+            <list bullet="true">
+                <item>
+                    <name>an event is added</name>
+                </item>
+                <item>
+                    <name>an event is edited</name>
+                </item>
+                <item>
+                    <name>an event is moved</name>
+                </item>
+                <item>
+                    <name>an event is deleted</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>There are no built-in hooks for these events, but you can easily define you own. </p>
+                <p>For the event added, edited, or deleted cases, you can add event handlers as follows:</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>Edit the UX component used to edit events and add the functions shown below to the Xbasic function declarations</p>
+                    </description>
+                    <example code="xb"><![CDATA[function onEventDelete as v (e as p)
+end function
+
+function onEventUpdate as v (e as p)
+end function
+
+function onEventAdd as v (e as p)
+end function]]></example>
+                </step>
+                <step>
+                    <description>
+                        <p>Edit the UX component used to edit events and modify the server-side afterDialogValidate event to add calls to the onEventUpdate and onEventAdd functions. See below.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Edit the UX component used to edit events and modify the deleteEventXbasic Xbasic function by adding the following at the end of the function: onEventDelete(e)</p>
+                    </description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <title>How to Update the afterDialogValidate Event Handler Function</title>
+            <description>
+                <p>In the UX Component used to edit events, update the code in the afterDialogValidate event to call the *[xb:onEventUpdate()]* function:</p>
+            </description>
+            <example code="xb"><![CDATA['update the event on the calendar
+dim javascriptUpdateCalendar as c
+dim po as p
+if pv.eventsMode = "EditEvent" then
+    po.eventId = convert_type(e.dataSubmitted.eventId,"N")
+    
+    'add call to onEventUpdate:
+    onEventUpdate(e)
+
+else
+    po.eventId = eventId
+
+    'add eventId to e and call to onEventUpdate:
+    e.eventId = po.eventId
+    onEventAdd(e)
+
+end if ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>To handle the event is moved case, edit the Web2Cal component and add this code to the onComponentExecute server-side event:</p>
+            </description>
+            <example code="xb"><![CDATA[if eval_valid("request.variables._XbasicFunction") then 
+    if request.variables._XbasicFunction = "updateEvents" then 
+        'event was moved
+        'event data can be found in request.variables._calEvent_eventId, etc.
+    end if 
+end if ]]></example>
+        </section>
+    </sections>
+</page>
