@@ -1,0 +1,183 @@
+<page>
+    <shortlink>howto create and load an external javascript file</shortlink>
+    <topic>How to Create and Load an External JavaScript File</topic>
+    <description>JavaScript functions can be created and stored in external files. Existing JavaScript libraries can also be linked into a component or .a5w page.</description>
+    <sections>
+        <section>
+            <title>Creating JavaScript in an External File</title>
+            <steps>
+                <step>
+                    <description>On the Web Projects Control Panel, click the *[ui:[new] New]* button.</description>
+                    <figure>
+                        <link>images/newJS1.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>If prompted, select *[ui:Javascript File]* and click *[ui:OK]*.</description>
+                    <figure>
+                        <link>images/newJS2.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>
+                        <p>Alpha Anywhere will open the Javascript File Editor. The Javascript Editor offers several feature, including syntax highlighting, auto-complete, and an *[ui:Interactive Window]* that can be used to test JavaScript code. The *[ui:Interactive Window]* is not a full-featured web browser, so some features such as the window object which are available in a browser are not available here.</p>
+                    </description>
+                    <figure>
+                        <link>images/newJS4.png</link>
+                    </figure>
+                    <note>See [Testing and Debugging] to learn more about using the Inteactive Window in the Javascript Code Editor.</note>
+                </step>
+                <step>
+                    <description>Once you have added JavaScript to the file, save the file. The JavaScript file will be saved with a *[.js]* extension. The file can be saved anywhere in the Web Project directory. It is common practice to put JavaScript files in a folder named "javascript" or "src" when building web and mobile applications.</description>
+                    <figure>
+                        <link>images/newJS5.png</link>
+                    </figure>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <title>Limitations of External JavaScript Files</title>
+            <description>Code in external JavaScript files cannot reference JavaScript placeholders, such as *[js:{dialog.object}]* or *[js:{grid.componentName}]*. This is because Alpha Anywhere's JavaScript placeholders are only replaced when used in components. If a JavaScript function requires access to a component's object or requires the component's ID, they can be passed as parameters to the JavaScript function. For example:</description>
+            <important>Do not use placeholders in JavaScript defined in external .js files.</important>
+            <example code="js"><![CDATA[var promptBeforeReset = function (uxObj) {
+    if (uxObj) {
+        if (uxObj._isDirty) {
+            var title = "Are you sure?"
+            var html = "<p>Are you sure you want to undo all changes?</p>";
+            var buttons = "ync";
+            var onClose = function (b) {
+                if (b == 'yes') {
+                    uxObj.resetForm(false);
+                }
+            };
+
+            A5.msgBox.show(title,html,buttons,onClose);
+
+        } else {
+            uxObj.resetForm();
+        }
+    }
+};]]></example>
+        <note>The UX Component's [resetForm()] method will ask the user if they are sure they want to clear all changes to controls in the component automatically.</note>
+        </section>
+        <section>
+            <description>The promptBeforeReset() JavaScript function takes a *[js:{dialog.object}]* as an argument. It can be called for any UX Component. For example:</description>
+            <example code="js"><![CDATA[// reset this UX
+promptBeforeReset({dialog.object});
+
+// reset a CHILD UX
+var child = {dialog.object}.getChildObject('UX_NAME_HERE','ux');
+promptBeforeReset(child);]]></example>
+        </section>
+        <section>
+            <title>Loading an External JavaScript File in Components</title>
+            <description>JavaScript files can be linked in components using the *[ui:Javascript linked files]* property. List each JavaScript file to include with the component on a separate line. The JavaScript files listed must be specified as an absolute or relative URL. For example:</description>
+            <example><![CDATA[javascript/myJavascriptFile.js
+https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js]]></example>
+        </section>
+        <section>
+            <description>In components, you can specify a function to call when a JavaScript file has finished loading. This is done by specifying the function name after the JavaScript file using the pipe "|" separator. E.g., the example below demonstrates how to call the function *[js:initMyJSFile]* after *[ui:javascript/myJSFile.js]* loads:</description>
+            <example><![CDATA[javascript/myJSFile.js|initMyJSFile]]></example>
+        </section>
+        <section>
+            <title nested="2">Directives for Loading JavaScript in UX Components</title>
+            <description>
+                <p>Alpha Anywhere loads the specified external JavaScript files asynchronously after loading user-defined JavaScript functions specified in the *[ui:Javascript Functions]* section of a component. This means the functions in the JavaScript files are not necessarily loaded in the order they are specified. The functions in the JavaScript files may also not be immediately available for some client-side events or user-defined functions in a component.</p> 
+                <p>If you need to load JavaScript files in a specific order (serially) or before events in a UX Component are triggered, you can add additional directives in the *[ui:Javascript linked files]* property to dictate when the files are loaded. For example, the *[ui:{HeadSection}]* directive shown below directs Alpha Anywhere to load the JavaScript file in the *[html:&lt;HEAD&gt;]* portion of the web page:</p>
+            </description>
+            <example><![CDATA[{HeadSection}javascript/myJavascriptFile.js]]></example>
+        </section>
+        <section>
+            <description>Directives are always added at the beginning of the line before the JavaScript file. The available directives that can be used when specifying JavaScript files to load in a UX Component are listed below:</description>
+            <cases>
+                <case>
+                    <title nested="3">{BeforeFunctions}</title>
+                    <description>The JavaScript file is loaded before loading user-defined JavaScript functions specified in the *[ui:Javascript Functions]* section of a component.</description>
+                    <important>JavaScript in linked files is loaded asynchronously. Even if you specify the *[ui:{BeforeFunctions}]* directive for a JavaScript file, you may not be able to immediately call functions defined in the JavaScript file.</important>
+                    <example><![CDATA[{BeforeFunctions}javascript/utilLib.js]]></example>
+                </case>
+                <case>
+                    <title nested="3">{Late}</title>
+                    <description>The JavaScript file is loaded after loading user-defined JavaScript functions and Control JavaScript.</description>
+                    <example><![CDATA[{Late}javascript/myJSFile.js|initMyJSFile]]></example>
+                </case>
+                <case>
+                    <title nested="3">{HeadSection}</title>
+                    <description>The JavaScript file is loaded in the *[html:&lt;HEAD&gt;]* section of an .a5w page. Files loaded using the *[ui:{HeadSection}]* directive are loaded serially. If a function to call is specified for a JavaScript file that is loaded using the *[ui:{HeadSection}]* directive in a UX Component, the function call is ignored.</description>
+                    <important>The *[ui:{HeadSection}]* directive will only load JavaScript files in the *[html:&lt;HEAD&gt;]* portion of a page for components that are embedded in an .a5w page. If the component is loaded using an Ajax callback (for example, using the [Open a Grid] Action Javascript), the file will not be loaded.</important>
+                    <example><![CDATA[{HeadSection}javascript/editorConfig.js]]></example>
+                </case>
+                <case>
+                    <title nested="3">{Raw} (Working Preview Only)</title>
+                    <description>
+                        <p>The *[ui:{Raw}]* directive only applies to files loaded using the *[ui:{HeadSection}]* directive. If a file has the *[ui:{Raw}]* directive, the file's contents are not post-processed. Post-processing fixes images references so they will work in Working Preview.</p>
+                        <p>If you are linking a large JavaScript file, you will most likely want to use the *[ui:{Raw}]* directive. Without the *[ui:{Raw}]* directive, large JavaScript files will be post-processed, which can significantly slow down Working Preview.</p>
+                     </description>
+                     <example><![CDATA[{HeadSection}{Raw}https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js]]></example>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Globally Linked JavaScript Files</title>
+            <description>
+                <p>If a JavaScript file is needed in every component and page in an application, it can be included using the *[ui:Linked Javascript files]* property in [Web Project Settings]. Every JavaScript file listed in a Project's *[ui:Linked Javascript file]* property will be automatically loaded for every page and component in a project.</p>
+                <p>JavaScript files linked using the Web Project Settings are always loaded in the *[html:&lt;HEAD&gt;]* section of a page and do not support any of the directives described in the previous section.</p>
+            </description>
+            <figure>
+                <link>images/newJS7.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Filtering the Web Project Control Panel to Display JavaScript Files</title>
+            <description>The Web Projects Control Panel's *[ui:Javascript Files]* section can be used to filter the files shown. For large Alpha Anywhere projects with a lot of files, using the *[ui:Javascript Files]* option can help you locate JavaScript files in a workspace quickly.</description>
+            <figure>
+                <link>images/newJS6.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Making Third Party Libraries Safe for Use in Alpha Anywhere</title>
+            <description>Many third-party JavaScript libraries use *[js:$]* as shorthand for *[js:jQuery]*. However, in Alpha Anywhere's framework, *[js:$]* is short for *[js:document.getElementById()]*. To use third-party libraries with Alpha Anywhere, you need to make them safe by replacing *[js:$]* with *[js:jQuery]* within the library. This can easily be done using the [a5_make_jquery_safe()] Function:</description>
+            <example code="xb"><![CDATA[dim fileName as c = "C:/path/to/third/party/library.js"
+dim backupOriginal as L = .T.
+
+if (file.exists(fileName) == .T.) then
+    if (a5_make_jquery_safe(fileName, backupOriginal)) then
+        dim backupName as c = file.filename_parse(fileName,"NE") + ".old"
+        dim msg as c = "The file '{fileName}' has been updated."
+        if (backupOriginal) then
+            msg = msg + crlf(2) + "A backup file can be found in the same directory."+crlf(2)+"The backup file is named '{backupName}'."
+        end if
+        
+        msg = evaluate_string(msg)
+        ui_msg_box("Success",msg)
+    else
+        dim boolLetter as c = if(backupOriginal,"t","f")
+        dim msg as c =<<%txt%
+An error occurred when running a5_make_jquery_safe. Check to make sure the file, '{fileName}', is not empty and contains JavaScript.
+
+Additional information about the error may be available. Execute the following code in the Xbasic interactive window to learn more:
+
+? a5_make_jquery_safe("{fileName}", .{boolLetter}.)
+%txt%
+        msg = evaluate_string(msg)
+        ui_msg_box("Error Occurred", msg)
+    end if
+else
+    ui_msg_box("Error Occurred","File does not exist")
+end if]]></example>
+        </section>
+        <section>
+            <description>A free UX Component that uses the a5_make_jquery_safe() function to make third-party libraries safe for use with Alpha Anywhere built by Alpha Anywhere user David Kates can be download from the thread ["jQuery and Alpha 5"] on the Alpha User Forums.</description>
+        </section>
+    </sections>
+    <links>
+        <link href="/images/$$file.new.png">new</link>
+        <link link="ux component resetform method">resetForm</link>
+        <link link="api a5 make jquery safe function">a5_make_jquery_safe()</link>
+        <link href="http://www.alphasoftware.com/alphaforum/showthread.php?113482-jQuery-and-alpha-5">"jQuery and Alpha 5"</link>
+        <link link="web project settings">Web Project Settings</link>
+        <link link="Testing and Debugging">Testing and Debugging</link>
+        <link link="ux component resetForm Method">resetForm()</link>
+        <link link="Open a Grid component">Open a Grid</link>
+    </links>
+</page>
