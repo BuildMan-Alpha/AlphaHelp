@@ -1,0 +1,70 @@
+<page>
+    <shortlink>howto use iis behind load balancer</shortlink>
+    <topic>How to Use IIS Behind a Load Balancer</topic>
+    <description>If the Alpha Anywhere Application Server for IIS will be used on multiple machines, Microsoft's Web Farm Framework or a Load Balancer will be required to distribute requests across the machines.</description>
+    <discussion>
+        <p>To manage IIS across multiple servers, a Load Balancer is needed. Microsoft provides a tool for managing multiple servers running IIS called Web Farm Framework. If you do not need to work with an existing load balancer, Web Farm Framework can be used to manage and provision multiple servers running the Alpha Anywhere Application Server for IIS. See *[extlink:Configure a Web Farm with IIS Servers@https://www.iis.net/learn/web-hosting/scenario-build-a-web-farm-with-iis-servers/configure-a-web-farm-with-iis-servers]* to learn how to use Web Farm Framework to manage multiple servers running IIS.</p>
+        <p>If you are not using Microsoft's Web Farm Framework (or can't use Microsoft's Web Farm Framework), a third-party load balancer can be used instead to manage multiple instances of IIS. To use a load balancer with the Application Server for IIS, you must configure the Machine Key on each server in order for sessions and web security to function properly.</p>
+        <p>In addition to ensuring all servers have the same Machine Key, the session state provider must be a database so each machine will have access to the same session.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title nested="2">Configuring the Session State Provider</title>
+            <description>
+                <p>The session state provider must be configured to use a database that can be accessed by all the machines running the Application Server for IIS. Because a database is required, the *[ui:LocalStateServer]* and *[ui:StateServer]* methods cannot be used. See [Alpha Anywhere Application Server for IIS Provider Configuration] to learn more about how to configure the session state provider.</p>
+            </description>
+        </section>
+        <section>
+            <title nested="2">Configuring the Machine Key</title>
+            <description>
+                <p>The Machine Key is used to hash and/or encrypt cookies for the Alpha Anywhere Application Server for IIS. If multiple servers running IIS have different Machine Keys, the cookies created on one machine won't be usable on the other. This can cause the web security system to behave oddly, wherein the user will log in on one server and then be prompted at some point in the future to log in again because the load balancer has switched them to a different server running IIS with a different Machine Key.</p>
+                <p> Setting the machine key needs to be done at server maintenance time. Once the key is set existing cookies will become invalid causing users to be sent to the login page.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>To set the machine key, go to IIS Manager on the first machine, select the application, and then open the Machine Key feature:</p>
+                    </description>
+                    <figure>
+                        <link>images/machineKey1.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description> The keys will need to be set in here so uncheck the two "Automatically generate at runtime" checkboxes. You can leave the Validation method and Encryption method set to the defaults though it may make sense to use strong methods. In the image below I selected HMACSHA256 and AES. Next click on the Generate Keys over in the right pane. This will generate keys into the edit boxes. Click apply to set these values.</description>
+                    <figure>
+                        <link>images/machineKey2.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>
+                        <p>Copy and save these keys so that they can be pasted into the prompts on the all other machines running the Alpha Anywhere Application Server for IIS.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>      
+                        <p>Log in to each machine and make the Machine Key settings the same as for the first machine.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Enable *[ui:Preserver web.config elements]* in the IIS publish profile to ensure the Machine Key will not be overwritten or lost during publishing.</p>                  
+                        <p>The machine key setting is stored in the web.config file which means a republish will wipe it out. The publish profile will need to use *[ui:Preserver web.config elements]* so that the Machine Key won't be lost on publish.</p>
+                        <p>The XPath to the machine key settings is:</p>
+                    </description>
+                    <figure>
+                        <link>images/machineKey3.png</link>
+                    </figure>
+                    <figure>
+                        <link>images/machineKey4.png</link>
+                    </figure>
+                    <example><![CDATA[/configuration/system.web/machineKey]]></example>
+                    <note>See the [Create Publish Profile guide] and search for "preserve web.config" for more details.</note>
+                </step>
+            </steps>
+        </section>  
+    </sections>
+    <links>
+        <link link="alpha anywhere application server for iis provider configuration">Alpha Anywhere Application Server for IIS Provider Configuration</link>
+        <link link="create a publish profile">Create Publish Profile guide</link>
+    </links>
+</page>
