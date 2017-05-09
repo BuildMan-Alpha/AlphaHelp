@@ -768,13 +768,26 @@ var extractJsHelp = function () {
                 var from = inherit.inherits.toLowerCase().trim();
                 if (methodIndex[from]) {
                     var pathLast = inherit.inherits.split(".");
-                    var prefix = "../" + pathLast[pathLast.length - 1] + "/";
+                    var prefix = "../" + pathLast[pathLast.length - 1] + "_class/";
                     async.eachSeries(methodIndex[from], function (methodDef, callBackNextMethod) {
                         var map = build.context[inherit.className];
                         var fn = map.path + "/" + methodDef.name + ".xml";
                         fs.readFile(fn, "utf8", function (err, data) {
-                            if (!err) {
-                                console.log(fn+" already exists");
+                            var overwriteFile = false;
+                            if (err) {
+                                overwriteFile = true;
+                                data = "";
+                            } else {
+                                var startSymLink = data.indexOf("<symlink>");
+                                if (startSymLink > 0) {
+                                    var endSymLink = data.indexOf("</symlink>");
+                                    if (startSymLink < endSymLink) {
+                                        overwriteFile = true;
+                                    }
+                                }
+                            }
+                            if (!overwriteFile) {
+                                console.log(fn + " already exists");
                                 callBackNextMethod();
                             } else {
                                 var xml = "<page>\r\n";
@@ -782,12 +795,17 @@ var extractJsHelp = function () {
                                 xml += "\t<topic>" + protectXml(methodDef.name) + "</topic>\r\n";
                                 xml += "\t<description>" + protectXml(methodDef.description) + "</description>\r\n";
                                 xml += "</page>";
-                                fs.writeFile(fn, xml, function (err) {
-                                    if( err ) {
-                                        console.log("Error writing "+fn+" "+err);
-                                    }
+                                if (data === xml) {
+                                    console.log(fn + " not changed");
                                     callBackNextMethod();
-                                });
+                                } else {
+                                    fs.writeFile(fn, xml, function (err) {
+                                        if (err) {
+                                            console.log("Error writing " + fn + " " + err);
+                                        }
+                                        callBackNextMethod();
+                                    });
+                                }
                             }
                         });
                     }, function () {
