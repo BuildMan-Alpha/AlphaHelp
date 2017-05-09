@@ -47,7 +47,7 @@ var indentLevelCalc = function (txt) {
 var processLink = function (linkDef) {
     var parts = linkDef.split("{");
     if (parts.length === 2) {
-        linkDef = parts[0] + parts[1].replace("}", "") + " Object";
+        linkDef = parts[0] +" "+ parts[1].replace("}", "") + " Object";
     }
     return linkDef;
 };
