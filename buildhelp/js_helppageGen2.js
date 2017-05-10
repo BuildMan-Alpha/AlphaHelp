@@ -77,6 +77,13 @@ var addPara = function (content) {
     content = content.trim().split("\r\n\r\n").join("\r\n</p>\r\n<p>\r\n");
     return "\r\n<p>\r\n" + content + "\r\n</p>\r\n";
 }
+var processTypes = function (type) {
+	if(type.indexOf("|") != -1){
+		type = type.split("|");
+		for(var i=0;i<type.length;i++) type[i] = "<type>" + type[i].trim() + "</type>";
+		return "<types>" + type.join("") + "</types>";
+	} else return "<type>" + type + "</type>";
+}
 
 var processArgOrProc = function (line, dashPos, properties) {
     var argName = line.substring(0, dashPos).trim();
@@ -138,7 +145,7 @@ var RecursProperties = function (properties, indented) {
             }
             xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
             if (properties[i].type !== "") {
-                xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+                xml += indented + "\t\t" + processTypes(properties[i].type) + "\r\n";
             }
             xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
             if (properties[i].arguments) {
@@ -152,7 +159,7 @@ var RecursProperties = function (properties, indented) {
                     }
                     xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
                     if (properties[i].arguments[j].type !== "") {
-                        xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                        xml += indented + "\t\t\t\t" + processTypes(properties[i].arguments[j].type) + "\r\n";
                     }
                     xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
                     xml += indented + "\t\t\t</argument>\r\n";
@@ -579,7 +586,7 @@ var generateXMLHelp = function (content) {
             }
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
             if (arguments[i].type !== "") {
-                xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
+                xml += "\t\t\t" + processTypes(arguments[i].type) + "\r\n";
             }
             xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
             if (arguments[i].properties && arguments[i].properties.length) {
@@ -600,7 +607,7 @@ var generateXMLHelp = function (content) {
             }
             xml += "\t\t\t<name>" + returns[i].name + "</name>\r\n";
             if (returns[i].type !== "") {
-                xml += "\t\t\t<type>" + returns[i].type + "</type>\r\n";
+                xml += "\t\t\t" + processTypes(returns[i].type) + "\r\n";
             }
             xml += "\t\t\t<description>" + protectXml(returns[i].description) + "</description>\r\n";
             if (returns[i].properties && returns[i].properties.length) {
