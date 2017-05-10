@@ -2,18 +2,20 @@
  * Generate help pages from javascript files
  */
 var keywordHash = {
-     "readonly" : "readonly=\"true\"" 
-   , "writeonly" : "writeonly=\"true\"" 
-   , "pseudo" : "pseudo=\"true\""
-   , "optional" : "optional=\"true\""   
-   , "deprecated" : "deprecated=\"true\""
-   , "obsolete" : "obsolete=\"true\""
+    "readonly": "readonly=\"true\""
+    , "writeonly": "writeonly=\"true\""
+    , "pseudo": "pseudo=\"true\""
+    , "optional": "optional=\"true\""
+    , "deprecated": "deprecated=\"true\""
+    , "obsolete": "obsolete=\"true\""
 };
 var build = require("./build.json");
 var fs = require("fs");
 var async = require('async');
 var esprima = require('esprima');
 var sourceFiles = [];
+var inheritance = [];
+var methodIndex = {};
 var lastContext = null;
 var dirCreateRecurs = function (folderName) {
     var stats = null;
@@ -31,32 +33,32 @@ var dirCreateRecurs = function (folderName) {
         fs.mkdirSync(folderName);
     }
 };
-var indentLevelCalc = function(txt) {
+var indentLevelCalc = function (txt) {
     var i;
-    for( i = 0 ; i < txt.length ; ++i ) {
-        if( txt[i] !== '\t' ) {
-            if( txt[i] <= ' ' )
+    for (i = 0; i < txt.length; ++i) {
+        if (txt[i] !== '\t') {
+            if (txt[i] <= ' ')
                 return 0;
             return i;
         }
     }
     return 0;
 };
-var processLink = function(linkDef) {
-   var parts = linkDef.split("{");
-   if( parts.length === 2 ) {
-      linkDef = parts[0] + parts[1].replace("}","")+" Object";
-   }
-   return linkDef;   
+var processLink = function (linkDef) {
+    var parts = linkDef.split("{");
+    if (parts.length === 2) {
+        linkDef = parts[0] +" "+ parts[1].replace("}", "") + " Object";
+    }
+    return linkDef;
 };
 var protectXml = function (content) {
-    if( content.indexOf("[link:") >= 0 ) {
+    if (content.indexOf("[link:") >= 0) {
         content = content.split("[link:")
         var i;
-        for( i = 1 ; i < content.length ; ++i ) {
+        for (i = 1; i < content.length; ++i) {
             var endPos = content[i].indexOf("]");
-            if( endPos > 0 ) {
-                content[i] = processLink(content[i].substring(0,endPos)) + "]*"+ content[i].substring(endPos+1); 
+            if (endPos > 0) {
+                content[i] = processLink(content[i].substring(0, endPos)) + "]*" + content[i].substring(endPos + 1);
             } else {
                 content[i] = processLink(content[i]) + "]*";
             }
@@ -66,14 +68,21 @@ var protectXml = function (content) {
     if (content.indexOf("&") >= 0
         || content.indexOf("<") >= 0
         || content.indexOf(">") >= 0
-        ) {
+    ) {
         content = "<![CDATA[" + content + "]]>";
     }
     return content;
 };
-var addPara = function(content){
-	content = content.trim().split("\r\n\r\n").join("\r\n</p>\r\n<p>\r\n");
-	return "\r\n<p>\r\n"+content+"\r\n</p>\r\n";
+var addPara = function (content) {
+    content = content.trim().split("\r\n\r\n").join("\r\n</p>\r\n<p>\r\n");
+    return "\r\n<p>\r\n" + content + "\r\n</p>\r\n";
+}
+var processTypes = function (type) {
+	if(type.indexOf("|") != -1){
+		type = type.split("|");
+		for(var i=0;i<type.length;i++) type[i] = "<type>" + type[i].trim() + "</type>";
+		return "<types>" + type.join("") + "</types>";
+	} else return "<type>" + type + "</type>";
 }
 
 var processArgOrProc = function (line, dashPos, properties) {
@@ -92,132 +101,132 @@ var processArgOrProc = function (line, dashPos, properties) {
 
     var argAlts = argType.split("|");
     var i;
-    var argFlags = ""; 
+    var argFlags = "";
     var flags = "";
     argType = "";
-    for( i = 0 ; i < argAlts.length ; ++i ) {
+    for (i = 0; i < argAlts.length; ++i) {
         var argAlt = argAlts[i];
         var argTypeParts = argAlt.split(":");
-        if( argType !== "" ) {
+        if (argType !== "") {
             argType += " | ";
         }
         argType += argTypeParts[0];
-        if( argTypeParts.length > 1 ) {
-            if( argFlags !== "" ) {
+        if (argTypeParts.length > 1) {
+            if (argFlags !== "") {
                 argFlags += ",";
             }
             argFlags += argTypeParts[1];
-        }        
-    }
-    if( argFlags !== "" ) {
-        argFlags = argFlags.split(",");
-        for( i = 0 ; i < argFlags.length ; ++i ) {
-            var flag = keywordHash[argFlags[i].trim().toLowerCase()];
-            if( flag ) {
-                flags += " "+flag;
-            } 
         }
     }
-    
-    var lastObj = { name: argName, type: argType, description: description , flags : flags.trim() };
+    if (argFlags !== "") {
+        argFlags = argFlags.split(",");
+        for (i = 0; i < argFlags.length; ++i) {
+            var flag = keywordHash[argFlags[i].trim().toLowerCase()];
+            if (flag) {
+                flags += " " + flag;
+            }
+        }
+    }
+
+    var lastObj = { name: argName, type: argType, description: description, flags: flags.trim() };
     properties.push(lastObj);
     return lastObj;
 }
-var RecursProperties = function(properties,indented) {
+var RecursProperties = function (properties, indented) {
     var xml = "";
     if (properties.length > 0) {
         var i = 0;
         xml += indented + "<properties>\r\n";
         for (i = 0; i < properties.length; ++i) {
-            if( properties[i].flags !== "" ) {
-                xml += indented + "\t<property "+properties[i].flags+" >\r\n";
+            if (properties[i].flags !== "") {
+                xml += indented + "\t<property " + properties[i].flags + " >\r\n";
             } else {
                 xml += indented + "\t<property>\r\n";
             }
             xml += indented + "\t\t<name>" + properties[i].name + "</name>\r\n";
-            if(  properties[i].type !== "" ) {
-                xml += indented + "\t\t<type>" + properties[i].type + "</type>\r\n";
+            if (properties[i].type !== "") {
+                xml += indented + "\t\t" + processTypes(properties[i].type) + "\r\n";
             }
             xml += indented + "\t\t<description>" + protectXml(properties[i].description) + "</description>\r\n";
             if (properties[i].arguments) {
                 var j;
                 xml += indented + "\t\t<arguments>\r\n";
                 for (j = 0; j < properties[i].arguments.length; ++j) {
-                    if( properties[i].arguments[j].flags !== "" ) {
-                        xml += indented + "\t\t\t<argument "+properties[i].arguments[j].flags+" >\r\n";
+                    if (properties[i].arguments[j].flags !== "") {
+                        xml += indented + "\t\t\t<argument " + properties[i].arguments[j].flags + " >\r\n";
                     } else {
                         xml += indented + "\t\t\t<argument>\r\n";
                     }
                     xml += indented + "\t\t\t\t<name>" + properties[i].arguments[j].name + "</name>\r\n";
-                    if( properties[i].arguments[j].type !== "" ) {
-                        xml += indented + "\t\t\t\t<type>" + properties[i].arguments[j].type + "</type>\r\n";
+                    if (properties[i].arguments[j].type !== "") {
+                        xml += indented + "\t\t\t\t" + processTypes(properties[i].arguments[j].type) + "\r\n";
                     }
                     xml += indented + "\t\t\t\t<description>" + protectXml(properties[i].arguments[j].description) + "</description>\r\n";
                     xml += indented + "\t\t\t</argument>\r\n";
                 }
                 xml += indented + "\t\t</arguments>\r\n";
             }
-            if (properties[i].properties && properties[i].properties.length ) {                
-                xml += RecursProperties(properties[i].properties,indented + "\t\t");
+            if (properties[i].properties && properties[i].properties.length) {
+                xml += RecursProperties(properties[i].properties, indented + "\t\t");
             }
-            xml += indented+"\t</property>\r\n";
+            xml += indented + "\t</property>\r\n";
         }
-        xml += indented+"</properties>\r\n";
+        xml += indented + "</properties>\r\n";
     }
     return xml;
 };
 
 var buildContext = function (content) {
-	var lines = content.split('\n');
-	var line = null;
-	var type = null;
-	var context = lastContext;
-	for(i=0;i<lines.length;++i){
-		line = lines[i].trim().toLowerCase();
-		if(line.indexOf('class:') == 0 || line.indexOf('namespace:') == 0 || line.indexOf('object:') == 0) {
-			context = lines[i].substr(lines[i].indexOf(':')+1).trim();
-			type = line.split(':')[0].trim();
-			if(line.indexOf('object:') != 0){
-				lastContext = context;
-			} else if( context.indexOf('.') < 0) {
-				// Object does not have a fully qualified name
-				context = lastContext + '.' + context;
-			}
-			
-			if (!build.context[context]) {
-				var allParts = context.split('.');
-				if (allParts.length > 1) {
-					var parentContext = build.context[allParts[0]];
-					if (parentContext) {
-						var tContext = allParts.shift();
-						var tParentContext = null;
-						for(var j=0;j<allParts.length-1;j++){
-							tParentContext = build.context[tContext+'.'+allParts[j]];
-							if(tParentContext){
-								allParts[j] += '_'+tParentContext.type;
-							} else{
-								allParts[j] += '_class';
-							}
-						}
-						build.context[context] = { path: parentContext.path + '/' + allParts.join('/')+'_'+type, classname: context, type: type };
-						console.log("Added context: " + context+" - path: "+allParts);
-					} else {
-						console.log("Could not find parent: "+allParts[0]);
-					}
-				}
-			}
-		} else if(line.indexOf('context:') == 0){
-			lastContext = lines[i].substr(lines[i].indexOf(':')+1).trim();
-		}
-	}
+    var lines = content.split('\n');
+    var line = null;
+    var type = null;
+    var context = lastContext;
+    for (i = 0; i < lines.length; ++i) {
+        line = lines[i].trim().toLowerCase();
+        if (line.indexOf('class:') === 0 || line.indexOf('namespace:') === 0 || line.indexOf('object:') === 0) {
+            context = lines[i].substr(lines[i].indexOf(':') + 1).trim();
+            type = line.split(':')[0].trim();
+            if (line.indexOf('object:') !== 0) {
+                lastContext = context;
+            } else if (context.indexOf('.') < 0) {
+                // Object does not have a fully qualified name
+                context = lastContext + '.' + context;
+            }
+
+            if (!build.context[context]) {
+                var allParts = context.split('.');
+                if (allParts.length > 1) {
+                    var parentContext = build.context[allParts[0]];
+                    if (parentContext) {
+                        var tContext = allParts.shift();
+                        var tParentContext = null;
+                        for (var j = 0; j < allParts.length - 1; j++) {
+                            tParentContext = build.context[tContext + '.' + allParts[j]];
+                            if (tParentContext) {
+                                allParts[j] += '_' + tParentContext.type;
+                            } else {
+                                allParts[j] += '_class';
+                            }
+                        }
+                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type };
+                        console.log("Added context: " + context + " - path: " + allParts);
+                    } else {
+                        console.log("Could not find parent: " + allParts[0]);
+                    }
+                }
+            }
+        } else if (line.indexOf('context:') === 0) {
+            lastContext = lines[i].substr(lines[i].indexOf(':') + 1).trim();
+        }
+    }
 }
 
 var generateXMLHelp = function (content) {
     var lines = content.split('\n');
     var i;
     var context = lastContext;
-	var methods = [];
-	var temp = null;
+    var methods = [];
+    var temp = null;
     var lastType = null;
     var description = null;
     var discussion = null;
@@ -226,22 +235,23 @@ var generateXMLHelp = function (content) {
     var warning = null;
     var deprecated = null;
     var obsolete = null;
-	var seeAlso = null;
+    var seeAlso = null;
     var endTag = null;
     var properties = [];
     var arguments = [];
-	var returns = [];
+    var returns = [];
     var isFunction = false;
     var isConstructor = false;
     var endTagType = [];
-	var exampleIndent = null;
+    var exampleIndent = null;
     var lastPropOrArg = null;
     var topContext = null;
     var contextType = "";
     var lastIndentLevel = 0;
     var nestingProps = [];
     var titleContext = null;
-	
+    var inheritsFrom = null;
+
     for (i = 0; i < lines.length; ++i) {
         var indentLevel = indentLevelCalc(lines[i]);
         var line = lines[i].trim();
@@ -254,12 +264,12 @@ var generateXMLHelp = function (content) {
             }
         } else if (!endTag) {
             var saveString = "";
-            if( line[0] === "'" ) {
+            if (line[0] === "'") {
                 line = line.split("'");
-                if( line.length > 2 ) {
-                    saveString = "'"+line[1]+"'";
-                    line.splice(0,2);
-                    line = line.join("'"); 
+                if (line.length > 2) {
+                    saveString = "'" + line[1] + "'";
+                    line.splice(0, 2);
+                    line = line.join("'");
                 } else {
                     saveString = "";
                     line = line.join("'");
@@ -269,58 +279,65 @@ var generateXMLHelp = function (content) {
             var splitPos = line.indexOf(":");
             var dashPos = line.indexOf("-");
             var typePos = line.indexOf("(");
-            
-            if( saveString.length > 0 ) {
+
+            if (saveString.length > 0) {
                 splitPos += saveString.length;
                 dashPos += saveString.length;
                 typePos += saveString.length;
-                line = saveString+line;
+                line = saveString + line;
             }
             var type = null;
-			if (splitPos > 0) {
-				if (dashPos < 0 || splitPos < dashPos) {
-					if (typePos < 0 || splitPos < typePos) {
-						type = line.substring(0, splitPos).toLowerCase().trim();
-						if(type.indexOf(" ") != -1) type = null;
-					}
-				}
-			}
-			
-			
+            if (splitPos > 0) {
+                if (dashPos < 0 || splitPos < dashPos) {
+                    if (typePos < 0 || splitPos < typePos) {
+                        type = line.substring(0, splitPos).toLowerCase().trim();
+                        if (type.indexOf(" ") !== -1) type = null;
+                    }
+                }
+            }
+
+
             if (type) {
                 if (type === "context") {
                     context = line.substring(splitPos + 1).trim();
                     topContext = context;
-                } else if (type === "namespace" || type === "class" || type === "object" ) {
+                } else if (type === "namespace" || type === "class" || type === "object") {
                     context = line.substring(splitPos + 1).trim();
-                    if( context.indexOf('.') < 0 && type === "object" && topContext ) {
+                    if (context.indexOf('.') < 0 && type === "object" && topContext) {
                         // Object does not have a fully qualified name
                         titleContext = context;
                         context = topContext + '.' + context;
                     }
-					
-					if( type === "class" ) {
+
+                    if (type === "class") {
                         contextType = " Class";
-                        console.log("Found a class: "+context);
-                    } else if( type === "object" ) {
+                        console.log("Found a class: " + context);
+                    } else if (type === "object") {
                         contextType = " Object";
-						console.log("Found an object: "+context);
-                    } else{
+                        console.log("Found an object: " + context);
+                    } else {
                         contextType = " Namespace";
-						console.log("Found a namespace: "+context);
-					}
-					
+                        console.log("Found a namespace: " + context);
+                    }
+                    inheritsFrom = null;
+                } else if (type === "inherits") {
+                    if (contextType === " Class") {
+                        inheritsFrom = line.substring(splitPos + 1).trim();
+                        inheritance.push({ className: context, inherits: inheritsFrom });
+                    } else {
+                        console.log("Inherits requires class context");
+                    }
                 } else if (type === "method" || type === "function" || type === "funct" || type === "func" || type === "fun" || type === "constructor" || type === "cons") {
-					temp = line.substring(splitPos + 1).trim();
-					temp = temp.split('|');
-					if(temp.length > 1) {
-						methods.push(temp[0]);
-						for(var j=1;j<temp.length;j++){
-							methods.push(temp[0].split('(')[0]+temp[j]);
-						}
-					} else methods.push(temp[0]);
-					if(type === "function" || type === "funct" || type === "func" || type === "fun") isFunction = true;
-					else if (type === "constructor" || type === "cons") isConstructor = true;
+                    temp = line.substring(splitPos + 1).trim();
+                    temp = temp.split('|');
+                    if (temp.length > 1) {
+                        methods.push(temp[0]);
+                        for (var j = 1; j < temp.length; j++) {
+                            methods.push(temp[0].split('(')[0] + temp[j]);
+                        }
+                    } else methods.push(temp[0]);
+                    if (type === "function" || type === "funct" || type === "func" || type === "fun") isFunction = true;
+                    else if (type === "constructor" || type === "cons") isConstructor = true;
                 } else if (type === "description" || type === "desc") {
                     description = line.substring(splitPos + 1);
                 } else if (type === "discussion" || type === "disc") {
@@ -332,14 +349,14 @@ var generateXMLHelp = function (content) {
                 } else if (type === "deprecated") {
                     deprecated = line.substring(splitPos + 1);
                 } else if (type === "obsolete") {
-                    obsolete = line.substring(splitPos + 1);                   
-				} else if (type === "seealso" || type === "see") {
+                    obsolete = line.substring(splitPos + 1);
+                } else if (type === "seealso" || type === "see") {
                     seeAlso = line.substring(splitPos + 1);
                 } else if (type === "arguments" || type === "args") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length === 0 )
+                        if (nestingProps.length === 0)
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
@@ -348,16 +365,16 @@ var generateXMLHelp = function (content) {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length === 0 )
+                        if (nestingProps.length === 0)
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
                     }
-				} else if (type === "returns") {
+                } else if (type === "returns") {
                     endTag = line.substring(splitPos + 1).trim();
                     if (endTag.length === 0) {
                         endTag = null;
-                        if( nestingProps.length === 0 )
+                        if (nestingProps.length === 0)
                             lastPropOrArg = null;
                     } else {
                         endTagType.push(lastType);
@@ -368,7 +385,7 @@ var generateXMLHelp = function (content) {
                         endTag = null;
                     }
                     examples = "";
-					exampleIndent = null;
+                    exampleIndent = null;
                 }
                 lastType = type;
             } else if (lastType === "description" || lastType === "desc") {
@@ -382,89 +399,89 @@ var generateXMLHelp = function (content) {
             } else if (lastType === "deprecated") {
                 deprecated += "\r\n" + line;
             } else if (lastType === "obsolete") {
-                obsolete += "\r\n" + line;                
-			} else if (lastType === "seealso" || lastType === "see") {
+                obsolete += "\r\n" + line;
+            } else if (lastType === "seealso" || lastType === "see") {
                 seeAlso += "\r\n" + line;
             } else if (lastType === "example") {
-				if(exampleIndent == null){
-					examples += "\r\n" + line;
-					exampleIndent = lines[i].search(/\S/);
-				} else{
-					examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r","");
-				}
+                if (exampleIndent == null) {
+                    examples += "\r\n" + line;
+                    exampleIndent = lines[i].search(/\S/);
+                } else {
+                    examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r", "");
+                }
             } else if (lastType === "arguments"
                 || lastType === "args"
-                ) {
+            ) {
                 if (dashPos > 0) {
-                    if( !endTag && lastPropOrArg ) {
-                        if( lastIndentLevel === (indentLevel - 1) ) {
-                            if( !lastPropOrArg.properties )
+                    if (!endTag && lastPropOrArg) {
+                        if (lastIndentLevel === (indentLevel - 1)) {
+                            if (!lastPropOrArg.properties)
                                 lastPropOrArg.properties = [];
                             nestingProps.push(lastPropOrArg);
-                        } else if( lastIndentLevel > indentLevel ) {
-                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                        } else if (lastIndentLevel > indentLevel) {
+                            while (lastIndentLevel > indentLevel && nestingProps.length > 0) {
                                 lastPropOrArg = nestingProps.pop();
                                 --lastIndentLevel;
                             }
                         }
                     }
-                    if( nestingProps.length > 0 ) {
-                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    if (nestingProps.length > 0) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length - 1].properties);
                     } else {
                         lastPropOrArg = processArgOrProc(line, dashPos, arguments);
                     }
                 }
-			} else if (lastType === "returns") {
+            } else if (lastType === "returns") {
                 if (dashPos > 0) {
-                    if( !endTag && lastPropOrArg ) {
-                        if( lastIndentLevel === (indentLevel - 1) ) {
-                            if( !lastPropOrArg.properties )
+                    if (!endTag && lastPropOrArg) {
+                        if (lastIndentLevel === (indentLevel - 1)) {
+                            if (!lastPropOrArg.properties)
                                 lastPropOrArg.properties = [];
                             nestingProps.push(lastPropOrArg);
-                        } else if( lastIndentLevel > indentLevel ) {
-                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                        } else if (lastIndentLevel > indentLevel) {
+                            while (lastIndentLevel > indentLevel && nestingProps.length > 0) {
                                 lastPropOrArg = nestingProps.pop();
                                 --lastIndentLevel;
                             }
                         }
                     }
-                    if( nestingProps.length > 0 ) {
-                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    if (nestingProps.length > 0) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length - 1].properties);
                     } else {
                         lastPropOrArg = processArgOrProc(line, dashPos, returns);
                     }
                 }
             } else if (lastType === "properties"
                 || lastType === "props"
-                ) {
+            ) {
                 if (dashPos > 0) {
-                    if( !endTag && lastPropOrArg ) {
-                        if( lastIndentLevel === (indentLevel - 1) ) {
-                            if( !lastPropOrArg.properties )
+                    if (!endTag && lastPropOrArg) {
+                        if (lastIndentLevel === (indentLevel - 1)) {
+                            if (!lastPropOrArg.properties)
                                 lastPropOrArg.properties = [];
                             nestingProps.push(lastPropOrArg);
-                        } else if( lastIndentLevel > indentLevel ) {
-                            while( lastIndentLevel > indentLevel && nestingProps.length > 0 ) {
+                        } else if (lastIndentLevel > indentLevel) {
+                            while (lastIndentLevel > indentLevel && nestingProps.length > 0) {
                                 lastPropOrArg = nestingProps.pop();
                                 --lastIndentLevel;
                             }
                         }
                     }
-                    if( nestingProps.length > 0 ) {
-                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length-1].properties);
+                    if (nestingProps.length > 0) {
+                        lastPropOrArg = processArgOrProc(line, dashPos, nestingProps[nestingProps.length - 1].properties);
                     } else {
-                        lastPropOrArg = processArgOrProc(line, dashPos, properties);                        
+                        lastPropOrArg = processArgOrProc(line, dashPos, properties);
                     }
                 }
             }
         } else if (lastType === "example") {
-            if(exampleIndent == null){
-				examples += "\r\n" + line;
-				exampleIndent = lines[i].search(/\S/);
-			} else{
-				examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r","");
-			}
-        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props" || lastType == "returns") {
+            if (exampleIndent == null) {
+                examples += "\r\n" + line;
+                exampleIndent = lines[i].search(/\S/);
+            } else {
+                examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r", "");
+            }
+        } else if (lastType === "arguments" || lastType === "args" || lastType === "properties" || lastType === "props" || lastType === "returns") {
             if (lastPropOrArg) {
                 var splitPos = line.indexOf(":");
                 var dashPos = line.indexOf("-");
@@ -478,12 +495,12 @@ var generateXMLHelp = function (content) {
                     }
                 }
                 if (dashPos > 0) {
-                    if( lastType === "properties" || lastType === "props" ) {
+                    if (lastType === "properties" || lastType === "props") {
                         if (!lastPropOrArg.properties) {
                             lastPropOrArg.properties = [];
                         }
                         processArgOrProc(line, dashPos, lastPropOrArg.properties);
-					} else if( lastType === "returns" ) {
+                    } else if (lastType === "returns") {
                         if (!lastPropOrArg.returns) {
                             lastPropOrArg.returns = [];
                         }
@@ -499,95 +516,103 @@ var generateXMLHelp = function (content) {
         }
         lastIndentLevel = indentLevel;
     }
-    var pagename = methods[0] || false;
-    if (pagename) {
-        var methodArgsPos = pagename.indexOf('(');
+    var pageName = methods[0] || false;
+    if (pageName) {
+        var methodArgsPos = pageName.indexOf('(');
         if (methodArgsPos > 0) {
-            pagename = pagename.substring(0, methodArgsPos);
+            pageName = pageName.substring(0, methodArgsPos);
         }
-        pagename = pagename.trim();
+        pageName = pageName.trim();
         if (isConstructor) {
-            pagename += " Constructor";
+            pageName += " Constructor";
         } else if (isFunction) {
-            pagename += " Function";
+            pageName += " Function";
         } else {
-            pagename += " Method";
+            pageName += " Method";
         }
-    } 
+        var lContext = context.toLowerCase().trim();
+        if (!methodIndex[lContext]) {
+            methodIndex[lContext] = [];
+        }
+        methodIndex[lContext].push({ name: pageName.split(".").pop(), description: description });
+    }
     var xml = "<page api=\"js\" generated=\"true\">\r\n";
-	
-    if (pagename) {
-		xml += "\t<shortlink>" + protectXml("api client api "+pagename.replace(/\./g," ").toLowerCase()) + "</shortlink>\r\n";
-		
-		var map = build.context[context];
+
+    if (pageName) {
+        xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
+
+        var map = build.context[context];
         if (isConstructor) {
-            xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
+            xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
         } else if (map && map.classname) {
-            var normalizedClass =  map.classname.toLowerCase().trim() + ".";
-            var normalizedPagename = pagename.toLowerCase().trim();
-            
-            if( normalizedPagename.substring(0,normalizedClass.length) === normalizedClass ) {
-                xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
-            } else {            
-                xml += "\t<topic>" + protectXml(map.classname + "." + pagename) + "</topic>\r\n";
+            var normalizedClass = map.classname.toLowerCase().trim() + ".";
+            var normalizedPageName = pageName.toLowerCase().trim();
+
+            if (normalizedPageName.substring(0, normalizedClass.length) === normalizedClass) {
+                xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
+            } else {
+                xml += "\t<topic>" + protectXml(map.classname + "." + pageName) + "</topic>\r\n";
             }
         } else {
-            xml += "\t<topic>" + protectXml(pagename) + "</topic>\r\n";
+            xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
         }
-    } else if( contextType.length > 0 ) {
-		xml += "\t<shortlink>" + protectXml("api client api "+(context+contextType).replace(/\./g," ").toLowerCase()) + "</shortlink>\r\n";
-        if( titleContext ) {
-			xml += "\t<topic>" + protectXml(titleContext+contextType)+ "</topic>\r\n";
-            titleContext = null;                        
+    } else if (contextType.length > 0) {
+        xml += "\t<shortlink>" + protectXml("api client api " + (context + contextType).replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
+        if (titleContext) {
+            xml += "\t<topic>" + protectXml(titleContext + contextType) + "</topic>\r\n";
+            titleContext = null;
         } else {
-            xml += "\t<topic>" + protectXml(context+contextType)+ "</topic>\r\n";
-        }        
+            xml += "\t<topic>" + protectXml(context + contextType) + "</topic>\r\n";
+        }
+    }
+    if (inheritsFrom) {
+        xml += "\t<inherits>" + protectXml(inheritsFrom) + "</inherits>\r\n";
     }
 
-    if (methods.length == 1) {
+    if (methods.length === 1) {
         xml += "\t<prototype>" + protectXml(methods[0]) + "</prototype>\r\n";
     } else if (methods.length > 1) {
         xml += "\t<prototypes>\r\n";
-		for(var i=0;i<methods.length;i++) xml += "\t\t<prototype>"+protectXml(methods[i]) + "</prototype>\r\n";
-		xml += "</prototypes>\r\n";
+        for (var i = 0; i < methods.length; i++) xml += "\t\t<prototype>" + protectXml(methods[i]) + "</prototype>\r\n";
+        xml += "</prototypes>\r\n";
     }
     if (arguments.length > 0) {
         xml += "\t<arguments>\r\n";
         for (i = 0; i < arguments.length; ++i) {
-            if( arguments[i].flags !== "" ) {
-                xml += "\t\t<argument "+arguments[i].flags+" >\r\n";
+            if (arguments[i].flags !== "") {
+                xml += "\t\t<argument " + arguments[i].flags + " >\r\n";
             } else {
                 xml += "\t\t<argument>\r\n";
             }
             xml += "\t\t\t<name>" + arguments[i].name + "</name>\r\n";
-            if( arguments[i].type !== "" ) {
-                xml += "\t\t\t<type>" + arguments[i].type + "</type>\r\n";
+            if (arguments[i].type !== "") {
+                xml += "\t\t\t" + processTypes(arguments[i].type) + "\r\n";
             }
             xml += "\t\t\t<description>" + protectXml(arguments[i].description) + "</description>\r\n";
-            if (arguments[i].properties && arguments[i].properties.length ) {
-                xml += RecursProperties(arguments[i].properties,"\t\t");
-            }            
+            if (arguments[i].properties && arguments[i].properties.length) {
+                xml += RecursProperties(arguments[i].properties, "\t\t");
+            }
             xml += "\t\t</argument>\r\n";
         }
         xml += "\t</arguments>\r\n";
     }
-	console.log(returns.length);
-	if (returns.length > 0) {
+    console.log(returns.length);
+    if (returns.length > 0) {
         xml += "\t<returns>\r\n";
         for (i = 0; i < returns.length; ++i) {
-            if( returns[i].flags !== "" ) {
-                xml += "\t\t<return "+returns[i].flags+" >\r\n";
+            if (returns[i].flags !== "") {
+                xml += "\t\t<return " + returns[i].flags + " >\r\n";
             } else {
                 xml += "\t\t<return>\r\n";
             }
             xml += "\t\t\t<name>" + returns[i].name + "</name>\r\n";
-            if( returns[i].type !== "" ) {
-                xml += "\t\t\t<type>" + returns[i].type + "</type>\r\n";
+            if (returns[i].type !== "") {
+                xml += "\t\t\t" + processTypes(returns[i].type) + "\r\n";
             }
             xml += "\t\t\t<description>" + protectXml(returns[i].description) + "</description>\r\n";
-            if (returns[i].properties && returns[i].properties.length ) {
-                xml += RecursProperties(returns[i].properties,"\t\t");
-            }            
+            if (returns[i].properties && returns[i].properties.length) {
+                xml += RecursProperties(returns[i].properties, "\t\t");
+            }
             xml += "\t\t</return>\r\n";
         }
         xml += "\t</returns>\r\n";
@@ -598,60 +623,60 @@ var generateXMLHelp = function (content) {
     if (discussion) {
         xml += "\t<discussion>" + addPara(protectXml(discussion)) + "</discussion>\r\n";
     }
-    xml += RecursProperties(properties,"\t");
+    xml += RecursProperties(properties, "\t");
     if (examples) {
         xml += "\t<example code=\"js\">" + protectXml(examples) + "</example>\r\n";
     }
-    if( note ) {
-        xml += "\t<note>" + protectXml(note) + "</note>\r\n";        
+    if (note) {
+        xml += "\t<note>" + protectXml(note) + "</note>\r\n";
     }
-    if( warning ) {
-        xml += "\t<warning>" + protectXml(warning) + "</warning>\r\n";        
+    if (warning) {
+        xml += "\t<warning>" + protectXml(warning) + "</warning>\r\n";
     }
-    if( deprecated ) {
-        xml += "\t<deprecated>" + protectXml(deprecated) + "</deprecated>\r\n";        
+    if (deprecated) {
+        xml += "\t<deprecated>" + protectXml(deprecated) + "</deprecated>\r\n";
     }
-    if( obsolete ) {
-        xml += "\t<obsolete>" + protectXml(obsolete) + "</obsolete>\r\n";        
+    if (obsolete) {
+        xml += "\t<obsolete>" + protectXml(obsolete) + "</obsolete>\r\n";
     }
-	if( seeAlso ) {
-		seeAlso = seeAlso.trim().replace(/\n/g,',').split(',');
+    if (seeAlso) {
+        seeAlso = seeAlso.trim().replace(/\n/g, ',').split(',');
         xml += "\t<see>\r\n";
-		for(var i=0;i<seeAlso.length;i++) xml += "\t\t<ref>"+protectXml(seeAlso[i].trim()) + "</ref>\r\n";
-		xml += "</see>\r\n";      
+        for (var i = 0; i < seeAlso.length; i++) xml += "\t\t<ref>" + protectXml(seeAlso[i].trim()) + "</ref>\r\n";
+        xml += "</see>\r\n";
     }
-	
-	
+
+
     if (isConstructor) {
-        pagename = "index";
+        pageName = "index";
         xml += "\t<!--list:.-->\r\n";
     }
-    if (!pagename) {
+    if (!pageName) {
         var hasNonMethodChildren = false;
-        if( context ) {
-            var contextI;        
-            for( contextI in build.context ) {
-                if( contextI.length > context.length+1 ) {
-                    if( contextI.indexOf(context+".") == 0 ) {
+        if (context) {
+            var contextI;
+            for (contextI in build.context) {
+                if (contextI.length > context.length + 1) {
+                    if (contextI.indexOf(context + ".") === 0) {
                         hasNonMethodChildren = true;
                         break;
                     }
                 }
             }
         }
-        pagename = "index";
-        if( hasNonMethodChildren ) {
+        pageName = "index";
+        if (hasNonMethodChildren) {
             xml += "\t<!--list:* Method-->\r\n";
             xml += "\t<!--list:*index.xml-->\r\n";
         } else {
-			console.log("No children: "+context);
+            console.log("No children: " + context);
             xml += "\t<!--list:.-->\r\n";
         }
     }
     xml += "</page>\r\n";
     lastContext = context;
-	pagename = pagename.split(".").pop();
-    return { context: context.trim(), pagename: pagename, xml: xml, topContext: topContext };
+    pageName = pageName.split(".").pop();
+    return { context: context.trim(), pagename: pageName, xml: xml, topContext: topContext };
 };
 
 var extractJsHelp = function () {
@@ -666,9 +691,9 @@ var extractJsHelp = function () {
                 var fileOps = [];
                 var contexts = {};
                 lastContext = null;
-				
-				console.log("---------- "+path.split("/").pop()+" ----------");
-				for (i = 0; i < syntax.comments.length; ++i) {
+
+                console.log("---------- " + path.split("/").pop() + " ----------");
+                for (i = 0; i < syntax.comments.length; ++i) {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
                         if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
@@ -677,7 +702,7 @@ var extractJsHelp = function () {
                         }
                     }
                 }
-				console.log("");
+                console.log("");
                 for (i = 0; i < syntax.comments.length; ++i) {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
@@ -690,8 +715,8 @@ var extractJsHelp = function () {
                         }
                     }
                 }
-				console.log("\n");
-				
+                console.log("\n");
+
                 var ctxName;
                 for (ctxName in contexts) {
                     var ctx = contexts[ctxName];
@@ -702,13 +727,13 @@ var extractJsHelp = function () {
                                 var map = build.context[ctx.files[j].topContext];
                                 if (map) {
                                     if (map.description) {
-                                        var topxml = "<page api=\"js\" generated=\"true\">\r\n";
-                                        topxml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
-                                        topxml += "\t<description>" + protectXml( map.description ) + "</description>\r\n";
-                                        topxml += "\t<!--list:.-->\r\n";
-                                        topxml += "</page>\r\n";
+                                        var topXml = "<page api=\"js\" generated=\"true\">\r\n";
+                                        topXml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
+                                        topXml += "\t<description>" + protectXml(map.description) + "</description>\r\n";
+                                        topXml += "\t<!--list:.-->\r\n";
+                                        topXml += "</page>\r\n";
                                         contexts[ctx.files[j].topContext] = { files: [] };
-                                        fileOps.push({ filename: map.path + "/index.xml", xml: topxml });
+                                        fileOps.push({ filename: map.path + "/index.xml", xml: topXml });
                                     }
                                 }
                             }
@@ -744,6 +769,60 @@ var extractJsHelp = function () {
                 callbackLoop();
             }
         });
+    }, function () {
+        if (inheritance.length > 0) {
+            async.eachSeries(inheritance, function (inherit, callbackNextInherit) {
+                var from = inherit.inherits.toLowerCase().trim();
+                if (methodIndex[from]) {
+                    var pathLast = inherit.inherits.split(".");
+                    var prefix = "../" + pathLast[pathLast.length - 1] + "_class/";
+                    async.eachSeries(methodIndex[from], function (methodDef, callBackNextMethod) {
+                        var map = build.context[inherit.className];
+                        var fn = map.path + "/" + methodDef.name + ".xml";
+                        fs.readFile(fn, "utf8", function (err, data) {
+                            var overwriteFile = false;
+                            if (err) {
+                                overwriteFile = true;
+                                data = "";
+                            } else {
+                                var startSymLink = data.indexOf("<symlink>");
+                                if (startSymLink > 0) {
+                                    var endSymLink = data.indexOf("</symlink>");
+                                    if (startSymLink < endSymLink) {
+                                        overwriteFile = true;
+                                    }
+                                }
+                            }
+                            if (!overwriteFile) {
+                                console.log(fn + " already exists");
+                                callBackNextMethod();
+                            } else {
+                                var xml = "<page>\r\n";
+                                xml += "\t<symlink>" + protectXml(prefix + methodDef.name + ".xml") + "</symlink>\r\n";
+                                xml += "\t<topic>" + protectXml(methodDef.name) + "</topic>\r\n";
+                                xml += "\t<description>" + protectXml(methodDef.description) + "</description>\r\n";
+                                xml += "</page>";
+                                if (data === xml) {
+                                    console.log(fn + " not changed");
+                                    callBackNextMethod();
+                                } else {
+                                    fs.writeFile(fn, xml, function (err) {
+                                        if (err) {
+                                            console.log("Error writing " + fn + " " + err);
+                                        }
+                                        callBackNextMethod();
+                                    });
+                                }
+                            }
+                        });
+                    }, function () {
+                        callbackNextInherit();
+                    });
+                } else {
+                    callbackNextInherit();
+                }
+            });
+        }
     });
 };
 

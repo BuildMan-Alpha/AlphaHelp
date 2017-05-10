@@ -6,33 +6,33 @@ var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
 var https_credentails = null;
-if( options.https_port && options.privatekey && options.certificate  ) {
-    https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }   
+if (options.https_port && options.privatekey && options.certificate) {
+    https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }
 }
-var replaceAll = function(str, find, replace) {
+var replaceAll = function (str, find, replace) {
     while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
     }
     return str;
 };
-var removeMarkup =  function(data) {
-    if( data.indexOf("*[")) {
+var removeMarkup = function (data) {
+    if (data.indexOf("*[")) {
         var items = data.split("*[");
         var i;
         var newData = items[0];
-        for( i = 1 ; i < items.length ; ++i ) {
+        for (i = 1; i < items.length; ++i) {
             var emph = items[i];
-            var endPos = emph.indexOf(']*'); 
-            if( endPos > 0 ) {
-                var remainder = emph.substring(endPos+2);
-                emph = emph.substring(0,endPos);
+            var endPos = emph.indexOf(']*');
+            if (endPos > 0) {
+                var remainder = emph.substring(endPos + 2);
+                emph = emph.substring(0, endPos);
                 var typeSeparator = emph.indexOf(':');
                 newData += emph + remainder;
-            } else if( emph.length > 0 || (i+1) >= items.length ) {
-                newData += "*["+emph;
+            } else if (emph.length > 0 || (i + 1) >= items.length) {
+                newData += "*[" + emph;
             } else {
                 ++i;
-                newData += "*["+emph+item[i];
+                newData += "*[" + emph + item[i];
             }
         }
         data = newData;
@@ -40,21 +40,21 @@ var removeMarkup =  function(data) {
     return data;
 };
 
-fs.readFile("../generated/helpserver_error.log","utf8",function(err,contents) {
-     if(!err && contents ) {
+fs.readFile("../generated/helpserver_error.log", "utf8", function (err, contents) {
+    if (!err && contents) {
         console.log(contents);
         fs.unlink("../generated/helpserver_error.log");
-     } 
+    }
 });
 
 // report error from node..
 process.on('uncaughtException', function (err) {
     try {
         var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
-        fs.writeFile( "../generated/helpserver_error.log" , nodeErrorLog , function(err2) {
-            process.exit(1);			
+        fs.writeFile("../generated/helpserver_error.log", nodeErrorLog, function (err2) {
+            process.exit(1);
         });
-    } catch(err2) {		 
+    } catch (err2) {
         console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
         console.error(err.stack);
         process.exit(1);
@@ -76,13 +76,13 @@ if (process.platform == "win32") {
             var wr = fs.createWriteStream(target);
             rd.pipe(wr);
         }
-        copyFile("./xsltproc_win/xsltproc.exe","./xsltproc.exe");
-        copyFile("./xsltproc_win/iconv.dll","./iconv.dll");
-        copyFile("./xsltproc_win/libexslt.dll","./libexslt.dll");
-        copyFile("./xsltproc_win/libxml2.dll","./libxml2.dll");
-        copyFile("./xsltproc_win/libxslt.dll","./libxslt.dll");
-        copyFile("./xsltproc_win/msvcr71.dll","./msvcr71.dll");
-        copyFile("./xsltproc_win/zlib1.dll","./zlib1.dll");
+        copyFile("./xsltproc_win/xsltproc.exe", "./xsltproc.exe");
+        copyFile("./xsltproc_win/iconv.dll", "./iconv.dll");
+        copyFile("./xsltproc_win/libexslt.dll", "./libexslt.dll");
+        copyFile("./xsltproc_win/libxml2.dll", "./libxml2.dll");
+        copyFile("./xsltproc_win/libxslt.dll", "./libxslt.dll");
+        copyFile("./xsltproc_win/msvcr71.dll", "./msvcr71.dll");
+        copyFile("./xsltproc_win/zlib1.dll", "./zlib1.dll");
     }
 }
 
@@ -91,7 +91,7 @@ var events = {};
 var tocData = { altTocs: [], defaultPathMetadata: [] };
 options.library = library;
 
-var collectAltToc = function(books) {
+var collectAltToc = function (books) {
     if (books && books.length > 0) {
         var i;
         for (i = 0; i < books.length; ++i) {
@@ -134,43 +134,43 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function(args, description, type, topic, isStatic) {
+var outputSnippet = function (args, description, type, topic, isStatic) {
     var result = "";
     if (args.isFolder) {
         if (args.format == ".xml") {
             args.path = args.path + "/index.xml";
         }
     }
-    if( !topic ) {
-       topic = args.name;
-       if( !topic ) {
-           topic = "Unknown";   
-       }
+    if (!topic) {
+        topic = args.name;
+        if (!topic) {
+            topic = "Unknown";
+        }
     }
     if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
-         topic = "<![CDATA[" + topic + "]]>";
+        topic = "<![CDATA[" + topic + "]]>";
     }
-    
+
     if (description) {
         if (args.format == ".xml") {
-            if( description.indexOf ) {
+            if (description.indexOf) {
                 if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
                     description = "<![CDATA[" + description + "]]>";
                 }
-            } else if( description.p ) {
-                if( description.p.length > 0 ) {
-                    try  {
+            } else if (description.p) {
+                if (description.p.length > 0) {
+                    try {
                         description = description.p[0];
                         if (description.indexOf('<') >= 0 || description.indexOf('>') >= 0 || description.indexOf('&') >= 0) {
                             description = "<![CDATA[" + description + "]]>";
                         }
-                    } catch( err2 ) {
-                        
+                    } catch (err2) {
+
                     }
                 }
             }
             if (type == "method") {
-                result = "<methodref"+(isStatic?" static=\"true\"":"")+"><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+                result = "<methodref" + (isStatic ? " static=\"true\"" : "") + "><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
                 result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
@@ -180,7 +180,7 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
     } else {
         if (args.format == ".xml") {
             if (type == "method") {
-                result = "<methodref"+(isStatic?" static=\"true\"":"")+"><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
+                result = "<methodref" + (isStatic ? " static=\"true\"" : "") + "><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref></methodref>";
             } else {
                 result = "<item><name href=\"" + args.path + "\">" + topic + "</name></item>";
             }
@@ -191,7 +191,7 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
     return result;
 }
 
-events.pageIndexer = function(args, savePage) {
+events.pageIndexer = function (args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var type = null;
@@ -201,7 +201,7 @@ events.pageIndexer = function(args, savePage) {
         var nonMethodFiles = 0;
         var indexFiles = 0;
         for (i = 0; i < args.all.length; ++i) {
-            if( args.all[i].path ) {
+            if (args.all[i].path) {
                 var testName = args.all[i].path.toLowerCase();
                 var pathEnd = testName.lastIndexOf('/');
                 if (pathEnd > 0)
@@ -221,7 +221,7 @@ events.pageIndexer = function(args, savePage) {
             type = "method";
         }
     }
-    if( filename.indexOf('#') > 0 ) {
+    if (filename.indexOf('#') > 0) {
         filename = filename.split('#')[0];
     }
     var extensionIndex = filename.lastIndexOf(".");
@@ -230,13 +230,13 @@ events.pageIndexer = function(args, savePage) {
     //    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function(err, data) {
+        fs.readFile(filename, "utf8", function (err, data) {
             if (err) {
                 console.log(filename + " was not found");
                 savePage(outputSnippet(args, null, type));
             } else {
                 var parseString = require('xml2js').parseString;
-                parseString(data, function(err, result) {
+                parseString(data, function (err, result) {
                     var description = null;
                     var topic = null;
                     var static = false;
@@ -268,36 +268,36 @@ events.pageIndexer = function(args, savePage) {
                             }
                         }
                     }
-                    if( filename.indexOf("/index.xml") > 0 ) {
-                        savePage(outputSnippet(args, description, null , topic, static));
+                    if (filename.indexOf("/index.xml") > 0) {
+                        savePage(outputSnippet(args, description, null, topic, static));
                     } else {
-                        savePage(outputSnippet(args, description, type , topic, static));
+                        savePage(outputSnippet(args, description, type, topic, static));
                     }
                 });
             }
         });
     } else if (filename.substring(extensionIndex).toLowerCase() == ".html") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function(err, data) {
+        fs.readFile(filename, "utf8", function (err, data) {
             var description = null;
-            if( !err ) {
+            if (!err) {
                 var metaDataTags = data.split("<meta");
-                if( metaDataTags.length > 1) {
+                if (metaDataTags.length > 1) {
                     var i;
-                    for( i = 1 ; i < metaDataTags.length ; ++i ) {
+                    for (i = 1; i < metaDataTags.length; ++i) {
                         var nameAttribute = metaDataTags[i].split('>')[0].split("name=");
-                        if( nameAttribute.length > 1 ) {
-                            nameAttribute =  nameAttribute[1].split('"');
-                            if( nameAttribute.length > 1 ) {
-                                if( nameAttribute[1].toLowerCase() == "description" ) {
-                                     var contentAttribute = metaDataTags[i].split("content=");
-                                     if( contentAttribute.length > 1 ) {
+                        if (nameAttribute.length > 1) {
+                            nameAttribute = nameAttribute[1].split('"');
+                            if (nameAttribute.length > 1) {
+                                if (nameAttribute[1].toLowerCase() == "description") {
+                                    var contentAttribute = metaDataTags[i].split("content=");
+                                    if (contentAttribute.length > 1) {
                                         contentAttribute = contentAttribute[1].split('"');
-                                        if( contentAttribute.length > 1 ) {
-                                             description = contentAttribute[1];
+                                        if (contentAttribute.length > 1) {
+                                            description = contentAttribute[1];
                                         }
-                                        break; 
-                                     }
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -311,7 +311,7 @@ events.pageIndexer = function(args, savePage) {
     }
 };
 
-events.wrapIndex = function(args) {
+events.wrapIndex = function (args) {
     var result = "";
     if (args.content.trim().length === 0) {
         return result;
@@ -328,7 +328,7 @@ events.wrapIndex = function(args) {
     return result;
 };
 
-events.getDefaultIndexTemplate = function(args) {
+events.getDefaultIndexTemplate = function (args) {
     var result = "";
     if (args.format == ".xml") {
         result = "<page><!--list:.--></page>";
@@ -338,87 +338,116 @@ events.getDefaultIndexTemplate = function(args) {
     return result;
 };
 //--------------------------------------------------------------------------------------
+var resolveXmlFilePath = function (xmlFile, relative) {
+    var xmlPath = xmlFile.split('/');
+    var xmlIndex = xmlPath.length - 1;
+    var xmlCount = 1;
+    var leading = relative.split("../");
+    if (leading.length > 1) {
+        var xmlIndex = xmlPath.length - leading.length;
+        var xmlCount = leading.length;
+        leading = leading[leading.length - 1];
+    } else {
+        leading = leading[0];
+    }
+    xmlPath.splice(xmlIndex, xmlCount);
+    xmlFile = xmlPath.join("/") + "/" + leading;
+    return xmlFile;
+};
+
 var xsltproc = require('xsltproc');
-events.translateXML = function(xmlFile, htmlFile, callback) {
-    var xslt = xsltproc.transform(options.assetpath + 'assets/xform.xslt', xmlFile);
-    var err = null;
-    var dataOut = '';
-    xslt.stdout.on('data', function(data) {
-        dataOut += data;
-    });
-    xslt.stderr.on('data', function(data) {
-        err = ''+data;
-    });
-    xslt.on('exit', function(code) {
-        if (err) {
-            var fs = require('fs');
-            fs.readFile(xmlFile, "utf8",function(err2,errPage) {
-                if( err2 ) {
-                    callback(err2, null);
-                } else {
-                    var errparts = err.split(':');
-                    var index = -1;
-                    if( errparts.length > 2 ) {
-                        index = parseInt(errparts[1]);                        
-                    }   
-                    var completeErrPage = function(index) {
-                        errPage = replaceAll(errPage,"<amp>;","&amp;");
-                        errPage = replaceAll(errPage,"<","&lt;");
-                        errPage = replaceAll(errPage,">","&gt;");         
-                        errPage = replaceAll(errPage,"&lt;amp&gt;","&amp;");
-                        
-                        var lines = errPage.split('\n');
-                        if( 0 <= index && index < 10000000 )
-                        {
-                            if( index < lines.length ) {
-                                lines[index] = "<span style=\"color:red;background:yellow;\">"+lines[index]+"</span>";
-                            }
+events.translateXML = function (xmlFile, htmlFile, callback) {
+    fs.readFile(xmlFile, "utf8", function (err, data) {
+        if(!err) {
+            var startSymLink = data.indexOf("<symlink>");
+            if( startSymLink > 0 ) {
+                var endSymLink = data.indexOf("</symlink>");
+                if( startSymLink < endSymLink ) {
+                    console.log("file before:"+xmlFile);
+                    xmlFile = resolveXmlFilePath(xmlFile,data.substring(startSymLink,endSymLink));
+                    console.log("file: "+xmlFile);    
+                 }
+            }
+        }
+        var xslt = xsltproc.transform(options.assetpath + 'assets/xform.xslt', xmlFile);
+        var err = null;
+        var dataOut = '';
+        xslt.stdout.on('data', function (data) {
+            dataOut += data;
+        });
+        xslt.stderr.on('data', function (data) {
+            err = '' + data;
+        });
+        xslt.on('exit', function (code) {
+            if (err) {
+                var fs = require('fs');
+                fs.readFile(xmlFile, "utf8", function (err2, errPage) {
+                    if (err2) {
+                        callback(err2, null);
+                    } else {
+                        var errparts = err.split(':');
+                        var index = -1;
+                        if (errparts.length > 2) {
+                            index = parseInt(errparts[1]);
                         }
-                        for( var i = 0 ; i < lines.length ; ++i ) {
-                            lines[i] = "<span style=\"background:#bbb;\">"+String("00000" + i).slice(-5)+"&nbsp;</span>" + lines[i];
-                        }
-                        errPage = lines.join("\n");
-                        errPage = "<b>Error Encountered</b><br><div>"+err+"</div><pre>"+errPage+"</pre>";
-                        callback(null, errPage);                        
-                    };
-                    if( index < 0 ) {
-                        var parseString = require('xml2js').parseString;
-                        parseString(errPage, function(err, result) {
-                            var description = null;
-                            if (err) {
-                                var lineArg = (''+err).split('Line:');
-                                if( lineArg.length > 1 ) {
-                                    index = parseInt( lineArg[1].split('\n')[0].trim() );
+                        var completeErrPage = function (index) {
+                            errPage = replaceAll(errPage, "<amp>;", "&amp;");
+                            errPage = replaceAll(errPage, "<", "&lt;");
+                            errPage = replaceAll(errPage, ">", "&gt;");
+                            errPage = replaceAll(errPage, "&lt;amp&gt;", "&amp;");
+
+                            var lines = errPage.split('\n');
+                            if (0 <= index && index < 10000000) {
+                                if (index < lines.length) {
+                                    lines[index] = "<span style=\"color:red;background:yellow;\">" + lines[index] + "</span>";
                                 }
                             }
+                            for (var i = 0; i < lines.length; ++i) {
+                                lines[i] = "<span style=\"background:#bbb;\">" + String("00000" + i).slice(-5) + "&nbsp;</span>" + lines[i];
+                            }
+                            errPage = lines.join("\n");
+                            errPage = "<b>Error Encountered</b><br><div>" + err + "</div><pre>" + errPage + "</pre>";
+                            callback(null, errPage);
+                        };
+                        if (index < 0) {
+                            var parseString = require('xml2js').parseString;
+                            parseString(errPage, function (err, result) {
+                                var description = null;
+                                if (err) {
+                                    var lineArg = ('' + err).split('Line:');
+                                    if (lineArg.length > 1) {
+                                        index = parseInt(lineArg[1].split('\n')[0].trim());
+                                    }
+                                }
+                                completeErrPage(index);
+                            });
+                        } else {
                             completeErrPage(index);
-                        });
-                    } else {
-                        completeErrPage(index);
+                        }
                     }
-                }
-            });
-        } else {
-            var fs = require('fs');
-            fs.writeFile(htmlFile, dataOut, function(err) {
-               var contentDiv = dataOut.split('<meta name="description" content="');
-               if( contentDiv.length > 1 ) {
-                   var firstDesc = contentDiv[1].split('"/>');
-                   if( firstDesc.length > 1 ) {
-                       firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
-                       contentDiv[1] = firstDesc.join('"/>');
-                       dataOut = contentDiv.join('<meta name="description" content="');
-                   }
-               }
-                callback(err, dataOut);
-            });
-        }
+                });
+            } else {
+                var fs = require('fs');
+                fs.writeFile(htmlFile, dataOut, function (err) {
+                    var contentDiv = dataOut.split('<meta name="description" content="');
+                    if (contentDiv.length > 1) {
+                        var firstDesc = contentDiv[1].split('"/>');
+                        if (firstDesc.length > 1) {
+                            firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
+                            contentDiv[1] = firstDesc.join('"/>');
+                            dataOut = contentDiv.join('<meta name="description" content="');
+                        }
+                    }
+                    callback(err, dataOut);
+                });
+            }
+        });
     });
 };
-events.beforeRefresh = function() {
+events.beforeRefresh = function () {
 
 };
-events.extractTitle = function(page) {
+events.extractTitle = function (page) {
     var topicStart = page.indexOf("<topic>");
     if (topicStart > 0) {
         var topicEnd = page.indexOf("</topic>");
@@ -431,113 +460,113 @@ events.extractTitle = function(page) {
     }
     return null;
 }
-events.extractDescription = function(page) {
+events.extractDescription = function (page) {
     var descriptionStart = page.indexOf("<description>");
     var endArgument = page.indexOf("</argument");
-    if( endArgument > descriptionStart ) {
+    if (endArgument > descriptionStart) {
         var startArgument = page.indexOf("<argument");
-        if( startArgument > 0 && startArgument < descriptionStart ) {
+        if (startArgument > 0 && startArgument < descriptionStart) {
             page = page.substring(endArgument);
             descriptionStart = page.indexOf("<description>");
         }
     }
-    if( descriptionStart > 0 ) {
+    if (descriptionStart > 0) {
         var descriptionEnd = page.indexOf("</description>");
         descriptionStart += 13;
-        if( descriptionEnd > descriptionStart ) {
-            var  description = page.substring(descriptionStart,descriptionEnd).trim();
-            if( description.substring(0,9) == "<![CDATA[" ) {
+        if (descriptionEnd > descriptionStart) {
+            var description = page.substring(descriptionStart, descriptionEnd).trim();
+            if (description.substring(0, 9) == "<![CDATA[") {
                 description = description.substring(9).trim();
                 var endTagPos = description.lastIndexOf("]]>");
-                if( endTagPos > 0 ) {
-                    description = description.substring(0,endTagPos);
+                if (endTagPos > 0) {
+                    description = description.substring(0, endTagPos);
                 }
             }
-            if( description.length > 0 )
+            if (description.length > 0)
                 return description;
         }
     }
     return null;
 }
 
-events.decorateTitle = function(title) {
-   if( title.indexOf('Api') >= 0 ) {
-       if( title === 'Api' ) {
-           title = "API";
-       } else if( title === "Client_Api" ) {
-           title = "Client API";
-       } else if( title === "Desktop_Api" ) {
-           title = "Desktop API";
-       }
-   } else if( title.indexOf(".") < 0 ) {
-       if( title.indexOf('_class') > 0 ) {
-           if( title.substring(title.length-6) === "_class" ) {
-               title = title.replace('_class','');
-           }
-       } else if( title.indexOf('_namespace') > 0 ) {
-           if( title.substring(title.length-10) === "_namespace" ) {
-               title = title.replace('_namespace','');
-           }
-       } else if( title.indexOf('_object') > 0 ) {
-           if( title.substring(title.length-7) === "_object" ) {
-               title = title.replace('_object','');
-           }
-       }
-   }
-   return title;  
+events.decorateTitle = function (title) {
+    if (title.indexOf('Api') >= 0) {
+        if (title === 'Api') {
+            title = "API";
+        } else if (title === "Client_Api") {
+            title = "Client API";
+        } else if (title === "Desktop_Api") {
+            title = "Desktop API";
+        }
+    } else if (title.indexOf(".") < 0) {
+        if (title.indexOf('_class') > 0) {
+            if (title.substring(title.length - 6) === "_class") {
+                title = title.replace('_class', '');
+            }
+        } else if (title.indexOf('_namespace') > 0) {
+            if (title.substring(title.length - 10) === "_namespace") {
+                title = title.replace('_namespace', '');
+            }
+        } else if (title.indexOf('_object') > 0) {
+            if (title.substring(title.length - 7) === "_object") {
+                title = title.replace('_object', '');
+            }
+        }
+    }
+    return title;
 };
-events.addPageSourceComment = function(page,symName) {
+events.addPageSourceComment = function (page, symName) {
     var pageSource;
-    page = page.replace(".xml_html",".xml");
-    pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles"+replaceAll(page,'/','\\')+" -->";
-    if( symName ) {
-        pageSource += "\n    <!-- link:  *[link:"+symName+"]* -->";
+    page = page.replace(".xml_html", ".xml");
+    pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page, '/', '\\') + " -->";
+    if (symName) {
+        pageSource += "\n    <!-- link:  *[link:" + symName + "]* -->";
     }
     return pageSource;
 };
-events.getSharableLink = function(page,symName) {
+events.getSharableLink = function (page, symName) {
     var shareLink;
-    page = page.replace(".xml_html",".xml");
-    shareLink = "https://www.alphasoftware.com/documentation/pages"+page;
-    if( symName ) {
-        shareLink = encodeURI("https://www.alphasoftware.com/documentation/index/"+symName);
+    page = page.replace(".xml_html", ".xml");
+    shareLink = "https://www.alphasoftware.com/documentation/pages" + page;
+    if (symName) {
+        shareLink = encodeURI("https://www.alphasoftware.com/documentation/index/" + symName);
     }
     return shareLink;
 };
-events.generateLocalToc = function(localNames) {
-   if( localNames.length > 1 ) { 
+events.generateLocalToc = function (localNames) {
+    if (localNames.length > 1) {
         var localToc = "<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
         var lastLvl = -1;
         var pendingEnd = "";
         var returnLevel = [];
         var lastTagPos = -1;
         var isTree = false;
-        for( var i = 0 ; i < localNames.length ; ++i ) {
+        for (var i = 0; i < localNames.length; ++i) {
             var ln = localNames[i];
             var lvlName = ln.name.toLowerCase().split('_')[0];
             var parentNode = false;
             var lastTagState = ' class="leaf"';
-            if( lvlName == 'group' ) {
+            if (lvlName == 'group') {
                 lvlName = 1;
-            } else if( lvlName == 'section' || lvlName == 'section1' ) {
+            } else if (lvlName == 'section' || lvlName == 'section1') {
                 lvlName = 2;
-            } else if( lvlName.substring(0,7) == 'section' ) {
-                lvlName = parseInt(lvlName.substring(7),10) + 1;
-                if( lvlName < 2 ) {
+            } else if (lvlName.substring(0, 7) == 'section') {
+                lvlName = parseInt(lvlName.substring(7), 10) + 1;
+                if (lvlName < 2) {
                     lvlName = 2;
                 }
             } else {
                 lvlName = 3;
             }
-            if( lastLvl > 0 && lvlName != lastLvl ) {
-                if( lvlName > lastLvl ) {
-                    returnLevel.push("</ul>"+pendingEnd);
+            if (lastLvl > 0 && lvlName != lastLvl) {
+                if (lvlName > lastLvl) {
+                    returnLevel.push("</ul>" + pendingEnd);
                     pendingEnd = "<ul style=\"display:none\">\n";
-                    lastTagState = ' branch="true" class="closed"'; 
+                    lastTagState = ' branch="true" class="closed"';
                     isTree = true;
                 } else {
-                    while( lvlName < lastLvl && returnLevel.length > 0 ) {
-                        if( pendingEnd.length > 0 ) {
+                    while (lvlName < lastLvl && returnLevel.length > 0) {
+                        if (pendingEnd.length > 0) {
                             localToc += pendingEnd;
                         }
                         pendingEnd = returnLevel.pop();
@@ -546,171 +575,171 @@ events.generateLocalToc = function(localNames) {
                 }
             }
             lastLvl = lvlName;
-            if( lastTagState.length > 0 && lastTagPos > 0 ) {
-                localToc = localToc.substring(0,lastTagPos) + lastTagState + localToc.substring(lastTagPos);
+            if (lastTagState.length > 0 && lastTagPos > 0) {
+                localToc = localToc.substring(0, lastTagPos) + lastTagState + localToc.substring(lastTagPos);
             }
-            if( pendingEnd.length > 0 ) {
+            if (pendingEnd.length > 0) {
                 localToc += pendingEnd;
             }
-            if( returnLevel.length > 0 ) {
-                for( var j = 0 ; j < returnLevel.length ; ++j ) {
+            if (returnLevel.length > 0) {
+                for (var j = 0; j < returnLevel.length; ++j) {
                     localToc += "  ";
                 }
             }
             localToc += "<li";
             lastTagPos = localToc.length;
-            localToc += "><a href=\"#"+ln.name+"\" >"+ln.content+"</a>";
+            localToc += "><a href=\"#" + ln.name + "\" >" + ln.content + "</a>";
             pendingEnd = "</li>\n";
         }
-        while( returnLevel.length > 0 ) {
+        while (returnLevel.length > 0) {
             localToc += pendingEnd;
             pendingEnd = returnLevel.pop();
         }
         localToc += pendingEnd;
         localToc += "</ul>\n</div>";
         localToc = "<div id=\"inline-toc\" onclick=\"localToClickHandler(event)\" >\n" + localToc;
-        return localToc;  
-   }
-   return "";
+        return localToc;
+    }
+    return "";
 };
 
-events.loadIndex = function(callback) {
-    fs.readFile("../links.json","utf8",function(err,data) {
-         var hashObj = {};
-         var srcObj = null;
-         try {
-             srcObj = JSON.parse(data);
-         } catch(err) {            
-         }
-         if( srcObj ) {
-             for( var name in srcObj ) {
-                 var normalName = name.trim().toLowerCase();
-                 var path = srcObj[name];
-                 if( path.substring(0,7) === "/pages/" ) {
-                     path = "/documentation"+path;
-                 }
-                 hashObj[normalName] = path;
-             }
-         }
-         callback(hashObj);
+events.loadIndex = function (callback) {
+    fs.readFile("../links.json", "utf8", function (err, data) {
+        var hashObj = {};
+        var srcObj = null;
+        try {
+            srcObj = JSON.parse(data);
+        } catch (err) {
+        }
+        if (srcObj) {
+            for (var name in srcObj) {
+                var normalName = name.trim().toLowerCase();
+                var path = srcObj[name];
+                if (path.substring(0, 7) === "/pages/") {
+                    path = "/documentation" + path;
+                }
+                hashObj[normalName] = path;
+            }
+        }
+        callback(hashObj);
     });
 };
 
-var createBrokenLinkEmail =  function(problems) {
+var createBrokenLinkEmail = function (problems) {
     var i;
     var message = "";
-    for( i = 0 ; i < problems.length ; ++i ) {
-        message = "Link ["+problems[i].name+"] has path that cannot be resolve: "+problems[i].path+"\n";
+    for (i = 0; i < problems.length; ++i) {
+        message = "Link [" + problems[i].name + "] has path that cannot be resolve: " + problems[i].path + "\n";
     }
-var emailcred = require("./emailcred");
+    var emailcred = require("./emailcred");
 
-var nodemailer = require('nodemailer'); 
-// create reusable transporter object using the default SMTP transport 
-var transporter = nodemailer.createTransport('smtps://'+emailcred.user+":"+emailcred.password+"@"+emailcred.host);
- 
-// setup e-mail data with unicode symbols 
-var mailOptions = {
-    from: emailcred.user, // sender address 
-    to: 'documentation@alphasoftware.com', // list of receivers 
-    subject: 'Problem with links', // Subject line 
-    text: message, 
-};
- 
-// send mail with defined transport object 
-transporter.sendMail(mailOptions, function(error, info){
-    if(error){
-        return console.log(error);
-    }
-    console.log('Message sent: ' + info.response);
-});
-} 
+    var nodemailer = require('nodemailer');
+    // create reusable transporter object using the default SMTP transport 
+    var transporter = nodemailer.createTransport('smtps://' + emailcred.user + ":" + emailcred.password + "@" + emailcred.host);
 
-events.postProcessContent = function(data) {
-    if( data.indexOf("*[")) {
+    // setup e-mail data with unicode symbols 
+    var mailOptions = {
+        from: emailcred.user, // sender address 
+        to: 'documentation@alphasoftware.com', // list of receivers 
+        subject: 'Problem with links', // Subject line 
+        text: message,
+    };
+
+    // send mail with defined transport object 
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Message sent: ' + info.response);
+    });
+}
+
+events.postProcessContent = function (data) {
+    if (data.indexOf("*[")) {
         var metaDescriptionPos = data.indexOf('<meta name="description"');
-        if( metaDescriptionPos >= 0 ) {
-            var contentSearch = 'content="'+data.substring(metaDescriptionPos).split('"')[3]+'"';
+        if (metaDescriptionPos >= 0) {
+            var contentSearch = 'content="' + data.substring(metaDescriptionPos).split('"')[3] + '"';
             var contentReplace = contentSearch.split("*[").join("").split("]*").join();
-            if( contentSearch != contentReplace ) {
+            if (contentSearch != contentReplace) {
                 data = data.split(contentSearch).join(contentReplace);
             }
         }
         var items = data.split("*[");
         var i;
         var newData = items[0];
-        for( i = 1 ; i < items.length ; ++i ) {
+        for (i = 1; i < items.length; ++i) {
             var emph = items[i];
-            var endPos = emph.indexOf(']*'); 
-            if( endPos > 0 ) {
-                var remainder = emph.substring(endPos+2);
-                emph = emph.substring(0,endPos);
+            var endPos = emph.indexOf(']*');
+            if (endPos > 0) {
+                var remainder = emph.substring(endPos + 2);
+                emph = emph.substring(0, endPos);
                 var typeSeparator = emph.indexOf(':');
-                var snippet = "<b>"+emph+"</b>";
-                if( typeSeparator > 0 ) {
+                var snippet = "<b>" + emph + "</b>";
+                if (typeSeparator > 0) {
                     var implicitType = false;
-                    var typeName = emph.substring(0,typeSeparator);
-                    if( typeName.indexOf(' ') < 0 ) {
-                        if( typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps' ) {
-                             typeName = "link"; // implicit link....
-                             implicitType = true;
-                        } else {     
-                             emph = emph.substring(typeSeparator+1);
+                    var typeName = emph.substring(0, typeSeparator);
+                    if (typeName.indexOf(' ') < 0) {
+                        if (typeName == 'http' || typeName == 'https' || typeName == 'ftp' || typeName == 'ftps') {
+                            typeName = "link"; // implicit link....
+                            implicitType = true;
+                        } else {
+                            emph = emph.substring(typeSeparator + 1);
                         }
-                        snippet = '<span class="emphasize-'+typeName+'">'+emph+"</span>";
-                        if( typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink' ) {
-                            var isURI = function(sample) {
+                        snippet = '<span class="emphasize-' + typeName + '">' + emph + "</span>";
+                        if (typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink') {
+                            var isURI = function (sample) {
                                 var uriParts = sample.split(':');
-                                if( uriParts.length > 1 ) {
-                                    if( uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps' ) {
+                                if (uriParts.length > 1) {
+                                    if (uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps') {
                                         return true;
                                     }
                                 }
-                                return false;                                
+                                return false;
                             }
                             var linkdef = emph;
                             var atSignPos = linkdef.indexOf("@");
-                            if( atSignPos > 0 ) {
-                                if( linkdef.substring(0,7) != "mailto:" ) {
-                                    linkdef = linkdef.substring(atSignPos+1);
-                                    if( linkdef ) {
-                                        if( !isURI(linkdef) ) {
+                            if (atSignPos > 0) {
+                                if (linkdef.substring(0, 7) != "mailto:") {
+                                    linkdef = linkdef.substring(atSignPos + 1);
+                                    if (linkdef) {
+                                        if (!isURI(linkdef)) {
                                             var newlinkdef = help.lookupLink(linkdef);
-                                            if( newlinkdef || implicitType ) {
-                                                console.log("Set linkdef to "+newlinkdef);
-                                                 linkdef = newlinkdef;
+                                            if (newlinkdef || implicitType) {
+                                                console.log("Set linkdef to " + newlinkdef);
+                                                linkdef = newlinkdef;
                                             }
                                         }
-                                        if( linkdef ) {
-                                            emph = emph.substring(0,atSignPos);
+                                        if (linkdef) {
+                                            emph = emph.substring(0, atSignPos);
                                         }
                                     }
                                 }
                             } else {
                                 linkdef = help.lookupLink(linkdef);
                             }
-                            if( !linkdef ) { // If no symbolic match, lets see if we have a symbolic value
-                                if( isURI(emph) ) {
+                            if (!linkdef) { // If no symbolic match, lets see if we have a symbolic value
+                                if (isURI(emph)) {
                                     linkdef = emph;
                                 }
                             }
-                            if( linkdef ) {
-                                if( typeName == "link" ) {
-                                    snippet = '<a href="'+linkdef+'">'+emph+"</a>";
-                                } else if( typeName == "extlink" ) {
-                                    snippet = '<a href="'+linkdef+'" target="_blank" >'+emph+"</a>";
+                            if (linkdef) {
+                                if (typeName == "link") {
+                                    snippet = '<a href="' + linkdef + '">' + emph + "</a>";
+                                } else if (typeName == "extlink") {
+                                    snippet = '<a href="' + linkdef + '" target="_blank" >' + emph + "</a>";
                                 } else {
-                                    snippet = '<a href="'+linkdef+'" target="_blank" class="emphasize-'+typeName+'">'+emph+"</a>";
+                                    snippet = '<a href="' + linkdef + '" target="_blank" class="emphasize-' + typeName + '">' + emph + "</a>";
                                 }
                             }
-                        } 
+                        }
                     }
                 }
                 newData += snippet + remainder;
-            } else if( emph.length > 0 || (i+1) >= items.length ) {
-                newData += "*["+emph;
+            } else if (emph.length > 0 || (i + 1) >= items.length) {
+                newData += "*[" + emph;
             } else {
                 ++i;
-                newData += "*["+emph+item[i];
+                newData += "*[" + emph + item[i];
             }
         }
         data = newData;
@@ -718,42 +747,42 @@ events.postProcessContent = function(data) {
     return data;
 };
 
-events.embedXmlPage = function(data) {
+events.embedXmlPage = function (data) {
     var nested = data.split("<page depth=\"");
-    if( nested.length > 1 ) {
+    if (nested.length > 1) {
         data = nested[0];
-        for( var i = 1 ; i < nested.length ; ++i ) {
+        for (var i = 1; i < nested.length; ++i) {
             var term = nested[i].indexOf('"');
             data += "<page depth=\"";
-            if( term > 0 ) {
-                data += (parseInt(nested[i].substring(0,term))+1); // increase the initial depth
+            if (term > 0) {
+                data += (parseInt(nested[i].substring(0, term)) + 1); // increase the initial depth
                 data += nested[i].substring(term);
             } else {
                 data += nested[i];
             }
         }
     }
-    
-    if( data.substring(0,5) == "<page" ) {
+
+    if (data.substring(0, 5) == "<page") {
         // Add depth to the page tag
-        data = "<page depth=\"2\""+data.substring(5);
+        data = "<page depth=\"2\"" + data.substring(5);
     }
     return data;
 }
 
-events.canFlatten = function(pageName) {
+events.canFlatten = function (pageName) {
     var flattenChildren = [
-        { path : "/Ref/Api/Functions/" , level : 2 },
-        { path : "/Ref/Api/Namespace/" , level : 1 },
-        { path : "/Ref/Api/Objects/" , level : 1 }
+        { path: "/Ref/Api/Functions/", level: 2 },
+        { path: "/Ref/Api/Namespace/", level: 1 },
+        { path: "/Ref/Api/Objects/", level: 1 }
     ];
-    for( var i = 0 ; i < flattenChildren.length ; ++i ) {
+    for (var i = 0; i < flattenChildren.length; ++i) {
         var child = flattenChildren[i];
         var pos = pageName.indexOf(child.path);
-        if( pos >= 0 ) {
-            var part = pageName.substring(pos+child.path.length);
-            if( child.level > 0 ) {
-                if( part.split('/').length > child.level ) {
+        if (pos >= 0) {
+            var part = pageName.substring(pos + child.path.length);
+            if (child.level > 0) {
+                if (part.split('/').length > child.level) {
                     return true;
                 }
             } else {
@@ -764,22 +793,22 @@ events.canFlatten = function(pageName) {
     return false;
 }
 
-events.noSearchResults = function(pattern) {
-    var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";    
-    return  '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="'+url+'">Contact us!</a></p></div>';
+events.noSearchResults = function (pattern) {
+    var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
+    return '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
 }
 
 options.events = events;
 //--------------------------------------------------------------------------------------------
 
 var help = Help(options);
-var reqhandler = function(req, res) {
+var reqhandler = function (req, res) {
     if (req.path == "/test") {
         res.end(JSON.stringify(req.body, null, 2))
-    } else if( req.path == "/validateLinks") {
+    } else if (req.path == "/validateLinks") {
         var validateLinks = require("./node_modules/helpserver/validateLinksFile.js");
-        validateLinks("../links.json", "../helpfiles",function(result) {
-            if( result.problems ) {
+        validateLinks("../links.json", "../helpfiles", function (result) {
+            if (result.problems) {
                 createBrokenLinkEmail(result.problems);
             }
             res.end(JSON.stringify(result, null, 2));
@@ -788,7 +817,7 @@ var reqhandler = function(req, res) {
         var relPath = req.path.substring(9);
         if (req.path.substring(0, 14) == "/web/describe/")
             relPath = req.path.substring(13);
-        help.getmetadata(relPath, function(data) {
+        help.getmetadata(relPath, function (data) {
             var htmlResult = "<table>";
             htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(decodeURI(relPath), "/", "\\") + "\" style=\"width:7in;\" /><td></tr>";
             if (data.status) {
@@ -812,7 +841,7 @@ var reqhandler = function(req, res) {
         var relPath = req.path.substring(10);
         var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
         var fs = require("fs");
-        fs.readFile(manifestFile, function(err, data) {
+        fs.readFile(manifestFile, function (err, data) {
             var subtoc = {};
             if (!err && data && data !== "") {
                 mdata = JSON.parse(data);
@@ -823,7 +852,7 @@ var reqhandler = function(req, res) {
             res.send(JSON.stringify(subtoc));
         });
     } else if (req.path == "/apihelp" || req.path == "/web/apihelp") {
-        help.search(req.query.topic, function(err, data) {
+        help.search(req.query.topic, function (err, data) {
             if (err) {
                 help.onSendExpress(res);
                 res.send("Error doing search " + err);
@@ -856,13 +885,27 @@ var reqhandler = function(req, res) {
         }, 0, 20);
     } else if (req.path.substring(0, 8) == '/images/') {
         res.redirect("/help" + req.path);
-    } else if( (req.path+".").indexOf('/favicon.') >= 0 ) {
-        require('fs').readFile(options.assetpath + "assets/favicon.ico" ,function(err,data) {
-           if( !err && data ) {
+    } else if ((req.path + ".").indexOf('/favicon.') >= 0) {
+        require('fs').readFile(options.assetpath + "assets/favicon.ico", function (err, data) {
+            if (!err && data) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);
             } else {
-                console.log("favicon is missing"); 
+                console.log("favicon is missing");
+            }
+        });
+    } else if (req.path === '/' || req.path === '/documentation/pages/index.html') {
+        var path = "/index.html";
+        help.get(path, function (err, data, type) {
+            if (err) {
+                help.onSendExpress(res);
+                res.send(err);
+            } else {
+                if (type) {
+                    res.type(type);
+                }
+                help.onSendExpress(res);
+                res.send(data);
             }
         });
     } else {
@@ -872,14 +915,14 @@ var reqhandler = function(req, res) {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use("/", reqhandler );
+app.use("/", reqhandler);
 app.listen(options.port);
 
-if( https_credentails ) {
+if (https_credentails) {
     var https = require('https');
     var httpsServer = https.createServer(https_credentails, app);
-    httpsServer.listen(options.https_port, function() {
-        console.log('Listening on ports ' + options.port+" and "+options.https_port);
+    httpsServer.listen(options.https_port, function () {
+        console.log('Listening on ports ' + options.port + " and " + options.https_port);
     });
 } else {
     console.log('Listening on port ' + options.port);

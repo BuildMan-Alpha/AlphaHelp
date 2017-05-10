@@ -1,0 +1,164 @@
+<page>
+    <shortlink>howto use output arguments with stored procedures</shortlink>
+    <topic>How to Use Output Arguments with Stored Procedures in Xbasic</topic>
+    <description>Most queries performed on a SQL database use Input arguments. However, Xbasic offers the ability to also use Output and InputOutput arguments return values from stored procedures.</description>
+    <discussion>
+        <p>When you use execute SQL statements from Xbasic using AlphaDAO it is very common to use the *[xb:SQL::Arguments]* object to set values in SQL query statement. For example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[dim args as sql::arguments
+args.add("customerId","alfki")
+dim cn as sql::connection
+dim flag as l
+if (cn.open("::Name::Northwind")) then
+    dim sql as c
+    sql  = "Select * from customers where customerId = :customerId"
+    if (cn.execute(sql,args)) then
+        '...
+    end if
+end if]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the above example, the argument (*[xb:customerId]*) is an 'input' argument - it is passing a value *[in]* to the database engine.</p>
+                <p>In addition to 'input' arguments, you can also create 'output' arguments and 'inputOutput' arguments. The 'output' and 'inputOutput' argument types can be used to pass data *[out]* of the database to the Xbasic script executing the query. </p>
+                <p>For example, consider the following (very simplistic) stored procedure for SQL Server:</p>
+            </description>
+            <example code="sql"><![CDATA[CREATE PROCEDURE [dbo].[output]
+-- Add the parameters for the stored procedure here
+@Param1 integer output,
+@Param2 varchar(30) output
+AS
+BEGIN
+-- SET NOCOUNT ON added to prevent extra result sets from
+-- interfering with SELECT statements.
+SET NOCOUNT ON;
+-- Insert statements for procedure here
+set @Param1 = 100
+set @Param2 = 'Hello world'
+return
+END]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In this stored procedure, the parameters Param1 and Param2 are set to 100 and 'Hello World' respectively.</p>
+                <p>To call the stored procedure from Xbasic and get the value of Param1 and Param2 , inputOutput *[xb:SQL::Arguments]* are created and passed in as part of the Xbasic query:</p>
+            </description>
+            <example code="xb"><![CDATA[dim args as sql::arguments
+
+'define to arguments, 'inout' and 'inout2' as inputOutput arguments
+args.add("inout",0,sql::ArgumentUsage::inputoutputargument)
+
+'notice that a dummy value of the correct size needs to be defined for the argument
+args.add("inout2",replicate(" ",40),sql::ArgumentUsage::inputoutputargument)
+
+dim cn as sql::Connection
+cn.open("::Name::sqlserver_northwind")
+
+'call the stored procedure and pass in the two argument values
+? cn.Execute("exec output :inout, :inout2",args)
+= .T.
+
+? args[1].data
+= 100
+
+? args[2].data
+= "Hello world"]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Note that the value of the second input argument, *[xb:inout2]*, is set to a character string containing 40 spaces by calling *[xb:replicate(" ",40)]*. This is done so the size of the *[xb:inout2]* parameter is large enough to hold the result of the stored procedure. If the size of the argument is not large enough to hold the result from the stored procedure, it can result in an error. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[? cn.CallResult.text
+= "Internal Error - Data Truncated - The buffer for receiving data is too short"]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In some cases, a stored procedure will also return one or more result sets in addition to output arguments.</p>
+                <p>Depending on the type database being using, you may have to process all of the result sets returned before the output arguments can be read.</p>
+                <p>For example, consider the following stored procedure:</p>
+            </description>
+            <example code="sql"><![CDATA[CREATE PROCEDURE [dbo].[output]
+-- Add the parameters for the stored procedure here
+@Param1 integer output,
+@Param2 varchar(30) output
+AS
+BEGIN
+-- SET NOCOUNT ON added to prevent extra result sets from
+-- interfering with SELECT statements.
+SET NOCOUNT ON;
+-- Insert statements for procedure here
+set @Param1 = 100
+set @Param2 = 'Hello world'
+select * from customers
+select * from orders
+return
+END]]></example>
+        </section>
+        <section>
+            <description>
+                <p>This stored procedure now returns two result sets: *[sql:select * from customers]* and *[sql:select * from orders]*. Before the values of the two parameters can be accessed, the results from both of these SQL queries must be processed:</p>
+            </description>
+            <example code=""><![CDATA[dim args as sql::arguments
+args.add("inout",0,sql::ArgumentUsage::inputoutputargument)
+args.add("inout2",replicate(" ",50),sql::ArgumentUsage::inputoutputargument)
+dim cn as sql::Connection
+cn.open("::Name::sqlserver_northwind")
+?cn.Execute("exec output :inout, :inout2",args)
+= .T.
+
+'value of the output arguments not yet available because we have
+'not read the result sets
+? args[1].data
+= 0
+? args[2].data
+= ""
+
+dim rs as sql::ResultSet
+rs = cn.ResultSet
+
+'still not available
+? args[1].data
+= 0
+? args[2].data
+= ""
+
+'get the next result set
+? rs.NextResult()
+= .T.
+
+'still not available
+?args[1].data
+= 0
+? args[2].data
+= ""
+
+'no more result sets to read
+? rs.NextResult()
+= .F.
+
+'argument value are now available!!
+? args[1].data
+= 100
+
+? args[2].data
+= "Hello world"]]></example>
+        </section>
+        <section>
+            <description>To learn more, watch the video below.</description>
+            <videos>
+                <title>Using Output Arguments when Calling a Stored Procedure</title>
+                <description>
+                    <p>When a stored procedure is executed from Xbasic, the procedure may return values in addition to result sets for SELECT queries. Xbasic 'output' arguments can be passed to the stored procedure to capture these values.</p>
+                    <p>In this video, we show how input/output and output arguments are defined and used when calling a stored procedure.</p>
+                </description>
+                <date>2016-03-18</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/3fa05b0a</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+</page>
