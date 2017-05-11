@@ -1,0 +1,152 @@
+<page build="">
+    <shortlink>js charts howto bind chart data to a javascript function</shortlink>
+    <topic>How To Bind Chart Data to a JavaScript Function</topic>
+    <description>A JavaScript function can be used to dynamically populate a Javascript Chart control in a UX Component.</description>
+    <discussion>
+        <p>When creating a new Javascript Chart control in an app, it's common to start with one of the sample charts. The sample charts all use static data to populate the Javascript Chart. The static data values can be replaced with a call to a JavaScript function to populate the chart's values.</p>
+        <p>Each data series in a chart is defined as an array of values. For example, consider the following statically defined data for the *[ui:Bar - Stacked - Animated]* example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="js"><![CDATA[var s1 = [10,12,13];
+var s2 = [4,12,6];
+var s3 = [7,8,19];
+var _d = A5.makeArrayOfArrays(s1, s2, s3);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>This example defines three data series, *[js:s1]*, *[js:s2]*, and *[js:s3]*. A JavaScript function can be created to return the data for each series as a JSON object:</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+
+    var s1 = [10,12,13];
+    var s2 = [4,12,6];
+    var s3 = [7,8,19];
+    var obj = {s1: s1, s2: s2, s3: s3}
+
+    return obj;
+
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The *[js:getData()]* function can be used in place of the statically defined arrays to populate the three data series. IE:</p>
+            </description>
+            <example code="js"><![CDATA[var dataObj = getData();
+
+var s1 = dataObj.s1;
+var s2 = dataObj.s2;
+var s3 = dataObj.s3;
+
+var _d = A5.makeArrayOfArrays(s1,s2,s3);]]></example>
+        </section>
+        <section>
+            <title>Using Data from a List Control</title>
+            <description>
+                <p>While the JavaScript function in this example still uses statically defined data, it can easily be changed to use data from a control in the UX Component, such as a List Control. For example, suppose a List Control has been defined with the following static data:</p>
+            </description>
+            <example><![CDATA[Year|S1|S2|S3
+2010|10|4|7
+2011|12|12|8
+2012|13|8|19
+2013|14|12|10]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Using the [{dialog.object}.getListData()] method, the data series for the chart can be extracted from the List Control. The updated *[js:getData()]* function to extract the data from the List Control is shown below:</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+    var listData = {dialog.Object}.getListData('LIST1');
+    var s1 = [];
+    var s2 = [];
+    var s3 = [];
+    var xaxisLabels = [];
+
+    for (var key in listData) {
+        var row = list[key];
+        s1.push(Number(row.S1));
+        s2.push(Number(row.S2));
+        s3.push(Number(row.S3));
+        xaxisLabels.push(row.Year);
+    }
+
+    var obj = {s1: s1, s2: s2, s3: s3, xaxisLabels:xaxisLabels};
+
+    return obj;
+}]]></example>
+        </section>
+        <section>
+            <description>Now, the Javascript Chart's definition can be updated to dynamically set the data values and xaxisLabels:</description>
+            <example code="js"><![CDATA[var _settings = function() { 
+    *[highlighter:var chartData = getData();]*
+    *[highlighter:var s1 = chartData.s1;]*
+    *[highlighter:var s2 = chartData.s2;]*
+    *[highlighter:var s3 = chartData.s3;]*
+    var _d = A5.makeArrayOfArrays(s1,s2,s3);
+
+    //data will now be an array of arrays. for example
+    //data  = [[10,4,7],[12,12,8],......]
+
+    var settings = {
+        id: '{chartDiv}',
+        data: _d,
+        options: {
+            title: 'Stacked Bar Chart',
+            titleSubtitle: '3 Data Series Shown',
+            colors: ['#8EC3A7','#DC5356','#F0CB69'],
+
+            *[highlighter:xaxisLabels: chartData.xaxisLabels,]*
+            grouping: 'stacked',
+            strokestyle: 'white',
+            yaxisMax: 40,
+            yaxisColor: 'transparent',
+            yaxisUnitsPost: '',
+            yaxisUnitsPre: '$',
+            xaxisColor: 'transparent',
+            textSize: 12,
+            textColor: '#8EC3A7',
+            backgroundGridVlines: false,
+            backgroundGridBorder: false,
+            hmargin: 40,
+            gutterTop: 50,
+            gutterLeft: 50,
+            attribution: false
+        }
+    };
+return settings;
+};]]></example>
+        </section>
+        <section>
+            <description>The final chart contains 4 years (instead of 3), which were dynamically calculated from the list control:</description>
+            <figure>
+                <link>images/jschartJSFunc1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>For more information and complete step-by-step instructions on how to configure a Javascript Chart to use data that is populated by a JavaScript function, watch the video below.</p>
+            </description>
+        </section>
+        <section>
+            <videos>
+                <title>Binding Chart Data to a Javascript Function</title>
+                <description>
+                    <p>The data shown in a Javascript Chart can be obtained by calling a Javascript function. In this video, we show how to bind the data for a Javascript Chart to the result of a Javascript function.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/99a5ed35</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/basingDataOnJSFunction.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="ux component getListData method">{dialog.object}.getListData()</link>
+    </links>
+</page>
