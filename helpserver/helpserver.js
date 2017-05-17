@@ -10,7 +10,7 @@ var helpfilesBasepath = "/home/AlphaHelp/helpfiles";
 var aliasesFile = "/home/AlphaHelp/aliases.json";
 var aliases = {};
 var library = require("./assets/library");
-var Help = require('helpserver');  
+var Help = require('helpserver');
 var fs = require("fs");
 var https_credentails = null;
 
@@ -50,17 +50,17 @@ if (searchLocalFlag) {
 
 
 
-console.log("\n\n\n#########################################################\n### Starting the server "+serverType+"- time " + new Date() + "\n");
+console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
 if (options.https_port && options.privatekey && options.certificate) {
     https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }
 }
-var replaceAll = function (str, find, replace) {
+var replaceAll = function(str, find, replace) {
     while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
     }
     return str;
 };
-var removeMarkup = function (data) {
+var removeMarkup = function(data) {
     if (data.indexOf("*[")) {
         var items = data.split("*[");
         var i;
@@ -90,7 +90,7 @@ var events = {};
 var tocData = { altTocs: [], defaultPathMetadata: [] };
 options.library = library;
 
-fs.readFile(errorLog, "utf8", function (err, contents) {
+fs.readFile(errorLog, "utf8", function(err, contents) {
     if (!err && contents) {
         fs.unlink(errorLog);
         console.log("Last crash report:\n" + contents + "\n");
@@ -98,10 +98,10 @@ fs.readFile(errorLog, "utf8", function (err, contents) {
 });
 
 // report error from node..
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
     try {
         var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
-        fs.writeFile(errorLog, nodeErrorLog, function (err2) {
+        fs.writeFile(errorLog, nodeErrorLog, function(err2) {
             process.exit(1);
         });
     } catch (err2) {
@@ -113,7 +113,7 @@ process.on('uncaughtException', function (err) {
 
 
 
-var collectAltToc = function (books) {
+var collectAltToc = function(books) {
     if (books && books.length > 0) {
         var i;
         for (i = 0; i < books.length; ++i) {
@@ -156,7 +156,7 @@ options.tocData = tocData;
 
 //--------------------------------------------------------------------------------------
 // page index function - gets called whenever we change xml files in a folder... passes all the files 
-var outputSnippet = function (args, description, type, topic, isStatic) {
+var outputSnippet = function(args, description, type, topic, isStatic) {
     var result = "";
     if (args.isFolder) {
         if (args.format == ".xml") {
@@ -213,7 +213,7 @@ var outputSnippet = function (args, description, type, topic, isStatic) {
     return result;
 }
 
-events.pageIndexer = function (args, savePage) {
+events.pageIndexer = function(args, savePage) {
     // just error out for now...
     var filename = args.filename;
     var type = null;
@@ -252,13 +252,13 @@ events.pageIndexer = function (args, savePage) {
     //    }
     if (filename.substring(extensionIndex).toLowerCase() == ".xml") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function (err, data) {
+        fs.readFile(filename, "utf8", function(err, data) {
             if (err) {
                 console.log(filename + " was not found");
                 savePage(outputSnippet(args, null, type, false));
             } else {
                 var parseString = require('xml2js').parseString;
-                parseString(data, function (err, result) {
+                parseString(data, function(err, result) {
                     var description = null;
                     var topic = null;
                     var static = false;
@@ -300,7 +300,7 @@ events.pageIndexer = function (args, savePage) {
         });
     } else if (filename.substring(extensionIndex).toLowerCase() == ".html") { //&& filename.indexOf("/index.xml") < 0) {
         var fs = require("fs");
-        fs.readFile(filename, "utf8", function (err, data) {
+        fs.readFile(filename, "utf8", function(err, data) {
             var description = null;
             if (!err) {
                 var metaDataTags = data.split("<meta");
@@ -333,7 +333,7 @@ events.pageIndexer = function (args, savePage) {
     }
 };
 
-events.wrapIndex = function (args) {
+events.wrapIndex = function(args) {
     var result = "";
     if (args.content.trim().length === 0) {
         return result;
@@ -351,7 +351,7 @@ events.wrapIndex = function (args) {
     return result;
 };
 
-events.getDefaultIndexTemplate = function (args) {
+events.getDefaultIndexTemplate = function(args) {
     var result = "";
     if (args.format == ".xml") {
         result = "<page><!--list:.--></page>";
@@ -361,7 +361,7 @@ events.getDefaultIndexTemplate = function (args) {
     return result;
 };
 //--------------------------------------------------------------------------------------
-var resolveXmlFilePath = function (xmlFile, relative) {
+var resolveXmlFilePath = function(xmlFile, relative) {
     var xmlPath = xmlFile.split('/');
     var xmlIndex = xmlPath.length - 1;
     var xmlCount = 1;
@@ -378,103 +378,176 @@ var resolveXmlFilePath = function (xmlFile, relative) {
     return xmlFile;
 };
 //--------------------------------------------------------------------------------------
-var xsltproc = require('xsltproc');
-events.translateXML = function (xmlFile, htmlFile, callback) {
-    fs.readFile(xmlFile, "utf8", function (err, data) {
-        if (!err) {
-            var startSymLink = data.indexOf("<symlink>");
-            if (startSymLink > 0) {
-                var endSymLink = data.indexOf("</symlink>");
-                if (startSymLink < endSymLink) {
-                    xmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
-                }
-            }
-        }
-        var xslt = xsltproc.transform(options.assetpath + 'assets/xform.xslt', xmlFile);
-        var err = null;
-        var dataOut = '';
-        xslt.stdout.on('data', function (data) {
-            dataOut += data;
-        });
-        xslt.stderr.on('data', function (data) {
-            err = '' + data;
-        });
-        xslt.on('exit', function (code) {
-            if (err) {
-                var fs = require('fs');
-                fs.readFile(xmlFile, "utf8", function (err2, errPage) {
-                    if (err2) {
-                        callback(err2, null);
-                    } else {
-                        var errparts = err.split(':');
-                        var index = -1;
-                        if (errparts.length > 2) {
-                            index = parseInt(errparts[1]);
-                        }
-                        var completeErrPage = function (index) {
-                            errPage = replaceAll(errPage, "<amp>;", "&amp;");
-                            errPage = replaceAll(errPage, "<", "&lt;");
-                            errPage = replaceAll(errPage, ">", "&gt;");
-                            errPage = replaceAll(errPage, "&lt;amp&gt;", "&amp;");
+var extractTag = function(data, startPattern, endPattern) {
+    var tagStart = data.indexOf(startPattern);
+    var tag = null;
+    if (tagStart > 0) {
+        var tagEnd = data.indexOf(endPattern);
+        tagStart += startPattern.length;
+        tag = data.substring(tagStart, tagEnd);
+    }
+    return tag;
+};
+var replaceTag = function(data, startPattern, endPattern, replacement) {
+    var tagStart = data.indexOf(startPattern);
+    var tag = null;
+    if (tagStart > 0) {
+        var tagEnd = data.indexOf(endPattern);
+        tagStart += startPattern.length;
+        data = data.substring(0, tagStart) + replacement + data.substring(tagEnd);
+    }
+    return data;
+};
 
-                            var lines = errPage.split('\n');
-                            if (0 <= index && index < 10000000) {
-                                if (index < lines.length) {
-                                    lines[index] = "<span style=\"color:red;background:yellow;\">" + lines[index] + "</span>";
-                                }
+
+var xsltproc = require('xsltproc');
+events.translateXML = function(xmlFile, htmlFile, callback) {
+    fs.readFile(xmlFile, "utf8", function(err, data) {
+        var xsltTransformFile = function(xmlFile, htmlFile, callback) {
+            var xslt = xsltproc.transform(options.assetpath + 'assets/xform.xslt', xmlFile);
+            var err = null;
+            var dataOut = '';
+            xslt.stdout.on('data', function(data) {
+                dataOut += data;
+            });
+            xslt.stderr.on('data', function(data) {
+                err = '' + data;
+            });
+            xslt.on('exit', function(code) {
+                if (err) {
+                    var fs = require('fs');
+                    fs.readFile(xmlFile, "utf8", function(err2, errPage) {
+                        if (err2) {
+                            callback(err2, null);
+                        } else {
+                            var errparts = err.split(':');
+                            var index = -1;
+                            if (errparts.length > 2) {
+                                index = parseInt(errparts[1]);
                             }
-                            for (var i = 0; i < lines.length; ++i) {
-                                lines[i] = "<span style=\"background:#bbb;\">" + String("00000" + i).slice(-5) + "&nbsp;</span>" + lines[i];
-                            }
-                            errPage = lines.join("\n");
-                            errPage = "<b>Error Encountered</b><br><div>" + err + "</div><pre>" + errPage + "</pre>";
-                            callback(null, errPage);
-                        };
-                        if (index < 0) {
-                            var parseString = require('xml2js').parseString;
-                            parseString(errPage, function (err, result) {
-                                var description = null;
-                                if (err) {
-                                    console.log("Error running XSLT for page " + xmlFile + "\n");
-                                    var lineArg = ('' + err).split('Line:');
-                                    if (lineArg.length > 1) {
-                                        index = parseInt(lineArg[1].split('\n')[0].trim());
+                            var completeErrPage = function(index) {
+                                errPage = replaceAll(errPage, "<amp>;", "&amp;");
+                                errPage = replaceAll(errPage, "<", "&lt;");
+                                errPage = replaceAll(errPage, ">", "&gt;");
+                                errPage = replaceAll(errPage, "&lt;amp&gt;", "&amp;");
+
+                                var lines = errPage.split('\n');
+                                if (0 <= index && index < 10000000) {
+                                    if (index < lines.length) {
+                                        lines[index] = "<span style=\"color:red;background:yellow;\">" + lines[index] + "</span>";
                                     }
                                 }
+                                for (var i = 0; i < lines.length; ++i) {
+                                    lines[i] = "<span style=\"background:#bbb;\">" + String("00000" + i).slice(-5) + "&nbsp;</span>" + lines[i];
+                                }
+                                errPage = lines.join("\n");
+                                errPage = "<b>Error Encountered</b><br><div>" + err + "</div><pre>" + errPage + "</pre>";
+                                callback(null, errPage);
+                            };
+                            if (index < 0) {
+                                var parseString = require('xml2js').parseString;
+                                parseString(errPage, function(err, result) {
+                                    var description = null;
+                                    if (err) {
+                                        console.log("Error running XSLT for page " + xmlFile + "\n");
+                                        var lineArg = ('' + err).split('Line:');
+                                        if (lineArg.length > 1) {
+                                            index = parseInt(lineArg[1].split('\n')[0].trim());
+                                        }
+                                    }
+                                    completeErrPage(index);
+                                });
+                            } else {
                                 completeErrPage(index);
+                            }
+                        }
+                    });
+                } else {
+                    var fs = require('fs');
+                    fs.writeFile(htmlFile, dataOut, function(err) {
+                        var contentDiv = dataOut.split('<meta name="description" content="');
+                        if (contentDiv.length > 1) {
+                            var firstDesc = contentDiv[1].split('"/>');
+                            if (firstDesc.length > 1) {
+                                firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
+                                contentDiv[1] = firstDesc.join('"/>');
+                                dataOut = contentDiv.join('<meta name="description" content="');
+                            }
+                        }
+                        callback(err, dataOut);
+                    });
+                }
+            });
+        };
+        if (!err) {
+            var startSymLink = data.indexOf("<symlink>");
+            var remapped = false;
+            if (startSymLink > 0) {
+                var endSymLink = data.indexOf("</symlink>");
+                var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
+                var topicReplace = extractTag(data, "<topic>", "</topic>");
+                var descReplace = extractTag(data, "<description>", "</description>");
+
+                if (startSymLink < endSymLink) {
+                    var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
+                    if (newXmlFile && newXmlFile !== xmlFile) {
+                        xmlFile = newXmlFile;
+                        if (shortLinkReplace || topicReplace || descReplace) {
+                            remapped = true;
+                            fs.readFile(xmlFile, "utf8", function(err2, data2) {
+                                if (!err) {
+                                    // Create temporary XML that has changes...
+                                    var splitNameAt = htmlFile.lastIndexOf(".");
+                                    if (splitNameAt > 0) {
+                                        var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
+                                        if (shortLinkReplace) {
+                                            data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
+                                        }
+                                        if (topicReplace) {
+                                            data2 = replaceTag(data2, "<topic>", "</topic>", topicReplace);
+                                        }
+                                        if (descReplace) {
+                                            data2 = replaceTag(data2, "<description>", "</description>", descReplace);
+                                        }
+                                        if (data2 === data) {
+                                            // No changes
+                                            xsltTransformFile(xmlFile, htmlFile, callback);
+                                        } else {
+                                            fs.writeFile(modXmlFile, data2, function(errWrite) {
+                                                if (errWrite) {
+                                                    console.log("Error writing modified XML " + modXmlFile);
+                                                    xsltTransformFile(xmlFile, htmlFile, callback);
+                                                } else {
+                                                    xsltTransformFile(modXmlFile, htmlFile, callback);
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        xsltTransformFile(xmlFile, htmlFile, callback);
+                                    }
+                                } else {
+                                    xsltTransformFile(xmlFile, htmlFile, callback);
+                                }
                             });
-                        } else {
-                            completeErrPage(index);
                         }
                     }
-                });
-            } else {
-                var fs = require('fs');
-                fs.writeFile(htmlFile, dataOut, function (err) {
-                    var contentDiv = dataOut.split('<meta name="description" content="');
-                    if (contentDiv.length > 1) {
-                        var firstDesc = contentDiv[1].split('"/>');
-                        if (firstDesc.length > 1) {
-                            firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
-                            contentDiv[1] = firstDesc.join('"/>');
-                            dataOut = contentDiv.join('<meta name="description" content="');
-                        }
-                    }
-                    callback(err, dataOut);
-                });
+                }
             }
-        });
+            if (!remapped) {
+                xsltTransformFile(xmlFile, htmlFile, callback);
+            }
+        }
     });
 };
-events.beforeRefresh = function () {
+events.beforeRefresh = function() {
     var validateLinks = require(validateLinksFile);
-    validateLinks(linksFileName, helpfilesBasepath, function (result) {
+    validateLinks(linksFileName, helpfilesBasepath, function(result) {
         if (result.problems) {
             console.log("Found problems with links.json\n" + JSON.stringify(result.problems));
         }
     });
 };
-events.extractTitle = function (page) {
+events.extractTitle = function(page) {
     var topicStart = page.indexOf("<topic>");
     if (topicStart > 0) {
         var topicEnd = page.indexOf("</topic>");
@@ -498,7 +571,7 @@ events.extractTitle = function (page) {
     }
     return null;
 }
-events.extractDescription = function (page) {
+events.extractDescription = function(page) {
     var descriptionStart = page.indexOf("<description>");
     var endArgument = page.indexOf("</argument");
     if (endArgument > descriptionStart) {
@@ -526,7 +599,7 @@ events.extractDescription = function (page) {
     }
     return null;
 };
-events.decorateTitle = function (title) {
+events.decorateTitle = function(title) {
     if (title.indexOf('Api') >= 0) {
         if (title === 'Api') {
             title = "API";
@@ -552,7 +625,7 @@ events.decorateTitle = function (title) {
     }
     return title;
 };
-events.addPageSourceComment = function (page, symName) {
+events.addPageSourceComment = function(page, symName) {
     var pageSource;
     page = page.replace(".xml_html", ".xml");
     pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page, '/', '\\') + " -->";
@@ -561,7 +634,7 @@ events.addPageSourceComment = function (page, symName) {
     }
     return pageSource;
 };
-events.getSharableLink = function (page, symName) {
+events.getSharableLink = function(page, symName) {
     var shareLink;
     page = page.replace(".xml_html", ".xml");
     shareLink = "https://www.alphasoftware.com/documentation/pages" + page;
@@ -570,7 +643,7 @@ events.getSharableLink = function (page, symName) {
     }
     return shareLink;
 };
-events.generateLocalToc = function (localNames) {
+events.generateLocalToc = function(localNames) {
     if (localNames.length > 1) {
         var localToc = "<div class=\"local-toc-title\">IN THIS PAGE</div>\n<ul>\n";
         var lastLvl = -1;
@@ -642,10 +715,10 @@ events.generateLocalToc = function (localNames) {
     }
     return "";
 };
-events.loadIndex = function (callback) {
+events.loadIndex = function(callback) {
 
     // Load links file
-    fs.readFile(linksFileName, "utf8", function (err, data) {
+    fs.readFile(linksFileName, "utf8", function(err, data) {
         var hashObj = {};
         if (err) {
             console.log("Error loading links.json " + err);
@@ -671,7 +744,7 @@ events.loadIndex = function (callback) {
     });
 
     // Load aliases file
-    fs.readFile(aliasesFile, "utf8", function (err, data) {
+    fs.readFile(aliasesFile, "utf8", function(err, data) {
         var hashObj = {};
         if (err) {
             console.log("Error loading aliases.json " + err);
@@ -688,7 +761,7 @@ events.loadIndex = function (callback) {
         }
     });
 };
-events.extractSymbols = function (txt, title, path) {
+events.extractSymbols = function(txt, title, path) {
     var leading = [
         { "symbol": "*", "replace": "aster|" },
         { "symbol": "$", "replace": "dollr|" },
@@ -697,7 +770,8 @@ events.extractSymbols = function (txt, title, path) {
     ];
     var i, j, k;
     var padText = " " + txt.toLowerCase() + " ";
-    var symbols = " ", symbol;
+    var symbols = " ",
+        symbol;
     var words, word, parts, subparts;
     var originalTitle = title;
 
@@ -794,7 +868,7 @@ events.extractSymbols = function (txt, title, path) {
         }
         symbols = symbols.split("|").join("_");
     }
-    var splitByCase = function (caseword) {
+    var splitByCase = function(caseword) {
         var subWords = [];
         var i;
         var lastType = null;
@@ -875,7 +949,7 @@ events.extractSymbols = function (txt, title, path) {
     }
     return symbols;
 };
-events.indexTitle = function (title) {
+events.indexTitle = function(title) {
     var i;
     var extra = "";
     var anySymbol = [
@@ -899,7 +973,7 @@ events.indexTitle = function (title) {
     }
     return title;
 };
-events.postProcessContent = function (data) {
+events.postProcessContent = function(data) {
     if (data.indexOf("*[")) {
         var metaDescriptionPos = data.indexOf('<meta name="description"');
         if (metaDescriptionPos >= 0) {
@@ -932,7 +1006,7 @@ events.postProcessContent = function (data) {
                         }
                         snippet = '<span class="emphasize-' + typeName + '">' + emph + "</span>";
                         if (typeName == "link" || typeName == 'download' || typeName == 'video' || typeName == 'extlink') {
-                            var isURI = function (sample) {
+                            var isURI = function(sample) {
                                 var uriParts = sample.split(':');
                                 if (uriParts.length > 1) {
                                     if (uriParts[0] == 'http' || uriParts[0] == 'https' || uriParts[0] == 'ftp' || uriParts[0] == 'ftps') {
@@ -968,7 +1042,7 @@ events.postProcessContent = function (data) {
                                     if (lookupurl) {
                                         lookupurl = help.lookupLink(lookupurl);
                                     }
-                                 }
+                                }
                                 linkdef = lookupurl;
                             }
                             if (!linkdef) { // If no symbolic match, lets see if we have a symbolic value
@@ -1006,7 +1080,7 @@ events.postProcessContent = function (data) {
     return data;
 };
 
-events.embedXmlPage = function (data) {
+events.embedXmlPage = function(data) {
     var nested = data.split("<page depth=\"");
     if (nested.length > 1) {
         data = nested[0];
@@ -1028,7 +1102,7 @@ events.embedXmlPage = function (data) {
     return data;
 }
 
-events.canFlatten = function (pageName) {
+events.canFlatten = function(pageName) {
     var flattenChildren = [
         { path: "/Ref/Api/Functions/", level: 2 },
         { path: "/Ref/Api/Namespace/", level: 1 },
@@ -1051,7 +1125,7 @@ events.canFlatten = function (pageName) {
     return false;
 }
 
-events.calculateFeedback = function (title, page) {
+events.calculateFeedback = function(title, page) {
     return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://www.alphasoftware.com/documentation/pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
 }
 
@@ -1060,7 +1134,7 @@ events.calculateFeedback = function (title, page) {
 //}
 
 // Hook for parsing the query command
-events.parseQuery = function (args) {
+events.parseQuery = function(args) {
     var words = args.pattern.split(" ");
     if (words.length > 1) {
         if (words[0] === "in:title") {
@@ -1070,7 +1144,7 @@ events.parseQuery = function (args) {
     }
 };
 
-events.noSearchResults = function (pattern) {
+events.noSearchResults = function(pattern) {
     var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
     return '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
 }
@@ -1084,12 +1158,12 @@ options.events = events;
 //--------------------------------------------------------------------------------------------
 var help = Help(options);
 
-app.use("/", function (req, res) {
+app.use("/", function(req, res) {
     if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
         var relPath = req.path.substring(9);
         if (req.path.substring(0, 14) == "/web/describe/")
             relPath = req.path.substring(13);
-        help.getmetadata(relPath, function (data) {
+        help.getmetadata(relPath, function(data) {
             var htmlResult = "<table>";
             htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(decodeURI(relPath), "/", "\\") + "\" style=\"width:7in;\" /><td></tr>";
             if (data.status) {
@@ -1112,7 +1186,7 @@ app.use("/", function (req, res) {
         var relPath = req.path.substring(10);
         var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
         var fs = require("fs");
-        fs.readFile(manifestFile, function (err, data) {
+        fs.readFile(manifestFile, function(err, data) {
             var subtoc = {};
             if (!err && data && data !== "") {
                 mdata = JSON.parse(data);
@@ -1123,7 +1197,7 @@ app.use("/", function (req, res) {
             res.send(JSON.stringify(subtoc));
         });
     } else if (req.path === "/apihelp") {
-        help.search(req.query.topic, function (err, data) {
+        help.search(req.query.topic, function(err, data) {
             if (err) {
                 help.onSendExpress(res);
                 res.send(JSON.stringify({ error: err }));
@@ -1164,7 +1238,7 @@ app.use("/", function (req, res) {
     } else if (req.path.substring(0, 8) === '/images/') {
         res.redirect("/help" + req.path);
     } else if ((req.path + ".").indexOf('/favicon.') >= 0) {
-        require('fs').readFile(options.assetpath + "assets/favicon.ico", function (err, data) {
+        require('fs').readFile(options.assetpath + "assets/favicon.ico", function(err, data) {
             if (!err && data) {
                 res.setHeader('Content-Type', 'image/x-icon');
                 res.send(data);
@@ -1174,7 +1248,7 @@ app.use("/", function (req, res) {
         });
     } else if (req.path === '/pages/index.html') {
         var path = "/index.html";
-        help.get(path, function (err, data, type) {
+        help.get(path, function(err, data, type) {
             if (err) {
                 help.onSendExpress(res);
                 res.send(err);
@@ -1195,10 +1269,9 @@ app.listen(options.port);
 if (https_credentails) {
     var https = require('https');
     var httpsServer = https.createServer(https_credentails, app);
-    httpsServer.listen(options.https_port, function () {
+    httpsServer.listen(options.https_port, function() {
         console.log('Listening on ports ' + options.port + " and " + options.https_port);
     });
 } else {
     console.log('Listening on port ' + options.port);
 }
-
