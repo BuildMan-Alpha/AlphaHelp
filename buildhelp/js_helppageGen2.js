@@ -303,10 +303,9 @@ var generateXMLHelp = function(content) {
                     context = line.substring(splitPos + 1).trim();
                     if (context.indexOf('.') < 0 && type === "object" && topContext) {
                         // Object does not have a fully qualified name
-                        titleContext = context;
+                        //titleContext = context; // This line strips out the class prefix for context - which is deemed undesirable now
                         context = topContext + '.' + context;
                     }
-
                     if (type === "class") {
                         contextType = " Class";
                         console.log("Found a class: " + context);
@@ -540,19 +539,31 @@ var generateXMLHelp = function(content) {
         xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
 
         var map = build.context[context];
+        var topStartTag = "\t<topic>";
+        if (pageName.indexOf(" Method") > 0) {
+            var lastDotPos = pageName.lastIndexOf(".");
+            if (lastDotPos > 0) {
+                var classOrNamespace = pageName.substring(0, lastDotPos);
+                if (build.context[classOrNamespace]) {
+                    topStartTag = "\t<topic parent=\"" + classOrNamespace + "\" parentType=\"namespace\" >";
+                } else {
+                    topStartTag = "\t<topic parent=\"" + classOrNamespace + "\" parentType=\"class\" >";
+                }
+            }
+        }
         if (isConstructor) {
-            xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
+            xml += topStartTag + protectXml(pageName) + "</topic>\r\n";
         } else if (map && map.classname) {
             var normalizedClass = map.classname.toLowerCase().trim() + ".";
             var normalizedPageName = pageName.toLowerCase().trim();
 
             if (normalizedPageName.substring(0, normalizedClass.length) === normalizedClass) {
-                xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
+                xml += topStartTag + protectXml(pageName) + "</topic>\r\n";
             } else {
-                xml += "\t<topic>" + protectXml(map.classname + "." + pageName) + "</topic>\r\n";
+                xml += topStartTag + protectXml(map.classname + "." + pageName) + "</topic>\r\n";
             }
         } else {
-            xml += "\t<topic>" + protectXml(pageName) + "</topic>\r\n";
+            xml += topStartTag + protectXml(pageName) + "</topic>\r\n";
         }
     } else if (contextType.length > 0) {
         xml += "\t<shortlink>" + protectXml("api client api " + (context + contextType).replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
