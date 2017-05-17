@@ -545,9 +545,9 @@ var generateXMLHelp = function(content) {
             if (lastDotPos > 0) {
                 if (map && !map.classname) {
                     console.log("classOrNamespace is a namespace");
-                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"namespace\" elementName=\"" + pageName.substring(lastDotPos) + "\" >";
+                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"namespace\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
                 } else {
-                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos) + "\" >";
+                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
                 }
             }
         }
@@ -815,7 +815,7 @@ var extractJsHelp = function() {
                                 if (pageName.indexOf(" Method") > 0) {
                                     var lastDotPos = pageName.lastIndexOf(".");
                                     if (lastDotPos > 0) {
-                                        xml += " parent=\"" + inherit.className + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos) + "\" ";
+                                        xml += " parent=\"" + inherit.className + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" ";
                                     }
                                 }
                                 xml += ">" + protectXml(pageTopic) + "</topic>\r\n";
