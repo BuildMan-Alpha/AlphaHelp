@@ -169,6 +169,9 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
             topic = "Unknown";
         }
     }
+    if (!topic.indexOf) {
+        topic = topic["_"];
+    }
     if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
         topic = "<![CDATA[" + topic + "]]>";
     }
