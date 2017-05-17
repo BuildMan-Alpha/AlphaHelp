@@ -488,7 +488,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
             if (startSymLink > 0) {
                 var endSymLink = data.indexOf("</symlink>");
                 var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
-                var topicReplace = extractTag(data, "<topic>", "</topic>");
+                var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
 
                 if (startSymLink < endSymLink) {
@@ -507,7 +507,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                             data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
                                         }
                                         if (topicReplace) {
-                                            data2 = replaceTag(data2, "<topic>", "</topic>", topicReplace);
+                                            data2 = replaceTag(data2, "<topic", "</topic>", topicReplace);
                                         }
                                         if (descReplace) {
                                             data2 = replaceTag(data2, "<description>", "</description>", descReplace);
