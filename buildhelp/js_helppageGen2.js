@@ -811,7 +811,14 @@ var extractJsHelp = function() {
                                 var pageTopic = inherit.className + "." + methodDef.name;
                                 xml += "\t<symlink>" + protectXml(prefix + methodDef.name + ".xml") + "</symlink>\r\n";
                                 xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
-                                xml += "\t<topic>" + protectXml(pageTopic) + "</topic>\r\n";
+                                xml += "\t<topic";
+                                if (pageName.indexOf(" Method") > 0) {
+                                    var lastDotPos = pageName.lastIndexOf(".");
+                                    if (lastDotPos > 0) {
+                                        xml += " parent=\"" + inherit.className + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos) + "\" ";
+                                    }
+                                }
+                                xml += ">" + protectXml(pageTopic) + "</topic>\r\n";
                                 xml += "\t<description>" + protectXml(methodDef.description) + "</description>\r\n";
                                 xml += replace;
                                 xml += "</page>";
