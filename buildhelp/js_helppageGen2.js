@@ -770,6 +770,7 @@ var extractJsHelp = function() {
         if (inheritance.length > 0) {
             async.eachSeries(inheritance, function(inherit, callbackNextInherit) {
                 var from = inherit.inherits.toLowerCase().trim();
+				var replace = "\t<replace>/" + protectXml(inherit.inherits.trim()) + "/" + protectXml(inherit.className.trim()) + "/</replace>\r\n";
                 if (methodIndex[from]) {
                     var pathLast = inherit.inherits.split(".");
                     var prefix = "../" + pathLast[pathLast.length - 1] + "_class/";
@@ -801,6 +802,7 @@ var extractJsHelp = function() {
                                 xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
                                 xml += "\t<topic>" + protectXml(pageTopic) + "</topic>\r\n";
                                 xml += "\t<description>" + protectXml(methodDef.description) + "</description>\r\n";
+                                xml += replace;
                                 xml += "</page>";
                                 if (data === xml) {
                                     console.log(fn + " not changed");
