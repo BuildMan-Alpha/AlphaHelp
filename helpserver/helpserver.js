@@ -487,21 +487,12 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
                 var topicReplace = extractTag(data, "<topic>", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
-                var replaceText = extractTag(data, "<replace>", "</replace>");
-                if (replaceText) {
-                    replaceText = replaceText.trim();
-                    replaceText = replaceText.split("/");
-                    if (replaceText.length < 3)
-                        replaceText = null;
-                    else if (replaceText[0].length > 0)
-                        replaceText = null;
-                }
 
                 if (startSymLink < endSymLink) {
                     var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
                     if (newXmlFile && newXmlFile !== xmlFile) {
                         xmlFile = newXmlFile;
-                        if (shortLinkReplace || topicReplace || descReplace || replaceText) {
+                        if (shortLinkReplace || topicReplace || descReplace) {
                             remapped = true;
                             fs.readFile(xmlFile, "utf8", function(err2, data2) {
                                 if (!err) {
@@ -517,9 +508,6 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                         }
                                         if (descReplace) {
                                             data2 = replaceTag(data2, "<description>", "</description>", descReplace);
-                                        }
-                                        if (replaceText) {
-                                            data2 = replaceAll(data2, replaceText[1], replaceText[2]);
                                         }
                                         if (data2 === data) {
                                             // No changes
