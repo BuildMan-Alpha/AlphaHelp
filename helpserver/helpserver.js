@@ -1,12 +1,53 @@
 var express = require('express');
 var app = express();
-var options = require("./settings");
+var options = null;
+var noSearchFlag = false;
+var searchLocalFlag = false;
 var linksFileName = "/home/AlphaHelp/links.json";
+var errorLog = "/home/AlphaHelp/generated/helpserver_error.log";
+var validateLinksFile = "/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js";
+var helpfilesBasepath = "/home/AlphaHelp/helpfiles";
 var library = require("./assets/library");
-var Help = require('helpserver');
+var Help = require('helpserver');  
 var fs = require("fs");
 var https_credentails = null;
-console.log("\n\n\n#########################################################\n### Starting the server - time " + new Date() + "\n");
+
+for (arg in process.argv) {
+    if (process.argv[arg].search("-nosearch") !== -1 || process.argv[arg].search("-ns") !== -1) {
+        noSearchFlag = true;
+    }
+    if (process.argv[arg].search("-local") !== -1 || process.argv[arg].search("-l") !== -1) {
+        searchLocalFlag = true;
+    }
+    if (process.argv[arg].search("-help") !== -1 || process.argv[arg].search("-h") !== -1) {
+        console.log("Help for helpserver.js");
+        console.log("=================================================================================");
+        console.log("Input Flags:\n");
+        console.log("-nosearch, -ns                     Start helpserver without elastic search");
+        console.log("-local, -l                         Start helpserver using local search");
+        console.log("-help, -h                          Displays this help message.\n");
+        console.log("=================================================================================");
+        return;
+    }
+}
+var serverType = "";
+if (searchLocalFlag) {
+    options = require("./settingslocal");
+    serverType = "(searchlocal) ";
+} else if (noSearchFlag) {
+    options = require("./settingsnosearch");
+    linksFileName = "../links.json";
+    validateLinksFile = "./node_modules/helpserver/validateLinksFile.js";
+    errorLog = "../generated/helpserver_error.log";
+    helpfilesBasepath = "../helpfiles";
+    serverType = "(nosearch) ";
+} else {
+    options = require("./settings");
+}
+
+
+
+console.log("\n\n\n#########################################################\n### Starting the server "+serverType+"- time " + new Date() + "\n");
 if (options.https_port && options.privatekey && options.certificate) {
     https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }
 }
@@ -46,9 +87,9 @@ var events = {};
 var tocData = { altTocs: [], defaultPathMetadata: [] };
 options.library = library;
 
-fs.readFile("/home/AlphaHelp/generated/helpserver_error.log", "utf8", function (err, contents) {
+fs.readFile(errorLog, "utf8", function (err, contents) {
     if (!err && contents) {
-        fs.unlink("/home/AlphaHelp/generated/helpserver_error.log");
+        fs.unlink(errorLog);
         console.log("Last crash report:\n" + contents + "\n");
     }
 });
@@ -57,7 +98,7 @@ fs.readFile("/home/AlphaHelp/generated/helpserver_error.log", "utf8", function (
 process.on('uncaughtException', function (err) {
     try {
         var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
-        fs.writeFile("/home/AlphaHelp/generated/helpserver_error.log", nodeErrorLog, function (err2) {
+        fs.writeFile(errorLog, nodeErrorLog, function (err2) {
             process.exit(1);
         });
     } catch (err2) {
@@ -423,8 +464,8 @@ events.translateXML = function (xmlFile, htmlFile, callback) {
     });
 };
 events.beforeRefresh = function () {
-    var validateLinks = require("/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js");
-    validateLinks(linksFileName, "/home/AlphaHelp/helpfiles", function (result) {
+    var validateLinks = require(validateLinksFile);
+    validateLinks(linksFileName, helpfilesBasepath, function (result) {
         if (result.problems) {
             console.log("Found problems with links.json\n" + JSON.stringify(result.problems));
         }

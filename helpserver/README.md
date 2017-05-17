@@ -8,10 +8,10 @@ In the ./AlphaHelp/helpserver folder run
 npm update
 ```
 
-For a lightweight version of the help server, run the helpnosearch.js script.
+For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter.
 
 ```
-node helpnosearch.js
+node helpserver.js -nosearch
 ```
 
 The first time in, there will be no generated table-of-contents so you will need to refresh this, otherwise
@@ -22,11 +22,11 @@ none of the 'books' will have any child links - this can be done by opening a br
 After the refresh, navigate to the root URL  *127.0.0.1:3002/* , you should be able to navigate the 
 documentation site locally now.
 
-For a fully implementation (working search) run helplocal you will need to install and run the 
+For a fully implementation (working search) run helpserver.js with the -local parameter. You will need to install and run the 
 elasticsearch service on your system. 
 
 ```
-node helplocal.js
+node helpserver.js -local
 ```
 
 ## Maintaining the links.json file
