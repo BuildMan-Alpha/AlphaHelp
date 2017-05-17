@@ -543,11 +543,11 @@ var generateXMLHelp = function(content) {
         if (pageName.indexOf(" Method") > 0) {
             var lastDotPos = pageName.lastIndexOf(".");
             if (lastDotPos > 0) {
-                var classOrNamespace = pageName.substring(0, lastDotPos);
-                if (build.context[classOrNamespace]) {
-                    topStartTag = "\t<topic parent=\"" + classOrNamespace + "\" parentType=\"namespace\" >";
+                if (map && !map.classname) {
+                    console.log("classOrNamespace is a namespace");
+                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"namespace\" elementName=\"" + pageName.substring(lastDotPos) + "\" >";
                 } else {
-                    topStartTag = "\t<topic parent=\"" + classOrNamespace + "\" parentType=\"class\" >";
+                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos) + "\" >";
                 }
             }
         }
@@ -781,7 +781,7 @@ var extractJsHelp = function() {
         if (inheritance.length > 0) {
             async.eachSeries(inheritance, function(inherit, callbackNextInherit) {
                 var from = inherit.inherits.toLowerCase().trim();
-				var replace = "\t<replace>/" + protectXml(inherit.inherits.trim()) + "/" + protectXml(inherit.className.trim()) + "/</replace>\r\n";
+                var replace = "\t<replace>/" + protectXml(inherit.inherits.trim()) + "/" + protectXml(inherit.className.trim()) + "/</replace>\r\n";
                 if (methodIndex[from]) {
                     var pathLast = inherit.inherits.split(".");
                     var prefix = "../" + pathLast[pathLast.length - 1] + "_class/";
