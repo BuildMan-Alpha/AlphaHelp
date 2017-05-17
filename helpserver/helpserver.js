@@ -490,12 +490,21 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
+                var replaceNames = extractTag(data, "<replace>", "</replace>");
+                if (replaceNames) {
+                    replaceNames = replaceNames.split("/");
+                    if (replaceNames.length < 3) {
+                        replaceNames = null;
+                    } else if (replaceNames[0].length !== 0) {
+                        replaceNames = null;
+                    }
+                }
 
                 if (startSymLink < endSymLink) {
                     var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
                     if (newXmlFile && newXmlFile !== xmlFile) {
                         xmlFile = newXmlFile;
-                        if (shortLinkReplace || topicReplace || descReplace) {
+                        if (shortLinkReplace || topicReplace || descReplace || replaceNames) {
                             remapped = true;
                             fs.readFile(xmlFile, "utf8", function(err2, data2) {
                                 if (!err) {
@@ -511,6 +520,13 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                         }
                                         if (descReplace) {
                                             data2 = replaceTag(data2, "<description>", "</description>", descReplace);
+                                        }
+                                        if (replaceNames) {
+                                            var nReplacements = Math.floor(replaceNames.length / 3);
+                                            while (nReplacements > 0) {
+                                                --nReplacements;
+                                                data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
+                                            }
                                         }
                                         if (data2 === data) {
                                             // No changes
