@@ -9,10 +9,13 @@ var async = require('async');
 var secondaryLinks = {};
 
 var links = {}, link;
+var aliases = {};
+var duplicates = [];
 var usedNames = {};
 for (link in links) {
     usedNames[link.toLowerCase()] = links[link];
 }
+
 var extractTag = function (page, startTag, endTag) {
     var tagStart = page.indexOf(startTag);
     if (tagStart > 0) {
@@ -29,7 +32,7 @@ var removeCDATA = function (str) {
     if (str.substring(0, 9) === "<![CDATA[") {
         str = str.substring(9).split("]]>")[0].trim();
     }
-    return str;    
+    return str;
 }
 
 var containsNoSpecialChar = function (str) {
@@ -42,21 +45,26 @@ async.eachSeries(list, function (fo, callbackLoop) {
     if (fo.file.toLowerCase().indexOf('.xml') > 0 || fo.file.toLowerCase().indexOf('.html') > 0) {
         fs.readFile(fo.file, "utf8", function (err, page) {
             if (!err) {
+                var pageTopic = null;
+                var pageShortlink = null;
                 var topic = null;
                 if (fo.file.toLowerCase().indexOf('.xml') > 0) {
-                    topic = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim()).toLowerCase();
+                    pageShortlink = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim()).toLowerCase();
+                    pageTopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim()).toLowerCase();
+                    topic = pageShortlink;
                     if (topic.length === 0) {
-                        topic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim()).toLowerCase();
+                        topic = pageTopic;
                     } else {
-                        var secondarytopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim());
-                        if (secondarytopic.length !== 0) {
-                            secondarytopic = secondarytopic.toLowerCase();
-                            if (secondarytopic !== topic.toLowerCase() && containsNoSpecialChar(secondarytopic)) {
-                                if (!secondaryLinks[secondarytopic]) {
-                                    secondaryLinks[secondarytopic] = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
-                                }
-                            }
-                        }
+                        // Secondary Topic is replaced with aliases
+                        // var secondarytopic = pageTopic;
+                        // if (secondarytopic.length !== 0) {
+                        //     secondarytopic = secondarytopic.toLowerCase();
+                        //     if (secondarytopic !== topic.toLowerCase() && containsNoSpecialChar(secondarytopic)) {
+                        //         if (!secondaryLinks[secondarytopic]) {
+                        //             secondaryLinks[secondarytopic] = "/pages/" + fo.file.split("\\").join("/").split("/helpfiles/")[1];
+                        //         }
+                        //     }
+                        // }
                     }
                 } else {
                     var metatags = page.split("<meta");
@@ -68,14 +76,16 @@ async.eachSeries(list, function (fo, callbackLoop) {
                                 metatag = metatag.split('content=')[1].trim();
                                 var metatags = metatag.split(metatag.substring(0, 1));
                                 if (metatags.length > 2) {
-                                    topic = metatags[1].toLowerCase();
+                                    pageShortlink = metatags[1].toLowerCase();
+                                    topic = pageShortlink;
                                     break;
                                 }
                             }
                         }
                     }
+                    pageTopic = extractTag(page, "<title>", "</title>").trim().toLowerCase();
                     if (!topic) {
-                        topic = extractTag(page, "<title>", "</title>").trim().toLowerCase();
+                        topic = pageTopic
                         if (!topic) {
                             console.log("Warning no title or shortlink defined for " + fo.file);
                             topic = "";
@@ -99,11 +109,15 @@ async.eachSeries(list, function (fo, callbackLoop) {
                                     }
                                 }
                             }
+                            if (duplicates.indexOf(topic) === -1) {
+                                duplicates.push(topic);
+                            }
                             console.log("Duplicate symbol " + topic + " path " + pathName + " old key = " + usedName);
                         }
                     } else {
                         usedNames[topic.toLowerCase()] = pathName;
                         links[topic] = pathName;
+                        aliases[pageTopic.toLowerCase()] = topic.toLowerCase();
                     }
                 } else {
                     if (topic.length === 0) {
@@ -120,18 +134,32 @@ async.eachSeries(list, function (fo, callbackLoop) {
     }
 }, function () {
     // Add unused secondary links
-    var secondaryLink;
-    for(secondaryLink in secondaryLinks) {
-        if( !links[secondaryLink] ) {
-            links[secondaryLink] = secondaryLinks[secondaryLink];
-        }
+    // var secondaryLink;
+    // for(secondaryLink in secondaryLinks) {
+    //     if( !links[secondaryLink] ) {
+    //         links[secondaryLink] = secondaryLinks[secondaryLink];
+    //     }
+    // }
+
+    // Remove duplicates from aliases:
+    for (var i = 0; i < duplicates.length; i++) {
+        var lookup = duplicates[i];
+        delete aliases[lookup];
     }
     // Write the changes...
     fs.writeFile("../links.json", JSON.stringify(links, null, "  "), function (errW) {
         if (errW) {
-            console.log("Err writing links " + errW);
+            console.log("Error writing links " + errW);
         } else {
             console.log("links updated");
         }
     });
+
+    fs.writeFile("../aliases.json", JSON.stringify(aliases, null, "  "), function (errW) {
+        if (errW) {
+            console.log("Error writing aliases " + errW);
+        } else {
+            console.log("aliases updated");
+        }
+    })
 });
