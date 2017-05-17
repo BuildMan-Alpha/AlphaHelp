@@ -2,12 +2,12 @@
  * Generate help pages from javascript files
  */
 var keywordHash = {
-    "readonly": "readonly=\"true\""
-    , "writeonly": "writeonly=\"true\""
-    , "pseudo": "pseudo=\"true\""
-    , "optional": "optional=\"true\""
-    , "deprecated": "deprecated=\"true\""
-    , "obsolete": "obsolete=\"true\""
+    "readonly": "readonly=\"true\"",
+    "writeonly": "writeonly=\"true\"",
+    "pseudo": "pseudo=\"true\"",
+    "optional": "optional=\"true\"",
+    "deprecated": "deprecated=\"true\"",
+    "obsolete": "obsolete=\"true\""
 };
 var build = require("./build.json");
 var fs = require("fs");
@@ -17,13 +17,11 @@ var sourceFiles = [];
 var inheritance = [];
 var methodIndex = {};
 var lastContext = null;
-var dirCreateRecurs = function (folderName) {
+var dirCreateRecurs = function(folderName) {
     var stats = null;
     try {
         stats = fs.statSync(folderName);
-    }
-    catch (e) {
-    };
+    } catch (e) {};
 
     if (!stats || !stats.isDirectory()) {
         var parentFolderName = folderName.substring(0, folderName.lastIndexOf('/'));
@@ -33,7 +31,7 @@ var dirCreateRecurs = function (folderName) {
         fs.mkdirSync(folderName);
     }
 };
-var indentLevelCalc = function (txt) {
+var indentLevelCalc = function(txt) {
     var i;
     for (i = 0; i < txt.length; ++i) {
         if (txt[i] !== '\t') {
@@ -44,14 +42,14 @@ var indentLevelCalc = function (txt) {
     }
     return 0;
 };
-var processLink = function (linkDef) {
+var processLink = function(linkDef) {
     var parts = linkDef.split("{");
     if (parts.length === 2) {
-        linkDef = parts[0] +" "+ parts[1].replace("}", "") + " Object";
+        linkDef = parts[0] + " " + parts[1].replace("}", "") + " Object";
     }
     return linkDef;
 };
-var protectXml = function (content) {
+var protectXml = function(content) {
     if (content.indexOf("[link:") >= 0) {
         content = content.split("[link:")
         var i;
@@ -65,27 +63,27 @@ var protectXml = function (content) {
         }
         content = content.join("*[link:");
     }
-    if (content.indexOf("&") >= 0
-        || content.indexOf("<") >= 0
-        || content.indexOf(">") >= 0
+    if (content.indexOf("&") >= 0 ||
+        content.indexOf("<") >= 0 ||
+        content.indexOf(">") >= 0
     ) {
         content = "<![CDATA[" + content + "]]>";
     }
     return content;
 };
-var addPara = function (content) {
+var addPara = function(content) {
     content = content.trim().split("\r\n\r\n").join("\r\n</p>\r\n<p>\r\n");
     return "\r\n<p>\r\n" + content + "\r\n</p>\r\n";
 }
-var processTypes = function (type) {
-	if(type.indexOf("|") != -1){
-		type = type.split("|");
-		for(var i=0;i<type.length;i++) type[i] = "<type>" + type[i].trim() + "</type>";
-		return "<types>" + type.join("") + "</types>";
-	} else return "<type>" + type + "</type>";
+var processTypes = function(type) {
+    if (type.indexOf("|") != -1) {
+        type = type.split("|");
+        for (var i = 0; i < type.length; i++) type[i] = "<type>" + type[i].trim() + "</type>";
+        return "<types>" + type.join("") + "</types>";
+    } else return "<type>" + type + "</type>";
 }
 
-var processArgOrProc = function (line, dashPos, properties) {
+var processArgOrProc = function(line, dashPos, properties) {
     var argName = line.substring(0, dashPos).trim();
     var description = line.substring(dashPos + 1).trim();
     var typeIndex = argName.indexOf('(');
@@ -132,7 +130,7 @@ var processArgOrProc = function (line, dashPos, properties) {
     properties.push(lastObj);
     return lastObj;
 }
-var RecursProperties = function (properties, indented) {
+var RecursProperties = function(properties, indented) {
     var xml = "";
     if (properties.length > 0) {
         var i = 0;
@@ -176,7 +174,7 @@ var RecursProperties = function (properties, indented) {
     return xml;
 };
 
-var buildContext = function (content) {
+var buildContext = function(content) {
     var lines = content.split('\n');
     var line = null;
     var type = null;
@@ -221,7 +219,7 @@ var buildContext = function (content) {
     }
 }
 
-var generateXMLHelp = function (content) {
+var generateXMLHelp = function(content) {
     var lines = content.split('\n');
     var i;
     var context = lastContext;
@@ -409,8 +407,8 @@ var generateXMLHelp = function (content) {
                 } else {
                     examples += "\r\n" + lines[i].substr(exampleIndent).replace("\r", "");
                 }
-            } else if (lastType === "arguments"
-                || lastType === "args"
+            } else if (lastType === "arguments" ||
+                lastType === "args"
             ) {
                 if (dashPos > 0) {
                     if (!endTag && lastPropOrArg) {
@@ -451,8 +449,8 @@ var generateXMLHelp = function (content) {
                         lastPropOrArg = processArgOrProc(line, dashPos, returns);
                     }
                 }
-            } else if (lastType === "properties"
-                || lastType === "props"
+            } else if (lastType === "properties" ||
+                lastType === "props"
             ) {
                 if (dashPos > 0) {
                     if (!endTag && lastPropOrArg) {
@@ -679,11 +677,10 @@ var generateXMLHelp = function (content) {
     return { context: context.trim(), pagename: pageName, xml: xml, topContext: topContext };
 };
 
-var extractJsHelp = function () {
-    async.eachSeries(sourceFiles, function (path, callbackLoop) {
-        fs.readFile(path, "utf8", function (err, code) {
-            if (err) {
-                ;
+var extractJsHelp = function() {
+    async.eachSeries(sourceFiles, function(path, callbackLoop) {
+        fs.readFile(path, "utf8", function(err, code) {
+            if (err) {;
             } else {
                 var options = { loc: true, range: false, comment: true }
                 var syntax = esprima.tokenize(code, options);
@@ -753,33 +750,33 @@ var extractJsHelp = function () {
                 }
             }
             if (fileOps.length > 0) {
-                async.eachSeries(fileOps, function (fileOp, callbackLoopNested) {
+                async.eachSeries(fileOps, function(fileOp, callbackLoopNested) {
                     var folderName = fileOp.filename.substring(0, fileOp.filename.lastIndexOf('/'));
                     dirCreateRecurs(folderName);
-                    fs.writeFile(fileOp.filename, fileOp.xml, function (err) {
+                    fs.writeFile(fileOp.filename, fileOp.xml, function(err) {
                         if (err) {
                             console.log('Error writing ' + fileOp.filename + " error " + err);
                         }
                         callbackLoopNested();
                     });
-                }, function () {
+                }, function() {
                     callbackLoop();
                 });
             } else {
                 callbackLoop();
             }
         });
-    }, function () {
+    }, function() {
         if (inheritance.length > 0) {
-            async.eachSeries(inheritance, function (inherit, callbackNextInherit) {
+            async.eachSeries(inheritance, function(inherit, callbackNextInherit) {
                 var from = inherit.inherits.toLowerCase().trim();
                 if (methodIndex[from]) {
                     var pathLast = inherit.inherits.split(".");
                     var prefix = "../" + pathLast[pathLast.length - 1] + "_class/";
-                    async.eachSeries(methodIndex[from], function (methodDef, callBackNextMethod) {
+                    async.eachSeries(methodIndex[from], function(methodDef, callBackNextMethod) {
                         var map = build.context[inherit.className];
                         var fn = map.path + "/" + methodDef.name + ".xml";
-                        fs.readFile(fn, "utf8", function (err, data) {
+                        fs.readFile(fn, "utf8", function(err, data) {
                             var overwriteFile = false;
                             if (err) {
                                 overwriteFile = true;
@@ -798,15 +795,18 @@ var extractJsHelp = function () {
                                 callBackNextMethod();
                             } else {
                                 var xml = "<page>\r\n";
+                                var pageName = inherit.className + "." + methodDef.name;
+                                var pageTopic = inherit.className + "." + methodDef.name;
                                 xml += "\t<symlink>" + protectXml(prefix + methodDef.name + ".xml") + "</symlink>\r\n";
-                                xml += "\t<topic>" + protectXml(methodDef.name) + "</topic>\r\n";
+                                xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
+                                xml += "\t<topic>" + protectXml(pageTopic) + "</topic>\r\n";
                                 xml += "\t<description>" + protectXml(methodDef.description) + "</description>\r\n";
                                 xml += "</page>";
                                 if (data === xml) {
                                     console.log(fn + " not changed");
                                     callBackNextMethod();
                                 } else {
-                                    fs.writeFile(fn, xml, function (err) {
+                                    fs.writeFile(fn, xml, function(err) {
                                         if (err) {
                                             console.log("Error writing " + fn + " " + err);
                                         }
@@ -815,7 +815,7 @@ var extractJsHelp = function () {
                                 }
                             }
                         });
-                    }, function () {
+                    }, function() {
                         callbackNextInherit();
                     });
                 } else {
@@ -827,12 +827,12 @@ var extractJsHelp = function () {
 };
 
 
-var resolveFiles = function (folders) {
+var resolveFiles = function(folders) {
     var RecursFiles = [];
-    async.eachSeries(folders, function (path, callbackLoop) {
+    async.eachSeries(folders, function(path, callbackLoop) {
         if (path.indexOf("*") >= 0) {
             var folder = path.substring(0, path.lastIndexOf('/'));
-            fs.readdir(folder, function (err, list) {
+            fs.readdir(folder, function(err, list) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -854,7 +854,7 @@ var resolveFiles = function (folders) {
             sourceFiles.push(path);
             callbackLoop();
         }
-    }, function () {
+    }, function() {
         if (RecursFiles.length > 0) {
             resolveFiles(RecursFiles);
         } else {
@@ -865,4 +865,3 @@ var resolveFiles = function (folders) {
 };
 
 resolveFiles(build.javascript);
-
