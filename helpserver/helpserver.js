@@ -7,6 +7,8 @@ var linksFileName = "/home/AlphaHelp/links.json";
 var errorLog = "/home/AlphaHelp/generated/helpserver_error.log";
 var validateLinksFile = "/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js";
 var helpfilesBasepath = "/home/AlphaHelp/helpfiles";
+var aliasesFile = "/home/AlphaHelp/aliases.json";
+var aliases = {};
 var library = require("./assets/library");
 var Help = require('helpserver');  
 var fs = require("fs");
@@ -37,6 +39,7 @@ if (searchLocalFlag) {
 } else if (noSearchFlag) {
     options = require("./settingsnosearch");
     linksFileName = "../links.json";
+    aliasesFile = "../aliases.json";
     validateLinksFile = "./node_modules/helpserver/validateLinksFile.js";
     errorLog = "../generated/helpserver_error.log";
     helpfilesBasepath = "../helpfiles";
@@ -640,27 +643,49 @@ events.generateLocalToc = function (localNames) {
     return "";
 };
 events.loadIndex = function (callback) {
+
+    // Load links file
     fs.readFile(linksFileName, "utf8", function (err, data) {
         var hashObj = {};
         if (err) {
             console.log("Error loading links.json " + err);
-        }
-        var srcObj = null;
-        try {
-            srcObj = JSON.parse(data);
-        } catch (err) {
-        }
-        if (srcObj) {
-            for (var name in srcObj) {
-                var normalName = name.trim().toLowerCase();
-                var path = srcObj[name];
-                if (path.substring(0, 7) === "/pages/") {
-                    path = "/documentation" + path;
+        } else {
+            var srcObj = null;
+            try {
+                srcObj = JSON.parse(data);
+            } catch (err) {
+                console.log("Error parsing links.json " + err);
+            }
+            if (srcObj) {
+                for (var name in srcObj) {
+                    var normalName = name.trim().toLowerCase();
+                    var path = srcObj[name];
+                    if (path.substring(0, 7) === "/pages/") {
+                        path = "/documentation" + path;
+                    }
+                    hashObj[normalName] = path;
                 }
-                hashObj[normalName] = path;
             }
         }
         callback(hashObj);
+    });
+
+    // Load aliases file
+    fs.readFile(aliasesFile, "utf8", function (err, data) {
+        var hashObj = {};
+        if (err) {
+            console.log("Error loading aliases.json " + err);
+        } else {
+            var srcObj = null;
+            try {
+                srcObj = JSON.parse(data);
+            } catch (err) {
+                console.log("Error parsing aliases.json " + err);
+            }
+            if (srcObj) {
+                aliases = srcObj;
+            }
+        }
     });
 };
 events.extractSymbols = function (txt, title, path) {
@@ -935,7 +960,16 @@ events.postProcessContent = function (data) {
                                     }
                                 }
                             } else {
-                                linkdef = help.lookupLink(linkdef);
+                                var lookupurl = null;
+                                lookupurl = help.lookupLink(linkdef);
+                                if (!lookupurl && linkdef) {
+                                    // do alias lookup here
+                                    lookupurl = aliases[linkdef.toLowerCase()];
+                                    if (lookupurl) {
+                                        lookupurl = help.lookupLink(lookupurl);
+                                    }
+                                 }
+                                linkdef = lookupurl;
                             }
                             if (!linkdef) { // If no symbolic match, lets see if we have a symbolic value
                                 if (isURI(emph)) {
