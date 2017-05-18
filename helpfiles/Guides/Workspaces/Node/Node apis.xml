@@ -1,0 +1,239 @@
+<page build="4337">
+    <shortlink>workspaces node apis</shortlink>
+    <topic>Node APIs</topic>
+    <description>Extend the capabilities of Xbasic using Node APIs. With Node APIs, you can create Xbasic classes implemented using Node.JS for use in your mobile and web applications.</description>
+    <sections>
+        <section>
+            <figure>
+                <link>images/nodeapis_1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>A Node API is similar to a Node Service in that they both allow you to call code written in Node from Xbasic. The difference is in how you call the code.</p>
+                <p>A Node service exposes a single piece of functionality to Xbasic. You can invoke the Node service using the node_request_result() function. </p>
+                <p>For example, assume you have a Node service called mergeData. You would call this service, passing in arguments to the service, as follows:</p>
+            </description>
+            <example code="xb"><![CDATA[	dim p as p
+p.name = "Fred"
+p.city = "Boston"
+dim result as c
+result = node_request_result("mergeData",p)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>On the other hand, a Node API allows you to define an Xbasic class with multiple methods whose method are implemented using Node. Your Xbasic code invokes the Node code by calling methods on an Xbasic class instance. Your Xbasic code will create an instance of the class by declaring a variable of type ::NodeServices::name_of_your_Node_API and then calling methods of this class.</p>
+                <p>For example, assume you have created a Node API called myAPI and that this API exposes two methods, method1() and method2() and that each method takes a single character argument. Here is how you would invoke these methods from your Xbasic code:</p>
+                <p></p>
+            </description>
+            <example code="xb"><![CDATA['Dim an instance of the API class
+dim x as ::NodeServices::myAPI
+
+'now call methods of the class
+dim result1 as c = x.method1("alpha")
+dim result2 as c = x.method2("beta")]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In effect, the Node API allows you to extend Xbasic with methods that are implemented using Node.</p>
+                <p></p>
+                <p></p>
+            </description>
+            <note>Future versions of Alpha Anywhere will allow for another use of Node APIs. You will be able to expose REST APIs whose endpoints are implemented using a defined Node API.</note>
+        </section>
+        <section>
+            <title>How to Create a Node API</title>
+            <description>
+                <p>To create a new Node API, select the Node APIs category in the Web Control Panel and then click the New button.</p>
+                <p>This will open a dialog where you can name the Node API and define the methods and implementation for the API</p>
+                <p>The API methods are defined in the Definition pane (shown in the image below). The syntax used for defining the Node API methods is the same syntax used for defining an Xbasic class. Note that the Definition does not include any actual Xbasic code for implementing each method. It simply define the functions that the API will implement. </p>
+                <p>The actual implementation of the methods is coded in Node code on the Implementation pane. </p>
+            </description>
+            <figure>
+                <link>images/node_api_new2a.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Implementation pane fills in the stub Node code to implement the API methods. You will fill in the actual code for each of the functions in the API.</p>
+                <p></p>
+                <p></p>
+            </description>
+            <figure>
+                <link>images/nodecreateapidefinition.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When you click the Save button two files are created in the node_services folder in your Web Project</p>
+                <p></p>
+                <p></p>
+            </description>
+            <list>
+                <item>
+                    <name>&lt;node API name&gt;.a5api file</name>
+                    <description>This file contains the definition of the Node API (i.e. the code in the Definition pane shown in the above images)</description>
+                </item>
+                <item>
+                    <name>&lt;node API name&gt;.js file</name>
+                    <description>This file contains the Node Javascript code that implements the methods in the API.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>When you edit a previously create Node API, the .js file is opened in the Alpha Anywhere Javascript editor, but the editor toolbar shows a special button (API Definition...) at the right edge of the toolbar:</p>
+            </description>
+            <figure>
+                <link>images/nodeapiimplementation.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <title nested="2">Example</title>
+            <description>
+                <p>In this example, we will show how to create a Node API with four methods:</p>
+            </description>
+            <list>
+                <item>
+                    <name>readfile</name>
+                    <description>read a file using the Node 'fs' (fileSystem) module</description>
+                </item>
+                <item>
+                    <name>writefile</name>
+                    <description>write a file using the Node 'fs' module</description>
+                </item>
+                <item>
+                    <name>fileInfo</name>
+                    <description>get information about a file using the Node 'fs' module</description>
+                </item>
+                <item>
+                    <name>specialN</name>
+                    <description>perform some trivial arithmetic </description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Here is how this API is defined in the Definition pane of the Create Node API dialog:</p>
+            </description>
+            <figure>
+                <link>images/nodeapiexample.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The code is reproduced below:</p>
+            </description>
+            <example code="xb"><![CDATA[define class fileoperations
+    function readfile as c(filename as c)
+        helptext "read file"
+    end function
+    function writefile as l(filename as c ,contents as c)
+        helptext "write a file"
+    end function
+    function fileInfo as fileInfo(filename as c)
+        helptext "return information about a file"
+    end function
+    function specialN as n(n1 as n ,n2 as n)
+        helptext "does some math"
+    end function
+end class
+
+define class fileInfo
+    dim filename as c
+    dim filesize as n
+    dim fileTime as c
+end class]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the fileInfo method's return type is fileInfo. fileInfo is defined as a class that has these properties: filename, filesize and fileTime.</p>
+                <p>When you create Xbasic functions that return multiple values, it is common to define the return type of the function as P ( as pointer). In the case of a Node API definition, you cannot define a method whose return type is P. If you want to define a method that returns multiple values, you must define a class, as shown above, and set the function return type to the class.</p>
+                <p>The definition shown above simply defines what the methods of the Node API are and what input parameters each method takes. The Definition does not contain any Xbasic code to implement the functionality of each method.</p>
+                <p>The implementation for the above definition is shown below:</p>
+                <p>Note that the implementation is written using Node code.</p>
+            </description>
+            <example code="js"><![CDATA[exports.api = {
+    //read file
+    // inputs:
+        // call.arguments.filename - string
+    // returns: string
+    readfile : function(call) {
+        var fs = require('fs');
+        var _cb = function(err,data) {
+            if(err) {
+                call.error(err);
+            } else {
+                call.return(data)
+            }
+        }
+        fs.readFile(call.arguments.filename,'utf8',_cb);
+    },
+
+    //write a file
+    // inputs:
+        // call.arguments.filename - string
+        // call.arguments.contents - string
+    // returns: bool
+    writefile : function(call) {
+        var fs = require('fs');
+        var _cb = function(err) {
+            if(err) {
+                call.return(false)
+            } else {
+                call.return(true)
+            }
+        }
+        fs.writeFile(call.arguments.filename, call.arguments.contents,_cb);
+    },
+
+    //return information about a file
+    // inputs:
+        // call.arguments.filename - string
+    // returns: fileInfo { filename : "" , filesize : 1 , fileTime : "" }
+    fileInfo : function(call) {
+            var fs = require('fs');
+            var _cb = function(err,stats) {
+            if(err) {
+                call.error('file not found');
+            } else {
+                var _d = {filesize: stats['size'], 'fileTime' : stats['mtime'], filename: call.arguments.filename}
+                call.return( _d );
+            }
+    }
+    fs.stat(call.arguments.filename,_cb);
+},
+
+    //does some math
+    // inputs:
+        // call.arguments.n1 - number
+        // call.arguments.n2 - number
+    // returns: number
+        specialN : function(call) {
+            var n = call.arguments.n1 + call.arguments.n2
+            call.return(n);
+        }
+};]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The implementation is a Javascript file that exports an object with the same name as the Node API. This object has function for each of the methods in the API definition.</p>
+                <p>The prototype for the object is automatically created from the Node API definition.</p>
+                <p>Notice that the implementation of the fileInfo method returns an object with properties that match the definition of the properties of the fileInfo class in the Node API definition.</p>
+                <p>Each method defined in the Implementation takes as its input an argument called call. This argument is an object that has a property called arguments which contains the input parameters to the method and it also has two methods, return() and error(), that allow you to return a result from the function, or report an error.</p>
+                <p>To use this API from your Xbasic code:</p>
+            </description>
+            <example code="xb"><![CDATA['Dim an instance of the API class
+dim fo as ::NodeServices::fileoperations
+
+dim p as p
+p = fo.fileInfo("c:\myfiles\file1.txt")
+?p.filename
+= "c:\myfiles\file1.txt"
+?p.filesize
+= 2942097
+?p.fileTime
+= "2017-05-10T14:26:04.193Z"]]></example>
+        </section>
+    </sections>
+</page>

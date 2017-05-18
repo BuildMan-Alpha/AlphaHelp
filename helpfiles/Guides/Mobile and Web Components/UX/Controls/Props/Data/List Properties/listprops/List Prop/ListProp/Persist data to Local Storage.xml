@@ -1,231 +1,354 @@
-<page>
+<page build="4331">
     <shortlink>ux list builder list properties persist to local storage</shortlink>
- <topic>Persist data to Local Storage</topic>
-<description>Should the data in the List be saved in Local Storage on the device? This option is typically only checked 
-  if you are building a mobile application that can work when you are disconnected from the internet.
-</description> 
- 
-<sections>
-  
-  
-  <section>
-    <title>Interdependent Property Settings</title>
-    <description>When you build an application for disconnected operation you need to be sure that the data in the 
-      application is persisted to Local Storage; so that edits are that are made to any data are not lost if the application is restarted before the 
-      user has had a chance to synchronize the data with the server.
-    </description>
-    
-    <figure><title>Persist data to Local Storage in List Builder</title><link>images/storage2.png</link></figure>
-  </section>
-  
-    <section>
-    <figure><title>When checked</title><link>images/storage3.png</link></figure>
-  </section>
-  <section>
-  <description>In order to restore List data from Local Storage you Must also check the 'Restore data in List controls from Local Storage'
-     property in the 'Local Storage' section on the 'Properties' pane of the UX Builder. For a video guide on how this property can be used, watch these three videos: [video 1], [video 2], [video 3]. 
-  
-  </description>
-  <figure><title>The Local Storage section on the UX Properties page</title><link>images/storage.png</link></figure>
-  </section>
+    <topic>Persist data to Local Storage (or Filesystem)</topic>
+    <description>Should the data in the List be saved in Local Storage or File System on the device? This option is typically only checked if you are building a mobile application that can work when you are disconnected from the internet.</description>
+    <sections>
+        <section>
+            <description>When you build an application for disconnected operation you need to be sure that the data in the application is persisted to Local Storage or the File System to ensure edits are not lost when an application restarts or closes before the user has a chance to synchronize the data back to the server.</description>
+            <figure>
+                <title>Persist data to Local Storage in List Builder</title>
+                <link>images/storage2.png</link>
+            </figure>
+        </section>
+        <section>
+            <figure>
+                <title>When checked</title>
+                <link>images/storage3.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>In order to restore List data from Local Storage you Must also check the 'Restore data in List controls from Local Storage' property in the 'Local Storage' section on the 'Properties' pane of the UX Builder. For a video guide on how this property can be used, watch these three videos: [video 1], [video 2], [video 3].</description>
+            <figure>
+                <title>The Local Storage section on the UX Properties page</title>
+                <link>images/storage.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Using the File System to Persist List data</title>
+            <description>
+                <p>When you build a mobile app that is intended to operate offline, the typical pattern is to use List controls with Detail Views and to turn on the option to persist the List data to storage.</p>
+                <p>In web applications, data in the List can be persisted to the browser's localStorage, which is limited to about 5mb of data.</p>
+                <p>In mobile applications built with PhoneGap, data can be persisted to either Local Storage or the File System. Persisting data to the File System allows you to work with more than 5MB of data in mobile applications when the device is offline.</p>
+                <p>To turn on the feature to persist List data to the file system, set the *[ui:Persist where]* property to *[ui:FileSystem]*.</p>
+            </description>
+            <figure>
+                <link>images/listpersistwhere.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When you set the *[ui:Persist where]* option to *[ui:FileSystem]*, the Persist mode option is automatically set to Edits and the property is hidden.</p>
+                <p>If you set *[ui:Persist where]* to LocalStorage, you can set the Persist mode to either 'Full', or 'Edits'.</p>
+                <p>In 'Full' mode, each time the data in the List are edited, the entire List is persisted to localStorage (this is the mode that is implicitly used in all versions of Alpha Anywhere prior to this version).</p>
+                <p>In 'Edits' mode, each time the data in the List are edited, only the edited rows are persisted to storage. </p>
+            </description>
+            <note>If you select the *[ui:FileSystem]* option and your component is not running in PhoneGap, Alpha Anywhere will automatically set the option back to LocalStorage.</note>
+            <cases>
+                <case>
+                    <title nested="2"> How Persisting Data to the File System Works</title>
+                    <description>
+                        <p>When you persist List data to localStorage, when the List is initially populated the List data is persisted to localStorage. Each time the List data are edited, the entire List is persisted again to localStorage (unless you change the Persist mode option to Edits).  Because writing to localStorage is so fast, and because there is a built-in limit (of approximately 5mb) to the amount of data that must be written to localStorage on each edit, there is no perceptible delay when you are editing the data in the List.</p>
+                        <p>However, writing to the File System is much slower than writing to localStorage and because there is no longer a built-in limit as to the amount of data in the List, a different approach is taken when the *[ui:FileSystem]* option is used. When the List is initially populated, all of the data in the List are written to a file in the File System. Each time the List is edited, the only the rows in the List that have been edited are written to a second file in the  FileS ystem. This will file will typically be substantially smaller than the first file (that contains all of the List data), and since the file is likely very small, writing this file to the File System will be very fast, and again, there will be no perceptible delay when you are editing data in the List.</p>
+                        <p>When the List is synchronized data in the synced rows are written to a third file in the File System and the primary keys of any deleted rows are written to a fourth file in the File System. </p>
+                        <p>The filenames of these four files in the File System are:</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>&lt;namespace&gt;.LIST.&lt;listName&gt;</name>
+                            <description>The file that contains all of the List data. This file is only written to when the List is initially populated or refreshed. This file can be quite large (several megabytes) - much larger than would be allowed in localStorage.</description>
+                        </item>
+                        <item>
+                            <name>&lt;namespace&gt;.LISTEDITS.&lt;listName&gt;</name>
+                            <description>The file that contains the rows in the List that have been edited, but not yet synced. This file is updated each time the user makes an edit to the List data. This file is typically quite small.</description>
+                        </item>
+                        <item>
+                            <name>&lt;namespace&gt;.LISTSYNCEDEDITS.&lt;listName&gt;</name>
+                            <description>The file that contains the rows in the List that have been edited and synced. This file is updated after the user had synced the List data. This file is typically quite small.</description>
+                        </item>
+                        <item>
+                            <name>&lt;namespace&gt;.LISTSYNCEDDELETES.&lt;listName&gt;</name>
+                            <description>The file that contains the primary keys of the rows in the List that have been deleted. This file is updated after the user had synced the List data. This file is typically quite small.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <description>
+                        <p>Where:</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>&lt;listName&gt;</name>
+                            <description>The Id of the List.</description>
+                        </item>
+                        <item>
+                            <name>&lt;namespace&gt;</name>
+                            <description>The value of the Namespace property (see image below).</description>
+                        </item>
+                    </list>
+                    <figure>
+                        <link>images/localstoragenamespace.gif</link>
+                    </figure>
+                    <note>If the List data are being persisted to localStorage, the Namespace property is used in constructing the localStorage key name. If the List data are being persisted to the File System , the Namespace property is used in constructing the filenames for the four files used to persist the List data and edits.</note>
+                </case>
+                <case>
+                    <title nested="2">Location of the List Data Files in the File System</title>
+                    <description>
+                        <p>The files for the List data are stored in the device's 'saved' file system. The location of the device's 'saved' file system is returned by the {dialog.object}.phoneGapGetLocalDirURL('saved') method. The files are stored in a directory (called _offline by default) in this location.</p>
+                        <p>The following methods can be use to get the file system URL and folder for the List data files:</p>
+                        <p></p>
+                        <p></p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>{dialog.object}._persistFS()</name>
+                            <description>The file system URL of the directory in which the List data sub-directory is located</description>
+                        </item>
+                        <item>
+                            <name>{dialog.object}._persistFolder()</name>
+                            <description>The sub-folder in which the files are actually stored - name has a trailing / character.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <description>
+                        <p>The actual folder name of the files is therefore:</p>
+                    </description>
+                    <example code="js"><![CDATA[{dialog.object}._persistFS() + {dialog.object}._persistFolder()]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>For example, the fully qualified name of the file that contains all of the data in the List when the list is initially populated is therefore (assuming the List id is LIST1 and the UX Local Storage Namespace property was set to NS1):</p>
+                    </description>
+                    <example code="js"><![CDATA[{dialog.object}._persistFS() + {dialog.object}._persistFolder() + 'NS1.LIST.LIST1']]></example>
+                    <note>In the case where the component is running in AlphaLaunch, the base folder for the files is in a special folder returned by the  A5.shell.getAppFileStorageDir() method. The {dialog.object}._persistFS() will return the appropriate base folder name when the component is running in AlphaLaunch.</note>
+                </case>
+                <case>
+                    <title nested="2">List Virtualization</title>
+                    <description>
+                        <p>If you are populating a List with a large amount of data, it is *[strongly recommended]* that you turn on the List's virtualization feature. With virtualization turned on, populating a List with a large amount of data is substantially faster than populating the List with virtualization turned off.</p>
+                        <p>To turn on List virtualization, set the *[ui:Virtualization type]* property to *[ui:Dynamic]* as shown in the image below.</p>
+                    </description>
+                    <figure>
+                        <link>images/listvirtualizationproperty.jpg</link>
+                    </figure>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Persisting Data to Local Storage</title>
+            <cases>
+                <case>
+                    <title nested="2">Defining a UX List Control that can use 'Persist Data to Local Storage (or Filesystem)'</title>
+                    <description>In order to use this property it is necessary to first create the updatable list control to which it can be applied.</description>
+                    <steps>
+                        <step>
+                            <description>Open the UX Builder. On the UX Controls page view the Data Controls menu and click the [Textbox] option to add a textbox control to the component. Give the control the name 'search'.</description>
+                            <figure>
+                                <link>images/per.png</link>
+                            </figure>
+                        </step>
 
-
- <section>
-   <title>Defining a UX List Control that can use 'Persist Data to Local Storage'</title>
-   <description>In order to use this property it is necessary to first create the updatable list control to which it can be applied.</description>
-   
-   
-   <steps>
-     <step>
-       <description><![CDATA[Open the UX Builder. On the UX Controls page view the Data Controls menu and click the [Textbox] option to add a textbox 
-         control to the component. Give the control the name 'search'.]]>
-       </description>
-       <figure><link>images/per.png</link></figure>
-     </step>
-   
-        <step>
-       <description>Create five additional text box controls on the component. Give these the names city, contact, address, country, and company. Your control page 
-         should look something like this:
-       </description>
-       <figure><link>images/per1.png</link></figure>
-     </step>
-     
-     
-        <step>
-       <description><![CDATA[In the Data Controls menu and double click the [List] option to add a list control to the component.]]></description>
-       <figure><link>images/per2.png</link></figure>
-     </step>
-     
-        <step>
-       <description>Highlight the list control. In the control's properties list on the right find the List Properties. Click the [...] 
-         button next to the 'List properties' property to open the list builder.
-       </description>
-       <figure><link>images/hlight4.png</link></figure>
-     </step>
-        <step>
-       <description>Open the 'Data Source' pane of the list builder. In the Data Source Type menu select SQL</description>
-       <figure><link>images/per4.png</link></figure>
-     </step>
-        <step>
-       <description>Under SQL Data Source, set the Connection string property to the Northwind database. Set the Table name property to the Customers table. 
-         After doing this click the [...] button next to the "Field list" property and select the ContactName, CompanyName, City, Country, and Address fields. 
-       </description>
-       <figure><link>images/per5.png</link></figure>
-     </step>
-     <step>
-       <description>In the Return Value section of the Data Source page, set the Return value type to 'PrimaryKey'.</description>
-        <figure><link>images/per6.png</link></figure>
-     </step>
-        <step>
-       <description>Open the List Layout pane. Use the blue > arrow to move the fields that you just added from the 'Available fields' list to the 
-         'Columns in list'</description>
-       <figure><link>images/per7.png</link></figure>
-     </step>
-        <step>
-       <description>Open the Properties pane. Place a check next to both the 'Has Detail View' property and the 'Has Search Part' 
-         property.
-       </description>
-       <figure><link>images/per8.png</link></figure>
-     </step>
-        <step>
-       <description>Open the 'Detail View' pane. Under Detail View Properties make sure the Detail view type is set to FieldMap, then click the 
-         [...] button next to the Detail view field map property.
-       </description>
-       <figure><link>images/per9.png</link></figure>
-     </step>
-        <step>
-       <description>In the Define Field Map dialog click on each field and then click on the 'Map Field'' button. 
-         Select the textbox control name that corresponds to the field name and click OK. Repeat this process for all five fields.
-       </description>
-       <figure><link>images/per10.png</link></figure>
-       <note>The Auto-map Fields button will speed this process up</note>
-     </step>
-       <step>
-       <description>Now click the Detail View - Quick Setup Genie button at the bottom of the Detail View Pane.</description>
-       <figure><link>images/per11.png</link></figure>
-     </step>
-     
-     
-          <step>
-       <description>Check "Add buttons to the List Detail View to perform actions such as 'Save edits', Synchronize data', 'etc.'". 
-         Then check the 'Create buttons for most commonly used actions' option. Click OK.
-       </description>
-       <figure><link>images/per12.png</link></figure>
-     </step>
-     
-        <step>
-       <description>Add the button controls to the end of the component.</description>
-       <figure><link>images/per13.png</link></figure>
-     </step>
-        <step>
-       <description>Click OK to get back to the List Builder.</description>
-       <figure><link>images/per14.png</link></figure>
-     </step>
-     
-        <step>
-       <description>Open the Search Part. Under Search Part Style click the dropdown control next to the Search Part style property. 
-         Choose the 'SingleKeywordControl' option.
-       </description>
-       <figure><link>images/per15.png</link></figure>
-     </step>
-        <step>
-       <description>Click the [...] button next to the 'Keyword search fields' property. Check all five fields and click OK</description>
-       <figure><link>images/per16.png</link></figure>
-     </step>
-         <step>
-       <description>Set the Keyword search control to be the 'search' textbox defined earlier.</description>
-       <figure><link>images/per17.png</link></figure>
-     </step>
-   
-        <step>
-       <description>On the Controls page go to the 'Defined Controls' and click the List-Search Part-Buttons option. To add this button to the component</description>
-       <figure><link>images/per18.png</link></figure>
-     </step>
-        <step>
-       <description>The 'Select Buttons for the List's Search Part' will appear. Highlight the list control in the top menu and then check the 'Submit Search' option.</description>
-       <figure><link>images/per19.png</link></figure>
-     </step>
-        <step>
-       <description>Move all of the controls into the following arrangement using the up and down blue arrows in the Controls page. You might need to add a container and turn off 
-         some toggles to make everything look alright in Working Preview.
-       </description>
-       <figure><link>images/per20.png</link></figure>
-     </step>
-         <step>
-       <description>Run in Working Preview. </description>
-       <figure><link>images/per21.png</link></figure>
-     </step>
-      <step>
-       <description>Now click on one of the records. You should see the fields appear in the Detail View you defined. Make a change to one of the records and click
-         the component's Save' button. 
-       </description>
-       <figure><link>images/per22.png</link></figure>
-     </step>
-         <step>
-       <description>Close working preview by opening the 'Design pane'. Then re-open it. The changes you made should not appear in the updated record.</description>
-       <figure><link>images/per23.png</link></figure>
-     </step>
-     
-   </steps>
-   
- </section>
- <section>
-   <title>Using 'Persist Data to Local Storage'</title>
-   <steps>
-      <step>
-       <description>Highlight the list control and reopen the List Builder from the List properties property.</description>
-       <figure><link>images/hlight4.png</link></figure>
-     </step>
-     
-     
-        <step>
-       <description>Go to the List Builder's 'List Properties' pane. Check the 'Persist data to Local Storage' checkbox. Click OK to close the List Builder.</description>
-       <figure><link>images/per24.png</link></figure>
-     </step>
-     
-        <step>
-       <description>Open the UX Properties page. Scroll down to the Local Storage Properties. Change the 'Namespace' property to be 'DEMO1</description>
-       <figure><link>images/per25.png</link></figure>
-     
-     </step>
-     
-        <step>
-       <description>Check the 'Restore data in List controls from Local Storage property. </description>
-       <figure><link>images/per26.png</link></figure>
-     </step>
-     
-     
-     
-     
-        <step>
-       <description>Run in Working Preview. Make some changes to a file and click the Save button in the component. 
-       </description>
-       <figure><link>images/per27.png</link></figure>
-     </step>
-        <step>
-       <description>This time when you go to the design tab and 
-         then re-open the Working Preview page you should see your changes are still there.</description>
-       <figure><link>images/per28.png</link></figure>
-     </step>
-
-     
-     
-   </steps>
-   
-   
- </section>
- 
- 
- 
- 
- 
-</sections> 
- <links>
-   
-   <link href="images/open.png">...</link>
-   <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_1.swf">video 1</link>
-   <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_2.swf">video 2</link>
-   <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_3.swf">video 3</link>
- </links>
+                        <step>
+                            <description>Create five additional text box controls on the component. Give these the names city, contact, address, country, and company. Your control pageshould look something like this:</description>
+                            <figure>
+                                <link>images/per1.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Data Controls menu and double click the [List] option to add a list control to the component.</description>
+                            <figure>
+                                <link>images/per2.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Highlight the list control. In the control's properties list on the right find the List Properties. Click the [...] button next to the 'List properties' property to open the list builder.</description>
+                            <figure>
+                                <link>images/hlight4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Open the 'Data Source' pane of the list builder. In the Data Source Type menu select SQL</description>
+                            <figure>
+                                <link>images/per4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Under SQL Data Source, set the Connection string property to the Northwind database. Set the Table name property to the Customers table. After doing this click the [...] button next to the "Field list" property and select the ContactName, CompanyName, City, Country, and Address fields.</description>
+                            <figure>
+                                <link>images/per5.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Return Value section of the Data Source page, set the Return value type to 'PrimaryKey'.</description>
+                            <figure>
+                                <link>images/per6.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Open the List Layout pane. Use the blue > arrow to move the fields that you just added from the 'Available fields' list to the 'Columns in list'</description>
+                            <figure>
+                                <link>images/per7.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Open the Properties pane. Place a check next to both the 'Has Detail View' property and the 'Has Search Part' property.</description>
+                            <figure>
+                                <link>images/per8.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Open the 'Detail View' pane. Under Detail View Properties make sure the Detail view type is set to FieldMap, then click the [...] button next to the Detail view field map property.</description>
+                            <figure>
+                                <link>images/per9.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>In the Define Field Map dialog click on each field and then click on the 'Map Field'' button. Select the textbox control name that corresponds to the field name and click OK. Repeat this process for all five fields.</description>
+                            <figure>
+                                <link>images/per10.png</link>
+                            </figure>
+                            <note>The Auto-map Fields button will speed this process up</note>
+                        </step>
+                        <step>
+                            <description>Now click the Detail View - Quick Setup Genie button at the bottom of the Detail View Pane.</description>
+                            <figure>
+                                <link>images/per11.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Check "Add buttons to the List Detail View to perform actions such as 'Save edits', Synchronize data', 'etc.'". Then check the 'Create buttons for most commonly used actions' option. Click OK.</description>
+                            <figure>
+                                <link>images/per12.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Add the button controls to the end of the component.</description>
+                            <figure>
+                                <link>images/per13.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Click OK to get back to the List Builder.</description>
+                            <figure>
+                                <link>images/per14.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>
+                                Open the Search Part. Under Search Part Style click the dropdown control next to the Search Part style property.
+                                Choose the 'SingleKeywordControl' option.
+                            </description>
+                            <figure>
+                                <link>images/per15.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Click the [...] button next to the 'Keyword search fields' property. Check all five fields and click OK</description>
+                            <figure>
+                                <link>images/per16.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Set the Keyword search control to be the 'search' textbox defined earlier.</description>
+                            <figure>
+                                <link>images/per17.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>On the Controls page go to the 'Defined Controls' and click the List-Search Part-Buttons option. To add this button to the component</description>
+                            <figure>
+                                <link>images/per18.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The 'Select Buttons for the List's Search Part' will appear. Highlight the list control in the top menu and then check the 'Submit Search' option.</description>
+                            <figure>
+                                <link>images/per19.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Move all of the controls into the following arrangement using the up and down blue arrows in the Controls page. You might need to add a container and turn off some toggles to make everything look alright in Working Preview.</description>
+                            <figure>
+                                <link>images/per20.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Run in Working Preview.</description>
+                            <figure>
+                                <link>images/per21.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Now click on one of the records. You should see the fields appear in the Detail View you defined. Make a change to one of the records and click the component's Save' button.</description>
+                            <figure>
+                                <link>images/per22.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Close working preview by opening the 'Design pane'. Then re-open it. The changes you made should not appear in the updated record.</description>
+                            <figure>
+                                <link>images/per23.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </case>
+                <case>
+                    <title nested="2">Using 'Persist Data to Local Storage (or Filesystem)'</title>
+                    <steps>
+                        <step>
+                            <description>Highlight the list control and reopen the List Builder from the List properties property.</description>
+                            <figure>
+                                <link>images/hlight4.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Go to the List Builder's 'List Properties' pane. Check the *[ui:Persist data to Local Storage (or Filesystem)]* checkbox. Click OK to close the List Builder.</description>
+                            <figure>
+                                <link>images/per24.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Open the UX Properties page. Scroll down to the Local Storage Properties. Change the 'Namespace' property to be 'DEMO1</description>
+                            <figure>
+                                <link>images/per25.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Check the 'Restore data in List controls from Local Storage property.</description>
+                            <figure>
+                                <link>images/per26.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>Run in Working Preview. Make some changes to a file and click the Save button in the component.</description>
+                            <figure>
+                                <link>images/per27.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>This time when you go to the design tab and then re-open the Working Preview page you should see your changes are still there.</description>
+                            <figure>
+                                <link>images/per28.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Deleting Storage</title>
+            <description>
+                <p>Deleting the files that contain the List data can be useful when debugging an application. You can delete the files that contain the List data using this Javascript:</p>
+            </description>
+            <example code="js"><![CDATA[var ls = {dialog.object}._localStorageSettings;
+{dialog.object}._persistToLocalStorageInitializeKeys(ls,'listId',true);]]></example>
+        </section>
+    </sections>
+    <links>
+        <link href="images/open.png">...</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_1.swf">video 1</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_2.swf">video 2</link>
+        <link href="http://www.ajaxvideotutorials.com/V12Videos/UX_LocalStorage_3.swf">video 3</link>
+    </links>
 
 </page>
