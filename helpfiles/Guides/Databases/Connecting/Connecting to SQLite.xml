@@ -1,0 +1,117 @@
+<html>
+	<topic>Connecting to SQLite</topic>
+<description>SQLite connections in Alpha Anywhere do not require any configuration.  Alpha Anywhere includes all software required.</description>
+	<sections>
+		<section>
+			<title>How SQLite Works</title>
+			<cases>
+				<case>
+					<description>SQLite is, as its name implies, a lightweight database engine.  
+								It can store data in memory, in a temporary file, or in a single permanent file on disk.
+								For more information on SQLite see <link>https://www.sqlite.org</link>
+								</description>
+				</case>
+			</cases>
+		</section>
+
+		<section>
+			<title>Databases in SQLite</title>
+					<description>A SQLite database may be in any one of three locations:</description></li>
+			<cases>
+				<case>
+					<description><strong>Permanent File</strong> - If you provide a valid path and file name, SQLite will open the file and store table data in that file.  This is the most common usage</description>
+				</case>
+				<case>
+					<description><strong>In Memory</strong> - If you open a database named ':memory:', SQLite stores all data in memory; deleting it when the connection is closed. 
+									This can be useful when you want to manipulate data using SQL put do so in memory.
+									</description>
+				</case>
+				<case>
+					<description><strong>Temporary File</strong> - If you completely omit the database name in the connection string (or set it to an empty string)SQLite automatically creates a temporary file, stores all data in that file and then deletes the file when the connection is closed. </description>
+				</case>
+			</cases>
+		</section>
+				
+		<section>
+			<title>SQLite ConnectionString Properties</title>
+				<case>
+					<ul>
+					<li><description><strong>A5API</strong> - Setting the connection property A5API to 'SQLite' will load the SQLite driver when you open a connection.</description></li>
+					<li><description><strong>A5Database</strong> - If you provide a valid path and file name as the value to the A5Database connection property, SQLite will open the file and store table data in that file.</description></li>
+					<li><description><strong>A5BusyTimeout </strong>When sharing a SQLite database and there are multiple concurrent operations being performed at once, you may encounter a "busy timeout" error. If this should occur, you can set the timeout by assigning A5BusyTimeout to a set period of time (in milliseconds), or to 'Infinite' (not recommended) to wait forever.  The default behavior is generally sufficient.</description></li>
+					<li><description><strong>A5CreateOnOpen </strong>You can select to create the file if it is not found when the database connection is opened.  Setting the A5CreateOnOpen connection string property to 'Y' will create the file when the connection is opened if it does not exist.  <strong>Note: </strong>The path must already exist.</description></li>
+					<li><description><strong>A5ReadOnly </strong>If you set the A5ReadOnly connection property to 'Y', the file will be opened for read only and updates will not be allowed.</description></li>
+					<li><description><strong>A5TraceSQL </strong>Setting the A5TraceSQL connection property to 'Y', causes the connection to write an entry will be written to the SQL trace tab accessible from the View and then Trace Window menu options in Alpha Anywhere each time a SQL statement is processed.</description></li>
+					<li><description><strong>A5InitalCommand </strong>The A5Initial connection property can contain a string of commands (separated by semicolons ';') to be executed each time the connection is opened.</description></li>
+					<ul>
+				</case>
+			</cases>
+			
+		</section>
+		<section>
+			<title>Using the SQLite Connection String Dialog</title>
+			<description>When you select SQLite as your connection type in the connection string dialog, the dialog below will be displayed.  
+						You can select the database file and set any other options you need to.  
+						The values you select will be generated into the connection string at the top of the dialog for you as you make changes.
+					</description>
+			<cases>
+				<case>
+				<description>The SQLite connection string dialog has a tab page for general properties and a tab to set one or more initial commands. 
+						 Each of the properties they said are described above.</description>
+				<figure><link>images/SQLiteConnectionStringDialog_General.png</link></figure>
+				</case>
+
+				<case>
+				<description>Each time your connection opens, commands that you set into the A5InitialCommand connection string property are executed.
+						 This is especially imporant for commands that must be executed everytime a new connection is opened as sometimes an new connection is opened implicitly (such as when you hold onto a result set from an open connection.
+						 You can use these commands to invoke SQLite pragmas or to attach external databases (discussed below).
+						 Each of the properties they said are described above.</description>
+				<figure><link>images/SQLiteConnectionStringDialog_InitialCommand.png</link></figure>
+				</case>
+
+				<case>
+				<description>You can create a database from the connection string dialog by clicking on the "Create Database" button.
+						The dialog below will be displayed.
+						Type or browse for a path and enter a database name (by convention, SQLite databases generally have an extension of '.db'. 
+						Click 'Save' in the browse dialog and then 'OK' in the Create SQLite Database dialog to create a new database file.
+						<strong> Note: </strong> The name of your new file is automatically set into he database name field.</description>
+				<figure><link>images/SQLiteConnectionStringDialog_CreateDatabase.png</link></figure>
+				</case>
+			</cases>
+		</section>
+		<section>
+			<title>Attaching Databases to a SQLite Connection</title>
+			<cases>
+				<case>
+				<description>A SQLite connection has a primary database known as 'main' and may also attach other databases using the "attach database" command.
+						This can be useful when you have a set of data that is shared with multiple databases (such as a price or cost database),
+						or you want to work with tables but not fragment your permanent database file.
+						</description>
+				</case>
+				<case>
+				<description><strong>For example: </strong>attach database 'c:\temp\mydatabase.db' as mydatabase</description>
+				</case>
+				<case>
+				<description>When you attach a database, that database is addressed using the alias you assign in 'as' clause.  
+						Alpha Anywhere treats this connection as a schema and you must include the alias (mydatabase in this case) when referring to the tables in the attached database.
+				</case>
+			</cases>
+		</section>
+		<section>
+			<title>Using Portable SQL with SQLite</title>
+			<cases>
+				<case>
+				<description>A SQLite connection automatically selects SQLite as it's syntax.  
+						This syntax handler reads table information, and generates DDL (Data Definition Language such as CREATE TABLE, DROP TABLE), DML (Data Manipulation Language such as SELECT, INSERT, UPDATE, DELETE).
+						It is also responsible for translating AlphaDAO Portable SQL functions into native implementations.   
+						Although geography functions are not currently supported, SQLite has been extended to support all other portable SQL functions.</description>
+				</case>
+				<case>
+				<description><strong>Note: </strong>This syntax may be used with ODBC or ADO.Net drivers, but will not support all of the portable SQL functions that using the SQLite driver will; as the functions are implemented in the Alpha Anywhere SQLite driver.
+						</description>
+				</case>
+			</cases>
+		</section>
+</sections>
+	
+</page>
