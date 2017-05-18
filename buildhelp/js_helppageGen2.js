@@ -543,7 +543,7 @@ var generateXMLHelp = function(content) {
         if (pageName.indexOf(" Method") > 0) {
             var lastDotPos = pageName.lastIndexOf(".");
             if (lastDotPos > 0) {
-                if (map && !map.classname) {
+                if (map && map.type === "namespace") {
                     console.log("classOrNamespace is a namespace");
                     topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"namespace\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
                 } else {
@@ -571,7 +571,24 @@ var generateXMLHelp = function(content) {
             xml += "\t<topic>" + protectXml(titleContext + contextType) + "</topic>\r\n";
             titleContext = null;
         } else {
-            xml += "\t<topic>" + protectXml(context + contextType) + "</topic>\r\n";
+            var lastDotPos = context.lastIndexOf(".");
+            var parentContextName = null;
+            var parentContextType = null;
+            var elementName = null;
+            if (lastDotPos > 0) {
+                parentContextName = context.substring(0, lastDotPos);
+                if (build.context[parentContextName].type === "class") {
+                    parentContextType = "class";
+                } else {
+                    parentContextType = "namespace";
+                }
+                elementName = context.substring(lastDotPos + 1) + contextType;
+            }
+            if (parentContextName) {
+                xml += "\t<topic parent=\"" + parentContextName + "\" parentType=\"" + parentContextType + "\" elementName=\"" + elementName + "\" >" + protectXml(context + contextType) + "</topic>\r\n";
+            } else {
+                xml += "\t<topic>" + protectXml(context + contextType) + "</topic>\r\n";
+            }
         }
     }
     if (inheritsFrom) {
