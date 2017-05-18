@@ -5,13 +5,102 @@
 		<argument>
 			<name>jsonMap</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Shape of JSON to format to</description>
 		</argument>
 		<argument>
 			<name>json</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Flat JSON to supply to template.</description>
 		</argument>
 	</arguments>
 	<description>Format mapped json (create the structured json).</description>
+	<discussion>
+It is sometimes necessary to 'reshape' a JSON document, changing property names, creating arrays and objects from properties, etc.
+The *[xbasic:extension::JSON::FormatMapped()]* method allows you to do this.
+The method takes two arguments:
+</discussion>
+<sections>
+<section>
+<description>
+    a map the describes how the JSON should be reshaped. The map is itself a JSON document
+    a JSON file. The JSON data to be reshaped
+</description>
+</section>
+<section>
+<description>
+For example, consider the following input JSON file:
+</description>
+</section>
+<section>
+<example>
+<![CDATA[
+dim jsonIn as c
+jsonIn = <<%str%
+{
+    "id" : "001",
+    "fname" : "John" ,
+    "lname" : "Doe",
+    "address1" : "12 Main Street",
+    "address2" : "Box 20"
+}
+%str%
+]]>
+</example>
+</section>
+<section>
+<description>
+Say you want to reshape this JSON document so that it looks like this:
+</description>
+</section>
+<section>
+<example>
+{
+    "person": {
+        "id": "001",
+        "firstname": "john",
+        "lastname": "public",
+        "address": [
+            "12 Main Street",
+            "box 20"
+        ]
+    }
+}
+</example>
+</section>
+<section>
+<description>Here is the Map that would define to achieve the above transformation:</description>
+</section>
+<section>
+<example>
+<![CDATA[
+dim jsonMap as c = <<%str%
+{
+    "person" : {
+        "id" : "id" ,
+        "firstname" : "fname" ,
+        "lastname" : "lname" ,
+        "address" : [ "address1" , "address2" ]
+    }
+}
+%str%
+]]>
+</example> 
+</section>
+<section>
+<description>
+Notice that in the input JSON, there is a flat list of properties. The firstname and lastname properties are called "fname" and "lname"
+In the output document, the firstname and lastname properties are called "firstname" and "lastname", the two address fields are in an array called "address" and all of the properties are now a child of a new object called "person"
+Here is how you would transform the input JSON (jsonIn) using the map (jsonMap)
+</description>
+</section>
+<section>
+
+<example> 
+dim jsonOut as c
+jsonOut = extension::Json::FormatMapped(jsonmap,jsonin)
+jsonOut2 = json_reformat(jsonOut) 'format the JSON
+</example> 
+ 
+</section>
+</sections>
 </page>
