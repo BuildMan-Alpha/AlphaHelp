@@ -5,13 +5,103 @@
 		<argument>
 			<name>jsonMap</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Template that is the shape of JSON to extract from.</description>
 		</argument>
 		<argument>
 			<name>json</name>
 			<type>C</type>
-			<description>&#160;</description>
+			<description>Structured data for populate from</description>
 		</argument>
 	</arguments>
 	<description>Extract mapped json (create the flat json with the element).</description>
+	<discussion>
+	 Creates a flattened JSON object from a complex JSON object. The flattened JSON object has all properties at the top level, with no nested objects are arrays.
+The *[xbasic:extension::JSON::ExtractMapped()]* method allows you to do this.
+Assume you have a complex JSON document as shown below. Note that the only top-level property is "person"
+	</discussion>
+	<sections>
+	<section>
+	<example><![CDATA[
+dim jsonIn as c
+jsonIn = <<%json%
+{
+    "person": {
+        "id": "001",
+        "firstname": "John",
+        "lastname": "Dublic",
+        "address": [
+            "12 Main Street",
+            "Box 20"
+        ],
+        "otherInfo" : {
+
+            "x": "value of x",
+
+            "y" : "value of y"
+
+        }
+    }
+}
+%json%	
+]]></example>
+     </section>
+	<section>
+	<description>
+Say you want to flatten this JSON document so that all properties are at the top level and also change some of the property names. The resulting JSON document should look like this: 
+	</description>
+    </section>
+	<section>
+	<example><![CDATA[
+{
+    "id": "001",
+    "fname": "john",
+    "lname": "public",
+    "address1": "12 Main Street",
+    "address2": "box 20",
+    "x_value": "value of x",
+    "this is the y value": "value of y"
+}
+]]></example>
+     </section>
+	<section>
+	<description>
+	Here is the Map that would define to achieve the above transformation:
+	</description>
+    </section>
+	<section>
+	<example><![CDATA[
+dim jsonMap as c
+jsonMap = <<%json%
+{
+    "person" : {
+        "id" : "id" ,
+        "firstname" : "fname" ,
+        "lastname" : "lname" ,
+        "address" : [ "address1" , "address2" ],
+        "otherInfo" : {
+
+            "x" : "x_value",
+
+            "y" : "this is the y value"
+
+        }
+    }
+}
+%json%
+]]></example>
+     </section>
+	<section>
+	<description>
+	Here is how you would transform the input JSON (jsonIn) using the map (jsonMap)
+	</description>
+    </section>
+	<section>
+	<example><![CDATA[
+dim jsonout as c
+jsonOut = extension::Json::ExtractMapped(jsonMap,jsonIn)
+dim jsonout2 as c
+jsonout2 = json_reformat(jsonout) 'format the JSON
+]]></example>
+     </section>
+     </sections>
 </page>
