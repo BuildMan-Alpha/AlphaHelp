@@ -491,6 +491,19 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
+
+                var extractBuild = function (data) {
+                    var build = data.split('build="');
+                    if (build.length > 1) {
+                        build = build[1].split('"')[0];
+                    } else {
+                        build = null;
+                    }
+                    return build;
+                };
+
+                var build = extractBuild(data);
+
                 if (replaceNames) {
                     replaceNames = replaceNames.split("/");
                     if (replaceNames.length < 3) {
@@ -504,7 +517,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                     var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
                     if (newXmlFile && newXmlFile !== xmlFile) {
                         xmlFile = newXmlFile;
-                        if (shortLinkReplace || topicReplace || descReplace || replaceNames) {
+                        if (shortLinkReplace || topicReplace || descReplace || replaceNames || build) {
                             remapped = true;
                             fs.readFile(xmlFile, "utf8", function(err2, data2) {
                                 if (!err) {
@@ -512,6 +525,16 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                     var splitNameAt = htmlFile.lastIndexOf(".");
                                     if (splitNameAt > 0) {
                                         var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
+                                        if (build) {
+                                            var buildStr = ' build="' + build + '"';
+                                            var oldBuild = extractBuild(data2);
+                                            if (oldBuild === null) {
+                                                var insertPos = data2.indexOf(">");
+                                                data2 = data2.substr(0, insertPos) + buildStr + data2.substr(insertPos);
+                                            } else {
+                                                data2 = data2.replace(' build="' + oldBuild + '"', buildStr);
+                                            }
+                                        }
                                         if (shortLinkReplace) {
                                             data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
                                         }
