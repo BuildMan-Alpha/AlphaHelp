@@ -216,6 +216,22 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
     return result;
 }
 
+events.lookupLink = function (indexLinks, symName) {
+    if (indexLinks) {
+        var indexVal = symName.toLowerCase();
+        var val = indexLinks[indexVal];
+        if (!val) {
+            // lookup in aliases
+            indexVal = aliases[indexVal];
+            if (indexVal) {
+                val = indexLinks[indexVal];
+            }
+        }
+        return val;
+    }
+    return null;
+};
+
 events.pageIndexer = function(args, savePage) {
     // just error out for now...
     var filename = args.filename;
