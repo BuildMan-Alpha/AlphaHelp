@@ -483,27 +483,22 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
             });
         };
         if (!err) {
-            var startSymLink = data.indexOf("<symlink>");
+            var symlink = extractTag(data,"<symlink>","</symlink>");
             var remapped = false;
-            if (startSymLink > 0) {
-                var endSymLink = data.indexOf("</symlink>");
+            if (symlink) {
                 var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
 
                 var extractBuild = function (data) {
-                    if (data.split) {
-                        var build = data.split('build="');
-                        if (build.length > 1) {
-                            build = build[1].split('"')[0];
-                        } else {
-                            build = null;
-                        }
-                        return build;
+                    var build = data.split('build="');
+                    if (build.length > 1) {
+                        build = build[1].split('"')[0];
                     } else {
-                        return null;
+                        build = null;
                     }
+                    return build;
                 };
 
                 var build = extractBuild(data);
@@ -517,65 +512,63 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                     }
                 }
 
-                if (startSymLink < endSymLink) {
-                    var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
-                    if (newXmlFile && newXmlFile !== xmlFile) {
-                        xmlFile = newXmlFile;
-                        if (shortLinkReplace || topicReplace || descReplace || replaceNames || build) {
-                            remapped = true;
-                            fs.readFile(xmlFile, "utf8", function(err2, data2) {
-                                if (!err) {
-                                    // Create temporary XML that has changes...
-                                    var splitNameAt = htmlFile.lastIndexOf(".");
-                                    if (splitNameAt > 0) {
-                                        var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
-                                        if (build) {
-                                            var buildStr = ' build="' + build + '"';
-                                            var oldBuild = extractBuild(data2);
-                                            if (oldBuild === null) {
-                                                var insertPos = data2.indexOf(">");
-                                                data2 = data2.substr(0, insertPos) + buildStr + data2.substr(insertPos);
-                                            } else {
-                                                data2 = data2.replace(' build="' + oldBuild + '"', buildStr);
-                                            }
-                                        }
-                                        if (shortLinkReplace) {
-                                            data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
-                                        }
-                                        if (topicReplace) {
-                                            data2 = replaceTag(data2, "<topic", "</topic>", topicReplace);
-                                        }
-                                        if (descReplace) {
-                                            data2 = replaceTag(data2, "<description>", "</description>", descReplace);
-                                        }
-                                        if (replaceNames) {
-                                            var nReplacements = Math.floor(replaceNames.length / 3);
-                                            while (nReplacements > 0) {
-                                                --nReplacements;
-                                                data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
-                                            }
-                                        }
-                                        if (data2 === data) {
-                                            // No changes
-                                            xsltTransformFile(xmlFile, htmlFile, callback);
+                var newXmlFile = resolveXmlFilePath(xmlFile, symlink);
+                if (newXmlFile && newXmlFile !== xmlFile) {
+                    xmlFile = newXmlFile;
+                    if (shortLinkReplace || topicReplace || descReplace || replaceNames || build) {
+                        remapped = true;
+                        fs.readFile(xmlFile, "utf8", function (err2, data2) {
+                            if (!err2) {
+                                // Create temporary XML that has changes...
+                                var splitNameAt = htmlFile.lastIndexOf(".");
+                                if (splitNameAt > 0) {
+                                    var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
+                                    if (build) {
+                                        var buildStr = ' build="' + build + '"';
+                                        var oldBuild = extractBuild(data2);
+                                        if (oldBuild === null) {
+                                            var insertPos = data2.indexOf(">");
+                                            data2 = data2.substr(0, insertPos) + buildStr + data2.substr(insertPos);
                                         } else {
-                                            fs.writeFile(modXmlFile, data2, function(errWrite) {
-                                                if (errWrite) {
-                                                    console.log("Error writing modified XML " + modXmlFile);
-                                                    xsltTransformFile(xmlFile, htmlFile, callback);
-                                                } else {
-                                                    xsltTransformFile(modXmlFile, htmlFile, callback);
-                                                }
-                                            });
+                                            data2 = data2.replace(' build="' + oldBuild + '"', buildStr);
                                         }
-                                    } else {
+                                    }
+                                    if (shortLinkReplace) {
+                                        data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
+                                    }
+                                    if (topicReplace) {
+                                        data2 = replaceTag(data2, "<topic", "</topic>", topicReplace);
+                                    }
+                                    if (descReplace) {
+                                        data2 = replaceTag(data2, "<description>", "</description>", descReplace);
+                                    }
+                                    if (replaceNames) {
+                                        var nReplacements = Math.floor(replaceNames.length / 3);
+                                        while (nReplacements > 0) {
+                                            --nReplacements;
+                                            data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
+                                        }
+                                    }
+                                    if (data2 === data) {
+                                        // No changes
                                         xsltTransformFile(xmlFile, htmlFile, callback);
+                                    } else {
+                                        fs.writeFile(modXmlFile, data2, function(errWrite) {
+                                            if (errWrite) {
+                                                console.log("Error writing modified XML " + modXmlFile);
+                                                xsltTransformFile(xmlFile, htmlFile, callback);
+                                            } else {
+                                                xsltTransformFile(modXmlFile, htmlFile, callback);
+                                            }
+                                        });
                                     }
                                 } else {
                                     xsltTransformFile(xmlFile, htmlFile, callback);
                                 }
-                            });
-                        }
+                            } else {
+                                xsltTransformFile(xmlFile, htmlFile, callback);
+                            }
+                        });
                     }
                 }
             }
