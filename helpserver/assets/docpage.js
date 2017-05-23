@@ -436,6 +436,7 @@ function loaded() {
     //});
     getGitTimestamp();
     buildVersion();
+    betaSoftware();
     showAnnouncement();
 }
 
@@ -454,6 +455,22 @@ function showAnnouncement() {
     var ele = document.getElementById("announcement");
     ele.innerHTML = "The documentation servers will be down for scheduled maintenance between " + maintenance.start.toLocaleString() + " and " + maintenance.end.toLocaleString() + ".  During this time, the Alpha Anywhere help documentation may be temporarily unavailable as we make improvements to our system. Thank you for your patience during this time.";
     ele.style.display = "block";
+}
+
+function betaSoftware() {
+    var url = window.location.href;
+    if (decodeURI(url).search(/beta software/i) !== -1) {
+        var content = document.getElementById("doc");
+        if (content) {
+            var classes = content.getAttribute("class");
+            if (classes !== null) {
+                classes = classes = " betaSoftware";
+            } else {
+                classes = "betaSoftware";
+            }
+            content.setAttribute("class", classes);
+        }
+    }
 }
 
 function buildVersion() {
