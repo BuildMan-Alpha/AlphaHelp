@@ -493,13 +493,17 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
 
                 var extractBuild = function (data) {
-                    var build = data.split('build="');
-                    if (build.length > 1) {
-                        build = build[1].split('"')[0];
+                    if (data.split) {
+                        var build = data.split('build="');
+                        if (build.length > 1) {
+                            build = build[1].split('"')[0];
+                        } else {
+                            build = null;
+                        }
+                        return build;
                     } else {
-                        build = null;
+                        return null;
                     }
-                    return build;
                 };
 
                 var build = extractBuild(data);
