@@ -699,6 +699,10 @@ var generateXMLHelp = function(content) {
             xml += "\t<!--list:.-->\r\n";
         }
     }
+    //----------- Add annotations file reference -------------------------
+    if (xml.indexOf("<sections>") < 0) {
+        xml += "\t<annotations>__buildHelpPagePath__" + pageName + ".xml</annotations>\r\n";
+    }
     xml += "</page>\r\n";
     lastContext = context;
     pageName = pageName.split(".").pop();
@@ -772,7 +776,14 @@ var extractJsHelp = function() {
                         var j;
                         for (j = 0; j < ctx.files.length; ++j) {
                             var fn = map.path + '/' + ctx.files[j].pagename + ".xml";
-                            fileOps.push({ filename: fn, xml: ctx.files[j].xml });
+                            var xml = ctx.files[j].xml;
+                            var replacePath = map.path + '/';
+                            var replacePathLoc = replacePath.indexOf("/helpfiles/");
+                            if (replacePathLoc >= 0) {
+                                replacePath = replacePath.substring(replacePathLoc + 10);
+                            }
+                            xml = xml.replace("__buildHelpPagePath__", replacePath);
+                            fileOps.push({ filename: fn, xml: xml });
                         }
                     }
                 }
