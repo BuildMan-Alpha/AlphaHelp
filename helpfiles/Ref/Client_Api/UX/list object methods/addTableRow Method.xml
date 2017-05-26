@@ -65,6 +65,47 @@ listObj.addTableRow(data,ops);]]></example>
             </description>
             <note>To programmatically update a table row see the *[js:.updateTableRow()]* method.</note>
         </section>
+        <section build="4355">
+            <title>Adding Rows to a Table for Lists Persisted to the File System</title>
+            <description>
+                <p>If you are using the *[js:addTableRow()]* method in a loop, then you can add many new rows to a List quite quickly. Under certain circumstances, this can cause a problem.</p>
+                <p>The circumstances under which this could cause a problem are:</p>
+            </description>
+            <steps>
+                <step>
+                    <description>The List is set to persist to storage (so that the application can function offline)</description>
+                </step>
+                <step>
+                    <description>The *[link:List storage@ux list properties persist where]* is set to 'FileSystem'</description>
+                </step>
+                <step>
+                    <description>The App is running in Phonegap.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>The reason that there is a potential problem under the above scenario is that writing to the File System in PhoneGap is an asynchronous operation. Each time the List is updated, the edits to the List are saved in files written to the File System. But since these write operations are asynchronous, it is possible (actually likely), that the write operation for the next record added to the List will be initiated before the write operation for the current record added to the List has completed, and so on. These overlapping write operations to the File System could corrupt the files used to store the List edits.</p>
+                <p>The solution to this potential problem is to temporarily suspend persisting the List while the *[js:addTableRow()]* method is being called in a loop and then once the loop has completed, turn the suspension off and persist the List to storage.</p>
+                <p>To suspend persisting to the List, you set the List's *[js:.suspendPersist]* property to true.</p>
+                <p>To turn persisting back on, you set the List's *[js:.suspendPersist]* to false</p>
+                <p>To manually persist the List after you have turned suspend persist off use the List's *[link:persistToStorage() method@list object persisttostorage method]*. You must pass in an empty object when calling this method.</p>
+                <p>For example:</p>
+            </description>
+            <example code="js"><![CDATA[//persist multiple rows in a loop
+var listObj = {dialog.object}.getControl('list1');
+
+//suspend list persisting
+listObj.suspendPersist = true;
+
+//execute the .addTableRow() method in a loop
+
+//turn list persisting back on
+listObj.suspendPersist = false;
+
+//persist the list (passing in an empty object to the .persistToStorage() method.
+listObj.persistToStorage({});]]></example>
+        </section>
     </sections>
     <limitations>List Control with Detail View Part</limitations>
     <see>
