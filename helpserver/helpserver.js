@@ -400,12 +400,14 @@ var resolveXmlFilePath = function(xmlFile, relative) {
 };
 //--------------------------------------------------------------------------------------
 var extractTag = function(data, startPattern, endPattern) {
-    var tagStart = data.indexOf(startPattern);
     var tag = null;
-    if (tagStart > 0) {
-        var tagEnd = data.indexOf(endPattern);
-        tagStart += startPattern.length;
-        tag = data.substring(tagStart, tagEnd);
+    if (data) {
+        var tagStart = data.indexOf(startPattern);
+        if (tagStart > 0) {
+            var tagEnd = data.indexOf(endPattern);
+            tagStart += startPattern.length;
+            tag = data.substring(tagStart, tagEnd);
+        }
     }
     return tag;
 };
@@ -444,6 +446,9 @@ var replaceTag = function(data, startPattern, endPattern, replacement) {
     return data;
 };
 var expandAnnotations = function(data, annotations, filename, saveIt, done) {
+    if (!annotations) {
+        annotations = [];
+    }
     var index = 0;
     var fs = require('fs');
     var origSections = extractTag(data, "<sections>", "</sections>");
@@ -456,7 +461,6 @@ var expandAnnotations = function(data, annotations, filename, saveIt, done) {
             fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
                 annotationConcat = extractTag(annotationConcat, "<sections>", "</sections>");
                 if (rErr || !annotationConcat) {
-                    console.log("Error annot " + annotationFile)
                     nextStep();
                 } else {
                     if (origSections) {
@@ -634,7 +638,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                     // No changes
                                     if (annotations) {
                                         var modXmlFile = htmlFile.substring(0, splitNameAt) + ".ano.xml";
-                                        expandAnnotations(data, annotations, modXmlFile, false, function(applied) {
+                                        expandAnnotations(data2, annotations, modXmlFile, false, function(applied) {
                                             if (applied) {
                                                 xsltTransformFile(xmlFile, modXmlFile, callback);
                                             } else {
@@ -645,20 +649,13 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                         xsltTransformFile(xmlFile, htmlFile, callback);
                                     }
                                 } else {
-                                    if (annotations) {
-                                        expandAnnotations(data2, annotations, modXmlFile, true, function(applied) {
-                                            xsltTransformFile(xmlFile, modXmlFile, callback);
-                                        });
-                                    } else {
-                                        fs.writeFile(modXmlFile, data2, function(errWrite) {
-                                            if (errWrite) {
-                                                console.log("Error writing modified XML " + modXmlFile);
-                                                xsltTransformFile(xmlFile, htmlFile, callback);
-                                            } else {
-                                                xsltTransformFile(modXmlFile, htmlFile, callback);
-                                            }
-                                        });
-                                    }
+                                    expandAnnotations(data2, annotations, modXmlFile, true, function(applied) {
+                                        if (applied) {
+                                            xsltTransformFile(modXmlFile, htmlFile, callback);
+                                        } else {
+                                            xsltTransformFile(xmlFile, htmlFile, callback);
+                                        }
+                                    });
                                 }
                             } else {
                                 xsltTransformFile(xmlFile, htmlFile, callback);
