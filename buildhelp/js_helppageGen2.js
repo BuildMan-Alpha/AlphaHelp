@@ -13,6 +13,7 @@ var build = require("./build.json");
 var fs = require("fs");
 var async = require('async');
 var esprima = require('esprima');
+var macros = require('./macros.js');
 var sourceFiles = [];
 var inheritance = [];
 var methodIndex = {};
@@ -219,9 +220,17 @@ var buildContext = function(content) {
     }
 }
 
+var expandShorthand = function(macro, env, args) {
+    var macro = macros[macro];
+    if (macro) {
+        return macro(env, args);
+    }
+    return null;
+};
+
 var generateXMLHelp = function(content) {
     var lines = content.split('\n');
-    var i;
+    var i, j;
     var context = lastContext;
     var methods = [];
     var temp = null;
@@ -249,10 +258,61 @@ var generateXMLHelp = function(content) {
     var nestingProps = [];
     var titleContext = null;
     var inheritsFrom = null;
+    var splitIndex, macro, args;
+    var indentText = "";
 
+    //+++++++++++++++++++
+    // Shorthand pre-processor...
     for (i = 0; i < lines.length; ++i) {
         var indentLevel = indentLevelCalc(lines[i]);
         var line = lines[i].trim();
+
+        // Shorthand macro preprocessor....
+        while (line.substr(0, 1) === '[') {
+            splitIndex = line.indexOf(':');
+            if (splitIndex > 0) {
+                if (line.substr(line.length - 1, 1) === ']') {
+                    macro = line.substring(1, splitIndex);
+                    args = line.substring(splitIndex + 1, line.length - 1);
+                    indentText = "";
+                    if (indentLevel > 0) {
+                        for (j = 0; j < indentLevel; ++j) {
+                            indentText += "\t";
+                        }
+                    }
+                    var insertLines = expandShorthand(macro, {
+                        indentLevel: indentLevel,
+                        indexText: indentText,
+                        context: context
+                    }, args);
+                    if (insertLines) {
+                        if (insertLines.length === 0) {
+                            line = null;
+                            break;
+                        }
+                        line = insertLines[0];
+                        indentLevel = indentLevelCalc(line);
+                        line = line.trim();
+                        if (insertLines.length > 1) {
+                            // Insert remaining lines....
+                            insertLines = insertLines.slice(1);
+                            lines = [].concat(lines.slice(0, i + 1), insertLines, lines.slice(i + 1));
+                        }
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        //-----------------------------
+        if (!line) {
+            continue;
+        }
+
         if (endTag && line.indexOf(endTag) >= 0) {
             lastType = null;
             endTag = null;
