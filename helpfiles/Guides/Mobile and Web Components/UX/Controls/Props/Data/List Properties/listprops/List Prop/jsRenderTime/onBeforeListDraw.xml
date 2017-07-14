@@ -1,0 +1,166 @@
+<page build="4455">
+    <shortlink>ux list clientside event onbeforelistdraw</shortlink>
+    <topic>onBeforeListDraw Event</topic>
+    <description>Fires before the list is drawn.</description>
+    <arguments>
+        <argument>
+            <name>e</name>
+            <type>object</type>
+            <description>An object with the following properties:</description>
+            <properties>
+                <property>
+                    <name>data</name>
+                    <type>array</type>
+                    <description>Data that is going to be drawn</description>
+                </property>
+                <property>
+                    <name>startIndex</name>
+                    <type>number</type>
+                    <description>Zero based row index where data will be drawn</description>
+                </property>
+                <property>
+                    <name>src</name>
+                    <type>string</type>
+                    <description>Method causing the draw (e.g. 'populate', 'append-rows', 'view-nav', 'view-add')</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>The onBeforeListDraw event is triggered before the list is rendered on the screen. You can use this event to add your own HTML to render in the List. The JavaScript can reference the *[js:e]* object as well as the 'this' scope. If your JavaScript returns an array, the array will be used to render the List.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Injecting Headers and Footers in a List using the onBeforeListDraw Event</title>
+            <description>
+                <p>The onBeforeListDraw event can be used to add headers and footers into the List data. For example, in the image below a header is inserted for each group of 3 rows of data. A footer is also inserted. Both the header and footer can contain arbitrary HTML. As shown in the image, the footer text contains some bold text as well as a SVG icon.</p>
+                <p>Using items (i.e. the a5-item attribute), you can add event handlers to the header and footer text ([see video below]).</p>
+                <p>The onBeforeListDraw event allows you to return a new array containing the data to be rendered in the List.</p>
+            </description>
+            <figure>
+                <link>images/listwithheadersandfooters.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>In the above example, the following JavaScript is defined in the onBeforeListDraw  event to add the headers and footers to the List.</p>
+            </description>
+            <example code="js"><![CDATA[var ta = [];
+var group = 1;
+for(var i = 0; i < data.length; i++) {
+    //add a user defined title into the data before every 3rd row
+    if( (i % 3 ) == 0) {
+        if(i != 0) {
+
+            //add the footer html
+            ta.push({'*static': '<div a5-item="item1:'+(group-1)+'" style="padding: 10px; border: solid 1px gray; border-radius: 10px;">
+
+                    <img src="svgIcon=#alpha-icon-basketFull:26{ fill: #2730d1; stroke: #f52d2d;}" />This is some static <b>HTML</b>.
+
+                    It shows how you can add arbitrary HTML into the List</div>'});
+        }
+
+        //add the header html
+        ta.push({'*title': 'Group ' + group});
+        group++
+    }
+    ta.push(data[i]);
+
+}
+//return a new array of data to be used to draw the list
+return ta;]]></example>
+        </section>
+        <section>
+            <description>
+                <p>To inject a header into the List, add an object into the data array that has a '*title' property name. To add arbitrary HTML (e.g. a footer), add an object into the data array that has a '*static' property name.</p>
+                <p>Notice that in the above JavaScript code, the data array is passed in. But the contents of this array are not modified. Instead a new array (called ta) is created and the JavaScript returns this array. The List is then rendered using this new array of data.</p>
+            </description>
+        </section>
+        <section>
+            <title>Collapsible Headers</title>
+            <description>
+                <p>The image below shows a slightly more complex example. In this example, each header is made collapsible. For example, Group1 through Group4 have been collapsed. Tapping anywhere on the header will toggle the collapsed state of the group.</p>
+                <p>*[link:Download Component - collapsible headers@http://www.ajaxvideotutorials.com/V12Videos/ux_list_with_collapsible_headers.zip]*</p>
+            </description>
+            <figure>
+                <link>images/listwithcollapsibleheaders.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Javascript in the onBeforeListDraw event to accomplish this is shown below:</p>
+            </description>
+            <example code="js"><![CDATA[var ta = [];
+var group = 1;
+var to = this._to;
+if(typeof to == 'undefined') to = {};
+var flag;
+var iconOpen = A5.u.icon.html('svgIcon=#alpha-icon-addCircleBorder:icon,24');
+var iconClose = A5.u.icon.html('svgIcon=#alpha-icon-removeCircleBorder:icon,24');;
+var icon;
+for(var i = 0; i < data.length; i++) {
+//add a user defined title into the data before every 3rd row
+    if( (i % 3 ) == 0) {
+        if(i != 0) {
+            if(flag == 'opened') {
+                ta.push({'*static': '<div a5-item="item1:'+(group-1)+'" style="padding: 10px; border: solid 1px gray; border-radius: 10px;"><img src="svgIcon=#alpha-icon-basketFull:26{ fill: #2730d1; stroke: #f52d2d;}" />This is some static <b>HTML</b>. It shows how you can add arbitrary HTML into the List</div>'});
+            }
+        }
+
+        flag = to['Group:' + (group)];
+        if(typeof flag == 'undefined') flag = 'opened';
+        if(flag == 'opened') icon = iconClose;
+        else icon = iconOpen;
+        ta.push({'*title': '<div a5-item="toggle:' + group + '" style="line-height: 26px;"><div style="float:right;">'+icon+'</div>Group'     +   group + '</div>' });
+        group++
+    }
+
+    if(flag == 'opened') {
+        ta.push(data[i]);
+    }
+}
+return ta;]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the header is wrapped in a div that has an a5-item attribute called toggle. Notice also that the list contains a variable called _to that contains an object with the open/closed state of each group. If a group is closed then the code that pushed the list data onto the new array (ta.push(data[i]) is skipped over, thus omitting these rows from the rendered List.</p>
+                <p>When a user taps on a header, the onClick event in the toggle item is fired. This event will then add the group's open/closed state to the List object's _to variable. The Javascript code in toggle item's onClick event is shown below:</p>
+            </description>
+            <example code="js"><![CDATA[var to = lObj._to;
+if(typeof to == 'undefined') to = {};
+var flag = to['Group:' + ia];
+if(typeof flag == 'undefined') {
+    to['Group:' + ia] = 'closed'
+} else {
+    if(to['Group:' + ia] == 'closed') to['Group:' + ia] = 'opened';
+    else to['Group:' + ia] = 'closed';
+}
+lObj._to = to;
+lObj.refresh();]]></example>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Injecting Arbitrary Headers and Footers into List Data</title>
+                <description>You can inject arbitrary HTML into the List. This can be used to add headers and footers into the List as shown in this video.</description>
+                <date>2017-07-12</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/87d4f275</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_arbitraryHeaderAndFooters.zip</link>
+                    </resource>
+                    <resource>
+                        <name>Download Component - collapsible headers</name>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/ux_list_with_collapsible_headers.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link href="#section1_Videos">see video below</link>
+    </links>
+</page>
