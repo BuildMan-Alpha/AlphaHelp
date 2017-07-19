@@ -8,6 +8,7 @@ var errorLog = "/home/AlphaHelp/generated/helpserver_error.log";
 var validateLinksFile = "/home/AlphaHelp/helpserver/node_modules/helpserver/validateLinksFile.js";
 var helpfilesBasepath = "/home/AlphaHelp/helpfiles";
 var aliasesFile = "/home/AlphaHelp/aliases.json";
+var annotationPath = "/home/AlphaHelp/annotations";
 var aliases = {};
 var library = require("./assets/library");
 var Help = require('helpserver');
@@ -43,6 +44,7 @@ if (searchLocalFlag) {
     validateLinksFile = "./node_modules/helpserver/validateLinksFile.js";
     errorLog = "../generated/helpserver_error.log";
     helpfilesBasepath = "../helpfiles";
+    annotationPath = "../annotations";
     serverType = "(nosearch) ";
 } else {
     options = require("./settings");
@@ -216,6 +218,22 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
     return result;
 }
 
+events.lookupLink = function(indexLinks, symName) {
+    if (indexLinks) {
+        var indexVal = symName.toLowerCase();
+        var val = indexLinks[indexVal];
+        if (!val) {
+            // lookup in aliases
+            indexVal = aliases[indexVal];
+            if (indexVal) {
+                val = indexLinks[indexVal];
+            }
+        }
+        return val;
+    }
+    return null;
+};
+
 events.pageIndexer = function(args, savePage) {
     // just error out for now...
     var filename = args.filename;
@@ -382,14 +400,40 @@ var resolveXmlFilePath = function(xmlFile, relative) {
 };
 //--------------------------------------------------------------------------------------
 var extractTag = function(data, startPattern, endPattern) {
-    var tagStart = data.indexOf(startPattern);
     var tag = null;
-    if (tagStart > 0) {
-        var tagEnd = data.indexOf(endPattern);
-        tagStart += startPattern.length;
-        tag = data.substring(tagStart, tagEnd);
+    if (data) {
+        var tagStart = data.indexOf(startPattern);
+        if (tagStart > 0) {
+            var tagEnd = data.indexOf(endPattern);
+            tagStart += startPattern.length;
+            tag = data.substring(tagStart, tagEnd);
+        }
     }
     return tag;
+};
+var extractTags = function(data, startPattern, endPattern) {
+    var tags = null,
+        tag = null;
+    var start = 0,
+        tagStart = 0,
+        tagEnd = 0;
+    for (;;) {
+        tagStart = data.indexOf(startPattern, start);
+        if (tagStart < 0)
+            break;
+        tagStart += startPattern.length;
+        tagEnd = data.indexOf(endPattern, tagStart);
+        if (tagEnd < 0)
+            break;
+        tag = data.substring(tagStart, tagEnd);
+        if (tags) {
+            tags.push(tag);
+        } else {
+            tags = [tag];
+        }
+        start = tagEnd + endPattern.length;
+    }
+    return tags;
 };
 var replaceTag = function(data, startPattern, endPattern, replacement) {
     var tagStart = data.indexOf(startPattern);
@@ -401,7 +445,48 @@ var replaceTag = function(data, startPattern, endPattern, replacement) {
     }
     return data;
 };
-
+var expandAnnotations = function(data, annotations, filename, saveIt, done) {
+    if (!annotations) {
+        annotations = [];
+    }
+    var index = 0;
+    var fs = require('fs');
+    var origSections = extractTag(data, "<sections>", "</sections>");
+    var nextStep = function() {
+        if (index < annotations.length) {
+            // Async replacements....
+            var thisAnnotation = annotations[index];
+            var annotationFile = annotationPath + thisAnnotation.trim();
+            ++index;
+            fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
+                annotationConcat = extractTag(annotationConcat, "<sections>", "</sections>");
+                if (rErr || !annotationConcat) {
+                    nextStep();
+                } else {
+                    if (origSections) {
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat);
+                    } else {
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>");
+                    }
+                    saveIt = true;
+                    nextStep();
+                }
+            });
+        } else if (saveIt) {
+            // Done 
+            fs.writeFile(filename, data, function(err) {
+                if (err) {
+                    done(false);
+                } else {
+                    done(true);
+                }
+            });
+        } else {
+            done(false);
+        }
+    };
+    nextStep();
+};
 
 var xsltproc = require('xsltproc');
 events.translateXML = function(xmlFile, htmlFile, callback) {
@@ -483,14 +568,26 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
             });
         };
         if (!err) {
-            var startSymLink = data.indexOf("<symlink>");
+            var symlink = extractTag(data, "<symlink>", "</symlink>");
             var remapped = false;
-            if (startSymLink > 0) {
-                var endSymLink = data.indexOf("</symlink>");
+            if (symlink) {
                 var shortLinkReplace = extractTag(data, "<shortlink>", "</shortlink>");
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
+
+                var extractBuild = function(data) {
+                    var build = data.split('build="');
+                    if (build.length > 1) {
+                        build = build[1].split('"')[0];
+                    } else {
+                        build = null;
+                    }
+                    return build;
+                };
+
+                var build = extractBuild(data);
+
                 if (replaceNames) {
                     replaceNames = replaceNames.split("/");
                     if (replaceNames.length < 3) {
@@ -500,55 +597,89 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                     }
                 }
 
-                if (startSymLink < endSymLink) {
-                    var newXmlFile = resolveXmlFilePath(xmlFile, data.substring(startSymLink, endSymLink));
-                    if (newXmlFile && newXmlFile !== xmlFile) {
-                        xmlFile = newXmlFile;
-                        if (shortLinkReplace || topicReplace || descReplace || replaceNames) {
-                            remapped = true;
-                            fs.readFile(xmlFile, "utf8", function(err2, data2) {
-                                if (!err) {
-                                    // Create temporary XML that has changes...
-                                    var splitNameAt = htmlFile.lastIndexOf(".");
-                                    if (splitNameAt > 0) {
-                                        var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
-                                        if (shortLinkReplace) {
-                                            data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
-                                        }
-                                        if (topicReplace) {
-                                            data2 = replaceTag(data2, "<topic", "</topic>", topicReplace);
-                                        }
-                                        if (descReplace) {
-                                            data2 = replaceTag(data2, "<description>", "</description>", descReplace);
-                                        }
-                                        if (replaceNames) {
-                                            var nReplacements = Math.floor(replaceNames.length / 3);
-                                            while (nReplacements > 0) {
-                                                --nReplacements;
-                                                data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
+                var newXmlFile = resolveXmlFilePath(xmlFile, symlink);
+                if (newXmlFile && newXmlFile !== xmlFile) {
+                    xmlFile = newXmlFile;
+                    remapped = true;
+                    fs.readFile(xmlFile, "utf8", function(err2, data2) {
+                        if (!err2) {
+                            // Create temporary XML that has changes...
+                            var splitNameAt = htmlFile.lastIndexOf(".");
+                            if (splitNameAt > 0) {
+                                var modXmlFile = htmlFile.substring(0, splitNameAt) + ".sym.xml";
+                                if (build) {
+                                    var buildStr = ' build="' + build + '"';
+                                    var oldBuild = extractBuild(data2);
+                                    if (oldBuild === null) {
+                                        var insertPos = data2.indexOf(">");
+                                        data2 = data2.substr(0, insertPos) + buildStr + data2.substr(insertPos);
+                                    } else {
+                                        data2 = data2.replace(' build="' + oldBuild + '"', buildStr);
+                                    }
+                                }
+                                if (shortLinkReplace) {
+                                    data2 = replaceTag(data2, "<shortlink>", "</shortlink>", shortLinkReplace);
+                                }
+                                if (topicReplace) {
+                                    data2 = replaceTag(data2, "<topic", "</topic>", topicReplace);
+                                }
+                                if (descReplace) {
+                                    data2 = replaceTag(data2, "<description>", "</description>", descReplace);
+                                }
+                                if (replaceNames) {
+                                    var nReplacements = Math.floor(replaceNames.length / 3);
+                                    while (nReplacements > 0) {
+                                        --nReplacements;
+                                        data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
+                                    }
+                                }
+                                var annotations = extractTags(data2, "<annotations>", "</annotations>");
+                                if (data2 === data) {
+                                    // No changes
+                                    if (annotations) {
+                                        var modXmlFile = htmlFile.substring(0, splitNameAt) + ".ano.xml";
+                                        expandAnnotations(data2, annotations, modXmlFile, false, function(applied) {
+                                            if (applied) {
+                                                xsltTransformFile(xmlFile, modXmlFile, callback);
+                                            } else {
+                                                xsltTransformFile(modXmlFile, htmlFile, callback);
                                             }
-                                        }
-                                        if (data2 === data) {
-                                            // No changes
-                                            xsltTransformFile(xmlFile, htmlFile, callback);
-                                        } else {
-                                            fs.writeFile(modXmlFile, data2, function(errWrite) {
-                                                if (errWrite) {
-                                                    console.log("Error writing modified XML " + modXmlFile);
-                                                    xsltTransformFile(xmlFile, htmlFile, callback);
-                                                } else {
-                                                    xsltTransformFile(modXmlFile, htmlFile, callback);
-                                                }
-                                            });
-                                        }
+                                        });
                                     } else {
                                         xsltTransformFile(xmlFile, htmlFile, callback);
                                     }
                                 } else {
-                                    xsltTransformFile(xmlFile, htmlFile, callback);
+                                    expandAnnotations(data2, annotations, modXmlFile, true, function(applied) {
+                                        if (applied) {
+                                            xsltTransformFile(modXmlFile, htmlFile, callback);
+                                        } else {
+                                            xsltTransformFile(xmlFile, htmlFile, callback);
+                                        }
+                                    });
                                 }
-                            });
+                            } else {
+                                xsltTransformFile(xmlFile, htmlFile, callback);
+                            }
+                        } else {
+                            xsltTransformFile(xmlFile, htmlFile, callback);
                         }
+                    });
+                }
+            } else {
+                var annotations = extractTags(data, "<annotations>", "</annotations>");
+                if (annotations) {
+                    // If we have annottations
+                    var splitNameAt = htmlFile.lastIndexOf(".");
+                    if (splitNameAt > 0) {
+                        remapped = true;
+                        var modXmlFile = htmlFile.substring(0, splitNameAt) + ".ano.xml";
+                        expandAnnotations(data, annotations, modXmlFile, false, function(applied) {
+                            if (applied) {
+                                xsltTransformFile(modXmlFile, htmlFile, callback);
+                            } else {
+                                xsltTransformFile(xmlFile, htmlFile, callback);
+                            }
+                        });
                     }
                 }
             }

@@ -1,0 +1,44 @@
+<page>
+<topic>Calling A Service That Uses Windows Authentication</topic>
+<description>
+Calling a Service Endpoint that uses Windows Authentication (NTLM).
+</description>
+<discussion>
+<p>The line *[xb:ce.setOpt("USERPWD","testuser:alphatest")]* sets the password, 
+and the line *[xb:ce.setOpt("HTTPAUTH", 8)   '8 - CURLAUTH_NTLM]*
+sets authentication to NTML, which is used by Windows Authentication.
+</p>
+</discussion>
+<example>
+<![CDATA[
+dim cf_1 as extension::CurlFile
+dim flag_1 as l
+dim ce as extension::Curl
+
+ce = extension::Curl.Init()
+ce.setOpt("URL","http://localhost:56114/api/values")
+ce.setOpt("NOPROGRESS",1)
+ce.setOpt("USERPWD","testuser:alphatest")
+ce.setOpt("USERAGENT","curl/7.34.0")
+ce.setOpt("MAXREDIRS",50)
+ce.setOpt("HTTPAUTH", 8)   '8 - CURLAUTH_NTLM
+ce.setOpt("TCP_KEEPALIVE",1)
+ce.SetOpt("FILE",cf_1)		
+flag_1 = ce.Exec()
+if flag_1 then     
+    dim headers as c
+	dim contents as c
+	headers = cf_1.GetHeaders()
+	contents = cf_1.GetContent()		
+	rc = ce.GetInfo("RESPONSE_CODE")
+	dim msg as c 
+	msg = "Response code " + rc + crlf() + "Headers: " + crlf() + headers + crlf() + "Content: " + contents
+	showvar( msg)
+else 
+	dim errors as c 
+	errors = ce.error()
+	showvar("error: " + errors)
+end if
+ce.close()]]>
+</example>
+</page>

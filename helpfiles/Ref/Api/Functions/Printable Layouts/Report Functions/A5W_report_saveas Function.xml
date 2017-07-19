@@ -2,12 +2,12 @@
     <shortlink>api a5w report saveas function</shortlink>
     <topic>a5w_report_saveas Function</topic>
     <description>The a5w_report_saveas() method prints LayoutName to file in PDF, HTML, RTF, or TXT formats. If no format is specified, the PDF format is used. If a report needs to get access to global variables defined in a .a5w page, you must call this function, and not Report.SaveAs()</description>
-    <prototype>Result as C = a5w_report_saveAs(C LayoutName [,C Saveas_format [,C Filter [,C Order [,C Filename [,P globalVariables [,P PrintOptions [,SQL::Arguments Arguments [,P Options ]]]]]]])</prototype>
+    <prototype>filenameOut as C = a5w_report_saveAs(C LayoutName [,C Saveas_format [,C Filter [,C Order [,C Filename [,P globalVariables [,P PrintOptions [,SQL::Arguments Arguments [,P Options ]]]]]]])</prototype>
     <arguments>
         <argument>
             <name>LayoutName</name>
             <type>C</type>
-            <description>The report to print. The report must include a fully qualified path to the report location. See examples below.</description>
+            <description>The report to print. The report must include a fully qualified path to the report location. If specifying a SSRS report, use the format *[xb:reportName.ssrs.a5rpt]*. See examples below.</description>
         </argument>
         <argument>
             <name>Saveas_format</name>
@@ -43,12 +43,12 @@
         <argument>
             <name>Filter</name>
             <type>C</type>
-            <description>Filter expression to apply to report. Specify an empty string for no filter.</description>
+            <description>Filter expression to apply to report. Specify an empty string for no filter. Not supported for SSRS reports.</description>
         </argument>
         <argument>
             <name>Order</name>
             <type>C</type>
-            <description>Order expression to apply to report detail. Specify an empty string for no order.</description>
+            <description>Order expression to apply to report detail. Specify an empty string for no order. Not supported for SSRS reports.</description>
         </argument>
         <argument>
             <name>Filename</name>
@@ -59,13 +59,13 @@
             <name>globalVariables</name>
             <type>P</type>
             <description>
-                <p>A pointer to the global variables. Pass in [global_variables()] if you do not need to define your own global variables. See explanation below for more information.</p>
+                <p>A pointer to the global variables. Pass in [global_variables()] if you do not need to define your own global variables. Not supported for SSRS reports. See explanation below for more information.</p>
             </description>
         </argument>
         <argument optional="true">
             <name>PrintOptions</name>
             <type>P</type>
-            <description>Default = [null_value()]. PDF Driver options.  See [Report.SaveAs()] for more details.</description>
+            <description>Default = [null_value()]. PDF Driver options. Not supported for SSRS reports. See [Report.SaveAs()] for more details.</description>
         </argument>
         <argument optional="true">
             <name>Arguments</name>
@@ -78,6 +78,13 @@
             <description>Default = [null_value()]. Additional options. See [Report.SaveAs()] for available options.</description>
         </argument>
     </arguments>
+    <returns>
+        <return>
+            <name>filenameOut</name>
+            <type>C</type>
+            <descrption>The filename where the report output is stored. Generally, this will be the same as what is specified in the *[xb:Filename]* parameter, unless the file extension was changed.</descrption>
+        </return>
+    </returns>
     <discussion>The *[xb:a5w_report_saveas]* function generates a Report from the Application Server.</discussion>
     <sections>
         <section>
@@ -135,6 +142,27 @@ layout_name = a5_removeTrailingBackslash(context.request.applicationRoot) + chr(
 
 a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]></example>
         </section>
+        <section build="4388">
+            <title>Printing SSRS Reports</title>
+            <description>
+                <p>Reports created using SQL Server Reporting Services can be generated from Xbasic using the *[xb:a5w_report_saveAs()]* function. If the SSRS report has any parameters, they can be specified using the *[xb:Arguments]* parameter. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim reportName as c
+reportName = "customersbystate.ssrs.a5rpt"
+
+dim args as sql::Arguments
+args.add("whatcountry","UK")
+
+dim filename as c
+
+filename = a5w_report_saveAs(reportname,"pdf","","","c:\pdf\report1.pdf",null_value(),null_value(),args)
+sys_open( filename)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Not all parameters are supported for SSRS reports. Specifically, you cannot use the filter, order, global variables or print options parameters.</p>
+            </description>
+        </section>
     </sections>
     <terms>reports,a5w,arguments,expressions,file,filename,filter,function,global variables,pdf,pointer,sql,variable</terms>
     <see>
@@ -145,7 +173,7 @@ a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]><
         <link link="Report.SaveAs Function">Report.SaveAs()</link>
         <link link="GLOBAL_VARIABLES Function">global_variables() method</link>
         <link link="GLOBAL_VARIABLES Function">global_variables()</link>
-        <link link="null_value Function">null_value()</link>
+        <link link="api null value function">null_value()</link>
         <link link="Understanding and Using Session Variables">session variables</link>
         <link link="api objects context request object">context.request.applicationRoot</link>
     </links>

@@ -302,34 +302,7 @@
             <p><xsl:value-of select="limitations" /></p>
 		</xsl:if>
 		<xsl:if test="see">
-			<p class="A5">See Also</p>
-			<ul>
-				<xsl:for-each select="see/ref">
-					<xsl:choose>
-						<xsl:when test="./@href">
-							<li>
-								<a xsl:use-attribute-sets="ref-href-link">
-									<xsl:value-of select="." />
-								</a>
-							</li>
-						</xsl:when>
-						<xsl:when test="./@link">
-							<li>
-								<a href="/documentation/index?search={./@link}">
-									<xsl:value-of select="." />
-								</a>
-							</li>
-						</xsl:when>
-						<xsl:otherwise>
-							<li>
-								<a href="javascript:helpServer.navigateClosestTopic('{normalize-space(.)}')">
-									<xsl:value-of select="." />
-								</a>
-							</li>
-						</xsl:otherwise>
-					</xsl:choose>
-				</xsl:for-each>
-			</ul>
+            <xsl:call-template name="seeAlso" />
 		</xsl:if>
         <xsl:if test="attribution">  <xsl:for-each select="attribution"><xsl:call-template name="attribution"/></xsl:for-each> </xsl:if>
 	</xsl:template>
@@ -476,8 +449,40 @@
 		<xsl:if test="videos">
             <xsl:call-template name="videos"/>        
 		</xsl:if>
+		<xsl:if test="see">
+            <xsl:call-template name="seeAlso" />
+		</xsl:if>
     </xsl:template>    
-
+    <xsl:template match="seeAlso" name="seeAlso">
+        <p class="A5">See Also</p>
+        <ul>
+            <xsl:for-each select="see/ref">
+                <xsl:choose>
+                    <xsl:when test="./@href">
+                        <li>
+                            <a xsl:use-attribute-sets="ref-href-link">
+                                <xsl:value-of select="." />
+                            </a>
+                        </li>
+                    </xsl:when>
+                    <xsl:when test="./@link">
+                        <li>
+                            <a href="/documentation/index?search={./@link}">
+                                <xsl:value-of select="." />
+                            </a>
+                        </li>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <li>
+                            <a href="javascript:helpServer.navigateClosestTopic('{normalize-space(.)}')">
+                                <xsl:value-of select="." />
+                            </a>
+                        </li>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
+        </ul>
+    </xsl:template>
     <xsl:template match="videos" name="videos" >    	
         <xsl:if test="videos/title">
             <h3 class="videosTitle"> <xsl:value-of select="videos/title" /> </h3>

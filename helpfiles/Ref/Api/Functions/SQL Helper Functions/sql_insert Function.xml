@@ -19,7 +19,7 @@
         <argument>
             <name>fieldValuePairs</name>
             <type>C</type>
-            <description>Fields to set with corresponding values. A cr-lf list of the form fieldname=value. Or a JSON string (see example). Date values must be specified using *[xb:yyyy/mm/dd]* format.</description>
+            <description>Fields to set with corresponding values. A cr-lf list of the form *[xb:fieldname=value]* or as JSON string (see [Building the fieldValuePairs Argument] section below). Date values must be specified using *[xb:yyyy/mm/dd]* format.</description>
         </argument>
         <argument optional="true">
             <name>execute</name>
@@ -65,39 +65,63 @@
     <discussion>This function is just a wrapper around the Xbasic AlphaDAO commands to execute a SQL insert statement, but it convenient to use for simple cases.</discussion>
     <sections>
         <section>
-            <example code="xb"><![CDATA[ dim cn as sql::Connection
-
+            <example code="xb"><![CDATA[dim cn as sql::Connection
 cn.open("::Name::myconnstring")
 tablename = "mytable"
 fieldsValuePairs = <<%str%
 name=fred smith
-
 date of birth=1952/12/18
-
 salary=78000
 %str%
- 
-
-'You can also specify field values using JSON
-fieldsValuePairs = <<%str%
-{
-    "name" : "fred smith",
-    "date of birth" : "1954/11/25",
-
-    "salary" : "78000"
-}
-%str%
-
 
 p = sql_insert(cn,tablename,fieldsValuePairs)
 
- 
-
 ?p.lastInsertedIdentity
-
 = 5]]></example>
         </section>
+        <section>
+            <title>Building the fieldValuePairs Argument</title>
+            <description>The *[xb:fieldValuePairs]* argument is a CR-LF string of values with the format *[xb:name=value]*. The parameter can be built several ways. For a list of static values, the parameter can be built using *[link:delimiters@xbasic delimiter]*. For example:</description>
+            <example code="xb"><![CDATA[dim fieldsValuePairs as c 
+data = <<%txt%
+name=Fred
+city=Boston
+%txt%]]></example>
+        </section>
+        <section>
+            <description>The *[xb:fieldValuePairs]* argument can also be built by concatenating multiple strings together using the *[xb:+]* operator and *[link:CRLF function]*. This allows you to dynamically specify the value to populate each field. EG:</description>
+            <example code="xb"><![CDATA[dim fieldsValuePairs as c 
+fieldsValuePairs = ""
+fieldsValuePairs = fieldsValuePairs + "name=" + e.datasubmitted.name + crlf()
+fieldsValuePairs = fieldsValuePairs + "city=" +e.datasubmitted.city + crlf()]]></example>
+        </section>
+        <section>
+            <description>Field values can also be dynamically populated using the *[link:replace_variables_in_string function]* in combination with delimiters. The *[xb:replace_variables_in_string()]* function replaces variables in a character string with the value in the variable. Using this method makes your Xbasic script easier to read:</description>
+            <example code="xb"><![CDATA[dim fieldsValuePairs as c 
+fieldsValuePairs = <<%txt%
+name=e2.name
+city=e2.city
+%txt%
+
+dim e2 as p
+e2.name = e.datasubmitted.name 
+e2.city = e.datasubmitted.city
+fieldsValuePairs = replace_variables_in_string(data,e2,"e2")]]></example>
+        </section>
+        <section>
+            <description>The field value pairs can also be specified as a JSON object. For example:</description>
+            <example code="xb"><![CDATA[fieldsValuePairs = <<%str%
+{
+    "name" : "fred smith",
+    "date of birth" : "1954/11/25",
+    "salary" : "78000"
+}
+%str%]]></example>
+        </section>
     </sections>
+    <links>
+        <link href="#section1_Building the fieldValuePairs Argument">Building the fieldValuePairs Argument</link>
+    </links>
     <see>
         <ref link="api sql lookup function">sql_lookup Function</ref>
         <ref link="api sql update function">sql_update Function</ref>
