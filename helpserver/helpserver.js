@@ -459,14 +459,30 @@ var expandAnnotations = function(data, annotations, filename, saveIt, done) {
             var annotationFile = annotationPath + thisAnnotation.trim();
             ++index;
             fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
+                var annotationSee = extractTag(annotationConcat,"<see>","</see>");
+                if (annotationSee) {
+                    annotationSee = "<see>" +annotationSee + "</see>"
+                } else {
+                    annotationSee = "";
+                }
+                var annotationLinks = extractTag(annotationConcat,"<links>","</links>");
+                if (annotationLinks) {
+                    annotationLinks = "<links>" + annotationLinks + "</links>";
+                } else {
+                    annotationLinks = "";
+                }
                 annotationConcat = extractTag(annotationConcat, "<sections>", "</sections>");
-                if (rErr || !annotationConcat) {
+                if (!annotationConcat) {
+                    annotationConcat = "";
+                }
+
+                if (rErr || (annotationConcat == "" && annotationLinks == "" && annotationSee == "")) {
                     nextStep();
                 } else {
                     if (origSections) {
-                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat);
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat + annotationSee + annotationLinks);
                     } else {
-                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>");
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>" + annotationSee + annotationLinks);
                     }
                     saveIt = true;
                     nextStep();
