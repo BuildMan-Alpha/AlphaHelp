@@ -17,7 +17,7 @@ for (link in links) {
 }
 
 var extractTagRegex = function (page, tag) {
-    var startTag = new RegExp('<'+tag+'[^<]*>');
+    var startTag = new RegExp('<'+tag+'[^>]*>');
     var endTag = new RegExp('</'+tag+'>');
     var temp = page;
     var tagStart = temp.search(startTag);
