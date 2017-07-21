@@ -16,6 +16,23 @@ for (link in links) {
     usedNames[link.toLowerCase()] = links[link];
 }
 
+var extractTagRegex = function (page, tag) {
+    var startTag = new RegExp('<'+tag+'[^<]*>');
+    var endTag = new RegExp('</'+tag+'>');
+    var temp = page;
+    var tagStart = temp.search(startTag);
+    if (tagStart > 0) {
+        temp = temp.split(startTag)[1];
+        var tagEnd = temp.search(endTag);
+        if (tagEnd > 0) {
+            temp = temp.split(endTag)[0];
+            return temp;
+        }
+    }
+    return "";
+}
+
+/*
 var extractTag = function (page, startTag, endTag) {
     var tagStart = page.indexOf(startTag);
     if (tagStart > 0) {
@@ -27,6 +44,7 @@ var extractTag = function (page, startTag, endTag) {
     }
     return "";
 };
+*/
 
 var removeCDATA = function (str) {
     if (str.substring(0, 9) === "<![CDATA[") {
@@ -49,8 +67,8 @@ async.eachSeries(list, function (fo, callbackLoop) {
                 var pageShortlink = null;
                 var topic = null;
                 if (fo.file.toLowerCase().indexOf('.xml') > 0) {
-                    pageShortlink = removeCDATA(extractTag(page, "<shortlink>", "</shortlink>").trim()).toLowerCase();
-                    pageTopic = removeCDATA(extractTag(page, "<topic>", "</topic>").trim()).toLowerCase();
+                    pageShortlink = removeCDATA(extractTagRegex(page,"shortlink").trim()).toLowerCase();
+                    pageTopic = removeCDATA(extractTagRegex(page, "topic").trim()).toLowerCase();
                     topic = pageShortlink;
                     if (topic.length === 0) {
                         topic = pageTopic;
@@ -83,7 +101,7 @@ async.eachSeries(list, function (fo, callbackLoop) {
                             }
                         }
                     }
-                    pageTopic = extractTag(page, "<title>", "</title>").trim().toLowerCase();
+                    pageTopic = extractTagRegex(page,"title").trim().toLowerCase();
                     if (!topic) {
                         topic = pageTopic
                         if (!topic) {
