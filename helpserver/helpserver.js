@@ -1315,7 +1315,7 @@ events.noSearchResults = function(pattern) {
     return '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
 };
 
-events.processForIndex = function(data, page, complete) {
+events.processForIndex = function(config, data, page, callbackPage, complete) {
     var annotations = extractTags(data, "<annotations>", "</annotations>");
     if (annotations) {
         var index = 0;
@@ -1332,12 +1332,12 @@ events.processForIndex = function(data, page, complete) {
                     nextStep();
                 });
             } else {
-                complete(data);
+                complete(config, data, page, callbackPage);
             }
         };
         nextStep();
     } else {
-        complete(data);
+        complete(config, data, page, callbackPage);
     }
 };
 
