@@ -310,6 +310,13 @@ var generateXMLHelp = function(content) {
         }
         //-----------------------------
         if (!line) {
+            if (lastType && !endTag) {
+                if (lastType === "discussion" || lastType === "disc") {
+                    discussion += "\r\n";
+                } else if (lastType === "description" || lastType === "desc") {
+                    description += "\r\n";
+                }
+            }
             continue;
         }
 
