@@ -459,14 +459,30 @@ var expandAnnotations = function(data, annotations, filename, saveIt, done) {
             var annotationFile = annotationPath + thisAnnotation.trim();
             ++index;
             fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
+                var annotationSee = extractTag(annotationConcat, "<see>", "</see>");
+                if (annotationSee) {
+                    annotationSee = "<see>" + annotationSee + "</see>"
+                } else {
+                    annotationSee = "";
+                }
+                var annotationLinks = extractTag(annotationConcat, "<links>", "</links>");
+                if (annotationLinks) {
+                    annotationLinks = "<links>" + annotationLinks + "</links>";
+                } else {
+                    annotationLinks = "";
+                }
                 annotationConcat = extractTag(annotationConcat, "<sections>", "</sections>");
-                if (rErr || !annotationConcat) {
+                if (!annotationConcat) {
+                    annotationConcat = "";
+                }
+
+                if (rErr || (annotationConcat == "" && annotationLinks == "" && annotationSee == "")) {
                     nextStep();
                 } else {
                     if (origSections) {
-                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat);
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat + annotationSee + annotationLinks);
                     } else {
-                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>");
+                        data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>" + annotationSee + annotationLinks);
                     }
                     saveIt = true;
                     nextStep();
@@ -1297,7 +1313,34 @@ events.parseQuery = function(args) {
 events.noSearchResults = function(pattern) {
     var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
     return '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
-}
+};
+
+events.processForIndex = function(config, data, page, callbackPage, complete) {
+    var annotations = extractTags(data, "<annotations>", "</annotations>");
+    if (annotations) {
+        var index = 0;
+        var nextStep = function() {
+            if (index < annotations.length) {
+                // Async replacements....
+                var thisAnnotation = annotations[index];
+                var annotationFile = annotationPath + thisAnnotation.trim();
+                ++index;
+                fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
+                    if (!rErr) {
+                        data += annotationConcat;
+                    }
+                    nextStep();
+                });
+            } else {
+                complete(config, data, page, callbackPage);
+            }
+        };
+        nextStep();
+    } else {
+        complete(config, data, page, callbackPage);
+    }
+};
+
 
 // Modify elastic search query *before* it is run but *after* the default query has been built
 //events.beforeQuery = function (elast, args) {
