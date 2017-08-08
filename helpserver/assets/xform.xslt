@@ -870,6 +870,9 @@
 					<xsl:if test="list">
 						<xsl:call-template name="list"/>
 					</xsl:if>
+                    <xsl:if test="sections">
+                        <xsl:call-template name="section-content"/>
+                    </xsl:if>
 				</dd>
      </xsl:template>
 
