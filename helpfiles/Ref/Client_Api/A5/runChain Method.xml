@@ -1,0 +1,116 @@
+<page api="js" build="4190">
+    <shortlink>a5 runchain function</shortlink>
+    <topic>A5.runChain Method</topic>
+    <prototype>A5.runChain(actions, onAllDone, onStop [, context]);</prototype>
+    <arguments>
+        <argument>
+            <name>actions</name>
+            <type>Array of Functions</type>
+            <description>An array containing the functions to be executed. Some or all of the functions in the array may be asynchronous.</description>
+        </argument>
+        <argument>
+            <name>onAllDone</name>
+            <type>Function</type>
+            <description>Function to call when all of the functions in the *[js:actions]* array have completed.</description>
+        </argument>
+        <argument>
+            <name>onStop</name>
+            <type>Function</type>
+            <description>Function to call if any of the function in the *[js:actions]* array stopped the execution chain.</description>
+        </argument>
+        <argument>
+            <name>context</name>
+            <type>Object</type>
+            <description>An optional object to define the scope of the actions. Inside each function that is executed, the *[js:this]* object will be the same as the *[js:context]*. This allows you to pass initial information into the first function and allows each function to set variables on the *[js:this]* object that will be seen by subsequent functions.</description>
+        </argument>
+    </arguments>
+    <description>Run a series of JavaScript functions synchronously.</description>
+    <discussion>
+        <p>The *[js:A5.runChain()]* function can be used to run a set of asynchronous JavaScript functions synchronously.</p>
+        <p>Many JavaScript functions run asynchronously. For example, functions that make Ajax callbacks are asynchronous. In PhoneGap applications, most of the functions are asynchronous.</p>
+        <p>This helper function allows you to run a series of functions (some of which may be asynchronous) synchronously (i.e. the second function does not start executing until the first function has completed, and so on).</p>
+    </discussion>
+    <sections>
+        <section>
+            <description>
+                <p>Each function in the *[js:actions]* array must take a single object as its input parameter. Each function must call the *[js:.next()]* method of the input object to begin execution of the next function in the *[js:actions]* array. If the function is an asynchronous function, the call to the *[js:.next()]* method would be in the onSuccess callback of the asynchronous function.</p>
+                <p>The execution chain can be stopped if any function calls the input object's *[js:.stop()]* method.</p>
+                <p>Example:</p>
+            </description>
+            <example code="js"><![CDATA[//define 3 functions you want to run asynchronously
+
+//this is an asynchronous function
+function action1(obj) {
+    setTimeout(function() {
+        console.log('wait 1 second');
+        obj.next() // call the next function to be executed
+    },1000 );
+}
+
+function action2(obj) {
+    console.log('this is a synchronous function');
+    obj.next()
+}
+
+function action3(obj) {
+    setTimeout(function() {
+        console.log('wait .5 seconds');
+        obj.next()
+    },500 );
+}
+
+//create an array with the functions to executed
+var actions = [action1,action2,action3];
+
+//run the actions synchronously
+A5.runChain(actions,
+    function() { alert('alldone'); },
+    function(err) { alert('error: ' + err); }
+);
+
+//if we want to pass in values to the chain we can do as follows
+var context = {var1: 'value of var1'};
+
+A5.runChain(actions,
+    function() { alert('alldone'); },
+    function(err) { alert('error: ' + err); },
+    context
+);
+
+//inside any of the functions we can reference 'this.var1'
+//we can also set properties on the 'this' object.]]></example>
+        </section>
+        <section>
+            <description>When you run this code, the messages in the console will appear in the following order:</description>
+            <example code="js"><![CDATA[wait 1 second
+this is a synchronous function
+wait .5 seconds]]></example>
+        </section>
+        <section>
+            <description>If you had simply called the functions one after the other, then the messages would have appeared in the following order:</description>
+            <example code="js"><![CDATA[this is a synchronous function
+wait .5 seconds
+wait 1 second]]></example>
+        </section>
+        <section>
+            <title>Videos</title>
+            <description>Check out the videos below to learn more.</description>
+            <videos>
+                <title>Running Asynchronous Functions Synchronously</title>
+                <description>
+                    <p>Many Javascript functions in an application are asynchronous. For example, functions that make Ajax callbacks are asynchronous and many PhoneGap functions are also asynchronous. Often you will want to call several asynchronous functions, but you want to execute the functions synchronously. For example, you do not want to call the second function until the first function has completed.</p>
+                    <p>Javascript Promises are typically used to run asynchronous code synchronously. But Promises can be hard to understand and it can be tricky to restructure your code to use Promises. The Alpha Anywhere Javascript library has a function called A5.runChain() that provide an easy way to run asynchronous functions synchronously. Also, minimal changes need be made to your function definitions to make them suitable for use with the A5.runChain() function.</p>
+                    <p>In this video we show how the A5.runChain() function is used.</p>
+                </description>
+                <date>2017-03-04</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/7f5cc1a4</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <see>
+        <ref link="a5 executethisthenthat method">A5.executeThisThenThat() Method</ref>
+    </see>
+</page>
