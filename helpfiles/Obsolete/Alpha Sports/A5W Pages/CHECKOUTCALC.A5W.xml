@@ -43,11 +43,11 @@ CHECKOUTCALC.A5W will create and send an email message if that option is selecte
 	<description>Next, the page script tests to see if it has received proper values in the calling URL. If the cart_id argument is missing or is NULL, control goes back to CHECKOUTCART.A5W.
 </description>
 <example><![CDATA[if eval_valid("cart_id") = .F.
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 elseif cart_id = ""
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 end if
 ]]></example>
 	
@@ -56,11 +56,11 @@ end if
 	<description>Next, the script evaluates the protected variable session.protectedchkoutprogress. If it does not exist, the first checkout page was not completed and control goes back to CHECKOUTCART.A5W. If session.protectedchkoutprogress is less than 3 (the last page of checkout), then control goes back to CHECKOUTCART.A5W.
 </description>
 <example><![CDATA[if eval_valid("session.protectedchkoutprogress") = .F.
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 elseif session.protectedchkoutprogress < 3
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 end if
 ]]></example>
 	
@@ -69,21 +69,21 @@ end if
 	<description>If session.protectedchkout is FALSE (.F.), then no values were passed from page 3 of the checkout and control goes back to CHECKOUTCART.A5W. If session.protectedchkout.first_name is NULL, then the first name field is empty and control goes back to CHECKOUTCART.A5W.
 </description>
 <example><![CDATA[if eval_valid("session.protectedchkout") = .F. 'no values passed from page 3
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 elseif session.protectedchkout.first_name = "" 'no values passed from page 3 (first_name was required)
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 end if
 ]]></example>
 	
 </section>	
 <section>
-	<description>The code also moves the protected session.protectedchkout variable to chkout_vars before any data processing takes place, such as saving a new customer. Afterwards, it deletes session.protectedchkout.
+	<description>The code also moves the protected session.protectedchkout variable to chkout_vars before any data processing takes place, such as saving a new customer. Afterwards, it deletes session.protectedchkout.
 If the user presses the back button after the protected session variable is deleted, no session variables will exist. If the user clicks submit at this point, he or she will be sent back to the beginning of the check out process.
 Next, the page script verifies the user's input. If the customer is new, it saves a new customer record. Then, the code creates an invoice_header table record. The items in the shopping cart become records in the invoice_items table. Finally, the script sends a confirmation email and/or prints an invoice.
 </description>
-<example><![CDATA[dim chkout_vars as P
+<example><![CDATA[dim chkout_vars as P
 property_recurse_assign(chkout_vars, session.protectedchkout)
 delete session.protectedchkout 'delete session variable
 ]]></example>
@@ -94,7 +94,7 @@ delete session.protectedchkout 'delete session variable
 Example code to create and retrieve a text file is saved in the "SampleAuthorizeNetCode.txt" file in the application database folder.
 Create the AuthorizeNet_transaction object and set required fields.
 </description>
-<example><![CDATA['dim x as AuthorizeNet_transaction
+<example><![CDATA['dim x as AuthorizeNet_transaction
 'x.login = "blahblahblah"
 'x.tran_key = "aBcDeFgHiJkLmN"
 'x.amount = alltrim(chkout_vars.total)
@@ -117,7 +117,7 @@ Create the AuthorizeNet_transaction object and set required fields.
 	<description>If you wish, include optional additional customer data.
 </description>
 <example><![CDATA['if alltrim(chkout_vars.customerid) <> "" ' existing customer
-'    x.cust_id = alltrim(chkout_vars.customerid) 'can be any string up to 20 characters
+'    x.cust_id = alltrim(chkout_vars.customerid) 'can be any string up to 20 characters
 'end if
 ]]></example>
 	
@@ -145,21 +145,21 @@ Create the AuthorizeNet_transaction object and set required fields.
 <section>
 	<description>Process the transaction. x.process() will return TRUE if the transaction server accepted the request and attempted to process the transaction.
 </description>
-<example><![CDATA['dim result_msg as C
+<example><![CDATA['dim result_msg as C
 'result_msg = ""
 'if x.process()then '
-'    dim y as P
-'    y = x.result
-'    result_msg = y.Response_Reason_Text
-'    if (y.response_code = "1")     ' Authorize.Net defines response code 1 as "Approved"
-'       result_msg = ""
-'    elseif (y.response_code = "2")       'Authorize.Net defines response code 2 as "Declined"
-'       result_msg = "Transaction Declined"
-'    elseif (y.response_code = "3")       'Authorize.Net defines response code 3 as "Error"
-'       result_msg = "Transaction Error"
-'    end if
-'else    'if x.process()is false, the transaction server could not be contacted or did not respond in a timely manner
-'    result_msg = "Transaction could not be completed"
+'    dim y as P
+'    y = x.result
+'    result_msg = y.Response_Reason_Text
+'    if (y.response_code = "1")     ' Authorize.Net defines response code 1 as "Approved"
+'       result_msg = ""
+'    elseif (y.response_code = "2")       'Authorize.Net defines response code 2 as "Declined"
+'       result_msg = "Transaction Declined"
+'    elseif (y.response_code = "3")       'Authorize.Net defines response code 3 as "Error"
+'       result_msg = "Transaction Error"
+'    end if
+'else    'if x.process()is false, the transaction server could not be contacted or did not respond in a timely manner
+'    result_msg = "Transaction could not be completed"
 'end if
 ]]></example>
 	
@@ -172,10 +172,10 @@ Create the AuthorizeNet_transaction object and set required fields.
 ' If authorize.net transaction fails, show an error message on this page instead of the normal title
 ' Stop processing HERE, and send user back to first page in checkout
 'if result_msg <> "" ' an error occured
-'    page_title = "Processing ERROR - "+result_msg
-'    redirect_page = "checkoutcart.a5w"
-'    PrintTarget = ""
-'    goto run_page ' skip processing section and show page
+'    page_title = "Processing ERROR - "+result_msg
+'    redirect_page = "checkoutcart.a5w"
+'    PrintTarget = ""
+'    goto run_page ' skip processing section and show page
 'end if
 ]]></example>
 	
@@ -219,9 +219,9 @@ query.order = ""]]></example>
 <example><![CDATA[tbl3 = table.open("PathAlias.ADB_Path\shop_cart_values.set")
 qdx = tbl3.query_create()
 if qdx.records_get()= 0
-    tbl3.close()
-    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
-    end
+    tbl3.close()
+    response.redirect("frameexit.a5w?pg=checkoutcart.a5w")
+    end
 end if]]></example>
 	
 </section>	
@@ -239,28 +239,28 @@ tbl7 = table.open("PathAlias.ADB_Path\invoice_items.dbf")]]></example>
 	<description>Step through the records of the shop_cart_values set and add values to the invoice_items table.
 </description>
 <example><![CDATA[while .not. tbl3.fetch_eof()
-    tbl7.enter_begin()
-    tbl7.Invoice_number = chkout_vars.invoice_no
-    tbl7.Product_id = tbl4.Prod_Id
-    tbl7.Quantity = tbl4.quantity
-    if tbl6.Sale_Price > 0 .and. (tbl6.Sale_Until >=date().or. cdate(tbl6.Sale_Until) = "") ' product is on special
-        tbl7.Price = tbl6.Sale_Price
-    else
-        tbl7.Price = tbl5.Retail
-    end if
-    tbl7.enter_end()]]></example>
+    tbl7.enter_begin()
+    tbl7.Invoice_number = chkout_vars.invoice_no
+    tbl7.Product_id = tbl4.Prod_Id
+    tbl7.Quantity = tbl4.quantity
+    if tbl6.Sale_Price > 0 .and. (tbl6.Sale_Until >=date().or. cdate(tbl6.Sale_Until) = "") ' product is on special
+        tbl7.Price = tbl6.Sale_Price
+    else
+        tbl7.Price = tbl5.Retail
+    end if
+    tbl7.enter_end()]]></example>
 	
 </section>	
 <section>
 	<description>Erase the shop_cart_values fields after they are transferred.
 </description>
 <example><![CDATA[tbl3.change_begin()'empty values in cart to 'delete' cart
-    tbl3.cart_id = ""
-    tbl3.session_id = ""
-    tbl3.open = .F.
-    tbl3.Owner_Id = ""
-    tbl3.change_end()
-    tbl3.fetch_next()
+    tbl3.cart_id = ""
+    tbl3.session_id = ""
+    tbl3.open = .F.
+    tbl3.Owner_Id = ""
+    tbl3.change_end()
+    tbl3.fetch_next()
 end while
 tbl3.close()
 tbl7.close()
@@ -303,12 +303,12 @@ For more detail, log in to Alpha Sports and view your Order History.
 	<description>If the customer selected to receive an email confirmation, the script defines the email_subject and shipping variables.
 </description>
 	<example><![CDATA[if chkout_vars.confirm_email = "true"
-    email_subject = "Alpha Sports Order Confirmation"
-    shipping = alltrim(chkout_vars.ship_to_name) + crlf()+ alltrim(chkout_vars.ship_to_address)
-    if chkout_vars.saddr2 <> "" ' second address line
-        shipping = shipping + crlf()+ alltrim(chkout_vars.saddr2)
-    end if
-    shipping = shipping + crlf()+ alltrim(chkout_vars.ship_to_city) + ", " + alltrim(chkout_vars.ship_to_state) + " " + alltrim(chkout_vars.ship_to_zip)
+    email_subject = "Alpha Sports Order Confirmation"
+    shipping = alltrim(chkout_vars.ship_to_name) + crlf()+ alltrim(chkout_vars.ship_to_address)
+    if chkout_vars.saddr2 <> "" ' second address line
+        shipping = shipping + crlf()+ alltrim(chkout_vars.saddr2)
+    end if
+    shipping = shipping + crlf()+ alltrim(chkout_vars.ship_to_city) + ", " + alltrim(chkout_vars.ship_to_state) + " " + alltrim(chkout_vars.ship_to_zip)
 ]]></example>
 </section>
 
@@ -316,10 +316,10 @@ For more detail, log in to Alpha Sports and view your Order History.
 	<description>Replace the place holders in email_body with the invoice number and shipping. Remove the comment marker to use the EMAIL_SEND() function to actually send the email.
 </description>
 	<example><![CDATA[email_body = stritran(email_body,"invoice_number", alltrim(chkout_vars.invoice_no) )
-    email_body = stritran(email_body,"shipping",shipping)
-    if chkout_vars.email <> "" ' verify an email address is available
-        ' email_send(chkout_vars.email, email_subject, email_body, "", "", "", .F.)
-    end if
+    email_body = stritran(email_body,"shipping",shipping)
+    if chkout_vars.email <> "" ' verify an email address is available
+        ' email_send(chkout_vars.email, email_subject, email_body, "", "", "", .F.)
+    end if
 end if
 ]]></example>
 </section>
@@ -329,16 +329,16 @@ end if
 </description>
 	<example><![CDATA[PrintTarget = "" 'target 'page' for report
 if chkout_vars.print_inv = "true"
-    dim filter as C
-    dim order as C
-    Filter = "Invoice_Number = " + quote(alltrim(chkout_vars.invoice_no) )
-    Order = ""
-    dim filename as C
-    filename = session.session_folder + chr(92) + "tempreport.pdf"
-    filename = report.saveas("Invoice@PathAlias.ADB_Path\invoice.set", "pdf", filter, order, filename, .f.)
-    if file.exists(filename)
-        PrintTarget = session.session_url + "tempreport.pdf?" + time("hms3")
-    end if
+    dim filter as C
+    dim order as C
+    Filter = "Invoice_Number = " + quote(alltrim(chkout_vars.invoice_no) )
+    Order = ""
+    dim filename as C
+    filename = session.session_folder + chr(92) + "tempreport.pdf"
+    filename = report.saveas("Invoice@PathAlias.ADB_Path\invoice.set", "pdf", filter, order, filename, .f.)
+    if file.exists(filename)
+        PrintTarget = session.session_url + "tempreport.pdf?" + time("hms3")
+    end if
 end if
 redirect_page = "index.a5w"]]></example>
 </section>

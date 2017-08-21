@@ -221,34 +221,34 @@ Data Source > Variable name is set to "grouplist".
 </description>
 	<example><![CDATA[If eval_valid("Request.variables.emp_id ") ' Value passed to page - also used in 'ulink' 
      if Request.variables.emp_id <> ""
-        query.filter = "emp_id = \""+Request.variables.emp_id+"\"" ) ' find the record
-        query.order = ""
-        tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
-        qdx = tbl.query_create()
+        query.filter = "emp_id = \""+Request.variables.emp_id+"\"" ) ' find the record
+        query.order = ""
+        tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
+        qdx = tbl.query_create()
 ]]></example>
 </section>	
 <section>
 	<description>If the query finds a single record, the script writes the values from the fields of the internal_users record to the values in the dialog's controls. 
 </description>
 	<example><![CDATA[if qdx.records_get() = 1 ' got one match
-            CurrentForm.Controls.emp_Fname.value = alltrim(tbl.emp_Fname)
-            CurrentForm.Controls.emp_Lname.value = alltrim(tbl.emp_Lname)
-            CurrentForm.Controls.emp_id.value = alltrim(tbl.emp_id)
-            CurrentForm.Controls.dept.value = alltrim(tbl.Dept)
-            CurrentForm.Controls.ulink.value = alltrim(tbl.emp_id)
-            tbl.close()
+            CurrentForm.Controls.emp_Fname.value = alltrim(tbl.emp_Fname)
+            CurrentForm.Controls.emp_Lname.value = alltrim(tbl.emp_Lname)
+            CurrentForm.Controls.emp_id.value = alltrim(tbl.emp_id)
+            CurrentForm.Controls.dept.value = alltrim(tbl.Dept)
+            CurrentForm.Controls.ulink.value = alltrim(tbl.emp_id)
+            tbl.close()
 ]]></example>
 </section>	
 <section>
 	<description>The event code then re-populates the ulink control with the emp_id from the record found and uses that value to find a security record for the user. The value is placed in a request variable to pass to the A5WS_GET_USER_VALUES() function. 
 </description>
 	<example><![CDATA[request.variables.ulink = alltrim(CurrentForm.Controls.emp_id.value)
-            a5ws_get_user_values(CurrentForm,request)
-            'find security record by 'ulink' as we don't have 'GUID', do not use email as it can change
-        else
-            tbl.close()
-        end if
-    end if
+            a5ws_get_user_values(CurrentForm,request)
+            'find security record by 'ulink' as we don't have 'GUID', do not use email as it can change
+        else
+            tbl.close()
+        end if
+    end if
 end if
 ]]></example>
 </section>	
@@ -257,9 +257,9 @@ end if
 </description>
 	<example><![CDATA['set validation email address to same as userid if no email has been entered
 if alltrim(CurrentForm.Controls.userid.value) <> "" 
-    if alltrim(CurrentForm.Controls.email.value) = "" 
-        CurrentForm.Controls.email.value = alltrim(CurrentForm.Controls.userid.value)
-    end if
+    if alltrim(CurrentForm.Controls.email.value) = "" 
+        CurrentForm.Controls.email.value = alltrim(CurrentForm.Controls.userid.value)
+    end if
 end if
 ]]></example>
 </section>	
@@ -274,42 +274,42 @@ end if
 </description>
 	<example><![CDATA[dim FlagNew as l = .T.
 if CurrentForm.Controls.emp_id.value <> "" ' indicates existing record (could also use any other known value)
-    query.filter = "emp_Id= \""+alltrim(CurrentForm.Controls.emp_id.value)+"\""
-    query.order = ""
-    tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
-    qdx = tbl.query_create()
+    query.filter = "emp_Id= \""+alltrim(CurrentForm.Controls.emp_id.value)+"\""
+    query.order = ""
+    tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
+    qdx = tbl.query_create()
 ]]></example>
 </section>	
 <section>
 	<description>If the query finds a single record, the script writes the values in the dialog's controls into the fields of the internal_users record. It sets the flag to FALSE to indicate this is an existing record.</description>
 	<example><![CDATA[if qdx.records_get() = 1 ' got one
-        tbl.change_begin()
-        tbl.emp_fname = alltrim(CurrentForm.Controls.emp_Fname.value) 
-        tbl.emp_lname = alltrim(CurrentForm.Controls.emp_Lname.value)
-        tbl.email = alltrim(CurrentForm.Controls.userid.value)
-        tbl.Dept = alltrim(CurrentForm.Controls.dept.value)
-        tbl.change_end()
-        FlagNew = .F. ' no need to resave security as 'ulink' was already used to find security record
-    elseif qdx.records_get() > 1
-        FlagNew = .F.
-    end if 
-    tbl.close()
+        tbl.change_begin()
+        tbl.emp_fname = alltrim(CurrentForm.Controls.emp_Fname.value) 
+        tbl.emp_lname = alltrim(CurrentForm.Controls.emp_Lname.value)
+        tbl.email = alltrim(CurrentForm.Controls.userid.value)
+        tbl.Dept = alltrim(CurrentForm.Controls.dept.value)
+        tbl.change_end()
+        FlagNew = .F. ' no need to resave security as 'ulink' was already used to find security record
+    elseif qdx.records_get() > 1
+        FlagNew = .F.
+    end if 
+    tbl.close()
 end if]]></example>
 </section>	
 <section>
 	<description>If the flag is TRUE, this is a new record and a new record is saved into the internal_users table. After the record is saved, but before the table is closed, the emp_id value for this new record is saved in a request variable. The security values are re-saved by the A5WS_SAVE_USER_VALUES() function to add this emp_id value to the security ulink field. 
 </description>
 	<example><![CDATA[if FlagNew = .T.
-    tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
-    tbl.enter_begin()
-    tbl.emp_fname = alltrim(CurrentForm.Controls.emp_Fname.value) 
-    tbl.emp_lname = alltrim(CurrentForm.Controls.emp_Lname.value)
-    tbl.email = alltrim(CurrentForm.Controls.userid.value)
-    tbl.Dept = alltrim(CurrentForm.Controls.dept.value)
-    tbl.enter_end()
-    request.variables.ulink = alltrim(tbl.emp_id) 'get new 'ulink' value
-    tbl.close()
-    a5ws_save_user_values(CurrentForm,request) ' resave security with new 'ulink' value
+    tbl = table.open("PathAlias.ADB_Path\internal_users.dbf")
+    tbl.enter_begin()
+    tbl.emp_fname = alltrim(CurrentForm.Controls.emp_Fname.value) 
+    tbl.emp_lname = alltrim(CurrentForm.Controls.emp_Lname.value)
+    tbl.email = alltrim(CurrentForm.Controls.userid.value)
+    tbl.Dept = alltrim(CurrentForm.Controls.dept.value)
+    tbl.enter_end()
+    request.variables.ulink = alltrim(tbl.emp_id) 'get new 'ulink' value
+    tbl.close()
+    a5ws_save_user_values(CurrentForm,request) ' resave security with new 'ulink' value
 end if]]></example>
 </section>	
 <section>
