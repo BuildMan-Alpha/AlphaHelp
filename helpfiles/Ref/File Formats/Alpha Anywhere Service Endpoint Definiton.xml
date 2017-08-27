@@ -208,7 +208,112 @@
                 </item>
             </list>
         </section>
-        
+        <section>
+           <title>Example MongoDb Collection exposed as a REST API</title>
+           <description>
+              <p>A class that defines methods to get and add, update and delete records from a mongo database, using the extension::MongoDB class.</p>
+           </description>
+           <example><![CDATA[
+define class restapi::customer
+	function GetCustomers as p()
+		dim Mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","alphasports","Customer")
+		GetCustomers = json_parse(mongo.GetRecords(""))
+	end function
+	
+	function GetCustomer as p(id as c)
+		dim Mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","alphasports","Customer")
+		dim json as c = mongo.GetRecords("{ \"CUSTOMER_ID\" : \""+id+"\" }")
+		if json <> "" then
+			dim jso as extension::JSON
+			jso.setJson(json)
+			if jso.getLength() > 0 then
+				dim jsi as extension::JSON = jso.getIndexed(0)
+				GetCustomer = json_parse(jsi.getJson())
+			end if
+		end if
+	end function
+	
+	function AddCustomer as l(obj as p)
+		if obj.data("CUSTOMER_ID") <> "" then
+			dim json as c = json_generate(obj)
+			dim Mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","alphasports","Customer")
+			Mongo.AddRecord(json)
+			AddCustomer = .t.
+		end if	
+	end function
+	
+	function DeleteCustomer as l(id as c)
+		dim obj as p = GetCustomer(id)
+		dim _id as c = obj.data("_id")
+		if _id <> "" then
+			dim Mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","alphasports","Customer")
+			mongo.DeleteRecord(_id)
+			DeleteCustomer = .t.
+		end if	
+	end function
+	
+	function UpdateCustomer as l(newObj as p)
+		dim id as c = newObj.data("CUSTOMER_ID")
+		if id <> "" then
+			dim obj as p = GetCustomer(id)
+			dim _id as c = obj.data("_id")
+			if _id <> "" then
+				property_recurse_assign(obj,newObj)				
+				dim json as c = json_generate(obj)
+				dim Mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","alphasports","Customer")
+				Mongo.UpdateRecord(_id,json)
+				UpdateCustomer = .t.
+			end if	
+		end if	
+	end function
+end class
+]]></example>
+        </section>        
+        <section>
+           <title>Definition file for class</title>
+           <description>
+              <p>Example Definition for mapping the REST api to a service endpoint.</p>
+           </description>
+           <example><![CDATA[
+{
+    "path": "/{method}",
+    "method": "get",
+    "api": [
+        {
+            "implementation": "xbasic",
+            "service": "restapi::customer",
+            "methods": [
+                {
+                    "name": "AddCustomer",
+                    "path": "/AddCustomer",
+                    "method": "post"
+                },
+                {
+                    "name": "DeleteCustomer",
+                    "path": "/DeleteCustomer/{arguments.id}",
+                    "method": "delete"
+                },
+                {
+                    "name": "GetCustomer",
+                    "path": "/GetCustomer/{arguments.id}",
+                    "method": "get"
+                },
+                {
+                    "name": "GetCustomers",
+                    "path": "/GetCustomers",
+                    "method": "get"
+                },
+                {
+                    "name": "UpdateCustomer",
+                    "path": "/UpdateCustomer",
+                    "method": "put"
+                }
+            ]
+        }
+    ]
+}
+]]></example>
+        </section>        
     </sections>
 </page>    
 
