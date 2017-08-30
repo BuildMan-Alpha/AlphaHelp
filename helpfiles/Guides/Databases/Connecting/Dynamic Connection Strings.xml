@@ -5,7 +5,9 @@
     <sections>
         <section>
             <title>Using the DynamicConnection_ Prefix to Define Dynamic Connection Strings</title>
-            <description>Dynamic connection strings can be defined using a prefix. A connection string named "*[xb:<![CDATA[DynamicConnection_<name>]]>]*", where <![CDATA[<name>]]> is a user-defined string identifying the connection string, will be resolved dynamically at runtime. For example:</description>
+            <description>
+                <p>Dynamic connection strings can be defined using a prefix. A connection string named "*[xb:<![CDATA[DynamicConnection_<name>]]>]*", where <![CDATA[<name>]]> is a user-defined string identifying the connection string, will be resolved dynamically at runtime. For example:</p>
+            </description>
             <example><![CDATA[DynamicConnection_MyCustomApplication]]></example>
         </section>
         <section>
@@ -23,6 +25,20 @@
             <example><![CDATA[::Name::User1Connection]]></example>
         </section>
         <section>
+            <description>
+                <p>Dynamic connections can be used directly in Grid and UX components but may not work as expected in .a5w pages or Xbasic scripts when using the SQL::Connection object. A connection string with the *[xb:DynamicConnection_]* prefix cannot be used with the SQL::Connection open function. Instead, you must use the *[xb:a5SQLConnectionOpen()]* function, which will evaluate the dynamic connection string before opening the connection. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[session.__protected__conn = "::Name::myConnStr" ' change to any existing named connection string
+dim cn as sql::Connection
+if (a5SQLConnectionOpen(cn,"::Name::DynamicConnection_conn",session)) then
+    dim tables as c = cn.listTables()
+    cn.close()
+    ui_msg_box("Tables in Database", tables)
+else 
+    ui_msg_box("Error Opening Database", "Could not open connection. Error was: " + cn.callResult())
+end if]]></example>
+        </section>
+        <section>
             <title>Using Xbasic Expressions to Create Dynamic Connection Strings</title>
             <description>
                 <p>Dynamic connection strings can also be created using the *[xb:::EVAL::]* prefix. The *[xb:::EVAL::]* prefix is used in the named connection string, similar to how the *[xb:::Name::]* prefix is used for named connections.</p>
@@ -38,5 +54,30 @@
             </description>
             <example><![CDATA[::EVAL::if(User = "Fred","::name::Fred","::name::EverybodyElse")]]></example>
         </section>
+        <section>
+            <description>
+                <p>The *[xb:::EVAL::]* prefix is supported directly by the *[xb:open()]* method for a SQL::Connection object. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim customer as C = ""
+
+'uncomment the line below to see what happens when customer = "Fred"
+'customer = "Fred"
+
+dim connStr as c = <<%str%
+::EVAL::if(User = "Fred","::name::Fred","::name::EverybodyElse")
+%str%
+
+if (cn.open(connStr)) then
+    dim connStr as c = cn.GetConnectionString()
+    cn.close()
+    ui_msg_box("Connection string", connStr)
+else 
+    ui_msg_box("Error Opening Database", "Could not open connection. Error was: " + cn.callResult())
+end if]]></example>
+        </section>
     </sections>
+    <see>
+        <ref link="a5sqlconnectionopen function">a5SQLConnectionOpen Function</ref>
+        <ref link="server xb building multi-tenant applications dynamic connection strings">Building Multi-Tenant Applications - Dynamic Connection Strings</ref>
+    </see>
 </page>

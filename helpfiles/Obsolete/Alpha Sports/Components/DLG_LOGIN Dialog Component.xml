@@ -109,20 +109,20 @@ All users, public and internal, have a minimum user level of 1. Customers are ty
 The script first tests the values in the dialog's controls. If either is NULL, the script sets the currentform.has_error variable to TRUE (.T.), sets the error message, and exits. Otherwise, the script DIMs working variables and sets login_val to NULL.
 </description>	
 <example><![CDATA[if user_name = "" .or. password = "" then
-    currentform.has_error = .t.
-    currentform.error_message = " User name or password cannot be blank."
+    currentform.has_error = .t.
+    currentform.error_message = " User name or password cannot be blank."
 else
-    dim customer_values as C
-    dim internal_values as C
-    dim login_val as C
-    login_val = ""]]></example>	
+    dim customer_values as C
+    dim internal_values as C
+    dim login_val as C
+    login_val = ""]]></example>	
 	
 </section>
 <section>
 <description>Next, the script looks into the customer and user_names tables for matches for the user_name value.
 </description>	
 <example><![CDATA[customer_values = lookup("PathAlias.ADB_Path\customer", "email =" + quote(user_name), "alltrim(password) + \"|\" + alltrim(customer_id)")
-    internal_values = lookup("PathAlias.ADB_Path\user_names", "user_name=" + quote(user_name), "alltrim(password) + \"|\" + user_id + \"|\" + level")
+    internal_values = lookup("PathAlias.ADB_Path\user_names", "user_name=" + quote(user_name), "alltrim(password) + \"|\" + user_id + \"|\" + level")
 ]]></example>	
 	
 </section>
@@ -131,17 +131,17 @@ else
 <description>If the customer user name value matches, the script computes the value of login_val and displays INDEX.A5W. The access level is initially set to 1. If there is no match in the customer table, the script next checks the user_names table and checks for a match. If a match is found, the script computes login_val. In this case the user's specific access level is inserted into login_val and displays ASWINDEX.A5W. If no match is found, the script generates an error message.
 </description>	
 <example><![CDATA[if word(customer_values, 1, "|") = password then
-        login_val = alltrim(word(customer_values, 2, "|") ) + "|C|1"
-        Currentform.RedirectTarget = "index.a5w"
-    elseif word(internal_values,1,"|") = password then
-        login_val = alltrim(word(internal_values, 2, "|") ) + "|I|" + alltrim(word(internal_values, 3, "|") )
-        session.targetURL = ""
-        Currentform.RedirectTarget = "aswindex.a5w"
-    ELSE
-        currentform.has_error = .t.
-        currentform.error_message = " Invalid user name or password."
-        CurrentForm.Controls.password = ""
-    end if
+        login_val = alltrim(word(customer_values, 2, "|") ) + "|C|1"
+        Currentform.RedirectTarget = "index.a5w"
+    elseif word(internal_values,1,"|") = password then
+        login_val = alltrim(word(internal_values, 2, "|") ) + "|I|" + alltrim(word(internal_values, 3, "|") )
+        session.targetURL = ""
+        Currentform.RedirectTarget = "aswindex.a5w"
+    ELSE
+        currentform.has_error = .t.
+        currentform.error_message = " Invalid user name or password."
+        CurrentForm.Controls.password = ""
+    end if
 ]]></example>	
 	
 </section>
@@ -150,8 +150,8 @@ else
 <description>Finally, if the script has found a valid user entry in either table, it writes a cookie named login that contains login_val.
 </description>	
 <example><![CDATA[if login_val <> ""
-        response.add_cookie("login", login_val, 0)
-    end if
+        response.add_cookie("login", login_val, 0)
+    end if
 end if]]></example>	
 	
 </section>
@@ -161,9 +161,9 @@ end if]]></example>
 <description>The AfterValidate event returns the user to the prior page. The session.targetURL variable is only used for public pages. Its value will be blank for an internal logon.
 </description>	
 <example><![CDATA[if eval_valid("session.targetURL") = .T. then
-    if session.targetURL <> "" then
-        CurrentForm.RedirectTarget = session.targetURL
-    end if
+    if session.targetURL <> "" then
+        CurrentForm.RedirectTarget = session.targetURL
+    end if
 end if
 ]]></example>	
 	

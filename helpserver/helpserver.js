@@ -219,7 +219,7 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
 }
 
 events.lookupLink = function(indexLinks, symName) {
-    if (indexLinks) {
+    if (indexLinks && symName) {
         var indexVal = symName.toLowerCase();
         var val = indexLinks[indexVal];
         if (!val) {
