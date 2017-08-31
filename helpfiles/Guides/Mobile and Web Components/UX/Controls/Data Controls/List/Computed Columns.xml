@@ -1,0 +1,233 @@
+<page>
+    <shortlink>ux listcontrol creating calculated fields</shortlink>
+    <topic>Adding Calculated Fields to a List</topic>
+    <description>Calculated fields can be added to a List control using *[ui:Custom Controls]* and *[ui:Computed columns]*.</description>
+    <discussion>
+        <p></p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Defining Calculated Fields Server-Side</title>
+            <description>
+                <p>*[ui:Custom controls]* can be added to the List control. Similar to Custom controls in the Grid Component, the HTML rendered for a Custom control in the List is defined using Xbasic.</p>
+                <p>To add a Custom control to the List, click the *[ui:Add Item]* button on the Fields tab and select "Custom control":</p>
+            </description>
+            <figure>
+                <link>images/computedCols_cc1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>After the Custom control has been added, the HTML to show for the control needs to be defined. This is done using the *[ui:Definition]* property for the Custom Control.</p>
+            </description>
+            <figure>
+                <link>images/computedCols_cc2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Define Xbasic for Custom Control dialog is an Xbasic editor used to define the HTML rendered for the Custom control. The values for fields in the List control can be accessed in the *[xb:ds]* argument passed to the function that computes the HTML for the control. For example, the Xbasic below shows the definition for a Custom Control that calculates the subtotal for an individual line item for an Order based on the value of the *[xb:UnitPrice]* and *[xb:Quantity]* fields:</p>
+            </description>
+            <tip>Use the *[ui:Insert]* button to quickly insert the value for a field in the List control into your Xbasic script.</tip>
+            <example code="xb"><![CDATA[function xbasicSubtotal_render as c (ds as p, tmpl as p)
+'Specify the Xbasic that returns the HTML for this control. 
+'This function must return xbasicSubtotal_render, which should
+'contain the HTML that will be displayed.
+'The 'ds' argument that is passed in contains the current 
+'values for each of the fields in the current List row. 
+'For example: ds.data("Firstname")
+
+'-------------------------------------------------------------------
+on error goto xbasicSubtotal_xbasicError
+
+    ' Get the price and quantity ordered
+    dim unitPrice as N = convert_type(ds.data("UnitPrice"),"N")
+    dim quantity as N = convert_type(ds.data("Quantity"),"N")
+
+    ' Calculate the subtotal
+    dim subtotal as N
+    subtotal = unitPrice * quantity
+
+    'Format as a dollar amount
+    dim html as c
+    html = alltrim(str(subtotal,250,2,"$("))
+
+    'Return the HTML to be displayed
+    xbasicSubtotal_render = html
+
+    end
+
+xbasicSubtotal_xbasicError:
+
+    xbasicSubtotal_render = "Error in custom control xbasic: " + error_text_get() 
+
+end function]]></example>
+            <note>Virtual fields created using *[ui:Computed columns]* on the client-side cannot be referenced in Custom controls. This is because the Computed columns are computed on the client after all server-side calculations for the List control have been computed.</note>
+        </section>
+        <section>
+            <description>
+                <p>The resulting List with the custom control is shown below:</p>
+            </description>
+            <figure>
+                <link>images/computedCols_cc3.png</link>
+            </figure>
+        </section>
+        <section>
+            <note>Because server-side calculated fields are computed using Xbasic, they cannot be recalculated until an Ajax Callback is made to the server. This means that Custom columns will not be recomputed if a device is offline.</note>
+        </section>
+        <section>
+            <title>Defining Calculated Fields Client-Side</title>
+            <description>
+                <p>Client-side calculated fields can be added to the List as *[ui:Computed columns]*. Computed columns are defined using JavaScript and are calculated on the client (i.e. in the browser.</p>
+            </description>
+            <figure>
+                <link>images/computedCols_cs1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When defining Computed columns,</p>
+            </description>
+            <list bullet="true">
+                <item>
+                    <name>Any number of client-side computed columns can be defined.</name>
+                </item>
+                <item>
+                    <name>Computed columns are defined using JavaScript.</name>
+                </item>
+                <item>
+                    <name>Field definitions are defined using the format *[js:data.CALCULATED_FIELD_NAME&#160;=&#160;Expression;]* where *[js:CALCULATED_FIELD_NAME]* is the name of the calculated field and *[js:Expression;]* is a JavaScript expression that computes the field's value.</name>
+                </item>
+                <item>
+                    <name>References to existing fields must use the *[js:data.]* prefix (all lower case.)</name>
+                </item>
+                <item>
+                    <name>Field names a case-sensitive.</name>
+                </item>
+                <item>
+                    <name>Field definitions must end with a semi-colon.</name>
+                </item>
+                <item>
+                    <name>The JavaScript definition can reference *[js:index]*, a zero-based row number for the current record being rendered.</name>
+                </item>
+                <item>
+                    <name>Anonymous functions can be used to build complex expressions (see examples below.)</name>
+                </item>
+            </list>
+            <figure>
+                <link>images/computedCols_cs2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>For example, the code below defines three computed columns: subTotal, discountAmount and Total. The three columns are computed using fields from the List's data source:</p>
+            </description>
+            <example code="js"><![CDATA[data.subTotal = ($u.s.toNum(data.Quantity) * $u.s.toNum(data.UnitPrice));
+data.discountAmount = $u.s.toNum(data.Quantity) * $u.s.toNum(data.Discount) * $u.s.toNum(data.UnitPrice);
+data.Total = ($u.s.toNum(data.Quantity) * ($u.s.toNum(data.UnitPrice) - $u.s.toNum(data.Discount) * $u.s.toNum(data.UnitPrice)));]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Computed columns can reference other computed columns as long as the referenced computed columns were defined *[first]*. For example, discountAmount can reference subTotal because subTotal is defined first in the Computed column definition dialog. Because Computed columns can used in this fashion, the above example can be rewritten to reference existing Computed columns as follows:</p>
+            </description>
+            <example code="js"><![CDATA[data.subTotal = ($u.s.toNum(data.Quantity) * $u.s.toNum(data.UnitPrice));
+data.discountAmount = data.subTotal * $u.s.toNum(data.Discount);
+data.Total = data.subTotal - data.discountAmount;]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Computed columns can also use anonymous functions. Anonymous functions can make it easier to define fields that require complex calculations since multiple lines can be used to define the calculation. An anonymous function is a JavaScript function that is immediately evaluated. This is accomplished by adding parentheses at the end of the function definition to call the function. EG:</p>
+            </description>
+            <example code="js"><![CDATA[data.CALCULATED_FIELD_NAME = function(data,index) {
+    var fieldValue;
+    
+    // JavaScript to compute field value
+
+    return fieldValue;
+}(data,index);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>To use the values of the *[js:data]* and *[js:index]* variables in the field calculation, they are passed to the anonymous function as parameters. At the end of the function definition, the anonymous function is called by adding *[js:(data,index);]* after the closing curly brace.</p>
+                <p>In the example below, the subTotal, discountAmount, and Total columns have been rewritten using anonymous functions:</p>
+            </description>
+            <example code="js"><![CDATA[data.subTotal = function (data,index) {
+
+    var price = $u.s.toNum(data.UnitPrice);
+    var qty = $u.s.toNum(data.Quantity);
+
+    return price * qty;
+
+}(data,index);
+
+data.discountAmount = function (data,index) {
+
+    var subtotal = data.subTotal;
+    var discount = $u.s.toNum(data.Discount)
+    
+    return subtotal * discount;
+
+}(data,index);
+
+data.Total = function (data,index) {
+
+    var subtotal = data.subTotal;
+    var discountAmount = data.discountAmount;
+
+    return subtotal - discountAmount;
+
+}(data,index);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The image below shows the List control rendered with the three Computed columns: subTotal, discountAmount and Total</p>
+            </description>
+            <figure>
+                <link>images/computedCols_cs3.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Videos</title>
+            <description>To learn more about Custom columns and Computed columns in a List control, watch the videos below.</description>
+            <videos>
+                <title>Creating Custom Controls in a List Control</title>
+                <description>
+                    <p>Just as the Grid Component allows you to define a "Custom Control" control type, the List allows you to define "Custom Controls" to compute values to be shown in the List.</p>
+                    <p>The "custom control" is defined by an Xbasic function that will return the HTML to show in the List. The Xbasic function takes as its input an object that allows the function to see all of the data in the current row of the List.</p>
+                    <p>In this example, we define a very simple Custom Control field for the List that combines data from the "firstname" and "lastname" columns in the List.</p>
+                </description>
+                <date></date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/808991a8</link>
+                </video>
+                <resources>
+                    <resource>
+                        <name>Read Transcript</name>
+                        <link>http://downloads.alphasoftware.com/VideoTranscripts/ListControlCustomControlColumns/transcript.htm</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Creating Computed Columns for a List Control</title>
+                <description>
+                    <p>The List control allows you to define computed columns. A computed column displays a value that is computed from other data in the current row. Computed columns can be calculated server-side (in which case Xbasic functions can be used in the calculation), or they can be computed client-side (in which case Javascript functions can be used in the calculation).</p>
+                    <p>To define a server-side computed column, you would actually define a "Custom Control" as shown in the previous video.</p>
+                    <p>In this video, we show how a client-side computed column can be added to the List.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/abee7ca1</link>
+                </video>
+                <resources>
+                    <resource>
+                        <name>Read Transcript</name>
+                        <link>http://downloads.alphasoftware.com/VideoTranscripts/ListControlComputedColumns/transcript.htm</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+</page>
