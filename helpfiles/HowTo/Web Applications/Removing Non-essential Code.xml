@@ -1,55 +1,116 @@
 <page>
 	<shortlink>server Removing Non essential Code</shortlink>
-	<topic>Removing Non-essential Code</topic>
-	<description>When the HTML Editor places a component on an A5W page, the result for a grid looks something like this (in this case for a component named grd_prods ).</description>
-	
-<sections>
-<section>
-	<example><![CDATA[<table>
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.Grid_Echo %> </td>
-</tr>
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.UpdateErrors %> </td>
-</tr>
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.Search_HTML %> </td>
-</tr>
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.Grid_HTML %> </td>
-</tr>
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.DetailView_HTML %> </td>
-</tr>
-</table> ]]></example>
-</section>	
-<section>
-	<description>Frequently, some of these sections are not needed and can be removed to give better formatting and reduce the amount of HTML on the page. I did it on almost every page.</description>
-	<cases>
-		<case>
-			<description>"Grid_Echo" can almost always be removed.</description>
-		</case>
-		<case>
-			<description>"Update_errors" can be removed on any component that is view only (no data to update).</description>
-		</case>
-		<case>
-			<description>"Search_HTML" can be removed if there is no search section, or it is not used.</description>
-		</case>
-		<case>
-			<description>"DetailView_HTML" can be removed if there is no detail section.</description>
-		</case>
-		
-	</cases>
-</section>	
-<section>
-	<description>After a little extra formatting, the simplified version of the page code now looks like this:</description>
-	<example><![CDATA[<table border="0" cellspacing="3" cellpadding="0">
-<tr>
-<td> <%A5 ?x_grd_prods.Output.Body.Grid_HTML %> </td>
-</tr>
-</table> ]]></example>
-</section>	
-	
-</sections>	
-	
+	<topic>How to Omit HTML for Parts of a Component Embedded in an .a5w page</topic>
+	<description>Individual portions of a component are emitted separately when embedded in an A5W page. You can omit portions of the component -- such as the Page Title for a UX Component or the Detail View for a Grid Component.</description>
+	<discussion>
+		<p>When a component is embedded in an A5W page, content is emitted in both the head and body portions of the page for the component. While it is generally unnecessary to modify the embed code for a component, there are situations where you may want to delete the generated code to prevent a section of the component from being rendered.</p>
+		<p>A common use case for modifying the generated code is to prevent a UX Component from overwriting the page title for a page.</p>
+		<p>You can also omit portions of a Grid Component if they're unused, though this is optional and leaving in the code to emit the Search Part or Detail View of a Grid Component will not cause any layout issues.</p>
+	</discussion>
+	<sections>
+		<section>
+			<title>How to Omit the HTML Output for Portions of a Component</title>
+			<description>
+				<p>The code below is the generated code for embedding a Grid component called "nw_customers" in an A5W page. The generated code for the Grid Component is placed in two sections in the HTML output: the head and body.</p>
+			</description>
+			<example code="xb"><![CDATA[<!doctype html>
+<html>
+<head>
+
+<%a5
+'The componentAlias MUST be UNIQUE for each component on the page. It must not have spaces in the name. Keep name as short as possible
+dim componentAlias as c 
+componentAlias = "NW_CUSTOMERS"
+Delete tmpl_NW_CUSTOMERS
+DIM tmpl_NW_CUSTOMERS as P
+tmpl_NW_CUSTOMERS = a5w_load_component("nw_customers") 'SYSTEM GENERATED COMMENT - PLEASE DO NOT REMOVE (LOAD:nw_customers)
+'Following code allows you to override settings in the saved component. DO NOT REMOVE SYSTEM GENERATED OVERRIDE_SETTINGS
+tmpl_NW_CUSTOMERS.override_settings = <<%override_settings%
+	componentName = componentAlias
+	_gridFilename = "nw_customers"
+%override_settings%
+'TIP: To refer to local or page variables in the override_settings string, you must first define a local
+'dot variable called 'pageVar' with properties for all of the variables you want to reference. For example:
+'	dim pageVar as p
+'	pageVar.gridRowCount = 10
+'Then, in the override_settings string, you can reference pageVar.gridRowCount. For example:
+'	rows = pageVar.gridRowCount
+'Resolve session and page variables in the override_settings string.
+a5w_resolveVariablesInOverrideSettings(tmpl_NW_CUSTOMERS,session,local_variables())
+delete x_NW_CUSTOMERS
+dim x_NW_CUSTOMERS as p
+x_NW_CUSTOMERS = a5w_run_Component(tmpl_NW_CUSTOMERS)  'SYSTEM GENERATED COMMENT - PLEASE DO NOT REMOVE (RUN:tmpl_NW_CUSTOMERS) (EDIT:nw_customers)
+if x_NW_CUSTOMERS.RedirectURL <> "" then 
+	response.redirect(x_NW_CUSTOMERS.redirectURL)
+	end
+end if 
+?x_NW_CUSTOMERS.Output.Head.JavaScript
+?x_NW_CUSTOMERS.Output.Head.CSS_Link
+%>
+<!--Alpha Five Temporary Code Start - Will be automatically removed when page is published -->
+<!--CSS for tmpl_NW_CUSTOMERS -->
+<link rel="stylesheet" type="text/css" href="file:///C:/aa/example/example.WebProjects/UX Controls.WebProject/css/Alpha/style.css">
+<!--Alpha Five Temporary Code End -->
+
+<meta name="generator" content="Alpha Anywhere HTML Editor Version 12 Build 4544-4948">
+<!-- must use in order to make XP Themes render -->
+<meta HTTP-EQUIV="MSThemeCompatible" content="Yes" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+
+<title></title>
+</head>
+<body>
+<p>&nbsp;</p>	<%A5 ?x_NW_CUSTOMERS.Output.Body.Search_HTML %>
+	<%A5 ?x_NW_CUSTOMERS.Output.Body.Grid_HTML %>
+	<%A5 ?x_NW_CUSTOMERS.Output.Body.DetailView_HTML	%>
+	<%a5 ?a5dialogHelper_generateCORSHeaders() %>
+</body></html>]]></example>
+		</section>
+		<section>
+			<description>
+				<p>The generated Xbasic for the head portion contains code that emits the necessary HTML to include the JavaScript and CSS files required by the component:</p>
+			</description>
+			<example code="xb"><![CDATA[?x_NW_CUSTOMERS.Output.Head.JavaScript
+?x_NW_CUSTOMERS.Output.Head.CSS_Link]]></example>
+		</section>
+		<section>
+			<description>
+				<p>Additional output code may be generated for other component types. For example, the UX Component will add the title tag for the page in the head section. You may want to prevent the UX from setting the title for the A5W page. This is accomplished by commenting out the line ending with *[xb:Output.Head.Title]*. For example:</p>
+			</description>
+			<example code="xb"><![CDATA[' commented out: don't let UX override page title
+' ?x_someUXComponentNameHere.Output.Head.Title ]]></example>
+		</section>
+		<section>
+			<description>
+				<p>The BODY portion contains Xbasic to render the Search Part, main Grid, and Detail View. The last line in the code below is necessary if the Grid Component uses web sockets. If your application does not have a Search Part or doesn't use web sockets, you can comment out or delete these lines from the A5W page.</p>
+			</description>
+			<example code="xb"><![CDATA[<%A5 ?x_NW_CUSTOMERS.Output.Body.Search_HTML %>
+<%A5 ?x_NW_CUSTOMERS.Output.Body.Grid_HTML %>
+<%A5 ?x_NW_CUSTOMERS.Output.Body.DetailView_HTML	%>
+<%a5 ?a5dialogHelper_generateCORSHeaders() %>]]></example>
+			<important>If you want to change the layout of your Grid Component, prefer to change the layout in the Grid Component's settings, not in the A5W page. Editing the Grid's layout in the Grid Component's settings will ensure the Grid uses the desired layout everywhere the Grid can be accessed (in [Tabbed UI Components], [embedded in UX Components], or [opened using Action Javascript].)</important>
+		</section>
+		<section>
+			<description>
+				<p>For example, web sockets are not used in the nw_customers Grid. Therefore, it's not necessary to emit the CORS Headers when the component is embedded. To prevent the CORS Headers from being added, we can modify the generated code as follows:</p>
+			</description>
+			<example code="xb"><![CDATA[<%A5 ?x_NW_CUSTOMERS.Output.Body.Search_HTML %>
+<%A5 ?x_NW_CUSTOMERS.Output.Body.Grid_HTML %>
+<%A5 ?x_NW_CUSTOMERS.Output.Body.DetailView_HTML	%>
+<%a5 ' Web Sockets are not needed; skip this next step
+'?a5dialogHelper_generateCORSHeaders() 
+%>]]></example>
+		</section>
+		<section>
+			<description>In general, it is not necessary to modify the code created by Alpha Anywhere to embed components in A5W pages. In fact, modifying the code created by Alpha can lead to unexpected issues down the road if components are modified to include the features that are omitted in the A5W page. For example, if you delete the Xbasic that embeds a part of the Grid, such as the Detail View, the Grid Component will not work as expected if you add the Detail View at a later date.</description>
+		</section>
+	</sections>
+	<links>
+		<link link="introducing the tabbed ui builder">Tabbed UI Components</link>
+		<link link="ux other controls embedded object">embedded in UX Components</link>
+		<link link="open a grid component">opened using Action Javascript</link>
+	</links>
 </page>
