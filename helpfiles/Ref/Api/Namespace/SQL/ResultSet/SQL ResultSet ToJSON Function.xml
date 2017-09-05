@@ -2,7 +2,7 @@
     <shortlink>api sql namespace result set object to json function</shortlink>
     <topic>SQL::ResultSet::ToJSON Function</topic>
     <description>Convert a ResultSet to a JSON formatted string.</description>
-    <prototype>C ToJSON([RowsToCopy = -1 as N [, StartRow = -1 as N [, UpperCaseNames = .f. as L [, ConvertToText = .t. as L [, DateTimeFormat =  as C [, DateFormat =  as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]]])</prototype>
+    <prototype>JSON as C = ToJSON([RowsToCopy = -1 as N [, StartRow = -1 as N [, UpperCaseNames = .f. as L [, ConvertToText = .t. as L [, DateTimeFormat =  as C [, DateFormat =  as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]]])</prototype>
     <arguments>
         <argument optional="true">
             <type>N</type>
@@ -45,9 +45,18 @@
             <description>The user context is passed into the evaluation of the expression when data is formatted.</description>
         </argument>
     </arguments>
+    <returns>
+        <return>
+            <name>JSON</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Returns the SQL::ResultSet in a JSON format.</description>
+        </return>
+    </returns>
     <discussion>
-        <p>The .toJSON() method creates a parseable JSON array of objects.</p>
-        <p>Contrast the AlphaDAO SQL::Resultset.toJSON() with the AlphaDAO SQL::Resultset.toJSONObjectSyntax() method. The later generates a CR-LF delimited string of JSON objects. To turn the output from this method into a parseable string, it is necessary to add the opening and closing square brackets and to terminate each line, except the last, with a comma.</p>
+        <p>The .toJSON() method creates a parsable JSON array of objects.</p>
+        <p>Contrast the AlphaDAO SQL::ResultSet.toJSON() with the AlphaDAO SQL::ResultSet.toJSONObjectSyntax() method. The later generates a CR-LF delimited string of JSON objects. To turn the output from this method into a parsable string, it is necessary to add the opening and closing square brackets and to terminate each line, except the last, with a comma.</p>
     </discussion>
     <sections>
         <section>
@@ -55,20 +64,26 @@
             <example>
                 <![CDATA[dim cn as sql::Connection
 cn.Open("::Name::northwind")
-cn.PortableSQLEnabled = .t.
 cn.Execute("select customerid, contactname, city, country from customers where country = 'canada'")
 rs = cn.ResultSet
-? rs.tojson() = [
-{"customerid" : "BOTTM", "contactname" : "Elizabeth Lincoln", "city" : "Tsawassenn", "country" : "Canada"},
-{"customerid" : "LAUGB", "contactname" : "Yoshi Tannamuri", "city" : "Vancouverr", "country" : "Canada"},
-{"customerid" : "MEREP", "contactname" : "Jean FresniÃ¨re", "city" : "MontrÃ©al", "country" : "Canada"}
+dim json as c = rs.tojson()
+? convert_utf8_to_acp(json)
+= [
+{"customerid" : "BOTTM", "contactname" : "Elizabeth Lincoln", "city" : "Tsawassen", "country" : "Canada"},
+{"customerid" : "LAUGB", "contactname" : "Yoshi Tannamuri", "city" : "Vancouver", "country" : "Canada"},
+{"customerid" : "MEREP", "contactname" : "Jean Fresnière", "city" : "Montréal", "country" : "Canada"}
 ]
+
 
 cn.Execute("select customerid, contactname, city, country from customers where country = 'canada'")
 rs = cn.ResultSet
-? rs.ToJSONObjectSyntax() = {"customerid" : "BOTTM", "contactname" : "Elizabeth Lincoln", "city" : "Tsawassenn", "country" : "Canada"}
-{"customerid" : "LAUGB", "contactname" : "Yoshi Tannamuri", "city" : "Vancouverr", "country" : "Canada"}
-{"customerid" : "MEREP", "contactname" : "Jean FresniÃ¨re", "city" : "MontrÃ©al", "country" : "Canada"} ]]>
+
+' Note that toJSONObjectSyntax does not include commas or brackets:
+json = rs.ToJSONObjectSyntax() 
+? convert_utf8_to_acp(json)
+= {"customerid" : "BOTTM", "contactname" : "Elizabeth Lincoln", "city" : "Tsawassen", "country" : "Canada"}
+{"customerid" : "LAUGB", "contactname" : "Yoshi Tannamuri", "city" : "Vancouver", "country" : "Canada"}
+{"customerid" : "MEREP", "contactname" : "Jean Fresnière", "city" : "Montréal", "country" : "Canada"}]]>
             </example>
         </section>
         <section>
@@ -81,6 +96,8 @@ rs = cn.ResultSet
     <see>
         <ref link="SQL::ResultSet Object">SQL::ResultSet Object</ref>
         <ref>SQL ResultSet::ToJSONObjectSyntax Function</ref>
+        <ref link="api json functions">JSON Functions</ref>
+        <ref link="json data">Working with JSON Data</ref>
     </see>
     <terms>sql,ajax,arguments,column,control,data formatting,defaults,expressions,file,formatting,function,javascript,map,number,object,operation,query,users</terms>
 </page>
