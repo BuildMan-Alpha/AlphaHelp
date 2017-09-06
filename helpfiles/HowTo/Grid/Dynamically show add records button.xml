@@ -1,79 +1,120 @@
-<page build="">
+<page>
     <shortlink>howto dynamically show add records</shortlink>
     <topic>How to Dynamically Show "Add Records" Link</topic>
-    <description>If a Grid Component can be used to add new records, the button used to display the new record rows or detail view for adding a new record can be dynamically shown or hidden.</description>
-    <discussion>
-        <p></p>
-    </discussion>
+    <description>If a Grid Component can be used to add new records, the button used to display the new record rows or detail view for adding a new record can be dynamically shown or hidden. This is done by either using Action Buttons or adding HTML to the Grid component's layout so that JavaScript can be used to toggle the display of the add new records link.</description>
     <sections>
         <section>
             <title>Using a Custom Action Button</title>
             <description>
-                <p></p>
+                <p>The easiest way to dynamically show an "Add Records" link or button is to use an Action Button. Using an Action Button also gives you full control over the appearance and placement of the add new records button. Action Buttons can be placed in the Grid Component's toolbar or in the Freeform Edit Regions of the component.</p>
+                <p>To control the display of the Action Button, show/hide expressions can be used. You can also use Security settings to control whether or not the currently logged in user has access for the Action Button.</p>
+                <p>In the Grid Properties, click the [...] Smart Field button for the *[ui:Action Buttons]* property to open the Action Button Editor. Add a new Action Button that will be used to display the New Record editor. Configure the appearance of the Action Button using the *[ui:Control type]* and other properties.</p>
+            </description>
+            <figure>
+                <link>images/dynamicAddRecords2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Use the *[ui:Server-side Properties]* and *[ui:Client-side Properties]* to add a Show/hide expression or Security permissions to the Action Button. The Client-side Show/hide expression can be used to dynamically show or hide the Action Button on the client.</p>
+            </description>
+            <note>
+                <p>*[Client-side vs. Server-side]* The show/hide expression can be defined as a client-side or sever-side expression. If the expression is a client-side show/hide expression, the expression is evaluated on the client. This means if a data value that is used in the expression changes, the button can be dynamically shown or hidden immediately after the value has changed -- even if the user has not saved their changes.</p>
+                <p>A server-side show/hide expression will be evaluated on the server. It can also use values that are present on the client, however the Action Button will not be dynamically displayed or hidden until an Ajax Callback is made to the server to re-evaluate the show/hide expression.</p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>Next, add the JavaScript to the button's onClick event that will display the interface for adding new records. Click the [...] Smart Field button for the Action Button's *[ui:Javascript]* property to edit the onClick event for the button. Switch the editing mode to *[ui:Text mode]* and add the appropriate JavaScript to display the New Record interface.</p>
+                <p>If new records are added using one or more rows in the Grid component, add the following to the Action Button's onClick event:</p>
             </description>
             <example code="js"><![CDATA[{grid.object}.toggleNewRecordRows();]]></example>
         </section>
         <section>
             <description>
-                <p>If new records are added using a Detail View, add the following code to the click event for the Action Button:</p>
+                <p>If new records are added using a Detail View, add the following to the Action Button's onClick event:</p>
             </description>
             <example code="js"><![CDATA[{grid.object}.detailViewNewRecord();
 ]]></example>
         </section>
         <section>
+            <description>
+                <p>Finally, place the Action Button in the Grid Component's layout. The Action Button can be placed in the Grid Component's toolbar using the *[ui:Toolbar 'Action Buttons']* property or in a [Freeform Edit Region].</p>
+            </description>
+            <figure>
+                <link>images/dynamicAddRecords3.png</link>
+            </figure>
+        </section>
+        <section>
             <title>Hiding the New Record Link</title>
             <description>
-                <p></p>
+                <p>Alternatively, you can wrap the New Record link in a span tag and us JavaScript to dynamically show or hide the New Record text. In the Grid's *[ui:Update Settings]*, add a span tag with an id arount the text for the new record link using the *[ui:New records button label]* property:</p>
             </description>
-            <example code="html"><![CDATA[<span id="newRecordText">New Record</span>]]></example>
+            <example code="html"><![CDATA[*[highlighter:<span id="{grid.componentName}newRecordText">]*New Record*[highlighter:</span>]*]]></example>
+            <figure>
+                <link>images/dynamicAddRecords1.png</link>
+            </figure>
+            <tip>Using *[js:{grid.componentName}]* in the ID of the span tag allows us to define an ID for the element that is unique to the Grid, allowing it to be referenced in Tabbed UI interfaces or UX Components where multiple Grid Components may be open on the page.</tip>
         </section>
         <section>
             <description>
-                <p></p>
+                <p>Then, define a JavaScript function in the Grid's *[ui:Javascript Code Functions]* section that can be used to toggle the display of the span. Make sure the span's ID that you used in the *[ui:New records button label]* property matches the ID passed to the *[js:$()]* function:</p>
             </description>
-            <example code=""><![CDATA[var ele = $('newRecordText');
-if (!ele) {
-    alert("Could not find any elements in the Grid with an ID of 'newRecordText'.");
-    return;
-}
+            <example code=""><![CDATA[var toggleNewRecordLink = function () {
+    var ele = $('*[highlighter:{grid.componentName}newRecordText]*');
+    if (!ele) {
+        ' concatenate message so Alpha doesn't replace the text
+        ' {grid.componentName} with the grid's component name!
+        var msg = "Could not find any elements in the Grid with an ID of '{";
+        msg = msg + "grid.componentName}newRecordText'.";
 
-var display = ele.style.display;
+        alert(msg);
 
-if (display === "none") {
-    ele.style.display = "";
-} else {
-    ele.style.display = "none";
+        return;
+    }
+
+    var display = ele.style.display;
+
+    if (display === "none") {
+        ele.style.display = "";
+    } else {
+        ele.style.display = "none";
+    }
 }]]></example>
         </section>
         <section>
+            <description>This function can be called from any Client-side event to toggle the display of the New Record text.</description>
+        </section>
+        <section>
             <description>
-                <p>If you wanted to hide the entire link, the &lt;span&gt; tag can be added around the new Record link by specifying a *[link:Custom Grid Toolbar Template@customize grid toolbar template]*. To do this, edit the *[ui:Customize Grid toolbar template]* settings in the Grid Properties. Select *[ui:Toolbar when grid is editable]* to edit the toolbar template for an editable Grid and insert the default template by clicking the *[ui:Insert default template* link. Add the span tags around the *[html:{grid.GridViewAddNewRecordHyperlink}]*. For example:</p>
+                <p>Wrapping the text in a span tag will hide the text, but it will not hide the entire link.</p>
+                <p>If you wanted to hide the entire link, the &lt;span&gt; tag can be added around the new Record link by specifying a *[link:Custom Grid Toolbar Template@customize grid toolbar template]*. To do this, edit the *[ui:Customize Grid toolbar template]* settings in the Grid Properties. Select *[ui:Toolbar when grid is editable]* to edit the toolbar template for an editable Grid and insert the default template by clicking *[ui:Insert default template]*. Add the span tags around the *[html:{grid.GridViewAddNewRecordHyperlink}]*. For example:</p>
             </description>
             <example code="html"><![CDATA[<tr>
-	<td colspan="{grid.colspan}" class="[class.gridPartToolbar]" nowrap="nowrap" >
-		<table cellspacing="0" border="0" cellpadding="0" style="width:100%;">
-			<tr>
-				<td nowrap="nowrap" align="{grid.RecordNavigatorAlignment}">
-					*[highlighter:<span id="newRecordLink">]*{grid.GridViewAddNewRecordHyperlink}</span>]* {grid.RecordNavigatorButtons} {grid.RecordsPerPage}&nbsp;&nbsp;&nbsp;{grid.toggleQBERowHyperlink}
-					&nbsp;&nbsp;{grid.ActionButtonHTMLTemplate}
-					&nbsp;&nbsp;{grid.ExportDataButton}
-					&nbsp;{grid.HelpWindowButton}
-				</td>
-				<td nowrap="nowrap" align="right">
-					{grid.grid_part.submitbuttons}
-				</td>
-			</tr>
-		</table>
-	</td>
+    <td colspan="{grid.colspan}" class="[class.gridPartToolbar]" nowrap="nowrap" >
+        <table cellspacing="0" border="0" cellpadding="0" style="width:100%;">
+            <tr>
+                <td nowrap="nowrap" align="{grid.RecordNavigatorAlignment}">
+                    *[highlighter:<span id="{grid.componentName}newRecordLink">]*{grid.GridViewAddNewRecordHyperlink}*[highlighter:</span>]* {grid.RecordNavigatorButtons} {grid.RecordsPerPage}&nbsp;&nbsp;&nbsp;{grid.toggleQBERowHyperlink}
+                    &nbsp;&nbsp;{grid.ActionButtonHTMLTemplate}
+                    &nbsp;&nbsp;{grid.ExportDataButton}
+                    &nbsp;{grid.HelpWindowButton}
+                </td>
+                <td nowrap="nowrap" align="right">
+                    {grid.grid_part.submitbuttons}
+                </td>
+            </tr>
+        </table>
+    </td>
 </tr>]]></example>
         </section>
         <section>
             <description>
                 <p>Now that the new record link is wrapped in an element with an ID, JavaScript can be used to hide the link to add new records. For example, the following will toggle display of the new record link:</p>
             </description>
-           <example code="js"><![CDATA[*[highlighter:var ele = $('newRecordLink');]*
+           <example code="js"><![CDATA[*[highlighter:var ele = $('{grid.componentName}newRecordLink');]*
 if (!ele) {
-    alert("Could not find any elements in the Grid with an ID of 'newRecordLink'.");
+    alert("Could not find any elements in the Grid with an ID of '{"+"grid.componentName}newRecordLink'.");
     return;
 }
 
@@ -90,5 +131,7 @@ if (display === "none") {
         <link link="grid component togglenewrecordrows method">{grid.object}.toggleNewRecordRows Method</link>
         <link link="grid component detailviewnewrecord method">{grid.object}.detailViewNewRecord Method</link>
         <link link="grid component animatetoggle method">{grid.object}.animateToggle Method</link>
+        <link link="freeform edit regions">Freeform Edit Region</link>
+        <link href="/images/tools/ellipsesButton.png">...</link>
     </links>
 </page>
