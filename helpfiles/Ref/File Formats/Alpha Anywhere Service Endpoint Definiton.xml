@@ -390,6 +390,81 @@ c:\>curl -X DELETE http://127.0.0.1:1580/LivePreview/customer.a5svc/DeleteCustom
 true
 ]]></example>
         </section>
-        
+        <section>
+        <title>Example usage of 'Auth'.</title>
+        <description>
+        In this example, we will have two classes, one that implements methods to call, which for this example is a class with a single method called greet.
+        </description>
+        <example><![CDATA[
+define class noisy::talker
+    function greet as c(name as c)
+		'DESCRIPTION:This is a function that greets the caller
+		'ARGUMENT(name):The name of the guy
+		greet = "Hello "+name
+	end function
+end class    
+]]></example>    
+        </section>
+        <section>       
+        <description>
+        Another class will implement a well known method called 'Authorize', which is called for definitions that include the optional 'auth'  section.
+        The Authorize method returns the HTTP code - if it returns a successful code (i.e. 200) the implementation class method (greet in this case) will get called,
+        otherwise the result code gets immediately returned.
+        </description>
+        <example><![CDATA[
+define class noisy::authorize
+    function Authorize as n(api_key as c)
+    	if api_key = "bingo" then
+    		Authorize = 200
+    	else
+    	    Authorize = 403
+    	end if
+    end function
+end class    
+]]></example>
+        </section>
+        <section>       
+        <description>
+        The definition enables the Authorization by defining an 'auth' at the top level that includes the class that implements
+        authorization.
+        </description>
+        <example><![CDATA[
+{
+    "path": "/{method}",
+    "use_query": true,
+    "flatten_arguments": true,
+    "debugger_header": true,
+    "method": "get",
+    "auth" : { 
+      "implementation": "xbasic",
+      "service": "noisy::authorize",
+      "header_arguments" : [ { "header_key_name" : "api_key", "argument_template" : "{arguments.api_key}" } ]
+     },
+    "api": [
+        {
+            "implementation": "xbasic",
+            "service": "noisy::talker",
+            "methods": [
+                {
+                    "name": "greet",
+                    "path": "/greet/{arguments.name}",
+                    "method": "get"
+                }
+            ]
+        }
+    ]
+}]]></example>
+        </section>
+        <section>
+        <description>
+        Calling the endpoint without the 'magic' api_key header value will result in a Forbidden call.
+        </description>
+        <example><![CDATA[
+c:\>curl -X GET --header "Accept: text/html" "http://127.0.0.1:1580/LivePreview/talker.a5svc/greet/fred" --header "api_key: badkey"
+Forbidden
+c:\>curl -X GET --header "Accept: text/html" "http://127.0.0.1:1580/LivePreview/talker.a5svc/greet/fred" --header "api_key: bingo"
+"Hello fred"
+]]></example>
+        </section>
     </sections>
 </page>    
