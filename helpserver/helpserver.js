@@ -218,6 +218,34 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
     return result;
 }
 
+events.breadCrumbsTag = function(url) {
+    if (typeof url !== 'string') {
+        return "";
+    }
+    if (url.indexOf("\\helpfiles\\") === -1) {
+        return "";
+    }
+    var book = url.split("\\helpfiles\\")[1].split("\\")[0];
+    var bookName = "";
+    switch (book){ 
+        case "GettingStarted":
+        bookName="gettingStarted";break;
+        case "Guides":
+        bookName="guide";break;
+        case "HowTo":
+        bookName="howTo";break;
+        case "Ref":
+        bookName="ref";break;
+        case "ReleaseNotes":
+        bookName="releaseNotes";break;
+        case "Troubleshooting":
+        bookName="faq";break;
+        default:
+        bookName="";break;
+    }
+    return bookName;
+};
+
 events.lookupLink = function(indexLinks, symName) {
     if (indexLinks && symName) {
         var indexVal = symName.toLowerCase();
