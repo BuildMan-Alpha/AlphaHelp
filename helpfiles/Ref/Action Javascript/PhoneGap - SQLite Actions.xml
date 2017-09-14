@@ -1,601 +1,1033 @@
 <page>
-    <shortlink>PhoneGap - SQLite Actions</shortlink>
+    <shortlink>PhoneGap SQLite Actions</shortlink>
     <topic>PhoneGap - SQLite Actions</topic>
-    <description>Performs actions with the SQLite database on the device. Also allows you to download a SQLite database from the server to the mobile device and create a SQLite database on the server and download it to the device.</description>
-    <sections>
-        <section>
-            <videos>
-                <title>Using SQLite in a UX Component in a PhoneGap Project</title>
-                <description>
-                    <p>The *[ui:PhoneGap - SQLite Actions]* Action Javascript makes it easy to work with a SQLite database on a mobile device. This video demonstrates the actions available for the *[ui:PhoneGap - SQLite Actions]* action.</p>
-                </description>
-                <date>2016-02-28</date>
-                <video>
-                    <name>Watch Video</name>
-                    <link>https://www.viddler.com/v/28e10180</link>
-                </video>
-            </videos>
-        </section>
-        <section>
-            <title>SQLite Action Properties</title>
-            <list>
-                <item>
-                    <name>Action name</name>
-                    <description>Specify the SQLite Action that you want to execute. Actions are listed below.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title nested="2">Available SQLite Actions</title>
-            <cases>
-                <case>
-                    <title nested="3">Download SQL Database from Server</title>
-                    <description>Download a SQLite database file from a server and store it on a mobile device.</description>
-                </case>
-                <case>
-                    <title nested="3">Create SQLite Database on Server then Download to Device</title>
-                    <description>Download a SQLite database from a server and store it on a mobile device. The SQLite database is created by executing on or more queries to retrieve the data which is then imported into a SQLite database. The resulting database is downloaded to the device.</description>
-                </case>
-                <case>
-                    <title nested="3">Execute SQL statement(s)</title>
-                    <description>Execute one or more SQL statements on a SQLite database. You can either execute a single statement or pass in an array of SQL statements to execute. If you pass in an array of SQL statements, the statements are executed as a single transaction.</description>
-                </case>
-                <case>
-                    <title>Get Tables in a Database</title>
-                    <description>Get a list of tables in a SQLite database.</description>
-                </case>
-                <case>
-                    <title nested="3">Get Fields in a Table</title>
-                    <description>This action will get the fields in a table as well as some additional information. The onSuccess event handler gets an array of objects. The array has an entry for each field in the table. Each object in the array has these properties:</description>
-                    <list>
-                        <item>
-                            <name-title>Object Property</name-title>
-                            <description-title>Description</description-title>
-                        </item>
-                        <item>
-                            <name>cid</name>
-                            <description>column id (e.g. 0, 1, 2, 3, etc.)</description>
-                        </item>
-                        <item>
-                            <name>name</name>
-                            <description>field name</description>
-                        </item>
-                        <item>
-                            <name>type</name>
-                            <description>data type (e.g. TEXT, INTEGER, NUMBER, etc.)</description>
-                        </item>
-                        <item>
-                            <name>nonnull</name>
-                            <description>0 or 1 - indicates if the column is nullable</description>
-                        </item>
-                        <item>
-                            <name>dflt_value</name>
-                            <description>default value</description>
-                        </item>
-                        <item>
-                            <name>pk</name>
-                            <description>0 or 1 - indicates if the column is a primary key column</description>
-                        </item>
-                    </list>
-                </case>
-                <case>
-                    <title nested="3">Delete a Database</title>
-                    <description>Deletes the physical file for the SQLite database from the device.</description>
-                </case>
-                <case>
-                    <title nested="3">Create a Table</title>
-                    <description>Allows you to create a new table in a SQLite database. You can define the table structure and also the indices for the table. The image below shows the builder where you specify the table structure. The action will automatically drop any existing table with the same name.</description>
+    <description>The UX component has extensive support for working with SQLite databases in a PhoneGap application.</description>
+    <groups>
+        <group>
+            <title>Overview</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>SQLite is a SQL database available on mobile devices and is accessible through a PhoneGap plugin. When building disconnected applications, having an on-device SQL database can be extremely useful. It allows you to get rapid access to large amounts of data that are stored on the device (and is available even when there is no connection). You can store significantly more data for offline access than would be possible using Local Storage.</p>
+                        <p>The primary use case for an on-device SQLite database is to make large amounts of 'lookup' information available in a disconnected, mobile application.</p>
+                    </description>
+                    <videos>
+                        <title>Using SQLite in a UX Component in a PhoneGap Project</title>
+                        <description>
+                            <p>The *[ui:PhoneGap - SQLite Actions]* Action Javascript makes it easy to work with a SQLite database on a mobile device. This video demonstrates the actions available for the *[ui:PhoneGap - SQLite Actions]* action.</p>
+                        </description>
+                        <date>2016-02-28</date>
+                        <video>
+                            <name>Watch Video</name>
+                            <link>https://www.viddler.com/v/28e10180</link>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <note>The UX Component *[ui:Client-side Data Cache]* is also useful, in PhoneGap applications, for storing large amounts of data on the mobile device for use in offline applications. Your particular application requirements will dictate if the *[ui:Client-side data cache]*, or *[ui:SQLite]*, is the better solution.</note>
+                </section>
+                <section>
+                    <important>To use the SQLite features in a PhoneGap application, your PhoneGap project *[must]* load the following plugins: *[ui:Device]*, *[ui:File]*, *[ui:File Transfer]*, *[ui:SQLitePluginExt]*. These plugins are all listed in the PhoneGap builder.</important>
+                </section>
+                <section>
+                    <note>While it is certainly possible to perform Insert, Update, and Delete actions on the SQLite database that is on a device, there is no built-in mechanism for persisting these changes to the source database on your server. You would be responsible for writing your own code to persist changes to the on-device SQLite database to your server databases.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>A SQLite database is a single file. The SQLite database file can be part of your PhoneGap project, or it can be downloaded to the device by making a callback to a server.</p>
+                        <p>If the SQLite database is part of your PhoneGap project, you will need to list the name of the SQLite database file in the *[ui:Additional Files Required]* property in the PhoneGap Builder.</p>
+                    </description>
                     <figure>
-                        <link>images/sqlitecreatetable.jpg</link>
+                        <link>images/phonegapSQLiteadditionalfiles.jpg</link>
                     </figure>
-                </case>
-                <case>
-                    <title nested="3">Create a Table from Data</title>
-                    <description>This action will create a new table from data (i.e. it will import data into a new table). The data from which the table is created is a JSON array of objects where each object represents a record. For example, if you specify the following data:</description>
-                    <example code="json"><![CDATA[[
-    {"id" : 1, "FirstName": "Bob", "LastName": "Smith", "Department" : "Sales"},
-    {"id" : 2, "FirstName": "Terry", "LastName": "Jones", "Department" : "R&D"},
-]]]></example>
-                </case>
-                <case>
-                    <description>A new table with 2 records would be created. The fields in the table would be id, FirstName, LastName and Department and the type of each field (except the id field) would be TEXT. The type of the id field would be INTEGER.</description>
-                    <note>SQLite does not have Date or DateTime fields. Date and time values should be stored in TEXT fields and should appear in the data to be imported as string values.</note>
-                </case>
-                <case>
-                    <description>When you specify the data from which the new table is to be created you have the following options:</description>
-                    <list bullet="true">
-                        <item>
-                            <name>Specify the data directly.</name>
-                        </item>
-                        <item>
-                            <name>Specify the name of a Javascript function that will return the data. e.g set the data to *[ui:Javascript:myfunctionname]* where *[js:myfunctionname]* is the name of a Javascript function that will return the data array.</name>
-                        </item>
-                        <item>
-                            <name>Make an Ajax callback to the server and compute the data on server.</name>
-                        </item>
-                    </list>
-                </case>
-                <case>
-                    <description>When you specify that the data are to be computed by an Ajax callback you have two options:</description>
+                    <note>For more information on adding SQLite database to a PhoneGap project, see this section : PhoneGap Builder - SQLite Databases.</note>
+                </section>
+                <section>
+                    <description>
+                        <p>You can use Action Javascript to download a SQLite database to the mobile device at run-time (see below for more information). When you download the SQLite database to the device at run-time, you can either download an existing SQLite database, or your callback function can dynamically create the SQLite database file.</p>
+                        <p>The Action Javascript '*[ui:PhoneGap - SQLite Actions]*' action allows you to select and configure the type of SQLite action to perform.</p>
+                    </description>
+                    <figure>
+                        <link>images/sqlite_action.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>When you select this action, the builder shows the available SQLite actions:</description>
+                    <figure>
+                        <link>images/sqliteactions.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The available action are:</description>
                     <list>
                         <item>
-                            <name-title>Option</name-title>
+                            <name-title>Command</name-title>
                             <description-title>Description</description-title>
                         </item>
+                        <item>
+                            <name>Download SQLite Database from the Server</name>
+                            <description>Downloads a SQLite database file from a server and stores the database file on the mobile device</description>
+                        </item>
+                        <item>
+                            <name>Create SQLite Database on Server then Download to Device</name>
+                            <description>Similar to the 'Download SQLite Database from the Server' action excepting that the SQLite database file is dynamically created on the server before it is downloaded to the device</description>
+                        </item>
+                        <item>
+                            <name>Execute SQL statement(s)</name>
+                            <description>Executes one or more SQL statements. If you execute multiple SQL statements, the statements are automatically wrapped in a transaction so that no changes are made to the database if any of the statements fail.</description>
+                        </item>
+                        <item>
+                            <name>Get Tables in a Database</name>
+                            <description>Lists the tables in a SQLite database.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>Each of these commands in discussed in more detail below.</description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Available SQLite Actions</title>
+            <sections>
+                <section>
+                    <title>Download SQLite Database from Server</title>
+                    <description>
+                        <p>Use this action to fetch a remote SQLite database file from a server (does not have to be the Alpha Anywhere server) and store the database on the mobile device. Once the database has been downloaded, you can then start executing SQL commands against the tables in the database.</p>
+                        <p>There are two ways in which this action can be used:</p>
+                    </description>
+                    <steps>
+                        <step>
+                            <description>Specify the URL of the remote SQLite database file (using Javascript).</description>
+                        </step>
+                        <step>
+                            <description>Make an Ajax callback to the Alpha Anywhere server. The function that handles the callback will be responsible for returning the URL of the SQLite database file.</description>
+                        </step>
+                    </steps>
+                </section>
+                <section>
+                    <description>
+                        <p>If you are using option 1, then you will need to specify Javascript code that returns the URL of the SQLite database file.</p>
+                        <p>Examples:</p>
+                        <p>Assume that the SQLite database files is in a folder in the webroot. The relative filename of the SQLite database file is (for example) *[js:sqlite/db1.db]*. Your Javascript code that returns the URL will therefore be:</p>
+                    </description>
+                    <example><![CDATA[return 'sqlite/db1.db';]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>There is no need to specify a protocol for the URL since the resource is relative to the webroot.</p>
+                        <p>If, on the other hand, the SQLite database file was (for example) in an Amazon S3 bucket, your Javascript code might be:</p>
+                    </description>
+                    <example><![CDATA[return 'http://name_of_your_s3_bucket.s3.amazonaws.com/sqlitedbfilename.db';]]></example>
+                </section>
+                <section>
+                    <description>Id you are using option 2, you must specify an Xbasic function that will handle the Ajax callback. The Xbasic function will return the URL of the SQLite database file (by setting the *[xb:e.URL]* property in the Xbasic code).</description>
+                </section>
+                <section>
+                    <title>Create SQLite Database on Server then Download to Device</title>
+                    <description>
+                        <p>This action is a variation of the [Download SQLite Database from Server] action. The main difference is the SQLite database downloaded to the device is created on the fly by Alpha Anywhere. Once the database file has been created, a message is sent to the client (i.e. the mobile device) telling it that the SQLite database file has been created and can be downloaded to the server.</p>
+                        <p>The SQLite database file is created by populating a SQLite database with data obtained from SQL queries (against your SQL Server, Oracle, MySQL etc. data sources), static data, or from Xbasic code (that returns data to be used to populate the SQLite database).</p>
+                        <p>For example, you might define a SQLite database that contains several tables  (called say 'table1', 'table2', 'table3', etc.) where:</p>
+                    </description>
+                    <list>
+                        <item>
+                            <name>table1</name>
+                            <description>a query on a SQL server database  that joins server tables</description>
+                        </item>
+                        <item>
+                            <name>table2</name>
+                            <description>a query on an Oracle table</description>
+                        </item>
+                        <item>
+                            <name>table3</name>
+                            <description>a query on a MySQL table</description>
+                        </item>
+                        <item>
+                            <name>table4</name>
+                            <description>an Xbasic function that calls a REST endpoint to retrieve data</description>
+                        </item>
+                        <item>
+                            <name>table5</name>
+                            <description>an Xbasic function that calls a SOAP service to retrieve data</description>
+                        </item>
+                        <item>
+                            <name>table6</name>
+                            <description>some static data</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>When you select this action, the builder shows this screen:</description>
+                    <figure>
+                        <link>images/sqlite_createdb1.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>The *[ui:SQLite Database definition]* property is where you define how the SQLite database will be created. When you click the smart field for this property you get this dialog.</description>
+                    <figure>
+                        <link>images/sqlicecreatetable_tablelist.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>This dialog allows you to define the tables that will added to the SQLite database.</p>
+                        <p>You can add as many tables as you want. Once you have have added a table (by clicking on the Add table) button, you can then define the data source for that table (by clicking on the Edit table definition) button.</p>
+                        <p>When you click the Edit table definition button you get a dialog as shown below where you can define how the SQLite table will be populated.</p>
+                        <p>The choices are:</p>
+                    </description>
+                    <list>
                         <item>
                             <name>SQL Query</name>
-                            <description>Specify a SQL query that will return the data.</description>
+                            <description>any SQL query that returns data</description>
                         </item>
                         <item>
-                            <name>Custom </name>
-                            <description>Specify the name of an Xbasic function. This function will return the data as a JSON string.</description>
+                            <name>Static Data</name>
+                            <description>static data - see below for description of the format of the static data</description>
+                        </item>
+                        <item>
+                            <name>Xbasic</name>
+                            <description>an Xbasic function that returns data - see before for information on the format of the data that the Xbasic function must return. The Xbasic function can, for example, make calls to REST endpoints, or SOAP services to retrieve the data.</description>
                         </item>
                     </list>
-                </case>
-                <case>
+                    <figure>
+                        <link>images/sqlitecreatedb3.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <title>Format for Static Data and Data Returned by Xbasic Functions</title>
+                    <description>If your Query Type is set to either Static or Xbasic, the required format for the data is as shown in the following example:</description>
+                    <example><![CDATA[ID=INTEGER (Primary Key),FirstName=TEXT,LastName=TEXT,Salary=NUMERIC
+1,Fred,"Smith",87234
+2,Tom,Jones,45234]]></example>
+                </section>
+                <section>
                     <description>
-                        <p>You can specify if a table already exists with the table name you specify that the existing table should be dropped. If you do not drop the existing table, the operation will fail.</p>
-                        <p>You can also specify a *[ui:batch size]* property. After the new table has been created (with no records in it initially), INSERT statements are executed to insert the data into the table. You can specify how many records should be inserted with each INSERT statement. The default *[ui:batch size]* is 100, which means that each INSERT statement will insert up to 100 records into the table. If you set the *[ui:batch size]* to -1, Alpha Anywhere will try to add the data to the table with a single INSERT statement. However, this may result in an INSERT statement that exceeds the maximum statement length supported by SQLite and the action will fail. If you set the *[ui:batch size]*  to 1, Alpha Anywhere will perform one INSERT statement for each row of data to be added to the table. If you have a large amount of data, this could be slow. Therefore, if you want to optimize performance of this action, you will want to choose the largest *[ui:batch size]* possible before the action fails.</p>
-                        <p>If the action fails at any point while adding the records to the newly created table, the table is not created.</p>
+                        <p>Note that the data is in CSV (comma separated value) value format. Values can be quoted if they contain commas.</p>
+                        <p>The first row in the data is the field names. The format for the fieldnames is:</p>
                     </description>
-                </case>
-                <case>
-                    <title nested="3">Import Data into a Table</title>
-                    <description>This action is very similar to the Create a Table from Data action except that a new table is not created from the data. Instead, the data are imported into an existing table. All of the options for specifying the data that the Create a Table from Data action supports are supported by this action.</description>
-                </case>
-                <case>
-                    <title nested="3">Delete Table</title>
-                    <description>Delete a table.</description>
-                </case>
-                <case>
-                    <title nested="3">Delete All Records from a Table</title>
-                    <description>This action deletes all of the records in a table.</description>
-                </case>
-            </cases>
-        </section>
-        <section>
-            <title>Download SQLite Database from Server Properties</title>
-            <list>
-                <item>
-                    <name>Make Ajax callback to get SQLite database URL</name>
-                    <description>Specify if you want to make an Ajax callback to the server to compute the URL of the SQLite database to be downloaded to the device.</description>
-                </item>
-                <item>
-                    <name>Xbasic function name</name>
-                    <description>Specify the name of the Xbasic function. Click the smart field to see help for the function. The Xbasic function must set specific properties in the 'e' object that is passed to it.</description>
-                </item>
-                <item>
-                    <name>Ajax failed Javascript</name>
-                    <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
-                </item>
-                <item>
-                    <name>Offline Javascript</name>
-                    <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
-                </item>
-                <item>
-                    <name>SQLite database URL (Javascript)</name>
-                    <description>Specify Javascript code to run to get the URL of the SQLite database file. If you do not specify a protocol (e.g. 'http' or 'https') the SQLite database is assumed to be in the Webroot (e.g. 'sqlite\db1.db').</description>
-                </item>
-                <item>
-                    <name>Local database name</name>
-                    <description>Specify the name of the database on the mobile device. This can be different than the name of the database file you are downloading.</description>
-                </item>
-                <item>
-                    <name>onComplete Javascript</name>
-                    <description>Specify the Javascript to run once the database has been downloaded.</description>
-                </item>
-                <item>
-                    <name>onError Javascript</name>
-                    <description>Specify the Javascript to run if there is an error downloading the database.</description>
-                </item>
-                <item>
-                    <name>Display progress during download</name>
-                    <description>Specify if progress should be shown while the SQLite database is being downloaded.</description>
-                </item>
-                <item>
-                    <name>Progress bar color</name>
-                    <description>Specify the progress bar color.</description>
-                </item>
-                <item>
-                    <name>Progress bar width</name>
-                    <description>Specify the progress bar width. Use CSS units.</description>
-                </item>
-                <item>
-                    <name>Placeholder for progress indicator</name>
-                    <description>Specify the name of a Placeholder control where the progress indicator should be shown. TIP: You can enter 'Element:name_of_element' to target a specific element on the page rather than a Placeholder. For example: Element:div1</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Create SQLite Database on Server then Download to Device Properties</title>
-            <list>
-                <item>
-                    <name>SQLite Database name</name>
-                    <description>Specify the name of the SQLite database</description>
-                </item>
-                <item>
-                    <name>SQLite Database definition</name>
-                    <description>SQLite Database definition property.</description>
-                </item>
-                <item>
-                    <name>onComplete Javascript</name>
-                    <description>Specify the Javascript to run once the database has been downloaded.</description>
-                </item>
-                <item>
-                    <name>onError Javascript</name>
-                    <description>Specify the Javascript to run if there is an error downloading the database.</description>
-                </item>
-                <item>
-                    <name>Display progress during download</name>
-                    <description>Specify if progress should be shown while the SQLite database is being downloaded.</description>
-                </item>
-                <item>
-                    <name>Progress bar color</name>
-                    <description>Specify the progress bar color.</description>
-                </item>
-                <item>
-                    <name>Progress bar width</name>
-                    <description>Specify the progress bar width. Use CSS units.</description>
-                </item>
-                <item>
-                    <name>Placeholder for progress indicator</name>
-                    <description>Specify the name of a Placeholder control where the progress indicator should be shown. TIP: You can enter 'Element:name_of_element' to target a specific element on the page rather than a Placeholder. For example: Element:div1</description>
-                </item>
-                <item>
-                    <name>Offline Javascript</name>
-                    <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
-                </item>
-                <item>
-                    <name>Ajax failed Javascript</name>
-                    <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
-                </item>
-                <item>
-                    <name>onComplete Database Create</name>
-                    <description>Specify the Javascript to execute once the new SQLite database on the server has been created, but BEFORE the mobile device starts to download the SQLite database file. This event is typically used to turn off the wait dialog that might have been turned on at the start of the callback. Once the database has been created and the download starts, the user can see the progress bar for an indication that work is still being done.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Execute SQL statement(s) Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database that you want to execute SQL statements against.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Single SQL statement or multiple SQL statements</name>
-                    <description>Specify if you want to execute a single SQL statement or multiple SQL statements. If you select 'Multiple', the statements are run in a transaction - if any of the statements fail, the transaction is rolled back. Choices include *[ui:Single]*, *[ui:Multiple]*.</description>
-                </item>
-                <item>
-                    <name>SQL statement to execute</name>
-                    <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
-                </item>
-                <item>
-                    <name>Arguments</name>
-                    <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
-                </item>
-                <item>
-                    <name>SQL definition Javascript</name>
-                    <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
-                </item>
-                <item>
-                    <name>Transaction success</name>
-                    <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
-                </item>
-                <item>
-                    <name>Transaction error</name>
-                    <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Get Tables in a Database Properties</title>
-            <list>
-                <item>
-                    <name>Database name</name>
-                    <description>Specify the SQLite database that you want to query.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Code to execute when the list of tables in the database has been obtained.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Code to execute if there is an error when getting list of tables.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Get Fields in a Table Properties</title>
-            <list>
-                <item>
-                    <name>Database name</name>
-                    <description>Specify the SQLite database that you want to query.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Specify the name of the table</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Code to execute when the list of tables in the database has been obtained.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Code to execute if there is an error when getting list of tables.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Delete a Database Properties</title>
-            <list>
-                <item>
-                    <name>Database name</name>
-                    <description>Specify the SQLite database that you want to query.</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Code to execute when the list of tables in the database has been obtained.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Code to execute if there is an error when getting list of tables.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Create a Table Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database in which to create the new table.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table definition</name>
-                    <description>Define the table structure</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the Javascript to run if the SQL is executed without error.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Create a Table From Data Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database in which to create the new table.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Specify the name of the table to create</description>
-                </item>
-                <item>
-                    <name>Drop table if it exists</name>
-                    <description>Specify if a table with the specified name already exists if it should be dropped before creating the new table. If you do not drop an existing table, the command to create a new table will fail.</description>
-                </item>
-                <item>
-                    <name>Make Ajax callback to get data</name>
-                    <description>Specify if an Ajax callback should be made to get the data from which the table will be created.</description>
-                </item>
-                <item>
-                    <name>Data (from which table will be created)</name>
-                    <description>Define the data from which the table will be created (data is a JSON array of objects). You can also specify the name of a Javascript function to return the data using t his syntax: javascript:yourfunctionname.</description>
-                </item>
-                <item>
-                    <name>Batch size</name>
-                    <description>Specify how many rows of data to insert with each INSERT statement. -1 indicates that all of the data will be inserted using a single INSERT statement. This many fail if too many records are being inserted. In that case, use a batch size of 100 to insert 100 records at a time.</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the Javascript to run if the SQL is executed without error.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Import Data Into a Table Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database that contains the table into which data will be imported.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Specify the name of the table into which the data should be imported.</description>
-                </item>
-                <item>
-                    <name>Make Ajax callback to get data</name>
-                    <description>Specify if an Ajax callback should be made to get the data to import.</description>
-                </item>
-                <item>
-                    <name>Data to import</name>
-                    <description>Define the data to import (data is a JSON array of objects). IMPORTANT: The properties in the Json data must exactly match the fields in the SQLite table. You can also specify the name of a Javascript function to return the data using t his syntax: javascript:yourfunctionname.</description>
-                </item>
-                <item>
-                    <name>Batch size</name>
-                    <description>Specify how many rows of data to import with each INSERT statement. -1 indicates that all of the data will be inserted using a single INSERT statement. This many fail if too many records are being inserted. In that case, use a batch size of 100 to insert 100 records at a time.</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the Javascript to run if the SQL is executed without error.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Delete a Table Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database from which to delete a table.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Specify the name of the table to delete</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the Javascript to run if the SQL is executed without error.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Delete All Records From a Table Properties</title>
-            <list>
-                <item>
-                    <name>SQLite database name</name>
-                    <description>Specify the name of the SQLite database that contains the table from which records are to be deleted.</description>
-                </item>
-                <item>
-                    <name>Database location</name>
-                    <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Specify the name of the table from which records are to be delete</description>
-                </item>
-                <item>
-                    <name>onSuccess</name>
-                    <description>Specify the Javascript to run if the SQL is executed without error.</description>
-                </item>
-                <item>
-                    <name>onError</name>
-                    <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Ajax Callback Definition Properties</title>
-            <list>
-                <item>
-                    <name>Type</name>
-                    <description>Specify if the data should be created by executing a SQL query, or by executing a custom Xbasic function. Choices include *[ui:SQL Query]*, *[ui:Custom]*.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-        <title>Custom Properties</title>
-            <list>
-                <item>
-                    <name>Xbasic function name</name>
-                    <description>Xbasic function name property.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>SQL Query Properties</title>
-            <list>
-                <item>
-                    <name>Arguments</name>
-                    <description>Define arguments. Arguments can be bound to page, session and cookie variables. Argument values are passed into all server-side Xbasic event handlers in the component. For 'array arguments' (for use in a SQL IN clause), the argument name must start with 'array_'.</description>
-                </item>
-                <item>
-                    <name>Connection string</name>
-                    <description>Connection string property.</description>
-                </item>
-                <item>
-                    <name>Method for defining SQL query</name>
-                    <description>Method for defining SQL query property.</description>
-                </item>
-                <item>
-                    <name>Table name</name>
-                    <description>Table name property.</description>
-                </item>
-                <item>
-                    <name>Field list</name>
-                    <description>Field list property.</description>
-                </item>
-                <item>
-                    <name>Filter</name>
-                    <description>Specify the filter expression. The filter expression can reference values in other controls on the Dialog. To do this, define one or more arguments, and then bind the argument value to a control value. For example, to bind the argument value to the value in the CustomerId control, set the argument value to {CustomerId}. Your filter can then reference the argument.</description>
-                </item>
-                <item>
-                    <name>Order</name>
-                    <description>Order property.</description>
-                </item>
-                <item>
-                    <name>Distinct</name>
-                    <description>Specify if you want unique records only.</description>
-                </item>
-                <item>
-                    <name>Record limit</name>
-                    <description>Specify the maximum number of records to be retrieved in the SQL query. -1 indicates no limit.</description>
-                </item>
-                <item>
-                    <name>SQL Statement</name>
-                    <description>Specify the SQL statement. You must use portable SQL syntax. If you need to use native SQL, you must use the 'Custom' data source option.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Javascript (Ajax Callback) Properties</title>
-            <list>
-                <item>
-                    <name>Ajax failed</name>
-                    <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
-                </item>
-                <item>
-                    <name>Device offline</name>
-                    <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
-                </item>
-            </list>
-        </section>
-    </sections>
+                    <example><![CDATA[fieldname=fieldtype]]></example>
+                </section>
+                <section>
+                    <description>There is no need to specify a field size for a SQLite table. The SQLite field types are TEXT, NUMERIC, INTEGER, REAL and BLOB. You can optionally indicate which column in the primary key by including the*[xb:(Primary Key)]* keyword after the field type.</description>
+                </section>
+                <section>
+                    <title>Execute SQL statement(s)</title>
+                    <description>
+                        <p>This action allows you to execute SQL statements against any SQLite database on the device. You can either execute a single SQL statement, or you can execute multiple statements.</p>
+                        <p>If you execute multiple statements, the statements are wrapped in a transaction, which means that the state of the database is not changed if any of the SQL statements fails.</p>
+                        <p>When you select this action you get the following dialog (shown twice - once for the 'Single' statement case and once for the 'Multiple' statement case).</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <title>Executing a Single SQL Statement</title>
+                            <figure>
+                                <link>images/sqlexecute_single.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>The properties in the Dialog are defined below:</description>
+                            <list>
+                                <item>
+                                    <name>SQLite database name</name>
+                                    <description>the name of the SQLite database you want to query.</description>
+                                </item>
+                                <item>
+                                    <name>Database location</name>
+                                    <description>this can either be '*[ui:Downloaded]*' - if the SQLite database was downloaded to the mobile device, or '*[ui:Root]*' - if the SQLite database was part of the PhoneGap package (the SQLite database filename will need to be specified in the *[ui:Additional Files Required]* property in the PhoneGap Builder).</description>
+                                </item>
+                                <item>
+                                    <name>Single SQL statement or multiple SQL statements</name>
+                                    <description>set to either *[ui:Single]* or *[ui:Multiple]*.</description>
+                                </item>
+                                <item>
+                                    <name>SQL statement to execute</name>
+                                    <description>Javascript to return the SQL that you want to execute.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Your SQL statement can optionally reference arguments (similar to SQL::arguments when using AlphaDAO in Xbasic).</p>
+                                <p>For example, this statement does not use arguments:</p>
+                            </description>
+                            <example><![CDATA[select * from customers where id = 'ALFKI']]></example>
+                        </case>
+                        <case>
+                            <description>This statement does use arguments:</description>
+                            <example><![CDATA[select * from customers where id = ?]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The *[xb:?]* indicates an argument value.</p>
+                                <p>If your SQL statement uses arguments you must defined the argument values in the *[ui:Arguments]* property.</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>Arguments</name>
+                                    <description>Javascript to return an array with values for each of the arguments in your SQL statement. It is important that the length of the arguments array that your Javascript returns exactly matches the number of arguments references in your SQL statement.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>
+                                <p>For example, if your SQL statement was *[xb:select * from customers where id = ?]*</p>
+                                <p>the Javascript that you define for the *[ui:Arguments]* property might be:</p>
+                            </description>
+                            <example><![CDATA[return ['Alfki'];]]></example>
+                        </case>
+                        <case>
+                            <list>
+                                <item>
+                                    <name>onSuccess</name>
+                                    <description>The Javascript to execute if the SQL statement succeeds. In the case where the SQL statement returns data, the data will be in an array called *[js:resultArray]*. If the SQL performed an update, insert or delete, your Javascript can reference these variables: *[js:result.rowsAffected]* - the number of rows affected by the statement, *[js:result.insertId]* - the id of the auto-increment primary key value (for an INSERT command).</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Example:</p>
+                                <p>Assume that your SQLite database has a table called customers and you want to populate a List control with the results of this query:</p>
+                            </description>
+                            <example><![CDATA[select * from customers where city = 'Boston']]></example>
+                        </case>
+                        <case>
+                            <description>You might set the *[js:onSuccess]* Javascript to:</description>
+                            <example><![CDATA[if(resultArray.length > 0) {
+
+    //populate list 'list1' with data
+    {dialog.object}.setListColumnsAndPopulate('list1',resultArray);
+} else {
+    alert('No records in query.');
+}]]></example>
+                        </case>
+                        <case>
+                            <list>
+                                <item>
+                                    <name>onError</name>
+                                    <description>The Javascript to execute if the SQL statement failed.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title>Executing Multiple SQL Statements</title>
+                            <figure>
+                                <link>images/sqlexecute_multiple.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>In the case where you are executing multiple SQL statements you must set the *[ui:SQL definition Javascript]* property.</p>
+                                <p>Your Javascript must return an object with these properties:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>sql</name>
+                                    <description>an array of SQL statements to execute</description>
+                                </item>
+                                <item>
+                                    <name>arguments</name>
+                                    <description>an array of arrays - each array in the array has the arguments for the corresponding SQL statement. For example if the first SQL statement (in the *[js:sql]* array)  has a single argument, and the second SQL statement has two *[js:arguments]*, then the array in the arguments object might look like this: *[js:[ ['alpha'], ['beta','gamma'] ]]*</description>
+                                </item>
+                                <item>
+                                    <name>onSuccess</name>
+                                    <description>an array of function definitions. The first function in the array is called if the first SQL statement in the *[js:sql]* array succeeds, etc.</description>
+                                </item>
+                                <item>
+                                    <name>onError</name>
+                                    <description>an array of function definitions. The first function in the array is called if the first SQL statement in the *[js:sql]* array fails, etc.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Alternatively, your Javascript can return an array of objects. Each object in the array should have these properties:</description>
+                            <list>
+                                <item>
+                                    <name>sql</name>
+                                    <description>the SQL statement to execute</description>
+                                </item>
+                                <item>
+                                    <name>arguments</name>
+                                    <description>optional - an array of arguments for the SQL statement</description>
+                                </item>
+                                <item>
+                                    <name>onSuccess</name>
+                                    <description>optional - the onSuccess function for the SQL statement</description>
+                                </item>
+                                <item>
+                                    <name>onError</name>
+                                    <description>optional - the onError function for the SQL statement</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Example:</p>
+                                <p>(This example uses the array of objects method. Notice that the parameters passed into the onSuccess functions are: *[js:tx]*, *[js:result]*, *[js:array]* and *[js:transObj]*.</p>
+                                <p>where:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name>tx</name>
+                                    <description>the SQLite transaction object</description>
+                                </item>
+                                <item>
+                                    <name>result</name>
+                                    <description>object returned by SQLite</description>
+                                </item>
+                                <item>
+                                    <name>array</name>
+                                    <description>if the SQL was as select statement, the data returned by the query in a Javascript array</description>
+                                </item>
+                                <item>
+                                    <name>transObj</name>
+                                    <description>an object that can be used to pass information from one SQL statement to another.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>Notice how the arguments property for the last object in the array calls a function to set one of the argument values. This function can see the transObj variable.</description>
+                            <example><![CDATA[var obj = [];
+obj.push( { sql: 'drop table if exists cars', onSuccess: function(tx,result,array,transObj) { alert('table was dropped'); }} );
+obj.push( { sql: 'CREATE TABLE Cars (Id INTEGER PRIMARY KEY, Name TEXT, Price INTEGER)'} );
+obj.push( { sql: 'insert into cars (name,price) values (?,?)', arguments: ['Ford',1], onSuccess: function(tx,result,array,transObj) { transObj.foobar = 123;} });
+obj.push( { sql: 'insert into cars (name,price) values (?,?)', arguments: ['GM',2] } );
+obj.push( { sql: 'insert into cars (name,price) values (?,?)', arguments: ['Honda',3] } );
+obj.push( { sql: 'insert into cars (name,price) values (?,?)', arguments: ['Toyota',function(transObj) { return transObj.foobar; } ] } )
+return obj;]]></example>
+                        </case>
+                        <case>
+                            <description>When you edit the Javascript for the *[ui:SQL definition Javascript]* property, the Javascript editor shows extensive help for how to construct the object for the SQL definition object.  For example, the help shows how you can do the following task:</description>
+                            <cases>
+                                <case>
+                                    <description>add a new record to the invoiceHeader table</description>
+                                </case>
+                                <case>
+                                    <description>capture the id of the invoice number in the newly added record (assume that id is an auto-increment field)</description>
+                                </case>
+                                <case>
+                                    <description>add multiple records to the invoiceItems table using the id that was captured when the invoiceHeader record was added</description>
+                                </case>
+                                <case>
+                                    <description>rollback the entire transaction if any errors occur.</description>
+                                </case>
+                            </cases>
+                        </case>
+                        <case>
+                            <description>You can also define these properties:</description>
+                            <list>
+                                <item>
+                                    <name>Transaction success</name>
+                                    <description>the Javascript to execute if ALL of the SQL statements succeeded</description>
+                                </item>
+                                <item>
+                                    <name>Transaction error</name>
+                                    <description>the Javascript to execute if the transaction gets rolled back (because one of the SQL statements failed).</description>
+                                </item>
+                            </list>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <title>How to Create a New SQLite Database on a Device</title>
+                    <description>
+                        <p>When you want to start working with a SQLite database on a mobile device there is no requirement that you either download an exiting SQLite database from the server or include a pre-populated SQLite database in your PhoneGap application. You can simply create a new SQLite database on the fly in your Javascript code.</p>
+                        <p>When you use the '*[ui:Execute SQL statement(s)]*' action in the '*[ui:PhoneGap - SQLite Actions]*' action, you specify the name of the SQLite database name against which the SQL commands should be executed.</p>
+                        <p>If you specify the name of SQLite database that does *[not]* exist, then a new SQLite database will automatically be created.</p>
+                    </description>
+                    <figure>
+                        <link>images/sqlite_createdbonfly.jpg</link>
+                    </figure>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>PhoneGap - SQLite Action Properties</title>
+            <sections>
+                <section>
+                    <title>SQLite Action Properties</title>
+                    <list>
+                        <item>
+                            <name>Action name</name>
+                            <description>Specify the SQLite Action that you want to execute. Available actions are listed below.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <cases>
+                        <case>
+                            <title nested="2">Download SQL Database from Server</title>
+                            <description>Download a SQLite database file from a server and store it on a mobile device.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Create SQLite Database on Server then Download to Device</title>
+                            <description>Download a SQLite database from a server and store it on a mobile device. The SQLite database is created by executing on or more queries to retrieve the data which is then imported into a SQLite database. The resulting database is downloaded to the device.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Execute SQL statement(s)</title>
+                            <description>Execute one or more SQL statements on a SQLite database. You can either execute a single statement or pass in an array of SQL statements to execute. If you pass in an array of SQL statements, the statements are executed as a single transaction.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Get Tables in a Database</title>
+                            <description>Get a list of tables in a SQLite database.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Get Fields in a Table</title>
+                            <description>This action will get the fields in a table as well as some additional information. The onSuccess event handler gets an array of objects. The array has an entry for each field in the table. Each object in the array has these properties:</description>
+                            <list>
+                                <item>
+                                    <name-title>Object Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>cid</name>
+                                    <description>column id (e.g. 0, 1, 2, 3, etc.)</description>
+                                </item>
+                                <item>
+                                    <name>name</name>
+                                    <description>field name</description>
+                                </item>
+                                <item>
+                                    <name>type</name>
+                                    <description>data type (e.g. TEXT, INTEGER, NUMBER, etc.)</description>
+                                </item>
+                                <item>
+                                    <name>nonnull</name>
+                                    <description>0 or 1 - indicates if the column is nullable</description>
+                                </item>
+                                <item>
+                                    <name>dflt_value</name>
+                                    <description>default value</description>
+                                </item>
+                                <item>
+                                    <name>pk</name>
+                                    <description>0 or 1 - indicates if the column is a primary key column</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="2">Delete a Database</title>
+                            <description>Deletes the physical file for the SQLite database from the device.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Create a Table</title>
+                            <description>Allows you to create a new table in a SQLite database. You can define the table structure and also the indices for the table. The image below shows the builder where you specify the table structure. The action will automatically drop any existing table with the same name.</description>
+                            <figure>
+                                <link>images/sqlitecreatetable.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title nested="2">Create a Table from Data</title>
+                            <description>This action will create a new table from data (i.e. it will import data into a new table). The data from which the table is created is a JSON array of objects where each object represents a record. For example, if you specify the following data:</description>
+                            <example code="json"><![CDATA[[
+            {"id" : 1, "FirstName": "Bob", "LastName": "Smith", "Department" : "Sales"},
+            {"id" : 2, "FirstName": "Terry", "LastName": "Jones", "Department" : "R&D"},
+        ]]]></example>
+                        </case>
+                        <case>
+                            <description>A new table with 2 records would be created. The fields in the table would be id, FirstName, LastName and Department and the type of each field (except the id field) would be TEXT. The type of the id field would be INTEGER.</description>
+                            <note>SQLite does not have Date or DateTime fields. Date and time values should be stored in TEXT fields and should appear in the data to be imported as string values.</note>
+                        </case>
+                        <case>
+                            <description>When you specify the data from which the new table is to be created you have the following options:</description>
+                            <list bullet="true">
+                                <item>
+                                    <name>Specify the data directly.</name>
+                                </item>
+                                <item>
+                                    <name>Specify the name of a Javascript function that will return the data. e.g set the data to *[ui:Javascript:myfunctionname]* where *[js:myfunctionname]* is the name of a Javascript function that will return the data array.</name>
+                                </item>
+                                <item>
+                                    <name>Make an Ajax callback to the server and compute the data on server.</name>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>When you specify that the data are to be computed by an Ajax callback you have two options:</description>
+                            <list>
+                                <item>
+                                    <name-title>Option</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>SQL Query</name>
+                                    <description>Specify a SQL query that will return the data.</description>
+                                </item>
+                                <item>
+                                    <name>Custom </name>
+                                    <description>Specify the name of an Xbasic function. This function will return the data as a JSON string.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <description>
+                                <p>You can specify if a table already exists with the table name you specify that the existing table should be dropped. If you do not drop the existing table, the operation will fail.</p>
+                                <p>You can also specify a *[ui:batch size]* property. After the new table has been created (with no records in it initially), INSERT statements are executed to insert the data into the table. You can specify how many records should be inserted with each INSERT statement. The default *[ui:batch size]* is 100, which means that each INSERT statement will insert up to 100 records into the table. If you set the *[ui:batch size]* to -1, Alpha Anywhere will try to add the data to the table with a single INSERT statement. However, this may result in an INSERT statement that exceeds the maximum statement length supported by SQLite and the action will fail. If you set the *[ui:batch size]*  to 1, Alpha Anywhere will perform one INSERT statement for each row of data to be added to the table. If you have a large amount of data, this could be slow. Therefore, if you want to optimize performance of this action, you will want to choose the largest *[ui:batch size]* possible before the action fails.</p>
+                                <p>If the action fails at any point while adding the records to the newly created table, the table is not created.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="2">Import Data into a Table</title>
+                            <description>This action is very similar to the Create a Table from Data action except that a new table is not created from the data. Instead, the data are imported into an existing table. All of the options for specifying the data that the Create a Table from Data action supports are supported by this action.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Delete Table</title>
+                            <description>Delete a table.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Delete All Records from a Table</title>
+                            <description>This action deletes all of the records in a table.</description>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <title>Download SQLite Database from Server Properties</title>
+                    <list>
+                        <item>
+                            <name>Make Ajax callback to get SQLite database URL</name>
+                            <description>Specify if you want to make an Ajax callback to the server to compute the URL of the SQLite database to be downloaded to the device.</description>
+                        </item>
+                        <item>
+                            <name>Xbasic function name</name>
+                            <description>Specify the name of the Xbasic function. Click the smart field to see help for the function. The Xbasic function must set specific properties in the 'e' object that is passed to it.</description>
+                        </item>
+                        <item>
+                            <name>Ajax failed Javascript</name>
+                            <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
+                        </item>
+                        <item>
+                            <name>Offline Javascript</name>
+                            <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
+                        </item>
+                        <item>
+                            <name>SQLite database URL (Javascript)</name>
+                            <description>Specify Javascript code to run to get the URL of the SQLite database file. If you do not specify a protocol (e.g. 'http' or 'https') the SQLite database is assumed to be in the Webroot (e.g. 'sqlite\db1.db').</description>
+                        </item>
+                        <item>
+                            <name>Local database name</name>
+                            <description>Specify the name of the database on the mobile device. This can be different than the name of the database file you are downloading.</description>
+                        </item>
+                        <item>
+                            <name>onComplete Javascript</name>
+                            <description>Specify the Javascript to run once the database has been downloaded.</description>
+                        </item>
+                        <item>
+                            <name>onError Javascript</name>
+                            <description>Specify the Javascript to run if there is an error downloading the database.</description>
+                        </item>
+                        <item>
+                            <name>Display progress during download</name>
+                            <description>Specify if progress should be shown while the SQLite database is being downloaded.</description>
+                        </item>
+                        <item>
+                            <name>Progress bar color</name>
+                            <description>Specify the progress bar color.</description>
+                        </item>
+                        <item>
+                            <name>Progress bar width</name>
+                            <description>Specify the progress bar width. Use CSS units.</description>
+                        </item>
+                        <item>
+                            <name>Placeholder for progress indicator</name>
+                            <description>Specify the name of a Placeholder control where the progress indicator should be shown. TIP: You can enter 'Element:name_of_element' to target a specific element on the page rather than a Placeholder. For example: Element:div1</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Create SQLite Database on Server then Download to Device Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite Database name</name>
+                            <description>Specify the name of the SQLite database</description>
+                        </item>
+                        <item>
+                            <name>SQLite Database definition</name>
+                            <description>SQLite Database definition property.</description>
+                        </item>
+                        <item>
+                            <name>onComplete Javascript</name>
+                            <description>Specify the Javascript to run once the database has been downloaded.</description>
+                        </item>
+                        <item>
+                            <name>onError Javascript</name>
+                            <description>Specify the Javascript to run if there is an error downloading the database.</description>
+                        </item>
+                        <item>
+                            <name>Display progress during download</name>
+                            <description>Specify if progress should be shown while the SQLite database is being downloaded.</description>
+                        </item>
+                        <item>
+                            <name>Progress bar color</name>
+                            <description>Specify the progress bar color.</description>
+                        </item>
+                        <item>
+                            <name>Progress bar width</name>
+                            <description>Specify the progress bar width. Use CSS units.</description>
+                        </item>
+                        <item>
+                            <name>Placeholder for progress indicator</name>
+                            <description>Specify the name of a Placeholder control where the progress indicator should be shown. TIP: You can enter 'Element:name_of_element' to target a specific element on the page rather than a Placeholder. For example: Element:div1</description>
+                        </item>
+                        <item>
+                            <name>Offline Javascript</name>
+                            <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
+                        </item>
+                        <item>
+                            <name>Ajax failed Javascript</name>
+                            <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
+                        </item>
+                        <item>
+                            <name>onComplete Database Create</name>
+                            <description>Specify the Javascript to execute once the new SQLite database on the server has been created, but BEFORE the mobile device starts to download the SQLite database file. This event is typically used to turn off the wait dialog that might have been turned on at the start of the callback. Once the database has been created and the download starts, the user can see the progress bar for an indication that work is still being done.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Execute SQL statement(s) Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database that you want to execute SQL statements against.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Single SQL statement or multiple SQL statements</name>
+                            <description>Specify if you want to execute a single SQL statement or multiple SQL statements. If you select 'Multiple', the statements are run in a transaction - if any of the statements fail, the transaction is rolled back. Choices include *[ui:Single]*, *[ui:Multiple]*.</description>
+                        </item>
+                        <item>
+                            <name>SQL statement to execute</name>
+                            <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
+                        </item>
+                        <item>
+                            <name>Arguments</name>
+                            <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the SQL statement to execute. Your Javascript must return the SQL statement.</description>
+                        </item>
+                        <item>
+                            <name>SQL definition Javascript</name>
+                            <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
+                        </item>
+                        <item>
+                            <name>Transaction success</name>
+                            <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
+                        </item>
+                        <item>
+                            <name>Transaction error</name>
+                            <description>Specify the SQL statements to execute. The statements will be run in a transaction.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Get Tables in a Database Properties</title>
+                    <list>
+                        <item>
+                            <name>Database name</name>
+                            <description>Specify the SQLite database that you want to query.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Code to execute when the list of tables in the database has been obtained.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Code to execute if there is an error when getting list of tables.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Get Fields in a Table Properties</title>
+                    <list>
+                        <item>
+                            <name>Database name</name>
+                            <description>Specify the SQLite database that you want to query.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Specify the name of the table</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Code to execute when the list of tables in the database has been obtained.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Code to execute if there is an error when getting list of tables.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Delete a Database Properties</title>
+                    <list>
+                        <item>
+                            <name>Database name</name>
+                            <description>Specify the SQLite database that you want to query.</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Code to execute when the list of tables in the database has been obtained.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Code to execute if there is an error when getting list of tables.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Create a Table Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database in which to create the new table.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table definition</name>
+                            <description>Define the table structure</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the Javascript to run if the SQL is executed without error.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Create a Table From Data Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database in which to create the new table.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Specify the name of the table to create</description>
+                        </item>
+                        <item>
+                            <name>Drop table if it exists</name>
+                            <description>Specify if a table with the specified name already exists if it should be dropped before creating the new table. If you do not drop an existing table, the command to create a new table will fail.</description>
+                        </item>
+                        <item>
+                            <name>Make Ajax callback to get data</name>
+                            <description>Specify if an Ajax callback should be made to get the data from which the table will be created.</description>
+                        </item>
+                        <item>
+                            <name>Data (from which table will be created)</name>
+                            <description>Define the data from which the table will be created (data is a JSON array of objects). You can also specify the name of a Javascript function to return the data using t his syntax: javascript:yourfunctionname.</description>
+                        </item>
+                        <item>
+                            <name>Batch size</name>
+                            <description>Specify how many rows of data to insert with each INSERT statement. -1 indicates that all of the data will be inserted using a single INSERT statement. This many fail if too many records are being inserted. In that case, use a batch size of 100 to insert 100 records at a time.</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the Javascript to run if the SQL is executed without error.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Import Data Into a Table Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database that contains the table into which data will be imported.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Specify the name of the table into which the data should be imported.</description>
+                        </item>
+                        <item>
+                            <name>Make Ajax callback to get data</name>
+                            <description>Specify if an Ajax callback should be made to get the data to import.</description>
+                        </item>
+                        <item>
+                            <name>Data to import</name>
+                            <description>Define the data to import (data is a JSON array of objects). IMPORTANT: The properties in the Json data must exactly match the fields in the SQLite table. You can also specify the name of a Javascript function to return the data using t his syntax: javascript:yourfunctionname.</description>
+                        </item>
+                        <item>
+                            <name>Batch size</name>
+                            <description>Specify how many rows of data to import with each INSERT statement. -1 indicates that all of the data will be inserted using a single INSERT statement. This many fail if too many records are being inserted. In that case, use a batch size of 100 to insert 100 records at a time.</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the Javascript to run if the SQL is executed without error.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Delete a Table Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database from which to delete a table.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Specify the name of the table to delete</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the Javascript to run if the SQL is executed without error.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Delete All Records From a Table Properties</title>
+                    <list>
+                        <item>
+                            <name>SQLite database name</name>
+                            <description>Specify the name of the SQLite database that contains the table from which records are to be deleted.</description>
+                        </item>
+                        <item>
+                            <name>Database location</name>
+                            <description>'Root' - choose this option if the SQLite database was included as part of the PhoneGap project. 'Downloaded' - choose this option if the SQLite database was downloaded from a server. Choices include *[ui:Root]*, *[ui:Downloaded]*.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Specify the name of the table from which records are to be delete</description>
+                        </item>
+                        <item>
+                            <name>onSuccess</name>
+                            <description>Specify the Javascript to run if the SQL is executed without error.</description>
+                        </item>
+                        <item>
+                            <name>onError</name>
+                            <description>Specify the Javascript to run if there is an error while executing the SQL.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Ajax Callback Definition Properties</title>
+                    <list>
+                        <item>
+                            <name>Type</name>
+                            <description>Specify if the data should be created by executing a SQL query, or by executing a custom Xbasic function. Choices include *[ui:SQL Query]*, *[ui:Custom]*.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Custom Properties</title>
+                    <list>
+                        <item>
+                            <name>Xbasic function name</name>
+                            <description>Xbasic function name property.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>SQL Query Properties</title>
+                    <list>
+                        <item>
+                            <name>Arguments</name>
+                            <description>Define arguments. Arguments can be bound to page, session and cookie variables. Argument values are passed into all server-side Xbasic event handlers in the component. For 'array arguments' (for use in a SQL IN clause), the argument name must start with 'array_'.</description>
+                        </item>
+                        <item>
+                            <name>Connection string</name>
+                            <description>Connection string property.</description>
+                        </item>
+                        <item>
+                            <name>Method for defining SQL query</name>
+                            <description>Method for defining SQL query property.</description>
+                        </item>
+                        <item>
+                            <name>Table name</name>
+                            <description>Table name property.</description>
+                        </item>
+                        <item>
+                            <name>Field list</name>
+                            <description>Field list property.</description>
+                        </item>
+                        <item>
+                            <name>Filter</name>
+                            <description>Specify the filter expression. The filter expression can reference values in other controls on the Dialog. To do this, define one or more arguments, and then bind the argument value to a control value. For example, to bind the argument value to the value in the CustomerId control, set the argument value to {CustomerId}. Your filter can then reference the argument.</description>
+                        </item>
+                        <item>
+                            <name>Order</name>
+                            <description>Order property.</description>
+                        </item>
+                        <item>
+                            <name>Distinct</name>
+                            <description>Specify if you want unique records only.</description>
+                        </item>
+                        <item>
+                            <name>Record limit</name>
+                            <description>Specify the maximum number of records to be retrieved in the SQL query. -1 indicates no limit.</description>
+                        </item>
+                        <item>
+                            <name>SQL Statement</name>
+                            <description>Specify the SQL statement. You must use portable SQL syntax. If you need to use native SQL, you must use the 'Custom' data source option.</description>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title>Javascript (Ajax Callback) Properties</title>
+                    <list>
+                        <item>
+                            <name>Ajax failed</name>
+                            <description>(Optional) Specify the Javascript to execute if the Ajax callback fails (i.e. if the server does not send a response).</description>
+                        </item>
+                        <item>
+                            <name>Device offline</name>
+                            <description>(Optional) Specify the Javascript to execute if the device is offline. Since the device is offline, the Ajax callback is not made. Therefore the code in the 'Ajax failed Javascript' property will not get executed.</description>
+                        </item>
+                    </list>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link href="#section1_Download%20SQLite%20Database%20from%20Server">Download SQLite Database from Server</link>
+    </links>
     <limitations>UX Component Only</limitations>
     <see>
         <ref link="action javascript for the ux">Action Javascript for the UX</ref>
-        <ref link="phonegap sqlite actions">PhoneGap - SQLite Actions</ref>
+        <ref link="PhoneGap SQLite Databases">SQLite Databases</ref>
     </see>
 </page>
