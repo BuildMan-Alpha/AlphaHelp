@@ -519,6 +519,7 @@ function buildVersion() {
         { "version": "versionTag12_4_1_0", upto: 3583 },
         { "version": "versionTag12_4_1_1", upto: 3596 },
         { "version": "versionTag12_4_1_2", upto: 3603 },
+        { "version": "versionTag12_4_1_2", upto: 3629 },
         { "version": "versionTag12_4_1_2", upto: 3633 },
         { "version": "versionTag12_4_2_0", upto: 3670 },
         { "version": "versionTag12_4_3_0", upto: 3922 },
@@ -534,7 +535,9 @@ function buildVersion() {
         { "version": "versionTag12_4_4_1", upto: 4246 },
         { "version": "versionTag12_4_4_3", upto: 4254 },
         { "version": "versionTag12_4_4_4", upto: 4346 },
-        { "version": "versionTag12_4_4_5", upto: 4491 }
+        { "version": "versionTag12_4_4_5", upto: 4491 },
+        { "version": "versionTag12_4_5_0", upto: 4582 },
+        { "version": "versionTag12_4_5_0", upto: 4584 }
    ];
    /*
     * ---- end
