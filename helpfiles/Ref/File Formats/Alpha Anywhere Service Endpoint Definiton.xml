@@ -575,5 +575,195 @@ c:\>curl -X GET --header "Accept: text/html" "http://127.0.0.1:1580/LivePreview/
 "Hello fred"
 ]]></example>
         </section>
+        <section>
+        <title>Example usage of 'Auth_Type'.</title>
+        <description>
+        In this example, A class defines two different auth methods.
+        </description>
+        <example><![CDATA[
+define class A5RESTImpl::MultiAuth
+	function authUser as n(api_key as c)
+		if api_key = "bingo" .or. api_key = "souperyouser" then
+			authUser = 200
+		else	
+			authUser = 401
+		end if
+	end function
+	function authAdmin as n(api_key as c)
+		if api_key = "souperyouser" then
+			authAdmin = 200
+		else	
+			authAdmin = 401
+		end if
+	end function
+	function ListUsers as p()
+		if file.exists("c:\data\users.json") then
+			ListUsers  = json_parse(file.to_string("c:\data\users.json"))			
+			if ListUsers.size() > 0 then
+				dim cleanup as c
+				for i = ListUsers.size() to 1 step -1
+					if ListUsers[i].data("deleted") then
+						ListUsers.delete(i)
+						cleanup = .t.
+					end if
+				next
+				if cleanup then
+					file.from_string( "c:\data\users.json" , json_reformat(json_generate(ListUsers)) )
+				end if
+			end if 	
+		else	
+			ListUsers  = json_parse("[]")
+		end if
+	end function
+	function GetUserInfo as p(id as c)
+		dim json as c = extension::json::FileJSONGet("c:\data\users.json","{ \"id\" : \""+id+"\" }")
+		if json <> "" then
+			GetUserInfo = json_parse(json)
+		end if
+	end function
+	function AddUser as p(user as A5RESTImpl::MultiAuth::User)
+		if user.id = "" then
+			AddUser = json_parse(json_sanitize("{ added : false , error : 'Id is required' }"))
+		else if extension::json::FileJSONGet("c:\data\users.json","{ \"id\" : \""+user.id+"\" }") = "" then			
+			extension::json::FileJSONAppend("c:\data\users.json",json_generate(user))
+			AddUser = json_parse(json_sanitize("{ added : true }"))
+		else	
+			AddUser = json_parse(json_sanitize("{ added : false , error : 'User Already Exists' }"))
+		end if
+	end function
+	function UpdateUserInfo as p(user as A5RESTImpl::MultiAuth::User)
+		if extension::json::FileJSONGet("c:\data\users.json","{ \"id\" : \""+user.id+"\" }") = "" then			
+			AddUser = json_parse(json_sanitize("{ updated : false , error : 'User Not Found' }"))
+		else	
+			extension::json::FileJSONUpdate("c:\data\users.json","{ \"id\" : \""+user.id+"\" }",json_generate(user))
+			AddUser = json_parse(json_sanitize("{ updated : true }"))
+		end if
+	end function
+	function DeleteUserInfo as p(id as c)
+		if extension::json::FileJSONGet("c:\data\users.json","{ \"id\" : \""+id+"\" }") = "" then
+			AddUser = json_parse(json_sanitize("{ deleted : false , error : 'User Not Found' }"))
+		else
+			extension::json::FileJSONUpdate("c:\data\users.json","{ \"id\" : \""+id+"\" }","{ \"deleted\" : true } ")
+			AddUser = json_parse(json_sanitize("{ deleted : true }"))
+		end if	
+	end function
+end class       	
+
+define class A5RESTImpl::MultiAuth::User
+   dim id as c
+   dim firstname as c
+   dim lastname as c
+end class        
+]]></example>
+        </section>
+        <section>
+        <description>
+        The example a5svc file for this service defines auth_types of user and admin.  
+        The methods in the interface name the method that they use (auth property of method).
+        </description>
+        <example><![CDATA[
+{
+    "method": "get",
+    "allow": false,
+    "auth_type" : [
+	    {
+	        "name" : "user",
+            "implementation": "xbasic",
+            "service": "A5RESTImpl::MultiAuth",
+            "authorize": "authUser",
+            "use_query" : true
+ 	    },
+	    {
+	        "name" : "admin",
+            "implementation": "xbasic",
+            "service": "A5RESTImpl::MultiAuth",
+            "authorize": "authAdmin",
+            "use_query" : true
+ 	    }
+    ],
+    "api": [
+        {
+            "implementation": "xbasic",
+            "service": "A5RESTImpl::MultiAuth",
+            "methods": [
+                {
+                    "name": "AddUser",
+                    "method": "post",
+                    "path": "/AddUser",
+                    "use_query": false,
+                    "auth" : "admin"
+                },
+                {
+                    "name": "DeleteUserInfo",
+                    "method": "delete",
+                    "path": "/DeleteUserInfo/{arguments.id}",
+                    "use_query": false,
+                    "auth" : "admin"
+                },
+                {
+                    "name": "GetUserInfo",
+                    "method": "get",
+                    "path": "/GetUserInfo/{arguments.id}",
+                    "use_query": false,
+                    "auth" : "user"
+                },
+                {
+                    "name": "ListUsers",
+                    "method": "get",
+                    "path": "/ListUsers",
+                    "use_query": false,
+                    "auth" : "user"
+                },
+                {
+                    "name": "UpdateUserInfo",
+                    "method": "put",
+                    "path": "/UpdateUserInfo",
+                    "use_query": false,
+                    "auth" : "admin"
+                }
+            ]
+        }
+    ],
+    "flatten_arguments": true,
+    "debugger_header": false
+}
+]]></example>
+        </section>
+        <section>
+        <description>
+        Calling the api, notice that the api_key required for access varies between methods.  DeleteUserInfo requires a different
+        key than the ListUsers endpoint.
+        </description>
+        <example><![CDATA[
+c:\>curl -X GET "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/ListUsers" -H "accept: application/json" -H "content-type: application/json"
+Unauthorized
+c:\>curl -X GET "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/ListUsers?api_key=bingo" -H "accept: application/json" -H "content-type: application/json"
+[
+        {
+                "id": "jqp",
+                "firstname": "John",
+                "lastname": "Public"
+        },
+        {
+                "id": "js",
+                "firstname": "Joe",
+                "lastname": "Shmoe"
+        }
+]
+c:\>curl -X DELETE "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/DeleteUserInfo/js?api_key=bingo" -H "accept: application/json" -H "content-type: application/json"
+Unauthorized
+c:\>curl -X DELETE "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/DeleteUserInfo/js?api_key=souperyouser" -H "accept: application/json" -H "content-type: application/json"
+{
+}
+c:\>curl -X GET "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/ListUsers?api_key=bingo" -H "accept: application/json" -H "content-type: application/json"
+[
+        {
+                "id": "jqp",
+                "firstname": "John",
+                "lastname": "Public"
+        }
+]
+]]></example>
+        </section>        
     </sections>
 </page>    
