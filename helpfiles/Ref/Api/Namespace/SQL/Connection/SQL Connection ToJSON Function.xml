@@ -1,71 +1,106 @@
 <page api="xb">
-     <shortlink>api sql namespace connection class to json function</shortlink>
-   <topic>SQL::Connection::ToJSON Function</topic>
-    <description>Fetch data to an JSON formatted string using a SQL query.
-</description>
-   <prototype>Result_Flag as L = ToJSON(SQLStatement as C  [, Arguments as SQL::Arguments] [, RowsToCopy = -1 as N [, StartRow = 1 as N [, ColumnReferences as SQL::TableInfo [, UserContext as P]]]])</prototype>
-   <arguments>
-    <argument>
-         <name>Result_Flag</name>
-         <description>
- 
-TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
- </description>
-     </argument>
-      <argument>
-         <name>SQL::Connection</name>
-         <description>
-
- 
-A SQL::Connection object.
- </description>
-     </argument>
-     
-     
-     
-     <argument>
-         <name>SQLStatement</name>
-         <description>A SQL SELECT statement.
-</description>
-     </argument>
-     <argument>
-         <name> Arguments</name>
-         <description>
-
- 
-Optional. A SQL::Arguments object. One or more arguments to be resolved when the SELECT statement is executed.
- </description>
-     </argument>
-     <argument>
-         <name> RowsToCopy = -1</name>
-         <description>Optional. Default = -1 (all). The number of rows to copy.
-</description>
-     </argument>
-     <argument>
-         <name> StartRow = 1</name>
-         <description>Optional. Default = -1 (current). The first row to copy.
-</description>
-     </argument>
-     <argument>
-         <name> ColumnReferences</name>
-         <description>Optional. A SQL::TableInfo object. When data is formatted for a column in the result set: (1) if ReferenceColumns has a column with a matching name, that object will be used to format the data; (2) otherwise the ColumnInfo property of the result set is used to format the data.
-</description>
-     </argument>
-     <argument>
-         <name> UserContext</name>
-         <description>Optional. The user context is passed into the evaluation of the expression when data is formatted.
-</description>
-     </argument>
-   </arguments>
-  
-   <discussion>
-The ToJSON() method converts the data in one or more rows to an implementation of JavaScript Object Notation format specific to the Alpha Anywhere AJAX implementation.
-The function formats the data in column major order with indexes to map the rows using objects for each column with index, name, value and (optionally) HREF tags.
-If the named expression is defined for a column, the function will generate the HREF tag using the expression provided. If ExternalFileNameExpression is set, the data will be stored to a file as well.
+    <shortlink>api sql namespace connection class to json function</shortlink>
+    <topic>SQL::Connection::ToJSON Function</topic>
+    <description>Fetch data to a JSON formatted string using a SQL query.</description>
+    <prototypes>
+    <prototype>JSON as C = ToJSON(SQLStatement as C [, Arguments as SQL::Arguments] [, RowsToCopy = -1 as N [, StartRow = 1 as N [, ColumnReferences as SQL::TableInfo [, UserContext as P]]]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>SQLStatement</name>
+            <type>C</type>
+            <description>A SQL SELECT statement.</description>
+        </argument>
+        <argument optional="true">
+            <name>Arguments</name>
+            <type>SQL::Arguments</type>
+            <description>One or more arguments to be resolved when the SELECT statement is executed. *[xb:Arguments]* is required if the SQL SELECT statement uses arguments. You can omit this parameter if no arguments are used by the SQL SELECT statement.</description>
+        </argument>
+        <argument optional="true">
+            <name>RowsToCopy</name>
+            <type>N</type>
+            <description>Default = -1 (all rows). The number of rows to copy.</description>
+        </argument>
+        <argument optional="true">
+            <name>StartRow</name>
+            <type>N</type>
+            <description>Default = 1 (first row). The first row to copy.</description>
+        </argument>
+        <argument optional="true">
+            <name>ColumnReferences</name>
+            <type>SQL::TableInfo</type>
+            <description>When data is formatted for a column in the result set: (1) if ReferenceColumns has a column with a matching name, that object will be used to format the data; (2) otherwise the ColumnInfo property of the result set is used to format the data.</description>
+        </argument>
+        <argument optional="true">
+            <name>UserContext</name>
+            <type>P</type>
+            <description>The user context is passed into the evaluation of the expression when data is formatted as defined in the *[xb:ColumnReferences]*.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>JSON</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Returns the result of the SQL Query as formatted JSON. Returns an empty string if no records are found.</description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The ToJSON() method converts the data in one or more rows to an implementation of JavaScript Object Notation format specific to the Alpha Anywhere AJAX implementation.</p>
+        <p>The function formats the data in column major order with indexes to map the rows using objects for each column with index, name, value and (optionally) HREF tags.</p>
+        <p>If the named expression is defined for a column, the function will generate the HREF tag using the expression provided. If ExternalFileNameExpression is set, the data will be stored to a file as well.</p>
    </discussion>
- 
-   <see>
-      <ref link="SQL::Connection Object">SQL::Connection Object</ref>
-   </see>
-<terms>sql,connection,ajax,arguments,column,defaults,expressions,file,function,javascript,map,number,object,operation,string,users</terms>
+<sections>
+    <section>
+        <title>Example</title>
+        <description>
+            <p>This example retrieves the first 4 records from the orders table in the *[AADemo-Northwind]* database</p>
+        </description>
+        <note>You can add the AADemo-Northwind database connection string to your project through the AlphaDAO Connections builder using the *[ui:Create AADemo-Northwind demo connection string]* link at the bottom of the dialog. The AlphaDAO Connections dialog can be accessed from the Edit menu on the Web Projects Control Panel. Select Edit &gt; Manage Connection Strings &gt; Alpha DAO Connection strings to open the builder.</note>
+        <example code="xb"><![CDATA[dim cn as SQL::Connection
+
+? cn.open("::Name::AADemo-Northwind")
+= .T.
+
+dim sql as c = "SELECT OrderID, OrderDate FROM orders"
+dim rows as N = 4
+
+? cn.ToJSON(sql,rows,1)
+= [
+{"OrderID" : "10248", "OrderDate" : "08/04/1994 12:00:00 000 am"},
+{"OrderID" : "10249", "OrderDate" : "08/05/1994 12:00:00 000 am"},
+{"OrderID" : "10250", "OrderDate" : "08/08/1994 12:00:00 000 am"},
+{"OrderID" : "10251", "OrderDate" : "08/08/1994 12:00:00 000 am"}
+]]]></example>
+    </section>
+    <section>
+        <description>This next example demonstrates using SQL::Arguments to fetch all orders with the CustomerID "CHOPS":</description>
+        <example code="xb"><![CDATA[dim cn as SQL::Connection
+
+? cn.open("::Name::AADemo-Northwind")
+= .T.
+
+dim sql as c = "SELECT OrderID, OrderDate FROM orders WHERE CustomerId = :CustomerId"
+dim args as SQL::Arguments
+args.set("CustomerID","CHOPS")
+? cn.ToJSON(sql,args)
+= [
+{"OrderID" : "10254", "OrderDate" : "08/11/1994 12:00:00 000 am"},
+{"OrderID" : "10370", "OrderDate" : "01/03/1995 12:00:00 000 am"},
+{"OrderID" : "10519", "OrderDate" : "05/29/1995 12:00:00 000 am"},
+{"OrderID" : "10731", "OrderDate" : "12/07/1995 12:00:00 000 am"},
+{"OrderID" : "10746", "OrderDate" : "12/20/1995 12:00:00 000 am"},
+{"OrderID" : "10966", "OrderDate" : "04/19/1996 12:00:00 000 am"},
+{"OrderID" : "11029", "OrderDate" : "05/16/1996 12:00:00 000 am"},
+{"OrderID" : "11041", "OrderDate" : "05/22/1996 12:00:00 000 am"}
+]]]></example>
+    </section>
+</sections>
+    <see>
+        <ref link="SQL::Connection Object">SQL::Connection Object</ref>
+        <ref link="api json functions">JSON Functions</ref>
+        <ref link="json data">Working with JSON Data</ref>
+    </see>
+    <terms>sql,connection,ajax,arguments,column,defaults,expressions,file,function,javascript,map,number,object,operation,string,users</terms>
 </page>

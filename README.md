@@ -81,41 +81,43 @@ sudo apt-get install nodejs-legacy
 Clone alphahelp, make a folder for generated files, initialize and update the elastic search index and table of contents.
 
 ```sh
-git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
-mkdir /home/AlphaHelp/generated
+sudo git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
+sudo git clone https://github.com/BuildMan-Alpha/AlphaHelpGen /home/AlphaHelpGen
+sudo mkdir /home/AlphaHelp/generated
 cd /home/AlphaHelp/helpserver
-npm install
-nodejs initializeserver.js
-nodejs updateserver.js
+sudo npm install
+sudo cp settingslocal.js settingslocalinit.js
+sudo nodejs initializeserver.js ./settingslocalinit.js
+sudo nodejs updateserver.js ./settingslocalinit.js
 ```
 ## Create the helpserver Service
 
 Copy the configuration file(s) to the /etc/init folder
 
 ```sh
-cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
-cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
+sudo cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
+sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
 ```
 
 Then start the server...
 
 ```sh
-start helpserver
+sudo start helpserver
 ```
 To Refresh the server modules (new release of helpserver npm).
 
 ```sh
-stop helpserver
+sudo stop helpserver
 cd /home/AlphaHelp/helpserver/node_modules/help_server
-npm update
-start helpserver
+sudo npm update
+sudo start helpserver
 ```
 
 
 Caveat - nodegit 4.0.0 broken in reposity.js - whenever I refresh the npm now I need to execute this line
 
 ```sh
-cp /home/repository.js node_modules/helpserver/node_modules/nodegit/lib/repository.js
+sudo cp /home/repository.js node_modules/helpserver/node_modules/nodegit/lib/repository.js
 ```
 
 This will need to be done until the fix is rolled into the NPM.
@@ -126,7 +128,7 @@ If running in a test environment, you do not need to create a service. Navigate 
 directory and run the system:
 
 ```
-node helplocal.js
+sudo node helplocal.js
 ```
 
 ## Starting helpserver on Linux
