@@ -1,0 +1,208 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Understanding Tenancy in Alpha Cloud." />
+<meta name="shortlink" content="Alpha Cloud Alpha Anywhere Developers Guide Tenancy in Alpha Cloud" />
+<title>Alpha Cloud Alpha Anywhere Developers Guide Tenancy In Alpha Cloud</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="Tenancy in Alpha Cloud">Tenancy In Alpha Cloud</a></h2>
+<br/>
+
+<p>
+<a href="#Overview">Overview</a><br/>
+<a href="#UnderstandingPublicTenancy">Understanding Public Tenancy</a><br/>
+<a href="#UnderstandingSubscriptionTenancy">Understanding Subscription Tenancy</a><br/>
+<a href="#UnderstandingDedicatedTenancy">Understanding Dedicated Tenancy</a><br/>
+<a href="#TenancyVersusPerformance">Will I get better performance if I deploy my web site in Subscription or Dedicated Tenancy?</a><br/>
+</p>
+
+
+<h3><a id="Overview">Overview</a></h3><br/>
+<p><strong>Tenancy </strong> determines how your web site will be grouped with other web sites on the Alpha Cloud.</p>
+<p>Each web site is assigned one of the following tenancy types.
+The tenancy selected controls how isolated your web site is from other deployed web sites for your subscription and those of other Alpha Cloud subscribers.
+</p>
+
+<ul>
+	<li><strong>Public</strong> - The web site will share virtual machines with any other web sites deployed on the Alpha Cloud.</li>
+	<li><strong>Subscription</strong> - The web site will share virtual machines ONLY with other web sites belonging to the same subscription and assigned to the same server group.
+		The tuning parameters for the server group will be taken from the common server group object.
+		</li>
+	<li><strong>Dedicated</strong> - The web site will be assigned to its own virtual machines.  The tuning parameters will be taken from the referenced server group.</li>
+</ul>
+<br/>
+<br/>
+
+<h3><a id="#UnderstandingPublicTenancy">Understanding Public Tenancy</a></h3><br/>
+<p>Public tenancy provides a cost effective option for deploying web sites that do not have severe security restrictions.  
+Web sites are assigned to groups of servers (called Server Groups) that scale automatically when load goes up or down.
+These Server Groups may (and probably will) have web sites assigned to them that are deployed by other subscribers.
+Each server group in public tenancy has at least two server instances running in separate data centers so that the failure of any one instance does not stop the application from working.
+</p>
+<p>Web sites are deployed using Microsoft Internet Information Services (IIS&reg;) and take advantage of security features of both IIS and the underlying Windows&reg; operating system.
+<ul>
+	<li><strong>Application Pools</strong> - Each application is assigned to a separate application pool.  
+					An application pool is a set of processes dedicated to the application pool. 
+					This isolates applications even on the same web site.
+		</li>
+	<li><strong>Application Pool Identities</strong> - Each application pool is assigned a unique identity (a sort of user).  
+					This isolates user spaces for each application.
+		</li>
+	<li><strong>Least Privilege</strong> - By default, application pool identities are granted only permissions required to do their work.
+					Access to web pages and other web assets must be granted explicitly to the application pool identity.
+		</li>
+	<li><strong>ACLs</strong> - ACLs (Access Control Lists) are used to control the resources an application pool identity has access to.
+		</li>
+	<li><strong>TLS</strong> - TLS (also called SSL for the older protocol) involves serving a certificate for a host name that can be used to 
+					confirm the identity of the server and secure communication between the client/browser and server.
+					You can purchase and install a certificate for your own domain and host name for each web site you deploy.
+		</li>
+</ul>
+</br>
+<h4><a id="#WhyChoosePublicTenancy">Why Choose Public Tenancy?</a></h4>
+<p>The Public tenancy option is appropriate for most deployed applications and web sites.
+<ul>
+	<li>It provides reasonable security.</li>
+	<li>Applications share server instances with other applications, keeping costs at a minimum.</li>
+	<li>Scaling, high availability/failover, load balancing and certificate management are all included.</li>
+	<li>Because server groups scale for everyone, increased load leads to increased capacity that is shared, smoothing the impact of spikes.</li>
+	<li>Alpha Cloud manages the configuration and tuning of scaling and IIS behavior.</li>
+	</ul>
+</p>
+<br/>
+
+<h3><a id="#UnderstandingSubscriptionTenancy">Understanding Subsription Tenancy</a></h3><br/>
+<p>Subscription tenancy provides all of the security features of Public tenancy, but restricts a server group to web sites from a single subscription.  
+The effect is that no web site you deploy in Subscription tenancy will run on the same virtual machine instance with web sites from other subscribers.
+</p>
+<p><strong>Note: </strong>To further organize your deployed web sites, you can define Server Groups for your subscription.  
+When you select Subsciption tenancy for your web site, you can also select one of your Server Groups by name.  
+Web sites in Subscription tenancy will only be deployed to server groups with the same name and assigned to the same subscription.
+If there is no server group running for a given subscription and Server Group name, a new one will be started.
+</p>
+<p>By using Server Groups, you can also set scaling parameters for web sites in subscription tenancy.
+Public Tenancy is managed by Alpha Cloud.
+With Subscription tenancy you can change the minimum and maximum number of instances running in a group by editing the Server Group definitions for your subscription.
+You can also tune the CPU usage threshold and time for scaling up and down as well as other values.  
+See <a href="Managing Server Groups.html">Managing Server Groups</a> for more information on Server Groups.
+</p>
+<p><strong>Note: </strong>Because you are allocating resources (a virtual machine and a load balancer) that may not be utilized as well as a Public tenancy server, 
+there is an additional charge for each hour a server group runs in Subscription tenancy.
+This additional charge is based on the minimum number of instances you configure, as these instances may be idle.
+</p>
+<br/>
+
+<h4><a id="#WhyChooseSubscriptionTenancy">Why Choose Subscription Tenancy?</a></h4>
+<p>Subscription tenancy is appropriate in the following circumstances.
+
+<ul>
+	<li>Severe security restrictions require that subscriber web sites cannot be deployed on virtual machines also used by other subscribers.</li>
+	<li>More control is desired over the minimum and maximum number of server instances for a web site, or group of web sites.  <br/>
+		While server groups in Public tenancy will not scale wildly in a short period of time,
+		Public tenancy server groups do not limit the potential capacity of your web site over time.
+		This is generally desireable.
+		In some extreme cases, limiting the maximum capacity (and therefore cost) of running a web site is a necessity.</li>
+	<li>More control is desired over the level of CPU usage at which new server instances are added or removed and how quickly. 
+		This can influence the CPU capacity available and affect compute performance to a degree.
+		<br/>
+		<strong>Note: </strong>Idle CPU capacity is useful for sporadic bursts of high demand, 
+			but this will probably not improve performance significantly over Public tenancy. 
+			Server instances will scale in either environment to address the needed capacity.
+			In Public tenancy you may have more spare capacity because you are sharing it with other web applications.
+		</li>
+	<li>More control is desired over how many server instances are added or removed at a time.</li>
+	</ul>
+</p>
+<br/>
+
+<h3><a id="#UnderstandingDedicatedTenancy">Understanding Dedicated Tenancy</a></h3><br/>
+<p>Dedicated tenancy provides all of the security features of Public tenancy along with the configuration control of Subscription tenancy, 
+but restricts (dedicates) a server group to a single web site (note that a single web site can have multiple applications assigned to it).
+The effect is that no web site you deploy in Dedicated tenancy will run on the same virtual machine instance with any other web site.
+</p>
+
+<p>By referencing a Server Group from your web site definition, you are setting the scaling parameters for the dedicated server group as you would with Subscription tenancy.
+With Dedicated tenancy you can change the minimum and maximum number of instances running in a group by editing the Server Group definition for your subscription.
+You can also tune the CPU usage threshold and time for scaling up and down as well as other values.  
+See <a href="Managing Server Groups.html">Managing Server Groups</a> for more information on Server Groups.
+</p>
+<p>
+Even if you reference a Server Group that is used by web sites assigned to Subscription tenancy, the effect is that only the values of the scaling parameters are used.  
+Your web site still runs on a separate group of instances.
+This can simplify managing large numbers of web sites running in Dedicated tenancy.
+</p>
+<p><strong>Note: </strong>Because you are allocating resources (a virtual machine and a load balancer) that may not be utilized as well as a Public tenancy server, 
+there is an additional charge for each hour a server group runs in Dedicated tenancy.
+This additional charge is based on the minimum number of instances you configure, as these instances may be idle.
+</p>
+
+<h4><a id="#WhyChooseDedicatedTenancy">Why Choose Dedicated Tenancy?</a></h4>
+<p>Dedicated tenancy is appropriate when severe security restrictions require that a specific web site cannot be deployed on virtual machines
+	 also used by other web sites, even within the subscription.
+</p>
+<br/>
+
+<h3><a id="#TenancyVersusPerformance">Will I get better performance if I deploy my web site in Subscription or Dedicated Tenancy?</a></h3><br/>
+<h4>Tenancy is About Isolation</h4>
+<p>
+Tenancy is ultimately about isolation of your web site from other web sites.  
+Alpha Cloud includes Subscription and Dedicated tenancy largely to meet the demands of security standards that may require it.
+</p>
+<p>
+<h4>Performance is About Scaling</h4>
+<p>
+Performance is what scaling is all about.
+</p>
+<p>
+Server groups in every tenancy scale automatically when overall load has reached a threshold that could affect performance.  
+As overall load increases or reduces, server instances are added or removed.  
+Amazon recommends scaling at most once or twice a day.
+So clearly, this is not a solution to momentary spikes in demand.
+</p>
+<p>
+The Public tenancy server groups set a threshold that is intended to guarantee spare performance.  
+This spare capacity is shared across all of the web sites in that server group, smoothing out spikes.
+</p>
+<p>
+<strong>Note: </strong>The processors Alpha Cloud currently runs on also have what is called a "burst" mode that boosts the CPU capacity for momentary increases in demand.
+This is available regardless of your tenancy choice.
+</p>
+<h4>Subscription and Dedicated Tenancy and Scaling</h4>
+<p>
+As discussed in the description of Subscription tenancy above, you will get more control over the scaling parameters by choosing Subscription or Dedicated tenancy. 
+That control comes at the cost of complexity.
+The Server Group settings discussed in <a href="Managing Server Groups.html">Managing Server Groups</a> 
+relate mostly to increasing or reducing overall capacity by adding instances to a server group.
+Because we don't expose all of the options from the underlying infrastructure (Amazon AWS right now), 
+there are still some features you may not be able to avail yourself of.
+</p>
+<h4>Performance Versus Excess Capacity</h4>
+<p>
+While you can certainly create excess capacity by setting a high number of minimum instances and scaling at very low CPU utilization in Subscription or Dedicated tenancy Server Groups, 
+you will likely end up paying a for extra capacity that is never used.
+This approach runs counter to the philosophy of cloud computing that compute capacity is elastic.
+</p>
+<h4>Final Thoughts</h4>
+<p>
+In most cases, Public tenancy will be sufficient from a security and performance standpoint.
+If you have a reason to use Subscription or Dedicated tenancy, and it solves your problem, well, that is why it is there.
+</p>
+<p>
+Cloud computing is still relatively new and is evolving rapidly.  
+The purpose of Alpha Cloud is to make robust deployment of Alpha Anywhere applications efficient and cost effective 
+by eliminating wasted hardware and plant capacity and the need to staff a data center.
+We welcome ideas and concerns as we continue to make Alpha Cloud even better!
+</p>
+<br/>
+<br/>
+</body>
+
+</html>
