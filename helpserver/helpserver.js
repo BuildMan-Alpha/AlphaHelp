@@ -50,7 +50,7 @@ if (searchLocalFlag) {
     options = require("./settings");
 }
 
-
+var matchHomepageOnRoot = options.matchHomepageOnRoot;
 
 console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
 if (options.https_port && options.privatekey && options.certificate) {
@@ -197,7 +197,7 @@ var outputSnippet = function(args, description, type, topic, isStatic) {
                 }
             }
             if (type == "method") {
-                result = "<methodref" + (isStatic ? " static=\"true\"" : "") + "><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
+                result = "<methodref" + (isStatic ? " static=\"true\"" : "") + "><name>" + args.name + "</name><ref href=\"" + args.path + "\">" + args.name + "</ref><description>" + description + "</description></methodref>";
             } else {
                 result = "<item><name href=\"" + args.path + "\">" + topic + "</name><description>" + description + "</description></item>";
             }
@@ -474,6 +474,7 @@ var replaceTag = function(data, startPattern, endPattern, replacement) {
     return data;
 };
 var expandAnnotations = function(data, annotations, filename, saveIt, done) {
+    console.log(annotations);
     if (!annotations) {
         annotations = [];
     }
@@ -619,7 +620,8 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
-
+                var replaceAnnotations = extractTags(data, "<annotations>","</annotations>");
+                console.log(JSON.stringify(replaceAnnotations));
                 var extractBuild = function(data) {
                     var build = data.split('build="');
                     if (build.length > 1) {
@@ -677,10 +679,21 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                         data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
                                     }
                                 }
-                                var annotations = extractTags(data2, "<annotations>", "</annotations>");
+                                var annotations = extractTags(data2, "<annotations>","</annotations>");
+                                if (replaceAnnotations) {
+                                    replaceAnnotations.forEach(function(value,index,arr) {
+                                        data2 = data2.replace("</page>","<sections><annotations>"+value+"</annotations></sections></page>");
+                                    });
+                                    if (annotations) {
+                                        annotations.append(replaceAnnotations);
+                                    } else {
+                                        annotations = replaceAnnotations;
+                                    }
+                                }
                                 if (data2 === data) {
                                     // No changes
                                     if (annotations) {
+                                        console.log(annotations);
                                         var modXmlFile = htmlFile.substring(0, splitNameAt) + ".ano.xml";
                                         expandAnnotations(data2, annotations, modXmlFile, false, function(applied) {
                                             if (applied) {
@@ -1298,6 +1311,7 @@ events.embedXmlPage = function(data) {
 
 events.canFlatten = function(pageName) {
     var flattenChildren = [
+        { path: "/Ref/Client_Api/", level: 1},
         { path: "/Ref/Api/Functions/", level: 2 },
         { path: "/Ref/Api/Namespace/", level: 1 },
         { path: "/Ref/Api/Objects/", level: 1 }
@@ -1467,7 +1481,7 @@ app.use("/", function(req, res) {
                 console.log("favicon is missing");
             }
         });
-    } else if (req.path === '/pages/index.html') {
+    } else if (req.path === '/pages/index.html' || (matchHomepageOnRoot && (req.path === '/' || req.path === '/documentation/pages/index.html')) ) {
         var path = "/index.html";
         help.get(path, function(err, data, type) {
             if (err) {
