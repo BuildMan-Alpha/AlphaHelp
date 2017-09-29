@@ -50,7 +50,7 @@ if (searchLocalFlag) {
     options = require("./settings");
 }
 
-var matchHomepageOnRoot = options.matchHomepageOnRoot;
+
 
 console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
 if (options.https_port && options.privatekey && options.certificate) {
@@ -474,7 +474,6 @@ var replaceTag = function(data, startPattern, endPattern, replacement) {
     return data;
 };
 var expandAnnotations = function(data, annotations, filename, saveIt, done) {
-    console.log(annotations);
     if (!annotations) {
         annotations = [];
     }
@@ -621,7 +620,6 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
                 var replaceAnnotations = extractTags(data, "<annotations>","</annotations>");
-                console.log(JSON.stringify(replaceAnnotations));
                 var extractBuild = function(data) {
                     var build = data.split('build="');
                     if (build.length > 1) {
@@ -693,7 +691,6 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                 if (data2 === data) {
                                     // No changes
                                     if (annotations) {
-                                        console.log(annotations);
                                         var modXmlFile = htmlFile.substring(0, splitNameAt) + ".ano.xml";
                                         expandAnnotations(data2, annotations, modXmlFile, false, function(applied) {
                                             if (applied) {
@@ -1481,7 +1478,7 @@ app.use("/", function(req, res) {
                 console.log("favicon is missing");
             }
         });
-    } else if (req.path === '/pages/index.html' || (matchHomepageOnRoot && (req.path === '/' || req.path === '/documentation/pages/index.html')) ) {
+    } else if (req.path === '/pages/index.html') { //|| (false && (req.path === '/' || req.path === '/documentation/pages/index.html')) ) {
         var path = "/index.html";
         help.get(path, function(err, data, type) {
             if (err) {
