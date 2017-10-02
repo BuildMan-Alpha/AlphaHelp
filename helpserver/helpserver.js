@@ -58,9 +58,9 @@ if (options.https_port) {
         https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') };
     } else if (options.pfx) {
         if (options.passphrase) {
-            https_credentails = { pfx: fs.readFileSync(options.pfx, 'utf8'), passphrase: options.passphrase };
+            https_credentails = { pfx: fs.readFileSync(options.pfx), passphrase: options.passphrase };
         } else {
-            https_credentails = { pfx: fs.readFileSync(options.pfx, 'utf8') };
+            https_credentails = { pfx: fs.readFileSync(options.pfx) };
         }
     }
 }
