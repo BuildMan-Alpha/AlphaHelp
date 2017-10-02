@@ -1493,7 +1493,7 @@ app.use("/", function(req, res) {
                 console.log("favicon is missing");
             }
         });
-    } else if (req.path === '/pages/index.html') { //|| (false && (req.path === '/' || req.path === '/documentation/pages/index.html')) ) {
+    } else if ((req.path === '/pages/index.html') || (req.path === '/') || (req.path === '/pages/') || (req.path === '/pages')) {
         var path = "/index.html";
         help.get(path, function(err, data, type) {
             if (err) {
