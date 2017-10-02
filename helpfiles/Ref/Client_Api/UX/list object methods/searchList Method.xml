@@ -2,6 +2,7 @@
     <shortlink>list object searchList method</shortlink>
     <topic>listObj.searchList Method</topic>
     <syntax>listObj.searchList([options]);</syntax>
+    <description>Submits the Search Part to search the List. You can specify if the search should be performed client-side, server-side or 'auto'.</description>
     <arguments>
         <argument optional="true">
             <name>options</name>
@@ -23,14 +24,104 @@
                     <type>number</type>
                     <description>In the case of a server-side search, indicates the maximum payload that the search is allowed to return. This property overrides the property that is set in the List Builder on the Search Part pane.</description>
                 </property>
+                <property optional="true" build="4592">
+                    <name>xbasicAfterFilterCompute</name>
+                    <type>string</type>
+                    <description>Defines the name of an Xbasic function that will be called after the filter has been computed, but before the SQL has been executed. See "Server-side After Search Expression Computed Event" below for more information.</description>
+                </property>
             </properties>
         </argument>
     </arguments>
-    <description>Submits the Search Part to search the List. You can specify if the search should be performed client-side, server-side or 'auto'.</description>
-    <note>The List control's *[js:beforeSearch]* client-side event fires before the search is performed. This event exposes the *[js:searchWhere]* property that tells you where the search will be performed.</note>
-    <example code="js"><![CDATA[var listObj = {dialog.object}.getControl("LIST1");
-listsObj.searchList({searchMode : 'auto', maxRows: 30});]]></example>
+    <discussion>
+        <p>The *[js:searchList()]* method reads the search criteria from the Search Part for a List control and then performs either a client-side or server-side search. Additional options can be specified to defined the search behavior, including the search mode and the amount of data to return (rows, payload size).</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="js">
+                <![CDATA[var listObj = {dialog.object}.getControl("LIST1");
+listsObj.searchList({searchMode : 'auto', maxRows: 30});]]>
+            </example>
+            <note>The List control's *[js:beforeSearch]* client-side event fires before the search is performed. This event exposes the *[js:searchWhere]* property that tells you where the search will be performed.</note>
+        </section>
+        <section>
+            <description>
+                <p>An optional Xbasic function can also be specified. This Xbasic function will be called prior to submitting the search on the server. The Xbasic function is not used for client-side searches.</p>
+            </description>
+        </section>
+        <section>
+            <title>Server-side After Search Expression Computed Event</title>
+            <description>
+                <p>The Grid component exposes a server side event, [onSearchPartFilterCompute], that can be used to override the computed search filter for the component. This event fires before the actual search query is executed.</p>
+                <p>The *[js:xbasicAfterFilterCompute]* property can be used to accomplish the same thing for a List control. The property can be used to specify an Xbasic function to call after the filter for the List has been computed but before any records are retrieved from the List's data source.</p>
+                <p>The Xbasic function specified must take *[xb:e]* as a parameter. The *[xb:e]* object contains the following properties:</p>
+            </description>
+            <list bullet="true">
+                <item>
+                    <name>*[xb:e.tmpl]* - a pointer to the UX Component definition</name>
+                </item>
+                <item>
+                    <name>*[xb:e.searchDefinition]* - an object with properties defining the filter expression computed by Alpha Anywhere from the submitted dat.</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>The *[xb:e.searchDefinition]* is a property array with the following properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>*[xb:e.searchDefinition]* Property</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>parameters</name>
+                    <description>The values for the arguments used in the filter expression. Syntax is a CR-LF delimited string with syntax for each line as: *[xb:searchValue|||field_type|argument_name]*</description>
+                </item>
+                <item>
+                    <name>filter</name>
+                    <description>The SQL Where clause to be added to the base SQL query for the List.</description>
+                </item>
+                <item>
+                    <name>order</name>
+                    <description>The SQL order clause.</description>
+                </item>
+                <item>
+                    <name>having</name>
+                    <description>The SQL having clause.</description>
+                </item>
+                <item>
+                    <name>distanceFromLocation</name>
+                    <description>Used in geography searches.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>The Xbasic function can modify any of the properties for the *[xb:e.searchDefinition]* object to customize the search filter. For example, the code below overwrites the search parameters and filter to only search for records with a Country of 'UK':</p>
+            </description>
+            <example code="xb">
+                <![CDATA[function customizeListSearch as v (e as p)
+    dim parameters as c = "%UK%|||C|search_country_country1"
+    dim filter as c = "(Country LIKE :SEARCH_Country_Country1)"
+
+    e.searchDefinition.parameters = parameters
+    e.searchDefinition.filter = filter
+
+end function]]>
+            </example>
+        </section>
+        <section>
+            <description>
+                <p>To call the Xbasic function as part of the List search process, the *[js:xbasicAfterFilterCompute]* option is used. The *[js:xbasicAfterFilterCompute]* option defines an Xbasic function that should be called to process the search filter before querying the Lists data source. For example:</p>
+            </description>
+            <example code="js"><![CDATA[var list = {dialog.object}.getControl('LIST1');
+list.searchList({xbasicAfterFilterCompute:"customizeListSearch"});]]></example>
+        </section>
+    </sections>
     <limitations>List Control with Search Part</limitations>
+    <links>
+        <link link="grid onsearchpartfiltercompute event">onSearchPartFilterCompute</link>
+    </links>
     <see>
         <ref link="buildingdisconnectedapplications">List Control Overview</ref>
     </see>
