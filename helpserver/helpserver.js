@@ -53,8 +53,16 @@ if (searchLocalFlag) {
 
 
 console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
-if (options.https_port && options.privatekey && options.certificate) {
-    https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') }
+if (options.https_port) {
+    if (options.privatekey && options.certificate) {
+        https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') };
+    } else if (options.pfx) {
+        if (options.passphrase) {
+            https_credentails = { pfx: fs.readFileSync(options.pfx, 'utf8'), passphrase: options.passphrase };
+        } else {
+            https_credentails = { pfx: fs.readFileSync(options.pfx, 'utf8') };
+        }
+    }
 }
 var replaceAll = function(str, find, replace) {
     while (str.indexOf(find) >= 0) {
@@ -227,21 +235,28 @@ events.breadCrumbsTag = function(url) {
     }
     var book = url.split("\\helpfiles\\")[1].split("\\")[0];
     var bookName = "";
-    switch (book){ 
+    switch (book) {
         case "GettingStarted":
-        bookName="gettingStarted";break;
+            bookName = "gettingStarted";
+            break;
         case "Guides":
-        bookName="guide";break;
+            bookName = "guide";
+            break;
         case "HowTo":
-        bookName="howTo";break;
+            bookName = "howTo";
+            break;
         case "Ref":
-        bookName="ref";break;
+            bookName = "ref";
+            break;
         case "ReleaseNotes":
-        bookName="releaseNotes";break;
+            bookName = "releaseNotes";
+            break;
         case "Troubleshooting":
-        bookName="faq";break;
+            bookName = "faq";
+            break;
         default:
-        bookName="";break;
+            bookName = "";
+            break;
     }
     return bookName;
 };
