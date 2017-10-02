@@ -146,5 +146,64 @@ page.   Then a message will show up above the 'new' button.</description>
 ]]>
 </example>
         </section>
+        <section>
+            <title>Example of tracking changes to List Content</title>
+            <description>
+<p>Below is a standalone tutorial code example of a dialog that has a 
+button that adds elements to a list, and advances to the *next* step only when the list has 7 entries.</p>
+<p>Note that exactMatch is an object instead of a string, because the action is the button click, but the value to Test
+is the content of the list.</p>
+<p>Also note that the list content is denoted by the control path (/Test/list/item) with the #List suffix.</p>
+<p>Also note that the sample xdialog uses the {where=} keyword to specify the well known name.</p>
+</description>
+<example>
+<![CDATA[
+dim json as c = <<%json%
+{
+    "actions": [
+        {
+            "action": "buttonClick",
+            "name": "Add",
+            "where": "/Test/button/Add",
+            "message": "Click Add button.",
+            "step": 2,
+            "continue" : true , 
+            "exactMatch" : {
+             	"where" : "/Test/list/item#List",
+             	"value" :  "One\nTwo\nThree\nFour\nFive\nSix\nSeven"
+            }
+        },
+        {
+            "action": "buttonClick",
+            "name": "Close",
+            "where": "/Test/button/Close",
+            "message": "Click Close button.",
+            "step": 3
+        }
+    ]
+}
+%json%
+dim uxa as WindowManager::UxAutomation
+uxa.RunTutorial(json,.f.)
+
+dim item as c
+dim items as c = <<%str%
+One
+Two
+%str%
+
+ui_dlg_box("test",<<%dlg%
+{where=/Test}
+[.80,20item^#items];
+<Add!add> <Close!close>;
+%dlg%,<<%code%
+if a_dlg_button = "add" then
+	a_dlg_button = ""
+	 items = alltrim(items) + crlf() + str(line_count(items)+1,200,0,"XF")
+end if
+%code%)
+]]>
+</example>
+        </section>
     </sections>
 </page>
