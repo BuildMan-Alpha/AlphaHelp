@@ -25,17 +25,335 @@
             </list>
         </section>
         <section>
+            <title>define.xbasic</title>
             <description>
-                <p>For examples of how to define the contents of these three files, please refer to any of the sample controls that are shipped with Alpha Anywhere.</p>
-                <p>Here is an example of how the IntegerValue control looks:</p>
+                <p>The define.xbasic file contains the definition for an Xbasic function called *[xb:define]* used to dislpay a property sheet for configuring the control. The Xbasic function must return a JSON object of the control's properties</p>
+                <p>The function takes 3 parameters:</p>
             </description>
-            <figure>
-                <link>images/integervalue.gif</link>
-            </figure>
+            <list>
+                <item>
+                    <name-title>Parameter</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>json</name>
+                    <description>A string containing a JSON definition of existing (if any) settings. These settings should be used to populate the value of the properties for defining the control. *[xb:json]* will be an empty string if properties have not been defined for the control (such as when inserting the control into the UX for the first time.)</description>
+                </item>
+                <item>
+                    <name>wf</name>
+                    <description>A dot variable used other builder functions (such as [a5wcb_editJavascript]) to provide context about the environment.</description>
+                </item>
+                <item>
+                    <name>flagSilent</name>
+                    <description>If not specified,this property should default to *[xb:.f.]*. Silent mode is used to generate a default definition in case the user tries to preview before defining control properties</description>
+                </item>
+            </list>
         </section>
         <section>
             <description>
-                <p>The IntegerValue control is used for a field that only allow integer values and the value can be set by clicking buttons to increment/decrement the integer value.</p>
+                <p>Here's an example of the define function. This is the *[xb:define]* function for the [StepIndicator control]:</p>
+            </description>
+            <example code="xb"><![CDATA[function define as c (json as c, wf as p, flagSilent = .f.)
+dim clicktoedit as c = "<Click Button to Edit>"
+dim v as p
+if json <> "" then
+	v = json_parse(json)
+end if
+
+dim v.steps.labels as c = default "One,Two,Three,Four"
+dim v.steps.colorDone as c = default "#007cdb"
+dim v.steps.colorNotDone as c = default "#ddd"
+dim v.textOffset as c = default "14px"
+dim v.lineWidth as c = default "4px"
+dim v.dotSize as c = default "10px"
+dim v.borderRadius as c = default "2px"
+dim v.showIndicatorsAsCircles as l = default .t.
+
+
+
+dim pg as p
+
+dim pg as p
+dim pg.settings as p
+dim pg.def as c
+pg.def = <<%str%
+^^Step Indicator
+	state=opened
+
+	++Specify the labels for each step
+		var=v.steps.labels
+		help=Specify the label for each step in the process.
+		type=smart
+		readonly = .t.
+		data = v.steps.labels = getSteps(v.steps.labels)
+
+	++Color (completed steps)
+		var=v.steps.colorDone
+		help=Specify the color of the indicator for each step that has been completed.
+		type=smart
+		data = v.steps.colorDone =  a5_color_picker("HEX",v.steps.colorDone)
+
+	++Color (steps to be completed)
+		var=v.steps.colorNotDone
+		help=Specify the color of the indicator for each step that has not yet been completed
+		type=smart
+		data = v.steps.colorNotDone =  a5_color_picker("HEX",v.steps.colorNotDone)
+
+	++Text offset
+		var=v.textOffset
+		help=Distance between the text labels and the step indicators
+
+	++Line width
+		var=v.lineWidth
+
+	++Dot size
+		var=v.dotSize
+
+	++Show step indicators as circles
+		var=v.showIndicatorsAsCircles
+		help=Show the step indicators as circles.
+
+	++Border radius
+		var=v.borderRadius
+		show=v.showIndicatorsAsCircles = .f.
+
+^^Events
+	state=opened
+	show_category = .f.
+
+%str%
+
+dim dlg_title as c
+dim dlg_body as c
+dim dlg_event as c
+dlg_title = "Step Indicator"
+dlg_body = <<%dlg%
+{propgrid=100,40pg};
+{justify=right}
+{lf};
+<10&OK!ok><10&Cancel>
+%dlg%
+dlg_event = <<%code%
+if a_dlg_button ="ok" then
+	flagOK = .t.
+end if
+%code%
+
+dim flagOK as l = .f.
+dim flagOK as l = .f.
+if flagSilent = .f. then
+	ui_dlg_box(dlg_title,dlg_body,dlg_event)
+else
+	'silent mode is used to generate a default definition in case the user tries to preview before defining control properties
+	flagOK = .t.
+end if
+
+if flagOK = .t. then
+	define = vartojson(v)
+else
+	define = json
+end if
+
+end function]]></example>
+        </section>
+        <section>
+            <title>generate.xbasic</title>
+            <description>
+                <p>The generate.xbasic file is responsible for computing the settings, CSS, data, and javascript for the control. The file must contain an Xbasic function called *[xb:generate]* that takes the followin parameters:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>*[xb:generate]* must return an object with the following properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Property</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>settings</name>
+                    <description>A JSON object that contains the settings for the object. The settings property contains the HTML template used to display the control.</description>
+                </item>
+                <item>
+                    <name>css</name>
+                    <description>CSS definitions for the control.</description>
+                </item>
+                <item>
+                    <name>data</name>
+                    <description>A string containing a JavaScript array of data values. An empty object can be used "{}" to specify no data value.</description>
+                </item>
+                <item>
+                    <name>javascript</name>
+                    <description>JavaScript that is executed when the control is rendered.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>For example, the below Xbasic is the *[xb:generate]* function for the [StepIndicator control]:</p>
+            </description>
+            <example code="xb"><![CDATA[function generate as p (v as p)
+
+dim v.steps.labels as c = default "One,Two,Three,Four"
+dim v.steps.colorDone as c = default "#007cdb"
+dim v.steps.colorNotDone as c = default "#ddd"
+
+dim v.textOffset as c = default "14px"
+dim v.lineWidth as c = default "4px"
+dim v.dotSize as c = default "10px"
+dim v.showIndicatorsAsCircles as l = default .t.
+dim v.borderRadius as c = default "10px"
+
+dim htmlTemplate as c
+htmlTemplate = <<%html%
+<div style="white-space:nowrap;">{*root}<div class="step {*if [temp].value >= [count] || [count] == 0}stepDone{*endif}" style="width: {Math.floor(100/[root].length)}%;">{[value]}<div class="stepBar"></div><div class="stepDot"></div></div>{/*root}</div>%html%
+
+dim p as p
+p.inputId = "{variablename}"
+p.variableName = "{variablenameUPPERCASE}"
+p.theme = "{dialog.style}"
+p.multiple = .f.
+p.separator = "\n"
+p.loopNavigate = .f.
+p.loopNavigateNullSelection = .t.
+p.allowNullSelecttion = .f.
+p.allowNullDeselection = .f.
+p.allowAnyValue = .t.
+p.autoRefresh = .t.
+p.scroll = .f.
+p.layout = "default"
+dim p.layouts as p
+p.layouts.default.type = "template"
+p.layouts.default.template = htmlTemplate
+p._onInitialize = "{javascript}function() { $acn(this.contId,'{dialog.ComponentName}_' + this.variableName); }"
+generateJavascript(p,v)
+
+dim e as p
+e.settings = vartojson(p,.t.)
+
+e.css =  <<%str%
+
+$doneColor: v.steps.colorDone;
+$notDoneColor: v.steps.colorNotDone;
+
+$textOffset: v.textOffset;
+$lineWidth: v.lineWidth;
+$dotSize: v.dotSize;
+$borderRadius: v.radiusSetting;
+
+.step {
+	position: relative;
+	display: inline-block;
+	text-align: center;
+	padding-bottom: $dotSize + $textOffset;
+}
+
+.stepBar {
+	position: absolute;
+	height: $lineWidth;
+	background: $notDoneColor;
+	border-radius: 2px;
+	width: 100%;
+	left: -50%;
+	bottom: ($dotSize - $lineWidth)/2;
+	z-index: 4;
+}
+.stepDot {
+	position: absolute;
+	height: $dotSize;
+	width: $dotSize;
+	background: $notDoneColor;
+	border-radius: $borderRadius;
+	left: 50%;
+	bottom: 0px;
+	margin-left: 0-($dotSize/2);
+	z-index: 5;
+}
+.stepDone .stepBar, .stepDone .stepDot {
+	background:$doneColor;
+}
+.step:first-child .stepBar, .stepDone:first-child .stepBar {
+	background: transparent;
+	width: 50%;
+	left: 0px;
+}
+
+%str%
+
+dim v.radiusSetting as c
+if v.showIndicatorsAsCircles then
+	v.radiusSetting = "($dotSize/2);"
+else
+	v.radiusSetting = v.borderRadius
+end if
+
+e.css = replace_variables_in_string(e.css,v,"v")
+
+e.data = "__data__"
+e.data = stritran(e.data,"__data__", js_list_to_array(comma_to_crlf(v.steps.labels)))
+e.data =  js_list_to_array(comma_to_crlf(v.steps.labels))
+e.javascript = ""
+
+
+generate = e
+
+end function
+
+function generateJavascript as v (p as p, v as p)
+
+dim v.javascriptEvents as p
+dim eventNames as c
+eventNames = properties_enum(v.javascriptEvents)
+dim js_i as c
+for each en in eventNames
+	js_i = v.javascriptEvents.data(en.value)
+	js_i = a5wcb_removeJavascriptComments(js_i)
+	if js_i <> "" then
+		p.set(en.value,"{javascript}function() {"  + js_i + "}")
+	end if
+next
+
+end function]]></example>
+        </section>
+        <section>
+            <title>info.json</title>
+            <description>
+                <p>The info.json file defines the icon and help text for the add-in control shown in the dialog when choosing an add-in control to insert into the UX Component. The JSON must define the following properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Property</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>icon</name>
+                    <description>The icon shown in the *[ui:Select control type]* dialog. It can reference built-in Alpha Anywhere images. For example, *[js:"$$window.menu"]*.</description>
+                </item>
+                <item>
+                    <name>description</name>
+                    <description>A description of the control.</description>
+                </item>
+                <item>
+                    <name>version</name>
+                    <description>A number defining the current version of the control.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>For example, the JSON shown below defines the icon, description, and version information for the [StepIndicator control]:</p>
+            </description>
+            <example code="json"><![CDATA[{
+
+	"icon": "$$generic.orb.blue",
+	"description" : "Display a Step Indicator control to show what step you are on in a multi-step operation.",
+	"version" : 1
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>For examples of how to define the contents of these three files, please refer to any of the sample controls that are shipped with Alpha Anywhere. They can be found in the installation directory inside the *[uxCustomControls]* folder.</p>
             </description>
         </section>
         <section>
@@ -55,5 +373,6 @@
     </sections>
     <links>
         <link link="ux%20data%20controls%20more%20controls">More...</link>
+        <link link="ux%20component%20more%20step%20indicator%20control">StepIndicator control</link>
     </links>
 </page>
