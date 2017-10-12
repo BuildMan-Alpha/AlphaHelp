@@ -3,17 +3,54 @@
    <topic>*months_between Function</topic>
    <description>Return difference of months between two dates or times.</description>
  
-   <prototype>N *MONTHS_BETWEEN(T t1,T t2)</prototype>
+   <prototype>dim Result as N = *MONTHS_BETWEEN(t1 as T, t2 as T)</prototype>
    <arguments>
      <argument>
          <name>t1</name>
-         <description>Type</description>
+         <type>T</type>
+         <description>A datetime value.</description>
      </argument>
      <argument>
          <name>t2</name>
-         <description>Type</description>
+         <type>T</type>
+         <description>A datetime value</description>
      </argument>
-   </arguments> 
+   </arguments>
+   <returns>
+       <return>
+           <name>Result</name>
+           <types>
+               <type>N</type>
+           </types>
+           <description>Returns the months between two dates or times. If *[xb:t2]* is a date or time later than *[xb:t1]*, *MONTHS_BETWEEN will return a negative value.</description>
+       </return>
+   </returns>
+   <example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::northwind")
+
+dim args as sql::arguments
+args.set("orderID",10251)
+
+dim sql as c = "SELECT * FROM orders WHERE orderid = :orderID"
+cn.execute(sql,args)
+
+if (cn.ResultSet.NextRow()) then
+    dim t1 as T = cn.resultset.data("requireddate")
+    dim t2 as T = cn.resultset.data("shippeddate")
+
+    dim months_between as N = *months_between(t1,t2)
+    months_between = abs(months_between)
+    dim timing as c = ""
+    if (t2 > t1) then
+        timing = "late"
+    else
+        timing = "early"
+    end if
+
+    ui_msg_box("Months Between","Order 10251 was shipped " + months_between + " month " + timing + crlf(2) + "Required date: " + time("MM/dd/yyyy",t1) + crlf() + "Shipped date: " + time("MM/dd/yyyy", t2))
+end if
+
+cn.close()]]></example>
    <see>
       <ref link="date and time functions">Date and Time Functions</ref>
    </see>
