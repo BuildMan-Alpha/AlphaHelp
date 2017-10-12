@@ -537,7 +537,8 @@ function buildVersion() {
         { "version": "versionTag12_4_4_4", upto: 4346 },
         { "version": "versionTag12_4_4_5", upto: 4491 },
         { "version": "versionTag12_4_5_0", upto: 4582 },
-        { "version": "versionTag12_4_5_0", upto: 4584 }
+        { "version": "versionTag12_4_5_0", upto: 4584 },
+        { "version": "versionTag12_4_5_1", upto: 4642 }
    ];
    /*
     * ---- end
