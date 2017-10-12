@@ -1366,7 +1366,7 @@ events.parseQuery = function(args) {
 
 events.noSearchResults = function(pattern) {
     var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
-    return '<div id="search-no-results"><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
+    return '<div id="search-no-results"><br><br><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
 };
 
 events.processForIndex = function(config, data, page, callbackPage, complete) {
