@@ -1,0 +1,96 @@
+<page api="xb" build="4628">
+    <topic>extension::json ForEachString Method</topic>
+    <prototype static="true">dim reformatted_json as c = extension::Json::ForEachString(json as C, expression as C [, fields as C])</prototype>
+    <description>For each string in json, evaluate the expression to 'replace' the string.</description>
+    <arguments>
+        <argument>
+            <name>json</name>
+            <type>C</type>
+            <description>A JSON string.</description>
+        </argument>
+        <argument>
+            <name>expression</name>
+            <type>C</type>
+            <description>An Xbasic expression used to format the value of fields in the JSON string.</description>
+        </argument>
+        <argument optional="true">
+            <name>fields</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Default = "" (all fields). A comma delimited list of fields to process. If not specified, all fields are processed.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>reformatted_json</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Returns the processed JSON.</description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:ForEachString()]* method can be used to process every string in a JSON object using an expression. The expression can be used to replace values in the JSON.</p>
+        <p>This method is similar to the Xbasic [*for_each()] function, except that it is designed to operate on property values in a JSON string.</p>
+        <p>For example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="xb">
+                <![CDATA[dim json as c = <<%str%
+{
+    "name" : "name Smith " ,
+    "alias" : [ "jj " , "name " ] ,
+    "id"     : {
+        "name" : "name_01 "
+    }
+}
+%str%]]>
+            </example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the string 'name' appears in the above JSON as both a property name and also in a property value.</p>
+                <p>We want to change 'name' to 'John', without changing the names of any of the property values. Also, note that each property value has trailing spaces.</p>
+            </description>
+            <example code="xb"><![CDATA[' change 'name' to 'John'
+
+json = extension::json::ForEachString(json,"strtran(value,'name','John')")
+
+'trim trailing spaces from each property value
+json = extension::json::ForEachString(json,"trim(value)")]]></example>
+        </section>
+        <section>
+            <description>Result:</description>
+            <example code="xb">
+                <![CDATA[{
+    "name" : "John Smith" ,
+    "alias" : [ "jj" , "John" ] ,
+    "id" : {
+        "name" : "John_01"
+    }
+}]]>
+            </example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that none of the property names were changed.</p>
+                <p>To restrict what properties are changed, a comma delimited list of field names can be passed in as the third argument to the *[xb:ForEachString()]* method. For example, in the script below, only the 'name' fields are updated:</p>
+            </description>
+            <example code="xb"><![CDATA[' only process fields called 'name':
+? extension::JSON::ForEachString(json, "strtran(value,'name','John')","name")
+= {
+    "name" : "John Smith " ,
+    "alias" : [ "jj " , "name " ] ,
+    "id"     : {
+        "name" : "John_01 "
+    }
+}
+]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="api%20star%20for%20each%20function">*for_each()</link>
+    </links>
+</page>
