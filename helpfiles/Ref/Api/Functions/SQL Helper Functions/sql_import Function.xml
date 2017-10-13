@@ -111,5 +111,73 @@ p = sql_import(cs,tablename,"",data)
 = error = .F.
 errorText = ""]]></example>
         </section>
+        <section>
+            <title>Example: Import JSON</title>
+            <description>
+                <p>JSON can also be imported into a SQL table using the *[xb:sql_import()]* function. The JSON fields must match the column names in the table.</p>
+                <p>In the example below, JSON is inserted into a MySQL table called "roles":</p>
+            </description>
+            <example code="xb"><![CDATA[dim json as c =<<%json%
+[
+	{"first":"Juliet","last":"Adams"},
+	{"first":"Tom","last":"Jones"},
+	{"first":"Betty","last":"Smith"},
+	{"first":"Pete","last":"Marshall"},
+	{"first":"Victoria","last":"Winslow"},
+	{"first":"Daniel","last":"Brown"}
+]
+%json%
+
+? sql_import("::Name::conn","roles","",json)
+= errorText = ""
+haserror = .F.
+recordsImported = 6
+
+? sql_records_get("::Name::conn","SELECT * from roles","","")
+= 1|Juliet|Adams|
+2|Tom|Jones|
+3|Betty|Smith|
+4|Pete|Marshall|
+5|Victoria|Winslow|
+6|Daniel|Brown|]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If the JSON field names do not match, a mapping can be specified that defines how to map the JSON data to the table columns:</p>
+            </description>
+            <example code="xb"><![CDATA[dim json2 as c =<<%json%
+[
+	{"firstname":"Yvette","lastname":"Eve","main_role":"CEO"},
+	{"firstname":"Earl","lastname":"Grey","main_role":"Staff"}
+]
+%json%
+
+dim map as c =<<%txt%
+firstname=first
+lastname=last
+main_role=role
+%txt%
+
+? sql_import("::Name::conn","roles","",json2,.f.,map)
+= errorText = ""
+haserror = .F.
+recordsImported = 2
+
+? sql_records_get("::Name::conn","SELECT * FROM roles WHERE ID > 6","","")
+= 7|Yvette|Eve|CEO
+8|Earl|Grey|Staff]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The MySQL statement to create the "roles" table is below:</p>
+            </description>
+            <example code="sql"><![CDATA[CREATE TABLE 'roles' (
+  'id' int(11) NOT NULL AUTO_INCREMENT,
+  'first' varchar(60) NOT NULL,
+  'last' varchar(60) NOT NULL,
+  'role' varchar(45),
+  PRIMARY KEY ('id')
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;]]></example>
+        </section>
     </sections>
 </page>
