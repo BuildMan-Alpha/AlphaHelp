@@ -1,96 +1,121 @@
-<page>
-	
-	<topic>Filtering, Printing, and Emailing a Report
-</topic>
-		<description>This topic describes how to create a dialog component that accepts an email address, start date, and end date, uses the dates to create a filter, prints the filtered report to a PDF file, and then emails the PDF file.
-</description>
-<sections>
-	<section>
-		
-		
-	</section>
-	<section>
-		
-		<title>Create the Dialog
-</title>
-		<steps>
-			<step>
-				<description>The first step is to create a dialog component with a TextBox control named email_address and two Calendar controls named from_date and to_date.
-</description>
-			</step>
-			<step>
-				<description>Place this control on a page. In this example I used the HTML Editor to add a heading above the component. Your component might look like this. 
-</description>
-				<figure><link>images/WPT_Filter_and_Email_Report.gif</link></figure>
-			</step>
-			<step>
-				<description>The next step is to display the component's Form > Properties page.
-</description>
-			</step>
-			<step>
-				<description>Click the '...' button in the Server Events > AfterValidate property to display the Form Events dialog. Enter the script (without the intervening comments).
-</description>
-			</step>
-		</steps>
-	</section>
-	<section>
-		<description>This section of the script uses EVAL_VALID() to check that email_address, from_date, and to_date have values. If any them do not have a value, the script exits by jumping to skip_report: .
-</description>
-		<example><![CDATA[IF eval_valid("email_address") = .f. Then
-
-goto skip_report
-end if
-IF eval_valid("from_date") = .f. Then
-
-goto skip_report
-end if
-if eval_valid("to_date") = .f. Then
-
-goto skip_report
-end if ]]></example>
-	</section>
-	
-	<section>
-		<description>Next, the script checks that from_date and to_date have meaningful values. Note, while from_date and to_date are defined as date variables on the dialog, they return character values.
-</description>
-		<example><![CDATA[if (from_date = "") then
-    from_date = dtoc( date() )
-end if
-if (to_date = "") then
-    to_date = dtoc( date() )
-end if
-if ( ctod(from_date) > ctod(to_date) ) then
-
-goto skip_report
-end if ]]></example>
-	</section>
-	
-	<section>
-		<description>This section of the script generates a report containing the records selected by from_date and to_date. It saves the report to a temporary file in a session folder. Note, the Application Server automatically creates the session folder and then deletes the folder and its contents when your session ends. Also note how the filter expression converts the character date values into proper date values using CTOD() and then quotes them using S_QUOTE().
-</description>
-		<example><![CDATA[dim filter as C
-dim order as C
-dim filename as C
-dim message as P
-filter = "invoice_header->date >= " + s_quote( ctod(from_date) ) + " .and. invoice_header->date <= " + s_quote( ctod(to_date) )
-order = "invoice_header->date"
-filename = session.session_folder + "tempreport.pdf"
-filename = report.saveas("Invoice", "pdf", filter, order, filename, .f.) ]]></example>
-	</section>
-	
-	<section>
-		<description>This section of the script sends the report created above. Note, the use of EMAIL_SEND2(), which is appropriate for use in web applications. The message dot variable has many optional parameters, but this code sample illustrates the minimum required.
-</description>
-		<example><![CDATA[message.to = email_address
-message.from = "alpha@alphasoftware.com"
-message.subject = "Invoice Report for " + to_date + " to " + from_date
-message.Attachments = filename
-message.message = "Invoice report is attached"
-email_send2(message, "Default")
-skip_report: ]]></example>
-<note><![CDATA[The second parameter of the EMAIL_SEND2() function references a profile named "Default". This is the actual name of a profile defined by going to View > Settings > Email and defining and saving a profile. This profile does not assume that you are using the Alpha Five email client. Rather, it defines the information needed to connect with your email server and send a message without user interaction.]]></note>
-	</section>
-	
-	
-</sections>	
+<page build="4648">
+	<shortlink>report filtering printing emailing</shortlink>
+	<topic>Filtering, Printing, and Emailing a Report</topic>
+	<description>This topic describes how to create a UX Component that accepts an email address, start date, and end date, uses the dates to create a filter, prints the filtered report to a PDF file, and then emails the PDF file.</description>
+	<sections>
+		<section>
+			<title>Emailing a Report Using Action Javascript</title>
+			<steps>
+				<step>
+					<description>The first step is to create a UX Component with a TextBox control named *[ui:email_address]* and two Calendar controls named *[ui:from_date]* and *[ui:to_date]*.</description>
+				</step>
+				<step>
+					<description>
+						<p>Insert a *[ui:Placeholder]* control from the *[ui:Other Controls]* toolbox. The placeholder will be used to display a working message while the report is being created and emailed.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Insert the *[ui:Submit-Reset]* buttons from the *[ui:Defined Controls]* section of the UX control toolbox.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Change the Button text for the *[ui:Submit]* button to "Send".</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Double-click the *[ui:Submit]* button to edit the click event. Alternatively, click the [...] smart field button for the *[ui:Javascript - (Touch, Mouse, Pointer Events)]* &gt; *[ui:click]* property to edit the event.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Select the *[ui:Action Javascript]* radio button. A warning message will be shown asking if you are sure you want to convert to Action Javascript mode. Click *[ui:Yes]*.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Click *[ui:Add New Action]* and select *[ui:Open a Report, Label or Letter layout]*. Then, click *[ui:OK]*.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Select the report. In this example, the "Invoice" report from the Alpha Sports example is used.</p>
+					</description>
+					<figure>
+						<link>images/reportInvoice.png</link>
+					</figure>
+				</step>
+				<step>
+					<description>
+						<p>Configure the filter. Click the [...] smart field button to open the filter builder for the report *[ui:Filter]*. Select the "Date" field. Specify that the date should be between the *[ui:from_date]* and *[ui:to_date]* control as shown below. The filter builder will generate the following filter:</p>
+					</description>
+					<example code="sql"><![CDATA[between(date,ctod("{from_date}"),ctod("{to_date}"))]]></example>
+					<figure>
+						<link>images/reportFilter.png</link>
+					</figure>
+				</step>
+				<step>
+					<description>
+						<p>Check the *[ui:Email]* property. Then, click the [...] smart field button to open the *[ui:Email Settings]* dialog.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Set the *[ui:Send method]*. You can choose to use Mandrill, Spark Post, or "Internal" which will use the SMTP_SEND functions to send the email. Configure the settings for the method chosen.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Configure the Message properties. Set the *[ui:From]* and *[ui:From alias]* to the desired address. For example, "alpha@alphasoftware.com" and "Alpha Software".</p>
+						<p>Configure the Subject, Send to, and Message body settings. The settings can reference fields in the UX Component. For example:</p>
+					</description>
+					<list>
+						<item>
+							<name-title>Property</name-title>
+							<description-title>Value</description-title>
+						</item>
+						<item>
+							<name>Subject</name>
+							<description>Invoice Report for {from_date} to {to_date}</description>
+						</item>
+						<item>
+							<name>Send to</name>
+							<description>{email_address}</description>
+						</item>
+						<item>
+							<name>Message body (HTML)</name>
+							<description>Invoice report for {from_date} to {to_date} is attached.</description>
+						</item>
+					</list>
+				</step>
+				<step>
+					<description>
+						<p>Optionally configure the *[ui:Filename]* then click *[ui:OK]* to save the Email configuration.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Set the *[ui:DIV Id for progress messages]* property to the ID for the placeholder control in the component. The placeholder's ID must be specified using the format *[xb:{dialog.componentName}.V.R1.&lt;placeholderID&gt;]* where &lt;placeholderID&gt; is the [id for the placeholder]. For example, if the placeholder's ID is 'PLACEHOLDER_1', the *[ui:DIV Id for progress messages]* would be the following:</p>
+					</description>
+					<example><![CDATA[{dialog.componentName}.V.R1.PLACEHOLDER_1]]></example>
+				</step>
+				<step>
+					<description>
+						<p>Click *[ui:OK]* to save the Action Javascript and return to the UX Builder.</p>
+					</description>
+				</step>
+				<step>
+					<description>
+						<p>Publish the component to localhost and to test creating and emailing the report. The placeholder </p>
+					</description>
+				</step>
+			</steps>
+		</section>
+	</sections>
+	<links>
+		<link href="/images/tools/ellipsesButton.png">...</link>
+		<link link="ux control properties placeholder properties id">id for the placeholder</link>
+	</links>
 </page>
