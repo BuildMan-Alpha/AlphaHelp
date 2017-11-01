@@ -14,23 +14,27 @@ var library = require("./assets/library");
 var Help = require('helpserver');
 var fs = require("fs");
 var https_credentails = null;
+var runHelpServer = false;
 
-for (arg in process.argv) {
-    if (process.argv[arg].search("-nosearch") !== -1 || process.argv[arg].search("-ns") !== -1) {
-        noSearchFlag = true;
-    }
-    if (process.argv[arg].search("-local") !== -1 || process.argv[arg].search("-l") !== -1) {
-        searchLocalFlag = true;
-    }
-    if (process.argv[arg].search("-help") !== -1 || process.argv[arg].search("-h") !== -1) {
-        console.log("Help for helpserver.js");
-        console.log("=================================================================================");
-        console.log("Input Flags:\n");
-        console.log("-nosearch, -ns                     Start helpserver without elastic search");
-        console.log("-local, -l                         Start helpserver using local search");
-        console.log("-help, -h                          Displays this help message.\n");
-        console.log("=================================================================================");
-        return;
+if (require.main === module) {
+    runHelpServer = true;
+    for (arg in process.argv) {
+        if (process.argv[arg].search("-nosearch") !== -1 || process.argv[arg].search("-ns") !== -1) {
+            noSearchFlag = true;
+        }
+        if (process.argv[arg].search("-local") !== -1 || process.argv[arg].search("-l") !== -1) {
+            searchLocalFlag = true;
+        }
+        if (process.argv[arg].search("-help") !== -1 || process.argv[arg].search("-h") !== -1) {
+            console.log("Help for helpserver.js");
+            console.log("=================================================================================");
+            console.log("Input Flags:\n");
+            console.log("-nosearch, -ns                     Start helpserver without elastic search");
+            console.log("-local, -l                         Start helpserver using local search");
+            console.log("-help, -h                          Displays this help message.\n");
+            console.log("=================================================================================");
+            return;
+        }
     }
 }
 var serverType = "";
@@ -52,18 +56,21 @@ if (searchLocalFlag) {
 
 
 
-console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
-if (options.https_port) {
-    if (options.privatekey && options.certificate) {
-        https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') };
-    } else if (options.pfx) {
-        if (options.passphrase) {
-            https_credentails = { pfx: fs.readFileSync(options.pfx), passphrase: options.passphrase };
-        } else {
-            https_credentails = { pfx: fs.readFileSync(options.pfx) };
+if (runHelpServer) {
+    console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
+    if (options.https_port) {
+        if (options.privatekey && options.certificate) {
+            https_credentails = { key: fs.readFileSync(options.privatekey, 'utf8'), cert: fs.readFileSync(options.certificate, 'utf8') };
+        } else if (options.pfx) {
+            if (options.passphrase) {
+                https_credentails = { pfx: fs.readFileSync(options.pfx), passphrase: options.passphrase };
+            } else {
+                https_credentails = { pfx: fs.readFileSync(options.pfx) };
+            }
         }
     }
 }
+
 var replaceAll = function(str, find, replace) {
     while (str.indexOf(find) >= 0) {
         str = str.replace(find, replace);
@@ -99,28 +106,28 @@ var removeMarkup = function(data) {
 var events = {};
 var tocData = { altTocs: [], defaultPathMetadata: [] };
 options.library = library;
+if (runHelpServer) {
+    fs.readFile(errorLog, "utf8", function(err, contents) {
+        if (!err && contents) {
+            fs.unlink(errorLog);
+            console.log("Last crash report:\n" + contents + "\n");
+        }
+    });
 
-fs.readFile(errorLog, "utf8", function(err, contents) {
-    if (!err && contents) {
-        fs.unlink(errorLog);
-        console.log("Last crash report:\n" + contents + "\n");
-    }
-});
-
-// report error from node..
-process.on('uncaughtException', function(err) {
-    try {
-        var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
-        fs.writeFile(errorLog, nodeErrorLog, function(err2) {
+    // report error from node..
+    process.on('uncaughtException', function(err) {
+        try {
+            var nodeErrorLog = "Helpserver crashed\n" + (new Date).toUTCString() + ' uncaughtException:' + err.message + "\n\nCallstack:\n" + err.stack;
+            fs.writeFile(errorLog, nodeErrorLog, function(err2) {
+                process.exit(1);
+            });
+        } catch (err2) {
+            console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
+            console.error(err.stack);
             process.exit(1);
-        });
-    } catch (err2) {
-        console.error((new Date).toUTCString() + ' uncaughtException:', err.message);
-        console.error(err.stack);
-        process.exit(1);
-    }
-});
-
+        }
+    });
+}
 
 
 var collectAltToc = function(books) {
@@ -634,7 +641,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 var topicReplace = extractTag(data, "<topic", "</topic>");
                 var descReplace = extractTag(data, "<description>", "</description>");
                 var replaceNames = extractTag(data, "<replace>", "</replace>");
-                var replaceAnnotations = extractTags(data, "<annotations>","</annotations>");
+                var replaceAnnotations = extractTags(data, "<annotations>", "</annotations>");
                 var extractBuild = function(data) {
                     var build = data.split('build="');
                     if (build.length > 1) {
@@ -692,10 +699,10 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                                         data2 = replaceAll(data2, replaceNames[(nReplacements * 3) + 1], replaceNames[(nReplacements * 3) + 2]);
                                     }
                                 }
-                                var annotations = extractTags(data2, "<annotations>","</annotations>");
+                                var annotations = extractTags(data2, "<annotations>", "</annotations>");
                                 if (replaceAnnotations) {
-                                    replaceAnnotations.forEach(function(value,index,arr) {
-                                        data2 = data2.replace("</page>","<sections><annotations>"+value+"</annotations></sections></page>");
+                                    replaceAnnotations.forEach(function(value, index, arr) {
+                                        data2 = data2.replace("</page>", "<sections><annotations>" + value + "</annotations></sections></page>");
                                     });
                                     if (annotations) {
                                         annotations.append(replaceAnnotations);
@@ -1323,7 +1330,7 @@ events.embedXmlPage = function(data) {
 
 events.canFlatten = function(pageName) {
     var flattenChildren = [
-        { path: "/Ref/Client_Api/", level: 1},
+        { path: "/Ref/Client_Api/", level: 1 },
         { path: "/Ref/Api/Functions/", level: 2 },
         { path: "/Ref/Api/Namespace/", level: 1 },
         { path: "/Ref/Api/Objects/", level: 1 }
@@ -1402,123 +1409,127 @@ events.processForIndex = function(config, data, page, callbackPage, complete) {
 
 
 options.events = events;
-//--------------------------------------------------------------------------------------------
-var help = Help(options);
+if (runHelpServer) {
+    //--------------------------------------------------------------------------------------------
+    var help = Help(options);
 
-app.use("/", function(req, res) {
-    if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
-        var relPath = req.path.substring(9);
-        if (req.path.substring(0, 14) == "/web/describe/")
-            relPath = req.path.substring(13);
-        help.getmetadata(relPath, function(data) {
-            var htmlResult = "<table>";
-            htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(decodeURI(relPath), "/", "\\") + "\" style=\"width:7in;\" /><td></tr>";
-            if (data.status) {
-                htmlResult += "<tr> <th>Status</th><td><input value=\"" + data.status + "\" style=\"width:7in;\" /><td></tr>";
-            }
-            if (data.tags) {
-                htmlResult += "<tr> <th>Tags</th><td><input value=\"" + data.tags + "\" style=\"width:7in;\" /><td></tr>";
-            }
-            if (data.keywords) {
-                htmlResult += "<tr> <th>Keywords</th><td><input value=\"" + data.keywords + "\" style=\"width:7in;\" /><td></tr>";
-            }
-            if (data.notes) {
-                htmlResult += "<tr> <th>Notes</th><td><input value=\"" + data.notes + "\" style=\"width:7in;\" /><td></tr>";
-            }
-            htmlResult += "</table>";
-            help.onSendExpress(res);
-            res.send(htmlResult);
-        });
-    } else if (req.path.substring(0, 11) == "/structure/") {
-        var relPath = req.path.substring(10);
-        var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
-        var fs = require("fs");
-        fs.readFile(manifestFile, function(err, data) {
-            var subtoc = {};
-            if (!err && data && data !== "") {
-                mdata = JSON.parse(data);
-                if (mdata.toc)
-                    subtoc = mdata.toc;
-            }
-            help.onSendExpress(res);
-            res.send(JSON.stringify(subtoc));
-        });
-    } else if (req.path === "/apihelp") {
-        help.search(req.query.topic, function(err, data) {
-            if (err) {
-                help.onSendExpress(res);
-                res.send(JSON.stringify({ error: err }));
-            } else {
-                // search through the data
-                var lookFor = "api/";
-                var foundItem = null;
-                var i;
-                for (i = 0; i < data.length; ++i) {
-                    if (data[i].path.toLowerCase().indexOf(lookFor) >= 0) {
-                        foundItem = data[i];
-                        break;
-                    }
+    app.use("/", function(req, res) {
+        if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
+            var relPath = req.path.substring(9);
+            if (req.path.substring(0, 14) == "/web/describe/")
+                relPath = req.path.substring(13);
+            help.getmetadata(relPath, function(data) {
+                var htmlResult = "<table>";
+                htmlResult += "<tr> <th>File Location</th><td><input value=\"c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(decodeURI(relPath), "/", "\\") + "\" style=\"width:7in;\" /><td></tr>";
+                if (data.status) {
+                    htmlResult += "<tr> <th>Status</th><td><input value=\"" + data.status + "\" style=\"width:7in;\" /><td></tr>";
                 }
-                if (foundItem) {
-                    var redirectToPage = false;
-                    if (req.query.getpage) {
-                        if (req.query.getpage === "true") {
-                            redirectToPage = true;
+                if (data.tags) {
+                    htmlResult += "<tr> <th>Tags</th><td><input value=\"" + data.tags + "\" style=\"width:7in;\" /><td></tr>";
+                }
+                if (data.keywords) {
+                    htmlResult += "<tr> <th>Keywords</th><td><input value=\"" + data.keywords + "\" style=\"width:7in;\" /><td></tr>";
+                }
+                if (data.notes) {
+                    htmlResult += "<tr> <th>Notes</th><td><input value=\"" + data.notes + "\" style=\"width:7in;\" /><td></tr>";
+                }
+                htmlResult += "</table>";
+                help.onSendExpress(res);
+                res.send(htmlResult);
+            });
+        } else if (req.path.substring(0, 11) == "/structure/") {
+            var relPath = req.path.substring(10);
+            var manifestFile = help.config.generated + "manifest/" + replaceAll(unescape(relPath), '/', '_').replace(".html", ".json");
+            var fs = require("fs");
+            fs.readFile(manifestFile, function(err, data) {
+                var subtoc = {};
+                if (!err && data && data !== "") {
+                    mdata = JSON.parse(data);
+                    if (mdata.toc)
+                        subtoc = mdata.toc;
+                }
+                help.onSendExpress(res);
+                res.send(JSON.stringify(subtoc));
+            });
+        } else if (req.path === "/apihelp") {
+            help.search(req.query.topic, function(err, data) {
+                if (err) {
+                    help.onSendExpress(res);
+                    res.send(JSON.stringify({ error: err }));
+                } else {
+                    // search through the data
+                    var lookFor = "api/";
+                    var foundItem = null;
+                    var i;
+                    for (i = 0; i < data.length; ++i) {
+                        if (data[i].path.toLowerCase().indexOf(lookFor) >= 0) {
+                            foundItem = data[i];
+                            break;
                         }
                     }
-                    if (redirectToPage) {
-                        res.redirect("/documentation/pages/" + foundItem.path);
+                    if (foundItem) {
+                        var redirectToPage = false;
+                        if (req.query.getpage) {
+                            if (req.query.getpage === "true") {
+                                redirectToPage = true;
+                            }
+                        }
+                        if (redirectToPage) {
+                            res.redirect("/documentation/pages/" + foundItem.path);
+                        } else {
+                            help.onSendExpress(res);
+                            res.send(JSON.stringify(foundItem));
+                        }
                     } else {
+                        // TBD - show the 'not-found' page with results...
                         help.onSendExpress(res);
-                        res.send(JSON.stringify(foundItem));
+                        if (data.length > 0)
+                            res.send(JSON.stringify({ error: "No API matches found for " + req.query.topic, closest: data }));
+                        else
+                            res.send(JSON.stringify({ error: "No matches found for " + req.query.topic }));
                     }
+                }
+            }, 0, 20);
+        } else if (req.path.substring(0, 8) === '/images/') {
+            res.redirect("/help" + req.path);
+        } else if ((req.path + ".").indexOf('/favicon.') >= 0) {
+            require('fs').readFile(options.assetpath + "assets/favicon.ico", function(err, data) {
+                if (!err && data) {
+                    res.setHeader('Content-Type', 'image/x-icon');
+                    res.send(data);
                 } else {
-                    // TBD - show the 'not-found' page with results...
+                    console.log("favicon is missing");
+                }
+            });
+        } else if ((req.path === '/pages/index.html') || (req.path === '/') || (req.path === '/pages/') || (req.path === '/pages')) {
+            var path = "/index.html";
+            help.get(path, function(err, data, type) {
+                if (err) {
                     help.onSendExpress(res);
-                    if (data.length > 0)
-                        res.send(JSON.stringify({ error: "No API matches found for " + req.query.topic, closest: data }));
-                    else
-                        res.send(JSON.stringify({ error: "No matches found for " + req.query.topic }));
+                    res.send(err);
+                } else {
+                    if (type) {
+                        res.type(type);
+                    }
+                    help.onSendExpress(res);
+                    res.send(data);
                 }
-            }
-        }, 0, 20);
-    } else if (req.path.substring(0, 8) === '/images/') {
-        res.redirect("/help" + req.path);
-    } else if ((req.path + ".").indexOf('/favicon.') >= 0) {
-        require('fs').readFile(options.assetpath + "assets/favicon.ico", function(err, data) {
-            if (!err && data) {
-                res.setHeader('Content-Type', 'image/x-icon');
-                res.send(data);
-            } else {
-                console.log("favicon is missing");
-            }
-        });
-    } else if ((req.path === '/pages/index.html') || (req.path === '/') || (req.path === '/pages/') || (req.path === '/pages')) {
-        var path = "/index.html";
-        help.get(path, function(err, data, type) {
-            if (err) {
-                help.onSendExpress(res);
-                res.send(err);
-            } else {
-                if (type) {
-                    res.type(type);
-                }
-                help.onSendExpress(res);
-                res.send(data);
-            }
+            });
+        } else {
+            help.expressuse(req, res);
+        }
+    });
+
+    app.listen(options.port);
+    if (https_credentails) {
+        var https = require('https');
+        var httpsServer = https.createServer(https_credentails, app);
+        httpsServer.listen(options.https_port, function() {
+            console.log('Listening on ports ' + options.port + " and " + options.https_port);
         });
     } else {
-        help.expressuse(req, res);
+        console.log('Listening on port ' + options.port);
     }
-});
-
-app.listen(options.port);
-if (https_credentails) {
-    var https = require('https');
-    var httpsServer = https.createServer(https_credentails, app);
-    httpsServer.listen(options.https_port, function() {
-        console.log('Listening on ports ' + options.port + " and " + options.https_port);
-    });
 } else {
-    console.log('Listening on port ' + options.port);
+    exports.options = options;
 }
