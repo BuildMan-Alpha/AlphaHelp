@@ -1,20 +1,149 @@
 <page api="xb">
 	<shortlink>a5_Xbasictreetojsontree Function</shortlink>
 	<topic>a5_XbasicTreeToJsonTree Function</topic>
-	<description>Take a CRLF delimited string that Xdialog uses for Tree Control data and converts to a JSON string.</description>
-	<prototype>C result = a5_XbasicTreeToJsonTree(treeData as C [, separator as C])</prototype>
+	<description>Converts a CRLF delimited string that Xdialog uses for Tree Control data to a JSON string.</description>
+	<prototype>dim result as C = a5_XbasicTreeToJsonTree(treeData as C , delimiter as C [, propertyName as C])</prototype>
 	<arguments>
 		<argument>
 			<name>treeData</name>
 			<type>C</type>
-			<description></description>
+			<description>The data to convert to JSON.</description>
+		</argument>
+		<argument>
+			<name>delimiter</name>
+			<type>C</type>
+			<description>The delimiter used between feilds in the tree data.</description>
 		</argument>
 		<argument optional="true">
-			<name>separator</name>
-			<type>C</type>
-			<description>Default value is "."</description>
+			<name>propertyName</name>
+			<types>
+				<type>C</type>
+			</types>
+			<description>The property name to use in the generated JSON object.</description>
 		</argument>
 	</arguments>
+	<returns>
+		<return>
+			<name>result</name>
+			<types>
+				<type>C</type>
+			</types>
+			<description>Returns a JSON string.</description>
+		</return>
+	</returns>
+	<sections>
+		<section>
+			<title>Example: Populating a List with Nested Lists</title>
+			<description>
+				<p>If you want to display a List control with nested Lists (i.e. when the user selects an item in the List, the List is repopulated with that item's child data), you typically define JSON data for the List using this format:</p>
+			</description>
+			<example code="json"><![CDATA[[
+    {
+        display: 'Menu1',
+        children: [
+            {
+                display: 'Menu1_A',
+                action: 'Action_1'
+            },
+            {
+                display: 'Menu1_B',
+                action: 'Action_2'
+            },
+            {
+                display: 'Menu1_C',
+                action: 'Action_3'
+            }
+        ]
+    },
+    {
+        display: 'Menu2',
+        action: 'Action_4'
+    },
+    {
+        display: 'Menu3',
+        action: 'Action_5'
+    }
+]]]></example>
+		</section>
+		<section>
+			<description>
+				<p>In some cases you might want to generate this JSON data by querying a SQL database. This is easily done by using the *[xb:a5_xbasicTreeToJSONTree()]* function.</p>
+				<p>For example, consider the following Xbasic string which defines a tree structure in Xbasic syntax:</p>
+			</description>
+			<example code="xb"><![CDATA[dim txt as c
+txt = <<%str%
+MA.Boston.Smith
+MA.Boston.Jones
+MA.Cambridge.King
+CA.Los Angeles
+%str%
+
+json = a5_XbasicTreeToJSONTree(txt,".","display")]]></example>
+		</section>
+		<section>
+			<description>
+				<p>This will generate a JSON string in this format:</p>
+			</description>
+			<example code="json"><![CDATA[[
+    {
+        "display": "MA",
+        "children": [
+                        {
+                            "display": "Boston",
+                            "children": [
+                                            {
+                                                "display": "Smith"
+                                            },
+                                            {
+                                                "display": "Jones"
+                                            }
+                                         ]
+                           },
+                            {
+                                "display": "Cambridge",
+                                "children": [
+                                                {
+                                                    "display": "King"
+                                                }
+                                            ]
+                              }
+                        ]
+        },
+        {
+            "display": "CA",
+            "children": [
+                            {
+                                "display": "Los Angeles"
+                            }
+                        ]
+        }
+]]]></example>
+		</section>
+		<section>
+			<description>
+				<p>With this understanding of how the *[xb:a5_xbasicTreeToJSONTree()]* function works, it is easy to see how to generate the JSON from a SQL database. The key is to simply define a query that returns data in the Xbasic tree format and then call the *[xb:a5_xbasicTreeToJSONTree()]* function.</p>
+				<p>For example, to generate data that displays a list of Countries, Cities and Contact Names, you can use this Xbasic:</p>
+			</description>
+			<example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::northwind")
+dim sql as c
+sql = "SELECT Country, City, ContactName FROM Customers ORDER BY Country"
+dim flag as l
+cn.PortableSQLEnabled = .t.
+flag = cn.Execute(sql)
+dim rs as sql::ResultSet
+rs = cn.ResultSet
+dim txt as c
+
+'generate the Xbasic tree format data using a | as the delimiter
+txt = rs.ToString(-1,-1,.t.,"|")
+
+dim json as c
+
+'generate the JSON tree specifying the | as the delimiter and 'display' as the property name
+json = a5_XbasicTreeToJSONTree(txt,"|","display")]]></example>
+		</section>
+	</sections>
 	<see>
 		<ref link="a5_url_from_storagejsonformat Function">a5_url_from_storagejsonformat()</ref>
 		<ref link="a5w_ajaxtojson Function">a5w_ajaxtojson()</ref>
