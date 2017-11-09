@@ -1,0 +1,199 @@
+<page api="xb">
+    <shortlink>api a5 getCalendarEventDataJSON function</shortlink>
+    <topic>a5_getCalendarEventDataJSON Function</topic>
+    <description>
+        <p>Generates a JSON object for populating a Calendar Control with data from a DBF or SQL data source.</p>
+    </description>
+    <prototypes>
+        <prototype>dim jsonData as c = a5_getCalendarEventDataJSON(defn as p)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>defn</name>
+            <type>p</type>
+            <description>An object that defines the data source, query, and the fields that contain the event data.</description>
+            <properties>
+                <property>
+                    <name>type</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The type of query. Can be 'sql' or 'dbf'.</description>
+                </property>
+                <property>
+                    <name>connectionString</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The connection string to connect to the database. Can be a named connection or an ad-hoc connection string.</description>
+                </property>
+                <property>
+                    <name>tableName</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The name of the table that contains the event data or SQL query to retrieve the event information from the database.</description>
+                </property>
+                <property>
+                    <name>startDate</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The start date for events.</description>
+                </property>
+                <property>
+                    <name>endDate</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The end date for events.</description>
+                </property>
+                <property>
+                    <name>eventDate</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The table column or field name from the SQL query that contains the event date.</description>
+                </property>
+                <property>
+                    <name>eventId</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The table column or field name from the SQL query that contains the event id.</description>
+                </property>
+                <property>
+                    <name>eventName</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The table column or field name from the SQL query that contains the event name.</description>
+                </property>
+                <property>
+                    <name>eventDescription</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The table column or field name from the SQL query that contains the event description.</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>jsonData</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>A JSON object of dates with one or more events mapped to each date as an array of objects. Each event entry has the following properties:</description>
+            <properties>
+                <property>
+                    <name>id</name>
+                    <types>
+                        <type>N</type>
+                    </types>
+                    <description>The event ID.</description>
+                </property>
+                <property>
+                    <name>name</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>The event name.</description>
+                </property>
+                <property>
+                    <name>detail</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>A description of the event.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+    <p>The *[xb:a5_getCalendarEventDataJSON()]* function can be used to retreive data from a SQL (or DBF) data source to display in a [Calendar control]. The Calendar control requires data to be in the following format:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="json"><![CDATA[{
+    '2012-1-1' : [{id: 1, name: 'event1', detail: 'detail for event 1'}],
+    '2012-1-5' : [
+        {id: 2, name: 'event2', detail: 'detail for event 2'},
+        {id: 3, name: 'event3', detail: 'detail for event 3'}
+    ],
+    '2012-1-12' : [
+        {id: 4, name: 'event4', detail: 'detail for event 4'},
+        {id: 5, name: 'event5', detail: 'detail for event 5'},
+        {id: 6, name: 'event6', detail: 'detail for event 6'},
+        {id: 7, name: 'event7', detail: 'detail for event 7'},
+        {id: 8, name: 'event8', detail: 'detail for event 8'},
+        {id: 9, name: 'event9', detail: 'detail for event 9'}
+    ]
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>where each date is a key with an array of event objects that define an id, name, and detail property.</p>
+            </description>
+        </section>
+        <section>
+            <title>Example: Data from a Table</title>
+            <description>
+                <p>Data can be retrieved from a specific table or using a SQL select statement. If the event data is contained in a single table, only the table name needs to be specified in the *[xb:defn]* property. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim jsonData as c
+dim defn as p
+defn.type = "sql"
+defn.connectionString = "::Name::AADemo-Northwind"
+defn.tableName = "orders"
+defn.startDate = "1994-8-1"
+defn.endDate = "1994-8-31"
+defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "orderDate"
+defn.eventDescription = "orderDate"
+
+jsonData = a5_getCalendarEventDataJSON(defn)
+
+showvar(jsonData)]]></example>
+        </section>
+        <section>
+            <title>Example: Using a SQL Select Statement</title>
+            <description>
+                <p>A SQL select statement can also be used to retrieve event data from a database. In the example below, the event name and description are created by building a concatentad string of data from the orders and customers table:</p>
+            </description>
+            <example code="xb"><![CDATA[dim jsonData as c
+dim defn as p
+defn.type = "sql"
+defn.connectionString = "::Name::AADemo-Northwind"
+
+defn.tableName = <<%sql%
+SELECT orders.orderId as orderId,
+    concatenate(orders.orderId, ': ', customers.companyName) as eventName,
+    orders.orderDate as orderDate,
+    concatenate('Order: ', orders.orderId, ': ', customers.contactName, ' ', customers.companyName) as eventDescription
+FROM orders orders
+    INNER JOIN customers customers
+        ON orders.customerId = customers.customerId
+%sql%
+
+defn.startDate = "1994-8-1"
+defn.endDate = "1994-8-31"
+defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "eventName"
+defn.eventDescription = "eventDescription"
+
+jsonData = a5_getCalendarEventDataJSON(defn)
+
+showvar(jsonData)]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="ux data controls calendar property">Calendar control</link>
+    </links>
+    <see>
+        <ref link="ux data controls calendar property displaying events on a calendar control from an external database">Displaying Events on a Calendar Control from an External Database</ref>
+    </see>
+</page>
