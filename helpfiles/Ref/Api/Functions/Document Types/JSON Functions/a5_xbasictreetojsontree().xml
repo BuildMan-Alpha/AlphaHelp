@@ -143,6 +143,46 @@ dim json as c
 'generate the JSON tree specifying the | as the delimiter and 'display' as the property name
 json = a5_XbasicTreeToJSONTree(txt,"|","display")]]></example>
 		</section>
+		<section>
+			<title>Example: Adding an onClick Event Handler</title>
+			<description>
+				<p>An 'onclick' event handler can be added for each leaf in the Xbasic tree. This is done by adding the *[xb:```onclick:&lt;your js code here&gt;]* where &lt;your js code here&gt; is replaced with the JavaScript to execute.</p>
+				<p>The example below demonstrates adding an onclick event handler for each entry:</p>
+			</description>
+			<example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::AADemo-Northwind")
+cn.PortableSQLEnabled = .t.
+dim sql as c 
+dim flag as l 
+sql = <<%str%
+SELECT
+    country,
+    city,
+    concatenate(contactname,'```onclick:findCustomer(','''',country,'-',city,'-',contactname,''')')
+FROM customers 
+WHERE NOT (country = '') 
+ORDER BY country, city, contactname
+%str%
+
+flag = cn.Execute(sql)
+dim txt as c 
+txt = cn.ResultSet.tostring(-1,-1,.t.,"|")
+
+' This will generate a crlf delimited string like this:
+'France|Nantes|Carine Schmitt```onclick:findCustomer('France-Nantes-Carine Schmitt')
+'France|Nantes|Janine Labrune```onclick:findCustomer('France-Nantes-Janine Labrune')
+'France|Paris|Dominique Perrier```onclick:findCustomer('France-Paris-Dominique Perrier')
+'France|Paris|Marie Bertrand```onclick:findCustomer('France-Paris-Marie Bertrand')
+'France|Reims|Paul Henriot```onclick:findCustomer('France-Reims-Paul Henriot')
+
+txt = a5_XbasicTreeToJSONTree(txt,"|","html")]]></example>
+		</section>
+        <section>
+            <description>
+                <p>Notice that the tree branches are separated by a | character. The leaf nodes specify an onclick event.</p>
+                <p>Notice also that the full path to the leaf is passed as the argument to the function. So, for example, the *[js:findCustomer()]* function will get called with the country, city and contactname as a '-' delimited string.</p>
+            </description>
+        </section>
 	</sections>
 	<see>
 		<ref link="a5_url_from_storagejsonformat Function">a5_url_from_storagejsonformat()</ref>
