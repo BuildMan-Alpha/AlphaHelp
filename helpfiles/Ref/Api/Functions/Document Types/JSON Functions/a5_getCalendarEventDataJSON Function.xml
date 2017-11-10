@@ -2,7 +2,7 @@
     <shortlink>api a5 getCalendarEventDataJSON function</shortlink>
     <topic>a5_getCalendarEventDataJSON Function</topic>
     <description>
-        <p>Generates a JSON object for populating a Calendar Control with data from a DBF or SQL data source.</p>
+        <p>Used in the UX Component for the Calendar Control to get events for a date range in the required JSON format.</p>
     </description>
     <prototypes>
         <prototype>dim jsonData as c = a5_getCalendarEventDataJSON(defn as p)</prototype>
@@ -39,14 +39,14 @@
                     <types>
                         <type>C</type>
                     </types>
-                    <description>The start date for events.</description>
+                    <description>The start date for events. Specified using the format "YYYY-M-D" where YYYY is four digit year, M is a number representing the month, and D is the day of the month. E.g. *[xb:'1993-1-1']* or *[xb:'2017-11-10']*</description>
                 </property>
                 <property>
                     <name>endDate</name>
                     <types>
                         <type>C</type>
                     </types>
-                    <description>The end date for events.</description>
+                    <description>The end date for events. Specified using the format "YYYY-M-D" where YYYY is four digit year, M is a number representing the month, and D is the day of the month. E.g. *[xb:'1993-1-31']* or *[xb:'2017-2-8']*</description>
                 </property>
                 <property>
                     <name>eventDate</name>
@@ -75,6 +75,20 @@
                         <type>C</type>
                     </types>
                     <description>The table column or field name from the SQL query that contains the event description.</description>
+                </property>
+                <property optional="true">
+                    <name>filter</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>An optional filter. Used when specifying a table to fetch the data from.</description>
+                </property>
+                <property optional="true">
+                    <name>argumentsXML</name>
+                    <types>
+                        <type>C</type>
+                    </types>
+                    <description>A string containing XML defining arguments used in the filter. *[xb:argumentsXML]* is required if *[xb:filter]* contains any arguments.</description>
                 </property>
             </properties>
         </argument>
@@ -112,7 +126,7 @@
         </return>
     </returns>
     <discussion>
-    <p>The *[xb:a5_getCalendarEventDataJSON()]* function can be used to retreive data from a SQL (or DBF) data source to display in a [Calendar control]. The Calendar control requires data to be in the following format:</p>
+    <p>The *[xb:a5_getCalendarEventDataJSON()]* function can be used to retreive data from a SQL or DBF data source to display in a [Calendar control]. The Calendar control requires data to be in the following format:</p>
     </discussion>
     <sections>
         <section>
@@ -189,9 +203,82 @@ jsonData = a5_getCalendarEventDataJSON(defn)
 
 showvar(jsonData)]]></example>
         </section>
+        <section>
+            <title>Example: Specifying a Filter</title>
+            <description>
+                <p>You can define an optional filter and arguments used to retrieve data from the data source. In the example below, only orders from customers in France will be retrieved:</p>
+            </description>
+            <example code="xb"><![CDATA[dim jsonData as c
+dim defn as p
+defn.type = "sql"
+defn.connectionString = "::Name::AADemo-Northwind"
+defn.startDate = "1994-8-1"
+defn.endDate = "1994-8-31"
+defn.eventDate = "orderDate"
+defn.eventId = "orderId"
+defn.eventName = "eventName"
+defn.eventDescription = "eventDescription"
+
+defn.tableName = <<%sql%
+SELECT orders.orderId as orderId,
+    concatenate(orders.orderId, ': ', customers.companyName) as eventName,
+    orders.orderDate as orderDate,
+    concatenate('Order: ', orders.orderId, ': ', customers.contactName, ' ', customers.companyName) as eventDescription
+FROM orders orders
+    INNER JOIN customers customers
+        ON orders.customerId = customers.customerId
+%sql%
+
+defn.filter = "customers.country = :whatcountry"
+defn.argumentsXML = <<%xml%
+<SQLArguments>
+    <SQLArgument>
+        <Name>whatcountry</Name>
+        <Data Type="C">France</Data>
+        <IsNull Type="L">0</IsNull>
+        <Usage>Input</Usage>
+    </SQLArgument>
+</SQLArguments>
+%xml%
+
+jsonData = a5_getCalendarEventDataJSON(defn)
+
+showvar(jsonData)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>You do not need to manually define the XML for the argumentsXML property. You can take advantage of the [SQL::Arguments] class to generate the XML. Simply add the arguments to a SQL::Arguments object using the [Set Method]. Once you have defined all the arguments used in your filter, you can get the XML representation of the arguments from the [SQL::Arguments XML Property]. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim args as sql::Arguments
+
+args.set("whatcountry","Brazil")
+args.set("whatcity","Rio de Janeiro")
+
+defn.argumentsXML = args.XML
+
+? defn.argumentsXML
+= <SQLArguments>
+    <SQLArgument>
+        <Name>whatcountry</Name>
+        <Data Type="C">Brazil</Data>
+        <IsNull Type="L">0</IsNull>
+        <Usage>Input</Usage>
+    </SQLArgument>
+    <SQLArgument>
+        <Name>whatcity</Name>
+        <Data Type="C">Rio de Janeiro</Data>
+        <IsNull Type="L">0</IsNull>
+        <Usage>Input</Usage>
+    </SQLArgument>
+</SQLArguments>]]></example>
+        </section>
     </sections>
+    <limitations>UX Component with Calendar Control Only</limitations>
     <links>
         <link link="ux data controls calendar property">Calendar control</link>
+        <link link="api sql namespace arguments class">SQL::Arguments</link>
+        <link link="api sql namespace arguments class#section1_XML">SQL::Arguments XML Property</link>
+        <link link="api sql namespace set method">Set Method</link>
     </links>
     <see>
         <ref link="ux data controls calendar property displaying events on a calendar control from an external database">Displaying Events on a Calendar Control from an External Database</ref>
