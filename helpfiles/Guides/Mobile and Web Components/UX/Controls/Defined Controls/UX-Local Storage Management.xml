@@ -1,7 +1,207 @@
 <page>
-      <shortlink>ux defined controls ux local storage management</shortlink>
+    <shortlink>ux defined controls ux local storage management</shortlink>
     <topic>UX-Local Storage Management</topic>
     <description>Add a control to allow users to manage Local Storage.</description>
- 
-
+    <discussion>
+        <p>Local Storage is a shared resource and it is limited. The exact limitation is a function of your device. In order to free up storage space for an application on a device, it might be necessary to delete storage being used by some other application that you are no longer using.</p>
+        <p>The *[ui:UX-Local Storage Management]* control can be used to manage local storage during the development phase of your application. In a published app, this control should be, at a minimum, hidden from your users as it is not an ideal interface for allowing users to manage their app data.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Managing Local Storage</title>
+            <description>
+                <p>To insert the 'Local Storage Manager' into your component, select the control from the 'Defined Controls' section in the UX toolbox.</p>
+            </description>
+            <figure>
+                <link>images/uxLocalStorageManagement1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will insert a List control into the component that will allow you to see all of the keys in Local Storage, the keys for this component (i.e. app), all keys (excluding keys for this app), etc. You can see how much space each key is consuming and you can peek at the data in the key. You can also delete keys.</p>
+                <p>The image below is showing the keys in Local Storage for an component where the [Namespace property] has been set to 'uxLocalStorageDemo'</p>
+            </description>
+            <figure>
+                <link>images/uxLocalStorageManagement2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>If you tap on the Show button you can see up to the first 1,000 bytes of data in the key:</description>
+            <figure>
+                <link>images/uxLocalStorageManagement3.png</link>
+            </figure>
+        </section>
+        <section>
+            <note>[Click here] to download the component used to create the images shown above. The component requires that you are running [Alpha Anywhere build 4679 or newer].</note>
+        </section>
+        <section>
+            <title>Methods for Managing Local Storage</title>
+            <description>The UX component has several methods that make it easy for developers to add functionality to their components to manage the data in Local Storage.</description>
+            <note> These methods cannot be used in Working Preview if you have configured your component to use the file system for Local Storage.</note>
+        </section>
+        <section>
+            <description>
+                <p>The *[js:{dialog.object}._ls_getData()]* function returns an object with information about the keys stored in Local Storage.  The method takes a flag to indicate which keys in Local Storage to return information on.</p>
+                <p>The object that is returned has these properties</p>
+            </description>
+            <cases>
+                <case>
+                    <description>*[data]* - An array with information about each key found. The array has an object for each key found. The object has a key and size property indicating the key name of the item and the size in bytes of the item.</description>
+                </case>
+                <case>
+                    <description>*[size]* - The total size in bytes of all keys found.</description>
+                </case>
+                <case>
+                    <description>*[keyCount]* - The number of keys that were found.</description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <description>Example:</description>
+            <example><![CDATA[//pass in the 'a' flag to get info on All keys
+var obj = {dialog.object}._ls_getData('a')
+console.log('Number of keys: ' + obj.keyCount);
+console.log('Number of bytes: ' + obj.size);
+var data = JSON.stringify(obj.data);
+console.log('Data: ' + data);]]></example>
+        </section>
+        <section>
+            <description>The following flags can be used:</description>
+            <list>
+                <item>
+                    <name-title>Flag</name-title>
+                    <description-title>Meaning</description-title>
+                </item>
+                <item>
+                    <name>a</name>
+                    <description>All keys in Local Storage</description>
+                </item>
+                <item>
+                    <name>aa</name>
+                    <description>All keys created by UX components. Keys that are added to Local Storage all have 'ALPHA_' as a prefix. Only keys that have this prefix are returned.</description>
+                </item>
+                <item>
+                    <name>t</name>
+                    <description>All keys for *[this]* UX component. These keys all start with 'ALPHA_' followed by the namespace for the component (e.g. ALPHA_NS1). NOTE: The namespace for the component is specified in the UX component properties - Local Storage section.</description>
+                </item>
+                <item>
+                    <name>o</name>
+                    <description>All *[other]* keys  (i.e.excluding keys for this UX component). (Same as using the 'a' flag, then removing keys returned for the 't' flag).</description>
+                </item>
+                <item>
+                    <name>oa</name>
+                    <description>All UX component keys, but excluding keys for this component. (Same as using the 'aa' flag, then removing keys returned for the 't' flag).</description>
+                </item>
+                <item>
+                    <name>v:t</name>
+                    <description>Key used to persist variables for *[this]* UX component. NOTE: The UX component allows you to specify that variables in a component should be persisted to Local Storage (See Local Storage section in UX properties).</description>
+                </item>
+                <item>
+                    <name>v:a</name>
+                    <description>All UX component keys that store persisted variables (for any UX component, not just this component).</description>
+                </item>
+                <item>
+                    <name>v:o</name>
+                    <description>All UX components keys that store persisted variables, excluding *[this]* UX component (Same as using 'va' and then removing 'vt').</description>
+                </item>
+                <item>
+                    <name>lists:t</name>
+                    <description>All of the List components in this component that are persisted to Local Storage. *[NOTE:]* Not every List in a UX component is persisted to Local Storage. Each List in a UX has its own setting (defined in the List Builder) to control whether it is persisted.</description>
+                </item>
+                <item>
+                    <name>lists:a</name>
+                    <description>All of the List components (from any UX component) that are persisted to Local Storage.</description>
+                </item>
+                <item>
+                    <name>lists:o</name>
+                    <description>All of the List components, excluding the Lists in *[this]* component. (Same as using 'lists:a' and then removing 'lists:t')</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Once you have retried the array of information using the *[js:{dialog.object}._ls_getData()]* method, you might want to delete the keys listed in the array. You can pass in the object returned by the *[js:{dialog.object}._ls_getData()]* method to the *[js:{dialog.object}._ls_deleteKeys()]* method.</p>
+                <p>For example:</p>
+            </description>
+            <example><![CDATA[//delete all keys in local storage for other UX components
+var obj = {dialog.object}._ls_getData('o');
+{dialog.object}._ls_deleteKeys(obj);]]></example>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <title nested="2">Namespace Information Key</title>
+                    <description>
+                        <p>Each UX component that persists data to Local Storage automatically stores a key in Local Storage with information about the UX component every time the UX component persists data to Local Storage.</p>
+                        <p>The special key is name:</p>
+                    </description>
+                    <example><![CDATA[ALPHA_<your component namespace>._INFO]]></example>
+                </case>
+                <case>
+                    <description>The data in the key contains these properties:</description>
+                    <cases>
+                        <case>
+                            <description>*[lastUsed]* - The last date that information for this namespace was written to Local Storage. This will allow you to write routines that delete keys for infrequently used applications.</description>
+                        </case>
+                        <case>
+                            <description>*[friendlyName]* - The component 'friendly name' - specified in the UX builder - Local Storage section.</description>
+                        </case>
+                        <case>
+                            <description>*[description]* - The component 'description' - specified in the UX builder - Local Storage section.</description>
+                        </case>
+                        <case>
+                            <description>*[version]* - The component 'version' - specified in the UX builder - Local Storage section.</description>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <description>For example, here is some data that might be stored in the ._INFO key for a particular UX component:</description>
+                    <example><![CDATA[{
+    "lastUsed": "2014-07-26T14:27:41.122Z",
+    "friendlyName": "Expense Reporting",
+    "description": "An application to capture expenses.",
+    "version": 1
+}]]></example>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Managing Local Storage</title>
+                <description>
+                    <p>When you build an application that is designed for offline use (i.e. a disconnected application), the data in the List controls, and the variables in the UX component are persisted to Local Storage.</p>
+                    <p>In this video we show how you can manage the data in Local Storage using the built-in Local Storage manager and using methods of the UX component.</p>
+                </description>
+                <date>2014-09-07</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/43cfa2fd</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Persisting Data to Local Storage</title>
+                <description>
+                    <p>When you build an application for disconnected operation you need to be sure that the data in the application is persisted to Local Storage so that edits that are made to any data are not lost if the application is restarted before the user has had a chance to synchronize the data with the server.</p>
+                </description>
+                <date>2014-09-07</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/22d47022</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link href="./components/listLocalStorage.zip">Click here</link>
+        <link link="howto determine version alpha anywhere ide">Alpha Anywhere build 4679 or newer</link>
+        <link link="uxprops local storage namespace">Namespace property</link>
+    </links>
+    <see>
+        <ref link="buildingdisconnectedapplications">List Control Overview : Building Disconnected Applications</ref>
+        <ref link="ux%20component%20_ls_getdata%20method">{dialog.object}._ls_getData Method</ref>
+        <ref link="ux%20component%20_ls_deletekeys%20method">{dialog.object}._ls_deleteKeys Method</ref>
+    </see>
 </page>
