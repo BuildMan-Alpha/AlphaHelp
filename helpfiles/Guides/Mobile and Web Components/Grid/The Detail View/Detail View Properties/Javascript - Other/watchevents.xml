@@ -1,5 +1,176 @@
 <page>
     <shortlink>grid detail images javascript - other watch events property</shortlink>
     <topic>Watch events</topic>
-   <description>Watch events are executed whenever a value in a 'watched' control in the Detail View is changed.</description>
+   <description>Execute custom JavaScript when a Grid control's value changes, is shown, or disabled with watch events.</description>
+   <discussion>
+       <p>Watch events are executed whenever a value in a 'watched' control in the Detail View is changed. You can add your own watch events using the *[ui:Watch events]* property to dynamically execute JavaScript to set properties of elements in a Grid when the value of a 'watched' control changes.</p>
+   </discussion>
+   <sections>
+        <section>
+            <figure>
+                <link>images/watchEvents.png</link>
+            </figure>
+        </section>
+       <section>
+            <description>
+                <p>Watch events can be added to any control in Grid component for the following events:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Watch Event Type</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>Calculated field</name>
+                    <description>Executes code when the control's value is re-computed using a calculated expression.</description>
+                </item>
+                <item>
+                    <name>Show/Hide controls</name>
+                    <description>Executes code when controls are shown or hidden.</description>
+                </item>
+                <item>
+                    <name>Enable controls</name>
+                    <description>Executes code when controls are enabled or disabled.</description>
+                </item>
+                <item>
+                    <name>Other</name>
+                    <description>Executes code when the value for one or more watched fields changes.</description>
+                </item>
+            </list>
+            <description>
+                <p>When the chosen event is triggered for the selected controls, the JavaScript for the watch event will be executed.</p>
+            </description>
+            <figure>
+                <link>images/watchEventGenie.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Watch Event JavaScript</title>
+            <description>
+                <p>Your JavaScript for the watch event will have access to the *[js:data.rowNumber]* variable. *[js:data.rowNumber]* is the row number for the row for the control that triggered the watch event. The row number will be a positive value for existing rows and negative for new record rows.</p>
+                <p>You can use any JavaScript in the watch event as well as several Helper Functions that simplify writing JavaScript for a watch event.</p>
+            </description>
+            <example code="js"><![CDATA[var qty = {grid.object}.getValue('D','QUANTITY',data.rowNumber);
+var price = {grid.object}.getValue('D','PRICE',data.rowNumber);
+
+var total = price * qty;
+
+{grid.object}.setValue('D','SUBTOTAL',data.rowNumber,total);]]></example>
+        </section>
+        <section>
+            <title>Helper Functions</title>
+            <description>
+                <p>Helper functions simplify the Javascript that you have to write in the Watch Events. For example, the previous JavaScript example could be rewritten to use the *[js:*gv()]* and *[js:*sv()]* helper functions, greatly simplifying the code:</p>
+            </description>
+            <example code="js"><![CDATA[var qty = *gv('QUANTITY');
+var price = *gv('PRICE');
+
+var total = qty * price;
+
+*sv('SUBTOTAL',total);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The following helper functions can be used when creating the watch event:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Function</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>*gvn()</name>
+                    <description>Get a value from a control and convert it to a javascript number variable so that you can perform arithmetic operations on the value. Example: *[js:<![CDATA[*gvn('quantity')]]>]*</description>
+                </item>
+                <item>
+                    <name>*gvl()</name>
+                    <description>Get a value from a control and convert it to a javascript logical variable so that you can perform logical operations on the value. Example: *[js:<![CDATA[*gvl('ismarried')]]>]*</description>
+                </item>
+                <item>
+                    <name>*gvd()</name>
+                    <description>Get a value from a control and convert it to a javascript date variable so that you can perform date operations on the value. Example: *[js:<![CDATA[*gvl('ismarried')]]>]*</description>
+                </item>
+                <item>
+                    <name>*gv()</name>
+                    <description>Get a value from a control as a javascript string variable. Example: *[js:<![CDATA[*gv('description')]]>]*</description>
+                </item>
+                <item>
+                    <name>*sv()</name>
+                    <description>Set the value of a control to the value in a javascript variable. Example: *[js:<![CDATA[*sv('total',computedTotal)]]>]*</description>
+                </item>
+                <item>
+                    <name>*svs()</name>
+                    <description>Set the value of a control to the value in a javascript variable. Uses the ._setValue()method, so it enforces client-side formatting rules and sets the control as dirty. Can only be used for controls in a Grid or Detail Part row. Example:  *[js:<![CDATA[*svs('total',computedTotal)]]>]*</description>
+                </item>
+                <item>
+                    <name>*sa()</name>
+                    <description>Set a property of a control to the value in a javascript variable. Example: *[js:<![CDATA[*sa('quantity','style.color',computedColor)]]>]*</description>
+                </item>
+                <item>
+                    <name>*ac()</name>
+                    <description>Add a class name to a control. Example: *[js:<![CDATA[*ac('quantity','errorQuantity')]]>]*</description>
+                </item>
+                <item>
+                    <name>*rc()</name>
+                    <description>Remove a class name from a control. Example: *[js:<![CDATA[*rc('quantity','errorQuantity')]]>]*</description>
+                </item>
+                <item>
+                    <name>*gs()</name>
+                    <description>Gets the CSS style for an element. Example: *[js:<![CDATA[var style = *gs('quantity')]]>]*</description>
+                </item>
+                <item>
+                    <name>*ss()</name>
+                    <description>Sets the CSS style for an element. Example: *[js:<![CDATA[*ss('quantity','color:red;')]]>]*</description>
+                </item>
+                <item>
+                    <name>*$()</name>
+                    <description>Get a pointer to a control in the Grid. Example: *[js:<![CDATA[var ele = *$('quantity')]]>]*</description>
+                </item>
+                <item>
+                    <name>*setDisplay()</name>
+                    <description>Shows or hides an object and its related label, and 'smart-field' button. Example: *[js:<![CDATA[*setDisplay('DATEOFBIRTH','none');]]>]*</description>
+                </item>
+            </list>
+       </section>
+       <section>
+           <description>
+               <p>The helper functions must all be converted to real Javascript before the Watch Event is executed. Alpha Anywhere will do this for you. If desired, however, you can manually convert the helper functions to JavaScript using the *[ui:Convert Helper Functions to Javascript]* link.</p>
+           </description>
+       </section>
+       <section>
+            <title nested="2">How Helper Functions Convert to Javascript</title>
+           <description>
+               <p>Helper functions are converted to JavaScript before the watch event is executed. Alpha Anywhere does this for you by replacing the helper function with it's JavaScript equivalent. For example:</p>
+           </description>
+           <example code="js"><![CDATA[var qty = *gv('quantity');]]></example>
+       </section>
+       <section>
+           <description>
+               <p>This code would be converted into the following JavaScript:</p>
+           </description>
+           <example code="js"><![CDATA[var qty = {grid.object}._getValue('D','QUANTITY',data.rowNumber);]]></example>
+       </section>
+       <section>
+           <description>
+               <p>You do not need to use helper functions in your watch event.</p>
+           </description>
+       </section>
+       <section>
+            <title>Videos</title>
+            <videos>
+                <title>User Defined Watch Event</title>
+                <description>
+                    <p>A user defined watch event allows you to define JavaScript code that is executed when the value in a 'watched' field in the Grid component changes. In this video, we show how the label on the 'state' field can be changed to 'State' if the country is 'USA' and to 'Province' for all other countries.</p>
+                </description>
+                <date></date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/b7a34d32</link>
+                </video>
+            </videos>
+       </section>
+   </sections>
+   <see>
+       <ref link="client side expressions, validation, and calculated fields">Client Side Expressions, Validation, and Calculated Fields</ref>
+   </see>
 </page>
