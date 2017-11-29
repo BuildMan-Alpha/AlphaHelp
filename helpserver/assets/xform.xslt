@@ -367,6 +367,7 @@
         </xsl:choose>       
 	</xsl:template>
     <xsl:template match="sectionstep-content" name="sectionstep-content" >
+        <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
         <xsl:if test="title">
             <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:when test="title/@nested"><xsl:value-of select="title/@nested" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
             <h3 class="section-level-{$depth}"><xsl:if test="title/@icon"><img src="/documentation/pages{title/@icon}" /></xsl:if>&#160;<a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>

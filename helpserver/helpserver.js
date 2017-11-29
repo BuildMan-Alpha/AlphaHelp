@@ -15,6 +15,7 @@ var Help = require('helpserver');
 var fs = require("fs");
 var https_credentails = null;
 var runHelpServer = false;
+var buildClasses = require("./builds.json");
 
 if (require.main === module) {
     runHelpServer = true;
@@ -1200,6 +1201,27 @@ events.indexTitle = function(title) {
     return title;
 };
 events.postProcessContent = function(data) {
+    if (data.indexOf('class="buildBadge" data-build="') > 0) {
+        // Lets change build badge entries on the fly...
+        var replaceBuilds = data.split('class="buildBadge" data-build="');
+        var i, j, buildNumber, isPrerelease;
+        for (i = 1; i < replaceBuilds.length; ++i) {
+            buildNumber = parseInt(replaceBuilds[i].split('"')[0]);
+            isPrerelease = true;
+            for (j = 0; j < buildClasses.length; ++j) {
+                if (buildNumber < buildClasses[j].upto) {
+                    data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="' + buildClasses[j].version + '"');
+                    isPrerelease = false;
+                    break;
+                }
+            }
+            if (isPrerelease) {
+                data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="versionTagPrerelease"');
+                isPrerelease = false;
+                break;
+            }
+        }
+    }
     if (data.indexOf("*[")) {
         var metaDescriptionPos = data.indexOf('<meta name="description"');
         if (metaDescriptionPos >= 0) {
