@@ -3,7 +3,7 @@
 		<xsl:for-each select="page">
            <xsl:choose>
               <xsl:when test="./@class"> <div class="{./@class}"> <xsl:call-template name="page-content"/> </div> </xsl:when>
-              <xsl:when test="./@build"> <div data-build="{./@build}" id="buildNumber" > <xsl:call-template name="page-content"/> </div> </xsl:when>
+              <xsl:when test="./@build"> <div class="buildBadge" data-build="{./@build}" > <xsl:call-template name="page-content"/> </div> </xsl:when>
               <xsl:otherwise> <xsl:call-template name="page-content"/> </xsl:otherwise>
            </xsl:choose>
 		</xsl:for-each>
