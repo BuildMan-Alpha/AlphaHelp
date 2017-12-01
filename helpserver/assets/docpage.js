@@ -371,8 +371,36 @@ function localToClickHandler(e) {
     }
 }
 
+function onSearch() {
+    let target = "/documentation/pages/search";
+    let pattern = document.getElementsByName("pattern")[0];
+    let search = document.getElementsByName("search")[0];
+    let display = document.getElementsByName("display")[0];
+    let limit = document.getElementsByName("limit")[0];
+
+    if (pattern.value.indexOf("in:title") !== -1) {
+        pattern.value = pattern.value.split("in:title").join(" ").trim();
+
+        search.value = "title";
+    } else {
+        search.removeAttribute("name");
+    }
+    if (display.value.trim().length == 0) {
+        display.removeAttribute("name");
+    }
+    if (limit.value.trim().length == 0) {
+        limit.removeAttribute("name");
+    }
+
+    return true;
+}
+
+// Only called on the Search Results Page.
 function initializeSearch() {
+    // Display maintenance annoucements
     showAnnouncement();
+
+    // Prepend the URL hostname to the page url in the search results:
     var addressTags = document.getElementsByClassName("search-address");
     if( addressTags && addressTags.length ) {
         var i;
