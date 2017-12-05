@@ -1,8 +1,10 @@
 <page api="xb" build="4167">
     <shortlink>api sql import function</shortlink>
     <topic>sql_import Function</topic>
+    <description>Imports CSV or JSON data into an existing SQL table.</description>
     <prototypes>
-        <prototype>result as P = sql_import(connectionString as C, tableName as C, tableOwner as C, data as C [, replicateIdentity as L [, fieldMap as C]])</prototype>
+        <prototype build="4167">result as P = sql_import(connectionString as C, tableName as C, tableOwner as C, data as C [, replicateIdentity as L [, fieldMap as C]])</prototype>
+        <prototype build="4740">result as P = sql_import(connectionString as C, tableName as C, tableOwner as C, data as C [, replicateIdentity as L [, fieldMap as C [, action as C [, primaryKey as C]]]])</prototype>
     </prototypes>
     <arguments>
         <argument>
@@ -28,12 +30,26 @@
         <argument optional="true">
             <name>replicateIdentity</name>
             <type>L</type>
-            <description>.t. or .f. - defaults to .f.. Should only be set to .t. if you are importing into an empty table. If .t. then values for the auto-increment primary key (if any) that are supplied in the input data are explicitly set in the target table.</description>
+            <description>Default = .f.. Should only be set to .t. if you are importing into an empty table. If .t. then values for the auto-increment primary key (if any) that are supplied in the input data are explicitly set in the target table.</description>
         </argument>
         <argument optional="true">
             <name>fieldMap</name>
             <type>C</type>
-            <description>If the columns in the input data do not match the field names in the target SQL table you can specify a map. The map is a crlf delimited string of field pairs. See example below.</description>
+            <description>Default = "". If the columns in the input data do not match the field names in the target SQL table you can specify a map. The map is a crlf delimited string of field pairs. See example below.</description>
+        </argument>
+        <argument build="4740" optional="true">
+            <name>action</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Default = "insert". The action to perform. Can be *[xb:insert]* or *[xb:upsert]*. Upsert will update existing records in the target table.</description>
+        </argument>
+        <argument build="4740" optional="true">
+            <name>primaryKey</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Default = "". The primary key for the table. If the field name of the primary key in the input data does not match the field name of the primary key in the table, enter the primary key as follows: *[xb:"fieldNameInData=fieldNameInTable"]*.</description>
         </argument>
     </arguments>
     <returns>
@@ -45,17 +61,23 @@
                 <property readonly="true">
                     <name>error</name>
                     <type>L</type>
-                    <description>Either .t. or .f., depending on whether the operation succeeded.</description>
+                    <description>If *[xb:.t.]*, an error occurred. Otherwise *[xb:.f.]*.</description>
                 </property>
                 <property readonly="true">
                     <name>errorText</name>
                     <type>C</type>
                     <description>The description of the error if an error occurred.</description>
                 </property>
+                <property>
+                    <name>recordsImported</name>
+                    <types>
+                        <type>N</type>
+                    </types>
+                    <description>A count of the number of records imported.</description>
+                </property>
             </properties>
         </return>
     </returns>
-    <description>Imports CSV or JSON data into an existing SQL table.</description>
     <discussion>The *[xb:sql_import()]* function is a helper function that imports CSV or JSON data into a SQL table.</discussion>
     <sections>
         <section>
@@ -178,6 +200,20 @@ recordsImported = 2
   'role' varchar(45),
   PRIMARY KEY ('id')
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;]]></example>
+        </section>
+        <section build="4740">
+            <title>Upserting</title>
+            <description>
+                <p>An 'upsert' performs an update on existing records and an insert if there is no existing record. This is useful in situations where data being imported should be merged with existing data in a table -- rather than added as new records. The example below performs an upsert on table1 in a SQL database. The records are imported from an excel file, *[xb:"c:/data/dattoimport.xlsx"]*.</p>
+            </description>
+            <example code="xb"><![CDATA[dim conn as c = "::name::myconnstr"
+dim table as c = "table1"
+dim file as c = "c:\data\datatoimport.xlsx"
+dim action as c = "upsert"
+dim primaryKey as c = "id"
+dim result as p
+
+result = sql_import(conn, table, "", file, .f., "", action, primaryKey)]]></example>
         </section>
     </sections>
 </page>
