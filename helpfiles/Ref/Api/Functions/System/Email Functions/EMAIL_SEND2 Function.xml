@@ -22,7 +22,7 @@
                 <property>
                     <name>To</name>
                     <type>C</type>
-                    <description>A semi-colon (;), comma (,), or CR-LF delimited list of recipients. Microsoft Outlook allows you to format the address as "recipient_name". This hides the "" portion of the field from the recipient.</description>
+                    <description>A semi-colon (;), comma (,), or CR-LF delimited list of recipients. Microsoft Outlook allows you to format the address as "recipient_name&lt;recipient@address&gt;". This hides the "&lt;recipient@address&gt;" portion of the field from the recipient.</description>
                 </property>
                 <property optional="true">
                     <name>CC</name>
@@ -49,7 +49,6 @@
                     <type>C</type>
                     <description>The body of a HTML message.</description>
                 </property>
-
                 <property optional="true">
                     <name>Attachments</name>
                     <type>C</type>
@@ -63,10 +62,7 @@
                 <property optional="true">
                     <name>Lrelated</name>
                     <type>L</type>
-                    <description>Default = .F.
-                        .T. = Attachments are embedded image in the HTML message.
-                        .F. = Attachments are separate files.
-                    </description>
+                    <description>Default = .F. .T. = Attachments are embedded image in the HTML message. .F. = Attachments are separate files.</description>
                 </property>
                 <property optional="true">
                     <name>Date</name>
@@ -103,95 +99,65 @@
         <argument optional="true">
             <name>lSilent</name>
             <type>L</type>
-            <description>
-                Default = .F. Allows you to trap errors using the Xbasic ON ERROR GOTO command.
-                .T. = Error trapping on.
-                .F. = Error trapping off.
-            </description>
+            <description>Default = .F. Allows you to trap errors using the Xbasic ON ERROR GOTO command. .T. = Error trapping on. .F. = Error trapping off.</description>
         </argument>
         <argument optional="true">
             <name>store_in_mailbox</name>
             <type>L</type>
-            <description>
-                Whether to store the message in your mailbox.
-                .T. = Alpha Anywhere stores a copy of the message in the Alpha Anywhere outbox.
-                .F. = Copy not saved.
-            </description>
+            <description>*[Desktop Applications Only]*. Whether to store the message in your mailbox. .T. = Alpha Anywhere stores a copy of the message in a DBF table. .F. = Copy not saved.</description>
         </argument>
         <argument optional="true">
             <name>autowrap</name>
             <type>L</type>
-            <description>
-                Default = .T. Whether to force text emails to wrap at 72 characters per line.
-                .T. = Automatically wrap all lines of text at 72 characters or less.
-                .F. = Leave text email body unchanged.
-            </description>
+            <description>Default = .T. Whether to force text emails to wrap at 72 characters per line. .T. = Automatically wrap all lines of text at 72 characters or less. .F. = Leave text email body unchanged.</description>
         </argument>
     </arguments>
     <returns>
         <return>
             <name>Result_Flag</name>
             <type>L</type>
-            <description>.Indicates success or failure after sending an email.</description>
+            <description>Indicates success or failure after sending an email. If *[xb:Result_Flag]* is *[xb:.F.]*, the email was not sent. If *[xb:.T.]*, the email was sent.</description>
         </return>
     </returns>
-
     <sections>
         <section>
-            <note>In web applications EMAIL_SEND_NOPROFILE() is preferred because this function does not rely on an e-mail profile.</note>
-        </section>
-
-        <section>
-            <note>EMAIL_SEND2() requires that you have configured an Alpha Anywhere email profile. If you are working in an environment where this is not possible, use EMAIL_SMTP_OPEN(), EMAIL_SMTP_SEND(), and EMAIL_SMTP_CLOSE().</note>
-        </section>
-
-
-        <section>
-
-            <description>
-                EMAIL_SEND2() sends an email message using Alpha Anywhere's built-in email features. The function does not require that you have a third party email client (such as Eudora or Outlook ) installed on the computer.
-            </description>
+            <important>In web applications [EMAIL_SEND_NOPROFILE()] is preferred because this function does not rely on an e-mail profile.</important>
         </section>
         <section>
-            <note>
-                EMAIL_SEND() is not sensitive to the type of image files attached and embedded in HTML formatted messages.
-            </note>
+            <important>EMAIL_SEND2() requires that you have configured an Alpha Anywhere email profile. If you are working in an environment where this is not possible, use [EMAIL_SMTP_OPEN()], [EMAIL_SMTP_SEND()], and [EMAIL_SMTP_CLOSE()].</important>
         </section>
-
-
+        <section>
+            <description>EMAIL_SEND2() sends an email message using Alpha Anywhere's built-in email features. The function does not require that you have a third party email client (such as Eudora or Outlook ) installed on the computer.</description>
+        </section>
+        <section>
+            <note>EMAIL_SEND() is not sensitive to the type of image files attached and embedded in HTML formatted messages.</note>
+        </section>
         <section>
             <title>Example</title>
-            <description>
-                Sends an email message using A5's internal email facility. A copy of the message is stored in the user's Alpha Anywhere outbox.
-            </description>
+            <description>Sends an email message using Alpha Anywhere's internal email facility. A copy of the message is stored in the user's Alpha Anywhere outbox, a DBF table.</description>
+            <important>
+                <p>The *[xb:store_in_mailbox]* argument is not supported in web applications.</p>
+            </important>
             <example>
                 <![CDATA[dim message as P
-body = %a% 
+body = <<%a%
 Just wanted to let you know that we really enjoy using Alpha Anywhere.
 %a%
-
 message.message = body
 message.to = "sales@alphasoftware.com"
 message.subject = "Thanks"
-
-email_send2(message, "", .F., .T.)
-]]>
+email_send2(message, "", .F., .T.)]]>
             </example>
         </section>
-
-
         <section>
-
-            <description>
-                The Silent option is useful for Xbasic programmers who are using the EMAIL_SEND2() function in a loop where they want to prevent the standard Alpha Anywhere error messages from popping up when an error (such as a bad email address) in encountered. Instead, they want to write their own error handler for this condition. For example:
-            </description>
+            <description>The Silent option is useful for Xbasic programmers who are using the EMAIL_SEND2() function in a loop where they want to prevent the standard Alpha Anywhere error messages from popping up when an error (such as a bad email address) in encountered. Instead, they want to write their own error handler for this condition. For example:</description>
             <example>
                 <![CDATA[
 Dim tbl as P
 Dim ITbl as P
 Tbl = table.open("customers")
 
-Query.filter = "balance> 1000000"
+Query.filter = "balance > 1000000"
 Query.order = "recno() "
 
 ITbl = tbl.query_create()
@@ -203,13 +169,11 @@ ON ERROR GOTO BAD_EMAIL
 ]]>
             </example>
         </section>
-
         <section>
-
-            <description>Fill in all of the arguments for EMAIL_SEND2() and set the Silent parameter to .T. .</description>
+            <description>Fill in all of the arguments for EMAIL_SEND2() and set the Silent parameter to *[xb:.T.]* .</description>
             <example>
                 <![CDATA[
-    Email_sends(??????, .t.)
+    Email_send2(message, profile, .t.)
 ON ERROR GOTO 0 'turn error handler off
     Tbl.fetch_next()
 End While
@@ -222,47 +186,50 @@ BAD_EMAIL:
 
 RESUME NEXT
 ' causes Alpha Anywhere to resume on the line after email_sends()
-
 end
 ]]>
             </example>
         </section>
-
         <section>
-
-            <description>
-                This example shows how to include an image in an email.
-            </description>
+            <title>Embedding Images in an Email</title>
+            <description>This example shows how to include an image in an email. Note that *[xb:pm.lrelated]* is set to *[xb:.T.]*. This allows the image attached to the email to be referenced in the email body.</description>
             <example>
-                <![CDATA[
-dim pm as P
-pm.attachments = " C:\login.jpg "
+                <![CDATA[dim pm as p
+pm.attachments = "C:\login.jpg"
 pm.lrelated = .T.
 pm.from = "aaron@alphasoftware.com"
 pm.from_alias = "Aaron Brown"
 pm.to = "aaron@alphasoftware.com"
 pm.subject = "Inline Attachments"
-pm.html_message = %html%
-'This is a message with an inline image.
-]]>
+
+pm.html_message = <<%html%
+<html>
+<head>
+</head>
+<body>
+This is a message with an <img src="login.jpg" /><br>
+inline image.
+</body>
+</html>
+%html%
+
+email_send2(pm)]]>
             </example>
         </section>
-
-
     </sections>
-
+    <limitations>Desktop Applications Only</limitations>
+    <links>
+        <link link="email_send_noprofile function">EMAIL_SEND_NOPROFILE()</link>
+        <link link="api email smtp open function">EMAIL_SMTP_OPEN()</link>
+        <link link="api email smtp send function">EMAIL_SMTP_SEND()</link>
+        <link link="api email smtp close function">EMAIL_SMTP_CLOSE()</link>
+    </links>
     <see>
         <ref link="EMAIL_SEND Function">EMAIL_SEND()</ref>
-        <ref link="EMAIL_SEND_NOPROFILE Function">EMAIL_NOPROFILE()</ref>
+        <ref link="email_send_noprofile function">EMAIL_SEND_NOPROFILE()</ref>
         <ref link="api system email functions">Email Functions</ref>
-
-
-        <ref>
-            <![CDATA[<EMAIL> Pointer Properties]]>
-        </ref>
+        <ref link="dt ref email Pointer Properties">&lt;EMAIL&gt; Pointer Properties</ref>
         <ref link="EMAIL_RECEIVE Function">EMAIL_RECEIVE()</ref>
     </see>
-
-
     <terms>email,arguments,components,defaults,embedded image,error,field,file,function,header,html,image,images,list,pointer,set,text,users,variable,Xbasic</terms>
 </page>
