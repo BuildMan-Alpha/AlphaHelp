@@ -1210,7 +1210,7 @@ events.postProcessContent = function(data) {
             isPrerelease = true;
             for (j = 0; j < buildClasses.length; ++j) {
                 if (buildNumber < buildClasses[j].upto) {
-                    data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="' + buildClasses[j].version + '"');
+                    data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="versionTag ' + buildClasses[j].version + '"');
                     isPrerelease = false;
                     break;
                 }
