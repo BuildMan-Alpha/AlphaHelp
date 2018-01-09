@@ -1,46 +1,65 @@
 <page api="xb">
     <shortlink>api star at multi function</shortlink>
-   <topic>*AT_MULTI Function</topic>
-     <description>Returns the position where one of a cr-lf delimited list of strings is found in another.</description>
- 
-   <syntax>Position as N = *AT_MULTI(C search_string,C strings[,N occurrence])</syntax>
-   <arguments>
-   
-   <argument>
-         <name>Position</name>
-         <description>The position of the firstof the multiple strings in the Find_Stringsargument. Zero if the characters were not found.
-</description>
-     </argument>
-   
-     <argument>
-         <name>search_string</name>
-         <description>A CR-LF delimited string containing one or more strings to find. Character</description>
-     </argument>
-     <argument>
-         <name>strings</name>
-         <description>The character string to examine.</description>
-     </argument>
-     <argument>
-         <name>occurrence</name>
-         <description>Optional. Default = 1. The occurrence to find. Numeric</description>
-     </argument>
-   </arguments>
-   <discussion>
-The *AT_MULTI() function returns the position in Search_In_Stringof the firstof the multiple strings in the Find_Stringsargument. Case insensitive.
-   </discussion>
-   <example><![CDATA[
-? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges") 
-= 22 
+    <topic>*AT_MULTI Function</topic>
+    <description>Returns the position where one of a cr-lf delimited list of strings is found in another.</description>
+    <syntax>Position as N = *AT_MULTI(C find_strings, C search_in_string [,N occurrence])</syntax>
+    <arguments>
+        <argument>
+            <name>find_strings</name>
+            <type>C</type>
+            <description>A CR-LF delimited string containing one or more strings to find. Character</description>
+        </argument>
+        <argument>
+            <name>search_in_string</name>
+            <type>C</type>
+            <description>The character string to examine.</description>
+        </argument>
+        <argument optional="true">
+            <name>occurrence</name>
+            <type>N</type>
+            <description>Default = 1. The occurrence to find. Numeric</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Position</name>
+            <types>
+                <type>N</type>
+            </types>
+            <description>Returns the position where the *[xb:occurrence]* of a string in *[xb:find_strings]* is found. Returns zero if none of the strings are found in the *[xb:search_in_string]*.</description>
+        </return>
+    </returns>
+    <discussion>The *[xb:*AT_MULTI()]* function performs a case-insensitive search of multiple search strings in a string. The function returns the index where the first match of the search strings are found. The index of the first match is returned unless otherwise specified using the *[xb:occurrence]* parameter. If multiple matches exist in the string, the *[xb:occurrence]* parameter can be used to get the index of each additional match. </discussion>
+    <example>
+        <![CDATA[' Return the first occurrence
+? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges") = 22 
 
-? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges",2) 
-= 33 
+' Returns the second occurrence
+? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges",2) = 33 
 
-? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges",3) 
-= 0
-]]></example>
-   
-   <see>
-      <ref link="Character Search Functions">Character Search Functions</ref>
-   </see>
-<terms>string,search,case,defaults,function,list</terms>
+' Returns the third occurrence (which doesn't exist)
+? *at_multi(comma_to_crlf("oranges,apples"),"This string contains apples and oranges",3) = 0
+
+' Build an array of matches:
+dim search_strings as c = comma_to_crlf("oranges,apples,pears,bananas")
+dim string as c = "This string contains apples, pears, and oranges, but no other fruits."
+dim occurrence as N = 1
+
+dim pos as N = *at_multi(search_strings,string,occurrence)
+dim posArr[1] as N
+while (pos > 0)
+    posArr[] = pos
+    occurrence = occurrence + 1
+    pos = *at_multi(search_strings,string,occurrence)
+end while
+
+? posArr.dump()
+= 22
+30
+41]]>
+    </example>
+    <see>
+        <ref link="Character Search Functions">Character Search Functions</ref>
+    </see>
+    <terms>string,search,case,defaults,function,list</terms>
 </page>
