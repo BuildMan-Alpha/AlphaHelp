@@ -775,10 +775,11 @@ events.beforeRefresh = function() {
     });
 };
 events.extractTitle = function(page) {
-    var topicStart = page.indexOf("<topic>");
+    var topicStart = page.search(/<topic[^>]*>/);
     if (topicStart > 0) {
+        var len = page.match(/<topic[^>]*>/)[0].length;
+        topicStart = topicStart + len;
         var topicEnd = page.indexOf("</topic>");
-        topicStart += 7;
         if (topicEnd > topicStart) {
             if (page.substring) {
                 var topic = page.substring(topicStart, topicEnd).trim();
