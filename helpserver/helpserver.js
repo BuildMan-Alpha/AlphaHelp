@@ -1209,7 +1209,7 @@ events.postProcessContent = function(data) {
             buildNumber = parseInt(replaceBuilds[i].split('"')[0]);
             isPrerelease = true;
             for (j = 0; j < buildClasses.length; ++j) {
-                if (buildNumber < buildClasses[j].upto) {
+                if (buildNumber <= buildClasses[j].upto) {
                     data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="versionTag ' + buildClasses[j].version + '"');
                     isPrerelease = false;
                     break;
