@@ -5,10 +5,42 @@
         <p>Fires when the Grid needs to select the current row in the Grid to refresh it.</p>
     </description>
     <discussion>
-        <p>This event fires every time the Grid needs to refresh the data in the current row.</p>
+        <p>Executes whenever the data in the current row of the Grid needs to be refreshed. Your event handler can take over the responsibility of returning a resultset that contains the data for the current Grid row.</p>
     </discussion>
     <sections>
         <section>
+            <important>
+                <p>If your Grid is based on a stored procedure you *[must]* write code for this event to return a resultset for the current Grid row. The primary key for the current Grid row will be passed into the event handler.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>The 'e' object that is passed into the event handler contains the value of each primary key column for the current row.</p>
+                <p>For example, say that the primary key for the table that the Grid is based on is based on two columns. You can get the value of each primary key column using this code:</p>
+            </description>
+            <example code="xb"><![CDATA[e.arguments[e.arguments.argumentNumber("PKValue_1")].data
+e.arguments[e.arguments.argumentNumber("PKValue_2")].data]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Here is a sample event handler your might create:</p>
+            </description>
+            <example code="xb"><![CDATA[function onSQLRefreshRowQuery as v (e as p)
+
+    dim flag as L
+    flag = e.cn.execute("exec myRefreshRowStoredProcedure @pkvalue = :PKValue_1")
+    if flag = .t. then 
+        e.resultset = e.cn.resultSet
+        e.handled = .t.
+    else
+        e.fatalError = .t.
+        e.errorText = "Could not refresh row. " + e.cn.callResult.text
+    end if 
+
+end function]]></example>
+        </section>
+        <section>
+            <title>Event Arguments &amp; Properties</title>
             <description>The following variables are available to you in the event:</description>
             <list>
                 <item>

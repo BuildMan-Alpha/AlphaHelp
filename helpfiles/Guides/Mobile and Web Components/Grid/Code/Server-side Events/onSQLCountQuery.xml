@@ -5,10 +5,73 @@
         <p>Fires when the Grid needs to count the records in the current Grid query. If you want to base the Grid on a stored procedure you need to use this event to compute the number of records in the Grid.</p>
     </description>
     <discussion>
-        <p>This event fires whenever the Grid needs to get a count of the number of records in the current Grid query.</p>
+        <p>Each time the Grid is rendered, it executes a query to compute the number of records that are shown in the Grid. This event fires just before the count query is executed. You can add an event handler for this event to compute the record count yourself and tell Alpha Anywhere not to try to compute the count itself.</p>
+        <p></p>
     </discussion>
     <sections>
         <section>
+            <important>
+                <p> If your Grid is based on a stored procedure then you *[must]* define code for this event as Alpha Anywhere will not be able to get the count of the number of records itself.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>If your event handler takes over the responsibility of computing the record count, it must set these properties:</p>
+            </description>
+            <example code="xb"><![CDATA[' Set the record count
+e.count = recordCount
+
+' Indicate the count has been computed and that Alpha Anywhere
+' should not compute the count query
+e.handled = .t.]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Here is a sample onSQLCountQuery event handler that you might write:</p>
+            </description>
+            <example code="xb"><![CDATA[function onSQLCountQuery as v (e as p)
+
+    dim flag as L
+    flag = e.cn.execute("exec myCountStoredProcedure @city=:whatcity",e.arguments)
+    if flag = .t. then
+        dim rs as SQL::ResultSet
+        rs = e.cn.resultSet
+        e.count = rs.data(1)
+        e.handled = .t.
+    else
+        e.fatalError = .t.
+        e.errorText = "Could not get record count. " + e.cn.callResult.text
+    end if 
+
+end function]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the above example, the following assumptions were made:</p>
+            </description>
+            <list bullet="true">
+                <item>
+                    <name>The stored procedure is for SQL Server, so the syntax used is appropriate for SQL Server. </name>
+                </item>
+                <item>
+                    <name>The stored procedure is called 'myCountStoredProcedure' and it takes a single parameter '@city'.</name>
+                </item>
+                <item>
+                    <name>The Grid has a Search Part that allows the user to search by city and the e.arguments object that is passed in has an argument called 'whatcity' which we bind to the stored procedure's '@city' parameter.</name>
+                </item>
+                <item>
+                    <name>The resultset returned by the stored procedure has a single row and column with the record count in it. We set e.count to the value in the first row and first column.</name>
+                </item>
+                <item>
+                    <name>We set e.handled = .t. to tell Alpha Anywhere that the count has been computed.</name>
+                </item>
+            </list>
+            <note>
+                <p>One of the properties passed in with the 'e' object is e.sql. This is the SQL that Alpha Anywhere will parse to convert into a count query in order to compute the record count IF e.handled is NOT SET TO .t.. Your event handler can actually modify the value in e.sql, or any of the values in e.arguments should you wish to for any reason.</p>
+            </note>
+        </section>
+        <section>
+            <title>Event Arguments &amp; Properties</title>
             <description>The following variables are available to you in the event:</description>
             <list>
                 <item>

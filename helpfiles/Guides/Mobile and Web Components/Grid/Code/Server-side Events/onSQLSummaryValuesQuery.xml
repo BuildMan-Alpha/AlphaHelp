@@ -5,10 +5,39 @@
         <p>Fires when the Grid has to compute summary values. Only fires if one or more columns in the Grid has summary values.</p>
     </description>
     <discussion>
-        <p>Fires if one or more columns in the Grid displays summary values. The event fires before the command to compute the summary values is executed.</p>
+        <p>If you have turned on summary values for any of the columns in the Grid, then this event will fire when Alpha Anywhere needs to compute the summary values to display in the Grid. Your event handler can take over the responsibility for computing these summary values.</p>
     </discussion>
     <sections>
         <section>
+            <important>
+                <p>If your Grid is based on a stored procedure, and your Grid displays summary values, then you *[must]* write code for this event to compute the summary values.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>For example, say that your Grid has a column called 'Quantity' and you are displaying the count and average for this column.</p>
+                <p>Here is a sample event handler you might create:</p>
+            </description>
+            <example code="xb"><![CDATA[function onSQLSummaryValuesQuery as v (e as p)
+
+    dim flag as L
+    flag = e.cn.execute("exec mySummaryValuesStoredProcedure @city = :whatcity",e.arguments)
+
+    if flag = .t. then
+        dim rs as SQL::ResultSet
+        rs = e.cn.resultSet
+        e.summary.Quantity.average = rs.data(1)
+        e.summary.Quantity.count = rs.data(2)
+        e.handled = .t.
+    else
+        e.fatalError = .t.
+        e.errorText = "Could not get summary values." + e.cn.callResult.text
+    end if 
+
+end function]]></example>
+        </section>
+        <section>
+            <title>Event Arguments &amp; Properties</title>
             <description>The following variables are available to you in the event:</description>
             <list>
                 <item>
