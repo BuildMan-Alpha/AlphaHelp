@@ -68,7 +68,7 @@ var protectXml = function(content) {
         content.indexOf("<") >= 0 ||
         content.indexOf(">") >= 0
     ) {
-        content = "<![CDATA[" + content + "]]>";
+        content = content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
     return content;
 };
@@ -779,12 +779,13 @@ var generateXMLHelp = function(content) {
 var extractJsHelp = function() {
     async.eachSeries(sourceFiles, function(path, callbackLoop) {
         fs.readFile(path, "utf8", function(err, code) {
-            if (err) {;
+            var fileOps = [];
+            if (err) {
+                console.log(err);
             } else {
                 var options = { loc: true, range: false, comment: true }
                 var syntax = esprima.tokenize(code, options);
                 var i;
-                var fileOps = [];
                 var contexts = {};
                 lastContext = null;
 
