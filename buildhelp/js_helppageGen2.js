@@ -32,6 +32,9 @@ var dirCreateRecurs = function(folderName) {
         fs.mkdirSync(folderName);
     }
 };
+
+
+
 var indentLevelCalc = function(txt) {
     var i;
     for (i = 0; i < txt.length; ++i) {
@@ -183,8 +186,11 @@ var buildContext = function(content) {
     for (i = 0; i < lines.length; ++i) {
         line = lines[i].trim().toLowerCase();
         if (line.indexOf('class:') === 0 || line.indexOf('namespace:') === 0 || line.indexOf('object:') === 0) {
+			
             context = lines[i].substr(lines[i].indexOf(':') + 1).trim();
             type = line.split(':')[0].trim();
+			console.log('A type:'+type+' ctx: '+context);
+			
             if (line.indexOf('object:') !== 0) {
                 lastContext = context;
             } else if (context.indexOf('.') < 0) {
@@ -204,7 +210,8 @@ var buildContext = function(content) {
                             if (tParentContext) {
                                 allParts[j] += '_' + tParentContext.type;
                             } else {
-                                allParts[j] += '_class';
+								if(allParts[j][0].toUpperCase() ===  allParts[j][0]) allParts[j] += '_class';
+								else allParts[j] += '_namespace';
                             }
                         }
                         build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type };
@@ -368,6 +375,7 @@ var generateXMLHelp = function(content) {
                     topContext = context;
                 } else if (type === "namespace" || type === "class" || type === "object") {
                     context = line.substring(splitPos + 1).trim();
+					console.log('B type:'+type+' ctx: '+context);
                     if (context.indexOf('.') < 0 && type === "object" && topContext) {
                         // Object does not have a fully qualified name
                         //titleContext = context; // This line strips out the class prefix for context - which is deemed undesirable now
@@ -644,6 +652,7 @@ var generateXMLHelp = function(content) {
             var elementName = null;
             if (lastDotPos > 0) {
                 parentContextName = context.substring(0, lastDotPos);
+				console.log('looking: '+parentContextName)
                 if (build.context[parentContextName].type === "class") {
                     parentContextType = "class";
                 } else {
