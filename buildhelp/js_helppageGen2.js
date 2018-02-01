@@ -178,7 +178,7 @@ var RecursProperties = function(properties, indented) {
     return xml;
 };
 
-var buildContext = function(content) {
+var buildContext = function(content,buildNum) {
     var lines = content.split('\n');
     var line = null;
     var type = null;
@@ -214,7 +214,7 @@ var buildContext = function(content) {
 								else allParts[j] += '_namespace';
                             }
                         }
-                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type };
+                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type, build: buildNum};
                         console.log("Added context: " + context + " - path: " + allParts);
                     } else {
                         console.log("Could not find parent: " + allParts[0]);
@@ -235,7 +235,7 @@ var expandShorthand = function(macro, env, args) {
     return null;
 };
 
-var generateXMLHelp = function(content) {
+var generateXMLHelp = function(content,buildNum) {
     var lines = content.split('\n');
     var i, j;
     var context = lastContext;
@@ -608,7 +608,9 @@ var generateXMLHelp = function(content) {
         }
         methodIndex[lContext].push({ name: pageName.split(".").pop(), description: description });
     }
-    var xml = "<page api=\"js\" generated=\"true\">\r\n";
+	var buildTxt = '';
+	if(buildNum != '') buildTxt = 'build="'+buildNum+'" ';
+    var xml = "<page "+buildTxt+"api=\"js\" generated=\"true\">\r\n";
 
     if (pageName) {
         xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
@@ -795,16 +797,21 @@ var extractJsHelp = function() {
                 var options = { loc: true, range: false, comment: true }
                 var syntax = esprima.tokenize(code, options);
                 var i;
+				var docStartIndx = 0;
+				var buildNum = '';
                 var contexts = {};
                 lastContext = null;
-
+				
                 console.log("---------- " + path.split("/").pop() + " ----------");
+				
                 for (i = 0; i < syntax.comments.length; ++i) {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
                         if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
-                            content = content.substring(5, content.length - 1).trim();
-                            buildContext(content);
+							docStartIndx = content.indexOf('\n')-1;
+							buildNum = content.substring(5,docStartIndx).trim();
+                            content = content.substring(docStartIndx, content.length - 1).trim();
+                            buildContext(content,buildNum);
                         }
                     }
                 }
@@ -813,8 +820,10 @@ var extractJsHelp = function() {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
                         if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
-                            content = content.substring(5, content.length - 1).trim();
-                            var helpPage = generateXMLHelp(content);
+							docStartIndx = content.indexOf('\n')-1;
+							buildNum = content.substring(5,docStartIndx).trim();
+                            content = content.substring(docStartIndx, content.length - 1).trim();
+                            var helpPage = generateXMLHelp(content,buildNum);
                             if (!contexts[helpPage.context])
                                 contexts[helpPage.context] = { files: [] };
                             contexts[helpPage.context].files.push({ pagename: helpPage.pagename, xml: helpPage.xml, topContext: helpPage.topContext });
@@ -824,6 +833,7 @@ var extractJsHelp = function() {
                 console.log("\n");
 
                 var ctxName;
+				var buildTxt = '';
                 for (ctxName in contexts) {
                     var ctx = contexts[ctxName];
                     var j;
@@ -833,7 +843,9 @@ var extractJsHelp = function() {
                                 var map = build.context[ctx.files[j].topContext];
                                 if (map) {
                                     if (map.description) {
-                                        var topXml = "<page api=\"js\" generated=\"true\">\r\n";
+										buildTxt = '';
+										if(map.build != '' && typeof map.build == 'string') buildTxt = 'build="'+map.build+'" ';
+                                        var topXml = "<page "+buildTxt+"api=\"js\" generated=\"true\">\r\n";
                                         topXml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
                                         topXml += "\t<description>" + protectXml(map.description) + "</description>\r\n";
                                         topXml += "\t<!--list:.-->\r\n";
