@@ -16,6 +16,7 @@ var fs = require("fs");
 var https_credentails = null;
 var runHelpServer = false;
 var buildClasses = require("./builds.json");
+var settingsOverride = null;
 
 if (require.main === module) {
     runHelpServer = true;
@@ -36,6 +37,10 @@ if (require.main === module) {
             console.log("=================================================================================");
             return;
         }
+        if (process.argv[arg].search("-settings") !== -1 || process.argv[arg].search("-s") !== -1) {
+            settingsOverride = process.argv[parseInt(arg,10)+1];
+            console.log(settingsOverride);
+        }
     }
 }
 var serverType = "";
@@ -53,6 +58,10 @@ if (searchLocalFlag) {
     serverType = "(nosearch) ";
 } else {
     options = require("./settings");
+}
+
+if (settingsOverride !== null ) {
+    options = require(settingsOverride);
 }
 
 
