@@ -644,7 +644,12 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
                 }
             });
         };
-        if (!err) {
+        if (err) {
+            // Need to redirect to search page
+            var pathParts = xmlFile.split('/');
+            dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1] + '" />';
+            callback(null, dataOut);
+        } else {
             var symlink = extractTag(data, "<symlink>", "</symlink>");
             var remapped = false;
             if (symlink) {
