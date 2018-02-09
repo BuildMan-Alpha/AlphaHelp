@@ -647,7 +647,7 @@ events.translateXML = function(xmlFile, htmlFile, callback) {
         if (err) {
             // Need to redirect to search page
             var pathParts = xmlFile.split('/');
-            dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1] + '" />';
+            dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1].replace(".xml", "") + '" />';
             callback(null, dataOut);
         } else {
             var symlink = extractTag(data, "<symlink>", "</symlink>");
@@ -1458,6 +1458,14 @@ events.processForIndex = function(config, data, page, callbackPage, complete) {
     }
 };
 
+events.missingPathPage = function(page, fromPath, req, callback) {
+    var pathParts = page.split('/');
+    if (pathParts.length > 1 && pathParts[pathParts.length - 1] == '')
+        dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 2] + '" />';
+    else
+        dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1] + '" />';
+    callback(null, dataOut);
+};
 
 // Modify elastic search query *before* it is run but *after* the default query has been built
 //events.beforeQuery = function (elast, args) {
