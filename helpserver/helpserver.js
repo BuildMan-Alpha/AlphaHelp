@@ -38,7 +38,7 @@ if (require.main === module) {
             return;
         }
         if (process.argv[arg].search("-settings") !== -1 || process.argv[arg].search("-s") !== -1) {
-            settingsOverride = process.argv[parseInt(arg,10)+1];
+            settingsOverride = process.argv[parseInt(arg, 10) + 1];
             console.log(settingsOverride);
         }
     }
@@ -59,8 +59,9 @@ if (searchLocalFlag) {
 } else {
     options = require("./settings");
 }
+// To test
 
-if (settingsOverride !== null ) {
+if (settingsOverride !== null) {
     options = require(settingsOverride);
 }
 
@@ -783,6 +784,24 @@ events.beforeRefresh = function() {
         }
     });
 };
+events.afterRefresh = function() {
+    if (options.chainRefreshCommand) {
+        var requestOptions = {
+            hostname: '127.0.0.1',
+            port: options.chainRefreshCommand,
+            path: '/refresh',
+            method: 'POST'
+        };
+        var http = require('http');
+        var request = http.request(requestOptions, function(response) {});
+        //Write our post data to the request
+        request.write("");
+        //End the request.
+        request.end();
+
+    }
+};
+
 events.extractTitle = function(page) {
     var topicStart = page.search(/<topic[^>]*>/);
     if (topicStart > 0) {
