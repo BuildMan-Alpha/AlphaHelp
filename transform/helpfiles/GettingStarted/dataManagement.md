@@ -8,19 +8,19 @@ The Management Console is where you can view and manage user forms, including ad
 
 1. Go to [transform.alphasoftware.com](https://transform.alphasoftware.com)
 
-![](../images/transform1.png)
+    ![](../images/transform1.png)
 
 2. Click on the "Management Console" tab.
 
-![](../images/transform4.png)
+    ![](../images/transform4.png)
 
 3. To view forms, you must first choose a Form Type. A "Form Type" is what you created at the beginning of the tutorial -- the "Equipment Inspection" Form Type. A "form" is what you created on your mobile device and then uploaded in part 2 of the tutorial. To view the "forms" uploaded to the TransForm cloud, you must first select the "Form Type" on the Management Console. Select the "Equipment Inspection" Form Type from the list to view the form you uploaded to the TransForm cloud in the previous tutorial.
 
-![](../images/manage1.png)
+    ![](../images/manage1.png)
 
 4. After selecting the "Equipment Inspection" Form Type, you should see the form you uploaded to the TransForm cloud in the previous tutorial. Select the form from the list.
 
-![](../images/manage2.png)
+    ![](../images/manage2.png)
 
 When you select a form, the form's fields and values will be shown in the Form Contents column. Several actions are available in the Actions column:
 
@@ -39,31 +39,31 @@ Now that you have created a Form Type and verified that it captures the data you
 
 2. Click "Invite Users to Join TransForm Account"
 
-![](../images/users1.png)
+    ![](../images/users1.png)
 
 3. Enter an email addresses for people you want to join your TransForm account. Enter one email address per line. For example:
 
-```
-alice@example.com
-betty@example.com
-charlie@example.com
-```
+    ```
+    alice@example.com
+    betty@example.com
+    charlie@example.com
+    ```
 
-All users will be automatically assigned the user role "User" when they accept the invitation. You can optionally set the roles for a user when you invite them to TransForm. For example, in the list below, charlie@example.com will be assigned the User and FormDesigner roles when they join the TransForm account:
+    All users will be automatically assigned the user role "User" when they accept the invitation. You can optionally set the roles for a user when you invite them to TransForm. For example, in the list below, charlie@example.com will be assigned the User and FormDesigner roles when they join the TransForm account:
 
-```
-alice@example.com
-betty@example.com
-charlie@example.com|User,FormDesigner
-```
+    ```
+    alice@example.com
+    betty@example.com
+    charlie@example.com|User,FormDesigner
+    ```
 
 4. After you have entered the email addresses for the people you'd like to invite, click the "OK" button to send the invitations.
 
-When you invite users to your TransForm account, an email is sent to each address entered in the Invite Users text box. Users will not be added to your TransForm account until they accept the invitation.
+    When you invite users to your TransForm account, an email is sent to each address entered in the Invite Users text box. Users will not be added to your TransForm account until they accept the invitation.
 
 5. You will see a notice when TransForm finishes sending the invitations. Review the message to ensure there were no issues then click "OK" to dismiss the message.
 
-![](../images/users2.png)
+    ![](../images/users2.png)
 
 
 ## Adding Users versus Inviting Users
@@ -78,14 +78,14 @@ The process for adding users is similar to the process for inviting users:
 
 2. Click "Add users".
 
-![](../images/users3.png)
+    ![](../images/users3.png)
 
 3. Enter the email addresses for people you want to add to your TransForm account. Enter one email address per line. For example:
 
-```
-don@example.com
-evelyn@example.com
-```
+    ```
+    don@example.com
+    evelyn@example.com
+    ```
 
 4. After you have entered the email addresses for the people to add to your TransForm account, click "Add Users". This adds the users to your TransForm account. Each account will be assigned the "User" role. You can manage roles for users using User roles, which is discussed in the next section.
 
@@ -109,7 +109,7 @@ User roles are assigned through the Home tab. To view and assign user roles for 
 
 3. Select the user from the list that you would like to view or modify their roles. Use Ctrl+Click to assign multiple roles to a user.
 
-![](../images/users4.png)
+    ![](../images/users4.png)
 
 4. When you are satisfied with the assign roles, click "OK" to assign the roles to the user.
 
