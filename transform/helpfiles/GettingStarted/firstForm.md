@@ -18,8 +18,14 @@ To begin, go to [transform.alphasoftware.com](https://transform.alphasoftware.co
 
 If you have not activated your TransForm license, enter your license now by following the instructions below:
 
-1. Click "Account License"
+1. Click "Account license keys"
+
+![](../images/license2.png)
+
 2. Enter your license in the text box and click Activate.
+
+![](../images/license1.png)
+
 3. Finally, log out of TransForm Central and login again.
 
 ## TransForm Central Overview

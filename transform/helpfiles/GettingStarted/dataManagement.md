@@ -6,7 +6,7 @@ The Management Console is where you can view and manage user forms, including ad
 
 ## Viewing Uploaded Forms
 
-1. Go to [transform.alphasoftware.com](transform.alphasoftware.com)
+1. Go to [transform.alphasoftware.com](https://transform.alphasoftware.com)
 
 ![](../images/transform1.png)
 
