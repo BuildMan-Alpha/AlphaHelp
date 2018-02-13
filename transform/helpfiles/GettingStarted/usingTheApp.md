@@ -67,9 +67,11 @@ Let's fill out the form.
 
     ![Set the Equipment is Working field.](../images/app12.png)
 
-6. Tap the "Equipment Location" field. The location editor captures your current location. To do this, tap the "Get Location" button. Capturing the location can take a little time to get an accurate reading. When the process completes, a map will appear with the captured location. If you are in an area with no wifi or cell service, the map won't appear. But don't worry, TransForm will still accurately collect the GPS coordinates.
+6. Tap the "Equipment Location" field. The location editor captures your current location. To do this, tap the "Get Location" button. Capturing the location can take a little time to get an accurate reading.
 
     ![Capturing your GPS location.](../images/app13.png)
+
+    When the process completes, a map will appear with the captured location. If you are in an area with no wifi or cell service, the map won't appear. But don't worry, TransForm will still accurately collect the GPS coordinates.
 
     ![Capturing your GPS location.](../images/app14.png)
 
