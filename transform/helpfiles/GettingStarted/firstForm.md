@@ -22,7 +22,7 @@ If you have not activated your TransForm license, enter your license now by foll
 
 ![](../images/license2.png)
 
-2. Enter your license in the text box and click Activate.
+2. Enter your license in the text box and click "Save".
 
 ![](../images/license1.png)
 
