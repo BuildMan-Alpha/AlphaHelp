@@ -124,6 +124,6 @@ In addition the pre-defined roles, you can create your own roles on the Permissi
 1. To begin, setup your account and create new Form Types in TransForm Central at [transform.alphasoftware.com](https://transform.alphasoftware.com).
 2. TransForm Central has 4 tabs - Home, Designer, Permissions, and Management Console
 3. The Home tab is for account administration.
-4. The Designer is where you create Form Types.
+4. The Designer is for building and editing Form Types.
 5. The Permissions tab is an advanced tab for creating and managing roles
 6. The Management Console is for reviewing and exporting data.
