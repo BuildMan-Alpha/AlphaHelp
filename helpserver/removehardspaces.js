@@ -26,7 +26,7 @@ fs.readFile(fileName, "utf8", function (err, data) {
             for( i = 0 ; i < problems.length ; ++i ) {
                 data = data.split(problems.substr(i,1)).join(" ");
             }
-            fs.writeFile(fileName,data);
+            fs.writeFile(fileName,data,function(err) {if (err) {console.log(err);}});
             console.log("hard spaces fixed");
         } else {            
             console.log("no hard spaces found");
