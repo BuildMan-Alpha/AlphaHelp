@@ -64,8 +64,9 @@ if (searchLocalFlag) {
 if (settingsOverride !== null) {
     options = require(settingsOverride);
 }
-
-
+if (options.libraryPath) {
+    library = require(options.libraryPath + "library");
+}
 
 if (runHelpServer) {
     console.log("\n\n\n#########################################################\n### Starting the server " + serverType + "- time " + new Date() + "\n");
