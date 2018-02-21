@@ -64,6 +64,13 @@ if (searchLocalFlag) {
 if (settingsOverride !== null) {
     options = require(settingsOverride);
 }
+if (options.linksFileName) linksFileName = options.linksFileName;
+if (options.aliasesFile) aliasesFile = options.aliasesFile;
+if (options.validateLinksFile) validateLinksFile = options.validateLinksFile;
+if (options.errorLog) errorLog = options.errorLog;
+if (options.helpfilesBasepath) helpfilesBasepath = options.helpfilesBasepath;
+if (options.annotationPath) annotationPath = options.annotationPath;
+
 if (options.libraryPath) {
     library = require(options.libraryPath + "library");
 }
