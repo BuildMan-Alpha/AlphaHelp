@@ -3,12 +3,37 @@
 /* global substring */
 var fs = require('fs');
 var pathModule = require('path');
-var files = fs.readFileSync("../generated/list.json", "utf8");
-var list = JSON.parse(files);
 var async = require('async');
-var secondaryLinks = {};
+var listFile = "../generated/list.json";
+var outPath = "../";
+
+if (require.main === module) {
+    for (arg in process.argv) {
+        if (process.argv[arg].search("-file") !== -1 || process.argv[arg].search("-f") !== -1) {
+            listFile = process.argv[parseInt(arg,10)+1];
+        }
+        if (process.argv[arg].search("-output") !== -1 || process.argv[arg].search("-o") !== -1) {
+            outPath = process.argv[parseInt(arg,10)+1];
+        }
+        if (process.argv[arg].search("-help") !== -1 || process.argv[arg].search("-h") !== -1) {
+            console.log("Help for repopulateLinks.js");
+            console.log("=================================================================================");
+            console.log("Input Flags:\n");
+            console.log("-file, -f                          Name & location of generated list.json file");
+            console.log("-output, -o                        Where output files will be created (include trailing /)")
+            console.log("-help, -h                          Displays this help message.\n");
+            console.log("=================================================================================");
+            return;
+        }
+    }
+}
+var files = fs.readFileSync(listFile, "utf8");
+var list = JSON.parse(files);
+
+
 
 var links = {}, link;
+var secondaryLinks = {};
 var aliases = {};
 var duplicates = [];
 var usedNames = {};
@@ -165,7 +190,7 @@ async.eachSeries(list, function (fo, callbackLoop) {
         delete aliases[lookup];
     }
     // Write the changes...
-    fs.writeFile("../links.json", JSON.stringify(links, null, "  "), function (errW) {
+    fs.writeFile(outPath+"links.json", JSON.stringify(links, null, "  "), function (errW) {
         if (errW) {
             console.log("Error writing links " + errW);
         } else {
@@ -173,7 +198,7 @@ async.eachSeries(list, function (fo, callbackLoop) {
         }
     });
 
-    fs.writeFile("../aliases.json", JSON.stringify(aliases, null, "  "), function (errW) {
+    fs.writeFile(outPath+"aliases.json", JSON.stringify(aliases, null, "  "), function (errW) {
         if (errW) {
             console.log("Error writing aliases " + errW);
         } else {
