@@ -1,7 +1,7 @@
 //var options = require("./settings");
 var helpServer = require("./helpserver.js");
 var Help = require('helpserver');
-var options = helpServer.options;
+var options = helpServer.loader("./settings");
 options.webhookPort = null;
 var help = Help(options);
 
