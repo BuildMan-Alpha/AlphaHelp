@@ -18,7 +18,7 @@
                     <type>boolean</type>
                     <description>true/false - If true, then focus will be given to the target row. The default for this property is false.</description>
                 </property>
-                <property optional="true">
+                <property optional="true" build="4444">
                     <name>insertRow</name>
                     <type>boolean</type>
                     <description>true/false -- Default false. Set to true if you want to insert at a specified position in the List rather than at the end. (Requires build 4444 or above)</description>
@@ -37,7 +37,7 @@
     </discussion>
     <sections>
         <section>
-            <example><![CDATA[//create a data object with values for the columns in the List you want to edit
+            <example code="js"><![CDATA[//create a data object with values for the columns in the List you want to edit
 var data = {};
 data.FIRSTNAME = 'Cecelia';
 data.LASTNAME = 'Longwood';
@@ -65,10 +65,10 @@ listObj.addTableRow(data,ops);]]></example>
             </description>
             <note>To programmatically update a table row see the *[js:.updateTableRow()]* method.</note>
         </section>
-        <section build="4355">
-            <title>Adding Rows to a Table for Lists Persisted to the File System</title>
+        <section>
+            <title>Adding Multiple Rows to a Table for Lists Persisted to the File System</title>
             <description>
-                <p>If you are using the *[js:addTableRow()]* method in a loop, then you can add many new rows to a List quite quickly. Under certain circumstances, this can cause a problem.</p>
+                <p>You can use the *[js:addTableRow()]* method in a loop to add many new rows to a List quite quickly. Under certain circumstances, however, this can cause a problem.</p>
                 <p>The circumstances under which this could cause a problem are:</p>
             </description>
             <steps>
@@ -79,14 +79,21 @@ listObj.addTableRow(data,ops);]]></example>
                     <description>The *[link:List storage@ux list properties persist where]* is set to 'FileSystem'</description>
                 </step>
                 <step>
-                    <description>The App is running in Phonegap.</description>
+                    <description>The App is running in PhoneGap.</description>
                 </step>
             </steps>
         </section>
         <section>
             <description>
                 <p>The reason that there is a potential problem under the above scenario is that writing to the File System in PhoneGap is an asynchronous operation. Each time the List is updated, the edits to the List are saved in files written to the File System. But since these write operations are asynchronous, it is possible (actually likely), that the write operation for the next record added to the List will be initiated before the write operation for the current record added to the List has completed, and so on. These overlapping write operations to the File System could corrupt the files used to store the List edits.</p>
-                <p>The solution to this potential problem is to temporarily suspend persisting the List while the *[js:addTableRow()]* method is being called in a loop and then once the loop has completed, turn the suspension off and persist the List to storage.</p>
+                <p>There are two ways to address this issue. One way is to use the [addTableRowsBulk()] method. Another approach is to [temporarily suspend persisting the List] while calling the *[js:addTableRow()]* method in a loop.</p>
+            </description>
+        </section>
+        <section build="4355">
+            <title nested="2">Temporarily Suspending List Persistence in a Loop</title>
+            <note>Using the .addTableRowsBulk() method ([described below]) is faster than calling the .addTableRow() method in a loop.</note>
+            <description>
+                <p>If you want to write your own loop to add the rows, you can temporarily suspend persisting the List while the *[js:addTableRow()]* method is being called in a loop. Once the loop has completed, turn the suspension off and persist the List to storage.</p>
                 <p>To suspend persisting to the List, you set the List's *[js:.suspendPersist]* property to true.</p>
                 <p>To turn persisting back on, you set the List's *[js:.suspendPersist]* to false</p>
                 <p>To manually persist the List after you have turned suspend persist off use the List's *[link:persistToStorage() method@list object persisttostorage method]*. You must pass in an empty object when calling this method.</p>
@@ -106,10 +113,34 @@ listObj.suspendPersist = false;
 //persist the list (passing in an empty object to the .persistToStorage() method.
 listObj.persistToStorage({});]]></example>
         </section>
+        <section  build="4962">
+            <title nested="2">Adding Multiple List Rows using addTableRowsBulk()</title>
+            <description>
+                <p>The *[js:addTableRowsBulk()]* method can be used to add multiple rows to a List quickly. Using the .addTableRowsBulk() method is faster than calling the .addTableRow() method in a loop. To use this method, create a JSON array of rows to add to the List control. Then, call the *[js:addTableRowsBulk()]* method of the List object. For example:</p>
+            </description>
+            <example code="js"><![CDATA[var listObj = {dialog.object}.getControl('LIST1');
+
+var dataArray = [];
+
+// code to build up an array of rows to add to the list
+// or uncomment example code below:
+// dataArray = [
+//    { FIRSTNAME: 'Cecelia', LASTNAME: 'DeLuca'},
+//    { FIRSTNAME: 'Cathy', LASTNAME: 'Marsh'}
+//]
+
+listObj.addTableRowsBulk(dataArray);]]></example>
+        </section>
     </sections>
     <limitations>List Control with Detail View Part</limitations>
+    <links>
+        <link href="#section2_Adding Multiple List Rows using addTableRowsBulk()">addTableRowsBulk()</link>
+        <link href="#section2_Adding Multiple List Rows using addTableRowsBulk()">described below</link>
+        <link href="#section2_Temporarily Suspending List Persistence in a Loop">temporarily suspend persisting the List</link>
+    </links>
     <see>
         <ref link="list object updateTableRow method">listObj.updateTableRow()</ref>
+        <ref link="list object addtablerowsbulk method">listObj.addTableRowsBulk()</ref>
         <ref link="buildingdisconnectedapplications">List Control Overview</ref>
     </see>
 </page>
