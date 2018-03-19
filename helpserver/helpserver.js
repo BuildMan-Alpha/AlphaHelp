@@ -298,10 +298,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     console.log("Entry " + i + " for " + filename + " has no path string defined.");
                 }
             }
-            if (methodFiles > 0 && nonMethodFiles === 0) {
+            if (methodFiles > 0) {// && nonMethodFiles === 0) {
                 type = "method";
             }
-
         }
         if (filename.indexOf('#') > 0) {
             filename = filename.split('#')[0];
@@ -350,7 +349,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                                 }
                             }
                         }
-                        if (filename.indexOf("/index.xml") > 0) {
+//                        if (filename.indexOf("/index.xml") > 0) {
+                        if (filename.indexOf("Method.xml") === -1 && type === 'method') {
                             savePage(outputSnippet(args, description, null, topic, static));
                         } else {
                             savePage(outputSnippet(args, description, type, topic, static));
