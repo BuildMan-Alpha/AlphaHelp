@@ -37,7 +37,7 @@
                 <p>The dialog for the Instant Update Settings is shown below:</p>
             </description>
             <figure>
-                <link>images/InstantUpdate2.jpg</link>
+                <link>images/InstantUpdate2.png</link>
             </figure>
         </section>
         <section>
@@ -53,6 +53,10 @@
                         <p>As a convenience you can select AlphaSoftware to use a bucket that has been configured by Alpha Software. When you select the AlphaSoftware  location, you do not have to specify the S3 Storage connection string or the Base URL properties.</p>
                         <p>For testing, using the AlphaSoftware option is fine, but *[for production applications, it is highly recommended that you set up your own private S3 bucket.]*</p>
                     </description>
+                    <figure>
+                        <title>If the 'PrivateS3Bucket' option is selected, additional properties are exposed.</title>
+                        <link>images/InstantUpdate3.png</link>
+                    </figure>
                 </case>
                 <case>
                     <title nested="2">S3 Storage connection string</title>
@@ -66,6 +70,13 @@
                         <p>This is the base URL for items in your S3 bucket. It will be of the form:</p>
                     </description>
                     <example><![CDATA[http://<your S3 bucket Name>.s3.amazonaws.com/]]></example>
+                </case>
+                <case>
+                    <title nested="2">Path</title>
+                    <description>
+                        <p>This property defines the folder structure within the Amazon S3 bucket where the files should be stored. For example:</p>
+                    </description>
+                    <example><![CDATA['instantupdates/myfiles/']]></example>
                 </case>
                 <case>
                     <title nested="2">System Message</title>
@@ -94,6 +105,14 @@
                     <title nested="2">After update message</title>
                     <description>
                         <p>Message to display on the device if the version was updated when the App was launched. You message text can include the {version} placeholder to display the version number that the App was updated to.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Automatically check for update when App is started</title>
+                    <description>
+                        <p>Defines whether or not a check for a new version should be performed when the app is launched. This option is enabled by default.</p>
+                        <p>If you turn off *[ui:Automatically check for update when App is started]*, you must manually check for an updated using the [{dialog.object}.instantUpdateRefresh()] method.</p>
+                        <p>You can dynamically enable or disable this setting at runtime using the [{dialog.object}.instantUpdateUseAutoUpdate()] method.</p>
                     </description>
                 </case>
             </cases>
@@ -156,7 +175,7 @@
         <section>
             <title>Methods</title>
             <description>
-                <p>The following Instant Update methods are availalbe in the UX Component:</p>
+                <p>The following Instant Update methods are available in the UX Component:</p>
             </description>
             <cases>
                 <case>
@@ -169,6 +188,56 @@
                         <p>Example:</p>
                     </description>
                     <example code="js"><![CDATA[{dialog.object}.instantUpdateRefresh();]]></example>
+                </case>
+                <case build="4896">
+                    <title nested="2">{dialog.object}.instantUpdateUseAutoUpdate()</title>
+                    <description>
+                        <p>This method allows you to enable or disable the automatic check for updates. If disabled, you must manually check for updates using the *[js:{dialog.object}.instantUpdateRefresh()]* method.</p>
+                    </description>
+                    <example code="js"><![CDATA[{dialog.object}.instantUpdateUseAutoUpdate(false);]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>See [{dialog.object}.instantUpdateUseAutoUpdate method] for more info.</p>
+                    </description>
+                </case>
+                <case build="4902">
+                    <title nested="2">{dialog.object}.instantUpdateCheckForUpdate()</title>
+                    <description>
+                        <p>This method allows you check if an update is available in a PhoneGap application that was build with the Instant Update feature enabled. Since this is an asynchronous operation, you need to provide the JavaScript success and the error callback functions.</p>
+                        <p> If a result is returned within a 5 second time-frame, the successCallback is called and passed an object with a result property that will be either true or false. If true, an update is available. If a timeout or any other error occurs the error callback is passed an error object or a string, depending on the error.</p>
+                        <p> This method can be useful if you have turned off auto updates and want to programmatically check if an update is available.</p>
+                    </description>
+                    <example code="js"><![CDATA[var _successCallbackFunction = function(e) { 
+	if(!e.result) { 
+		//there is no update available
+		alert('You are running the latest version');
+		return false;
+	}
+	
+	A5.msgBox.show('Notice','<div style="height: 1in; padding: 15pt;">An update for this application is available. 
+	Click OK to install the update.</div>',
+	[{name: 'ok', html: 'OK', value: 'ok'}],
+	function(button) {if(button == 'ok') {
+		setTimeout(function() {
+			{dialog.object}.instantUpdateRefresh() //install the update
+		},10)
+	}
+	});
+	
+}
+
+var _errorCallbackFunction = function() { 
+	alert('Could not determine if an update is available');
+}
+
+
+{dialog.object}.instantUpdateCheckForUpdate(_successCallbackFunction,_errorCallbackFunction);]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>See [{dialog.object}.instantUpdateCheckForUpdate method] for more information.</p>
+                    </description>
                 </case>
             </cases>
         </section>
@@ -189,4 +258,11 @@
             </videos>
         </section>
     </sections>
+    <links>
+        <link link="ux component instantupdateuseautoupdate method">{dialog.object}.instantUpdateUseAutoUpdate method</link>
+        <link link="ux component instantupdateuseautoupdate method">{dialog.object}.instantUpdateUseAutoUpdate()</link>
+        <link link="ux component instantupdatecheckforupdate method">{dialog.object}.instantUpdateCheckForUpdate method</link>
+        <link link="ux component instantupdaterefresh method">{dialog.object}.instantUpdateRefresh()</link>
+        <link link=""></link>
+    </links>
 </page>
