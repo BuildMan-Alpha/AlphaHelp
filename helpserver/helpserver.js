@@ -1593,12 +1593,29 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 if (options.other) {
                     // Find alternate handlers....
                     for (var i = 0; i < options.other.length; ++i) {
-                        if (req.path.substr(0, options.other[i].path.length).toLowerCase() === options.other[i].path) {
+                        if ((req.path+"/").substr(0, options.other[i].path.length).toLowerCase() === options.other[i].path) {
                             helpHandler = options.other[i].help;
                         }
                     }
                 }
-                helpHandler.expressuse(req, res);
+                var pagePrefix = helpHandler.getAbsolutePath();
+                if ((req.path === pagePrefix + 'pages/index.html') || (req.path === pagePrefix) || (req.path === pagePrefix.substr(0,pagePrefix.length - 1)) || (req.path ===  pagePrefix + 'pages/') || (req.path ===  pagePrefix + 'pages')) {
+                    var path = "/index.html";
+                    helpHandler.get(path, function(err, data, type) {
+                        if (err) {
+                            helpHandler.onSendExpress(res);
+                            res.send(err);
+                        } else {
+                            if (type) {
+                                res.type(type);
+                            }
+                            helpHandler.onSendExpress(res);
+                            res.send(data);
+                        }
+                    });
+                } else {
+                    helpHandler.expressuse(req, res);
+                }
             }
         });
 
