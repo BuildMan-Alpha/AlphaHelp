@@ -10,6 +10,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     var helpfilesBasepath = "/home/AlphaHelp/helpfiles";
     var aliasesFile = "/home/AlphaHelp/aliases.json";
     var annotationPath = "/home/AlphaHelp/annotations";
+    var absolutePath = "/documentation/";
     var aliases = {};
     var library = require("./assets/library");
     var Help = require('helpserver');
@@ -40,7 +41,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     if (options.errorLog) errorLog = options.errorLog;
     if (options.helpfilesBasepath) helpfilesBasepath = options.helpfilesBasepath;
     if (options.annotationPath) annotationPath = options.annotationPath;
-
+    
     if (options.libraryPath) {
         library = require(options.libraryPath + "library");
     }
@@ -544,7 +545,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     };
 
     var xsltproc = require('xsltproc');
-    events.translateXML = function(xmlFile, htmlFile, callback) {
+    events.translateXML = function(xmlFile, htmlFile, callback, basepath) {
+        basepath = basepath||"/documentation/";
         fs.readFile(xmlFile, "utf8", function(err, data) {
             var xsltTransformFile = function(xmlFile, htmlFile, callback) {
                 var xslt = xsltproc.transform(options.assetpath + 'assets/xform.xslt', xmlFile);
@@ -607,6 +609,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         });
                     } else {
                         var fs = require('fs');
+                        dataOut = replaceAll(dataOut,"<!--A5_BASE_PATH-->",basepath)
                         fs.writeFile(htmlFile, dataOut, function(err) {
                             var contentDiv = dataOut.split('<meta name="description" content="');
                             if (contentDiv.length > 1) {
@@ -625,7 +628,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             if (err) {
                 // Need to redirect to search page
                 var pathParts = xmlFile.split('/');
-                dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1].replace(".xml", "") + '" />';
+                dataOut = '<meta http-equiv="refresh" content="0;URL=\''+basepath+'index?search=' + pathParts[pathParts.length - 1].replace(".xml", "") + '" />';
                 callback(null, dataOut);
             } else {
                 var symlink = extractTag(data, "<symlink>", "</symlink>");
@@ -877,12 +880,13 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         return pageSource;
     };
-    events.getSharableLink = function(page, symName) {
+    events.getSharableLink = function(page, symName, basepath) {
+        basepath = basepath||"/documentation/";
         var shareLink;
         page = page.replace(".xml_html", ".xml");
-        shareLink = "https://www.alphasoftware.com/documentation/pages" + page;
+        shareLink = "https://www.alphasoftware.com"+basepath+"pages" + page;
         if (symName) {
-            shareLink = encodeURI("https://www.alphasoftware.com/documentation/index?search=" + symName);
+            shareLink = encodeURI("https://www.alphasoftware.com"+basepath+"index?search=" + symName);
         }
         return shareLink;
     };
@@ -958,8 +962,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         return "";
     };
-    events.loadIndex = function(callback) {
-
+    events.loadIndex = function(callback, basepath) {
+        basepath = basepath||"/documentation/";
         // Load links file
         fs.readFile(linksFileName, "utf8", function(err, data) {
             var hashObj = {};
@@ -977,7 +981,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         var normalName = name.trim().toLowerCase();
                         var path = srcObj[name];
                         if (path.substring(0, 7) === "/pages/") {
-                            path = "/documentation" + path;
+                            path = basepath+path.substr(1);
                         }
                         hashObj[normalName] = path;
                     }
@@ -1216,7 +1220,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         return title;
     };
-    events.postProcessContent = function(data) {
+    events.postProcessContent = function(data, basepath) {
+        basepath = basepath||"/documentation/";
+
         if (data.indexOf('class="buildBadge" data-build="') > 0) {
             // Lets change build badge entries on the fly...
             var replaceBuilds = data.split('class="buildBadge" data-build="');
@@ -1316,8 +1322,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                                 }
                                 if (linkdef) {
                                     if (linkdef.substring(0, 1) == '/') {
-                                        if (linkdef.substring(0, 15) != '/documentation/') {
-                                            linkdef = '/documentation' + linkdef;
+                                        if (linkdef.substring(0, 15) != basepath) {
+                                            linkdef = basepath+linkdef.substr(1);
                                         }
                                     }
                                     if (typeName == "link") {
@@ -1390,8 +1396,11 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         return false;
     }
 
-    events.calculateFeedback = function(title, page) {
-        return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://www.alphasoftware.com/documentation/pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
+    events.calculateFeedback = function(title, page, basepath) {
+        basepath = basepath||"/documentation/";
+
+        // rewrite to URL ENCODE THE URL.
+        return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://www.alphasoftware.com"+basepath+"pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
     }
 
     //Modify the body record posted to elastic search
@@ -1440,12 +1449,14 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
     };
 
-    events.missingPathPage = function(page, fromPath, req, callback) {
+    events.missingPathPage = function(page, fromPath, req, callback, basepath) {
+        basepath = basepath||"/documentation/";
+
         var pathParts = page.split('/');
         if (pathParts.length > 1 && pathParts[pathParts.length - 1] == '')
-            dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 2] + '" />';
+            dataOut = '<meta http-equiv="refresh" content="0;URL=\''+basepath+'index?search=' + pathParts[pathParts.length - 2] + '" />';
         else
-            dataOut = '<meta http-equiv="refresh" content="0;URL=\'/documentation/index?search=' + pathParts[pathParts.length - 1] + '" />';
+            dataOut = '<meta http-equiv="refresh" content="0;URL=\''+basepath+'index?search=' + pathParts[pathParts.length - 1] + '" />';
         callback(null, dataOut);
     };
 
@@ -1455,15 +1466,23 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
 
 
     options.events = events;
+//    console.log("Run help server:" + runHelpServer);
     if (runHelpServer) {
         //--------------------------------------------------------------------------------------------
         var express = require('express');
         var app = express();
         var help = Help(options);
+        if (help.getAbsolutePath) {
+            absolutePath = help.getAbsolutePath();
+//            console.log(absolutePath);
+        }
         if (options.other) {
             for (var i = 0; i < options.other.length; ++i) {
                 options.other[i].help = Help(loader(options.other[i].settings, false, searchLocalFlag, noSearchFlag));
                 options.other[i].path = options.other[i].path.toLowerCase();
+                if (options.other[i].help.getAbsolutePath) {
+                    options.other[i].absolutePath = options.other[i].help.getAbsolutePath();
+                }
             }
         }
         app.use("/", function(req, res) {
@@ -1528,7 +1547,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                                 }
                             }
                             if (redirectToPage) {
-                                res.redirect("/documentation/pages/" + foundItem.path);
+                                // don't want to use /documentation/, but it is not critical to make this case work with /transformDocumentation/
+                                res.redirect(absolutePath+"pages/" + foundItem.path);
                             } else {
                                 help.onSendExpress(res);
                                 res.send(JSON.stringify(foundItem));
@@ -1573,12 +1593,29 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 if (options.other) {
                     // Find alternate handlers....
                     for (var i = 0; i < options.other.length; ++i) {
-                        if (req.path.substr(0, options.other[i].path.length).toLowerCase() === options.other[i].path) {
+                        if ((req.path+"/").substr(0, options.other[i].path.length).toLowerCase() === options.other[i].path) {
                             helpHandler = options.other[i].help;
                         }
                     }
                 }
-                helpHandler.expressuse(req, res);
+                var pagePrefix = helpHandler.getAbsolutePath();
+                if ((req.path === pagePrefix + 'pages/index.html') || (req.path === pagePrefix) || (req.path === pagePrefix.substr(0,pagePrefix.length - 1)) || (req.path ===  pagePrefix + 'pages/') || (req.path ===  pagePrefix + 'pages')) {
+                    var path = "/index.html";
+                    helpHandler.get(path, function(err, data, type) {
+                        if (err) {
+                            helpHandler.onSendExpress(res);
+                            res.send(err);
+                        } else {
+                            if (type) {
+                                res.type(type);
+                            }
+                            helpHandler.onSendExpress(res);
+                            res.send(data);
+                        }
+                    });
+                } else {
+                    helpHandler.expressuse(req, res);
+                }
             }
         });
 
@@ -1611,6 +1648,7 @@ if (require.main === module) {
             console.log("Input Flags:\n");
             console.log("-nosearch, -ns                     Start helpserver without elastic search");
             console.log("-local, -l                         Start helpserver using local search");
+            console.log("-settings, -s [file]               Specify a settings file.");
             console.log("-help, -h                          Displays this help message.\n");
             console.log("=================================================================================");
             return;

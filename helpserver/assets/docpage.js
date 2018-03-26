@@ -372,7 +372,8 @@ function localToClickHandler(e) {
 }
 
 function onSearch() {
-    let target = "/documentation/pages/search";
+    let basePath = window.location.pathname.split("pages")[0];
+    let target = basePath+"pages/search";
     let pattern = document.getElementsByName("pattern")[0];
     let search = document.getElementsByName("search")[0];
     let display = document.getElementsByName("display")[0];
