@@ -299,7 +299,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     console.log("Entry " + i + " for " + filename + " has no path string defined.");
                 }
             }
-            if (methodFiles > 0) {// && nonMethodFiles === 0) {
+            if (methodFiles > 0) { // && nonMethodFiles === 0) {
                 type = "method";
             }
         }
@@ -350,7 +350,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                                 }
                             }
                         }
-//                        if (filename.indexOf("/index.xml") > 0) {
+                        //                        if (filename.indexOf("/index.xml") > 0) {
                         if (filename.indexOf("Method.xml") === -1 && type === 'method') {
                             savePage(outputSnippet(args, description, null, topic, static));
                         } else {
@@ -786,8 +786,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             request.end();
         }
         if (options.other) {
-            for (var i = 0; i < options.other; ++i) {
-                options.other.help({ path: "/refresh", method: "POST", connection: { remoteAddress: "::ffff:127.0.0.1" } }, { end: function(message) {}, status: function(code) {} });
+            for (var i = 0; i < options.other.length; ++i) {
+                options.other[i].help.refresh(function(err, result) {});
             }
         }
     };
