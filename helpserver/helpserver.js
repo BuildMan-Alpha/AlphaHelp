@@ -1529,15 +1529,13 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     // Guard against escape path....
                     res.send('{ "error" : "schema definition not found." }');
                 } else {
-                    var fs = require("fs");
-                    var fn =
-                        fs.readFile(".." + req.path, function(err, data) {
-                            if (err) {
-                                res.send('{ "error" : "schema definition not found." }');
-                            } else {
-                                res.send(data);
-                            }
-                        });
+                    require('fs').readFile(help.config.generated + "/.." + req.path, function(err, data) {
+                        if (err) {
+                            res.send('{ "error" : "schema definition not found." }');
+                        } else {
+                            res.send(data);
+                        }
+                    });
                 }
             } else if (req.path === "/apihelp") {
                 help.search(req.query.topic, function(err, data) {
