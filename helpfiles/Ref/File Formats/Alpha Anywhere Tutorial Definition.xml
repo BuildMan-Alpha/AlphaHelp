@@ -33,17 +33,35 @@
                 <item>
                     <name>exactMatch</name>
                     <description>
-                    <p>For this step to complete, the value of the control specified by the 'where' property must match this value.</p>
-                    <p>Can be an object rather than a string if the control specified for 'where' does not match the control for the action.</p>
+                        <p>For this step to complete, the value of the control specified by the 'where' property must match this value.</p>
+                        <p>Can be an object rather than a string if the control specified for 'where' does not match the control for the action.</p>
                     </description>
                 </item>
                 <item>
                     <name>skipMatch</name>
                     <description>
-                    <p>If the value of the control specified by the 'where' property matches this value, this step is skipped.</p>
-                    <p>Can be an object rather than a string if the control specified for 'where' does not match the control for the action.</p>
+                        <p>If the value of the control specified by the 'where' property matches this value, this step is skipped.</p>
+                        <p>Can be an object rather than a string if the control specified for 'where' does not match the control for the action.</p>
                     </description>
-                </item>                
+                </item>
+                <item>
+                    <name>validateEval</name>
+                    <description>
+                        <p>
+                            <![CDATA[This contains an optional xbasic expression, which can contain a <dlgtitle> placeholder, which gets replaced with the string of the xdialog specified by the actions 'where' property.]]>
+                        </p>
+                        <p>The expression should return a logical .t. if the action is valid (at which point, the action script will advance to the next action).</p>
+                    </description>
+                </item>
+                <item>
+                    <name>skipEval</name>
+                    <description>
+                        <p>
+                            <![CDATA[This contains an optional xbasic expression, which can contain a <dlgtitle> placeholder, which gets replaced with the string of the xdialog specified by the actions 'where' property.]]>
+                        </p>
+                        <p>The expression should return a logical .t. if the action should be skipped.</p>
+                    </description>
+                </item>
                 <item>
                     <name>step</name>
                     <description>Identifies this as the last action in a 'step'.</description>
@@ -121,8 +139,8 @@
             <description>In this example, when the tutorial script is run from the web control panel, 
 a message will point to the 'Web Components' entry of in the Web Control Panel Selector if the 'Web Components' page is not the active
 page.   Then a message will show up above the 'new' button.</description>
-<example>            
-<![CDATA[
+            <example>
+                <![CDATA[
 {
     "actions": [
         {
@@ -144,20 +162,20 @@ page.   Then a message will show up above the 'new' button.</description>
     ]
 }    
 ]]>
-</example>
+            </example>
         </section>
         <section>
             <title>Example of tracking changes to List Content</title>
             <description>
-<p>Below is a standalone tutorial code example of a dialog that has a 
+                <p>Below is a standalone tutorial code example of a dialog that has a 
 button that adds elements to a list, and advances to the *next* step only when the list has 7 entries.</p>
-<p>Note that exactMatch is an object instead of a string, because the action is the button click, but the value to Test
+                <p>Note that exactMatch is an object instead of a string, because the action is the button click, but the value to Test
 is the content of the list.</p>
-<p>Also note that the list content is denoted by the control path (/Test/list/item) with the #List suffix.</p>
-<p>Also note that the sample xdialog uses the {where=} keyword to specify the well known name.</p>
-</description>
-<example>
-<![CDATA[
+                <p>Also note that the list content is denoted by the control path (/Test/list/item) with the #List suffix.</p>
+                <p>Also note that the sample xdialog uses the {where=} keyword to specify the well known name.</p>
+            </description>
+            <example>
+                <![CDATA[
 dim json as c = <<%json%
 {
     "actions": [
@@ -192,10 +210,9 @@ One
 Two
 %str%
 
-ui_dlg_box("test",<<%dlg%
-{where=/Test}
+ui_dlg_box("test",<<%dlg% {where=/Test}
 [.80,20item^#items];
-<Add!add> <Close!close>;
+<Add!add><Close!close>;
 %dlg%,<<%code%
 if a_dlg_button = "add" then
 	a_dlg_button = ""
@@ -203,7 +220,75 @@ if a_dlg_button = "add" then
 end if
 %code%)
 ]]>
-</example>
+            </example>
+        </section>
+        <section>
+            <title>Example of using Xbasic expressions to Validate and Skip</title>
+            <description>
+                <p>If the validation or skip rules provided are not enough, there are two rules that call into xbasic that allow for arbitrarily complex validation.</p>
+                <p>The following script demonstrates a Validation rule and a Skip rule that are bound to two logical variables maintained by the example xdialog.</p>
+            </description>
+            <example>
+                <![CDATA[
+dim json as c = <<%json%
+{
+    "actions": [
+        {
+            "action": "buttonClick",
+            "name": "Add",
+            "where": "/Test/button/Add",
+            "message": "Click Add button.",
+            "step": 2,
+            "continue" : true , 
+            "validateEval" : "ui_dlg_eval(<dlgtitle>,\"valid\")"
+        },
+        {
+            "action": "buttonClick",
+            "name": "Optional",
+            "where": "/Test/button/Optional",
+            "message": "Click Optional button.",
+            "step": 3, 
+            "skipEval" : "ui_dlg_eval(<dlgtitle>,\".not. require_optional\")"
+        },
+        {
+            "action": "buttonClick",
+            "name": "Close",
+            "where": "/Test/button/Close",
+            "message": "Click Close button.",
+            "step": 4
+        }
+    ]
+}
+%json%
+dim uxa as WindowManager::UxAutomation
+uxa.RunTutorial(json,.f.)
+
+dim item as c
+dim valid as l = .f.
+dim require_optional as l = .f.
+dim items as c = <<%str%
+One
+Two
+%str%
+
+ui_dlg_box("test",<<%dlg% {where=/Test}
+[.80,20item^#items];
+(valid!state_change) Its valid;
+(require_optional!state_change) Require Optional Step;
+<Add!add><Optional!optional><Close!close>;
+%dlg%,<<%code%
+if a_dlg_button = "add" then
+	a_dlg_button = ""
+	 items = alltrim(items) + crlf() + str(line_count(items)+1,200,0,"XF")
+else if a_dlg_button = "optional" then
+	a_dlg_button = ""
+	ui_msg_box("optional step","clicking on this button is optional")
+else if a_dlg_button = "state_change" then
+	a_dlg_button = ""
+end if
+%code%)        
+]]>
+            </example>
         </section>
     </sections>
 </page>
