@@ -844,6 +844,7 @@
                 </xsl:choose>
                 </dt>
 				<dd>
+                    <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
                     <xsl:call-template name="callouts-before"/>
 					<xsl:choose>
 						<xsl:when test="content">
