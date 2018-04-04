@@ -342,7 +342,6 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<div>
-                            <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
 							<dt class="definitionNameTD" >
                                 <xsl:choose>
                                     <xsl:when test="name/@href">
@@ -354,6 +353,7 @@
                                 </xsl:choose>
 							</dt>
 							<dd class="definitionDescriptionTD">
+                                <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
 								<xsl:value-of select="description" />
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
