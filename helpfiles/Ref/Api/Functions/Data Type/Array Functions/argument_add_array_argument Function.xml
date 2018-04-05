@@ -1,39 +1,93 @@
 <page api="xb">
     <shortlink>api argument add array argument function</shortlink>
    <topic>argument_add_array_argument Function</topic>
-   <description>Adds or updates and array argument to an sql::arguments object. The sql::arguments object can be populated with argument arrays (typically used when passing values to a SQL query that uses an IN clause).
-</description>
-   <prototype>V argument_add_array_argument(P args ,C argName ,C argType ,C argValues )</prototype>
+   <description>Adds or updates and array argument to an SQL::Arguments object. The SQL::Arguments object can be populated with argument arrays (typically used when passing values to a SQL query that uses an IN clause).</description>
+   <prototype>V argument_add_array_argument(SQL::Arguments args ,C argName ,C argType ,C argValues )</prototype>
    <arguments>
      <argument>
          <name>args</name>
-         <description>Pointer</description>
+         <type>SQL::Arguments</type>
+         <description>The object that you want to add an argument array or update an existing argument array.</description>
      </argument>
      <argument>
          <name>argName</name>
-         <description>Character</description>
+         <type>C</type>
+         <description>The name of the argument array to add to the *[xb:args]* object.</description>
      </argument>
      <argument>
          <name>argType</name>
-         <description>Character</description>
+         <type>C</type>
+         <description>The argument type. For example, *[xb:"C"]* for "character" or *[xb:"N"]* for "numeric".</description>
      </argument>
      <argument>
          <name>argValues</name>
-         <description>Character. A crlf delimited list of values.</description>
+         <type>C</type>
+         <description>A CR-LF delimited list of values.</description>
      </argument>
    </arguments>
 <sections>
     <section>
-        
         <title>Example</title>
-        <example><![CDATA[dim args as sql::arguments 
+        <example><![CDATA[dim args as SQL::Arguments 
 dim cities as c 
 cities = <<%txt%
 London
-Boston
-Bulawayo
+Seattle
+Madrid
 %txt%
-argument_add_array_argument(args,"color","c",cities)]]></example>
+argument_add_array_argument(args,"cities","C",cities)
+
+dim cn as SQL::Connection
+
+? cn.open("::Name::AADemo-Northwind")
+= .T.
+
+? cn.execute("SELECT CustomerID, CompanyName, City FROM customers WHERE City IN (:cities)",args)
+= .T.
+
+dim json as c 
+json = cn.resultSet.ToJSON()
+
+? convert_utf8_to_acp(json)
+= [
+{"CustomerID" : "AROUT", "CompanyName" : "Around the Horn", "City" : "London"},
+{"CustomerID" : "BOLID", "CompanyName" : "Bólido Comidas preparadas", "City" : "Madrid"},
+{"CustomerID" : "BSBEV", "CompanyName" : "B's Beverages", "City" : "London"},
+{"CustomerID" : "CONSH", "CompanyName" : "Consolidated Holdings", "City" : "London"},
+{"CustomerID" : "EASTC", "CompanyName" : "Eastern Connection", "City" : "London"},
+{"CustomerID" : "FISSA", "CompanyName" : "FISSA Fabrica Inter. Salchichas S.A.", "City" : "Madrid"},
+{"CustomerID" : "NORTS", "CompanyName" : "North\/South", "City" : "London"},
+{"CustomerID" : "ROMEY", "CompanyName" : "Romero y tomillo", "City" : "Madrid"},
+{"CustomerID" : "SEVES", "CompanyName" : "Seven Seas Imports", "City" : "London"},
+{"CustomerID" : "WHITC", "CompanyName" : "White Clover Markets", "City" : "Seattle"}
+]]]></example>
+    </section>
+    <section>
+        <description>The next example demonstrates creating an array of numeric values:</description>
+        <example code="xb"><![CDATA[dim args as sql::Arguments
+dim ids as C
+ids =<<%txt%
+2
+3
+5
+6
+%txt%
+argument_add_array_argument(args,"ids","N",ids)
+
+dim cn as sql::Connection
+? cn.open("::Name::AADemo-Northwind")
+= .T.
+
+? cn.execute("SELECT * FROM Products where ProductID IN (:ids)",args)
+= .T.
+
+? cn.ResultSet.toJSON()
+= [
+{"ProductID" : "2", "ProductName" : "Chang", "SupplierID" : "1", "CategoryID" : "1", "QuantityPerUnit" : "24 - 12 oz bottles", "UnitPrice" : "19", "UnitsInStock" : "17", "UnitsOnOrder" : "40", "ReorderLevel" : "25", "Discontinued" : "F"},
+{"ProductID" : "3", "ProductName" : "Aniseed Syrup", "SupplierID" : "1", "CategoryID" : "2", "QuantityPerUnit" : "12 - 550 ml bottles", "UnitPrice" : "10", "UnitsInStock" : "13", "UnitsOnOrder" : "70", "ReorderLevel" : "25", "Discontinued" : "F"},
+{"ProductID" : "5", "ProductName" : "Chef Anton's Gumbo Mix", "SupplierID" : "2", "CategoryID" : "2", "QuantityPerUnit" : "36 boxes", "UnitPrice" : "21.35", "UnitsInStock" : "0", "UnitsOnOrder" : "0", "ReorderLevel" : "0", "Discontinued" : "T"},
+{"ProductID" : "6", "ProductName" : "Grandma's Boysenberry Spread", "SupplierID" : "3", "CategoryID" : "2", "QuantityPerUnit" : "12 - 8 oz jars", "UnitPrice" : "25", "UnitsInStock" : "120", "UnitsOnOrder" : "0", "ReorderLevel" : "25", "Discontinued" : "F"}
+]]]></example>
     </section>
     
     
