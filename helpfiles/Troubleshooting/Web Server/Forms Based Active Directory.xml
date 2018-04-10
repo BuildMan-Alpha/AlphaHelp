@@ -1,0 +1,71 @@
+<page build="5007">
+    <shortlink>websecurity activedirectory</shortlink>
+    <topic>User is Denied Access to Pages When Logging into an Application Configured to use "Forms Based Active Directory"</topic>
+    <description>With the release of Alpha Anywhere 4.5.3, if Alpha Anywhere has been configured to use "Forms Based Active Directory" and the users and roles are defined in separate organizational units, Alpha Anywhere's security system may not behave as expected. This can be fixed by updating the Active Directory configuration in your application.</description>
+    <discussion>
+        <p>As a result of changes in the way Active Directory authentication is implemented in Alpha Anywhere 4.5.3, certain applications may need to be reconfigured. If an application uses Forms Based Active Directory for authentication and authorization (i.e. for users and groups) the Active Directory Configuration in the publish profile may need to be updated if the users are defined in one organizational unit and roles are defined in a different organizational units.</p>
+    </discussion>
+    <sections>
+        <section>
+            <description>
+                <p>The Active Directory Configuration dialog now has an additional prompt for the organizational unit that specifies the groups used by the application. The input value is the distinguished name of the organizational unit. This prompt can be set to "All Organization Units" if groups are in the same hierarchy as specified in the LDAP connection string.</p>
+            </description>
+            <figure>
+                <link>images/activedirectory.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Given this Active Directory structure:</p>
+            </description>
+            <example><![CDATA[Company Domain (Domain)
+    Users (Users)
+        User1
+        User2
+        User3
+    Car Division (OU)
+        CarUser1 (User)
+        CarUser2 (User)
+        CarUser3 (User)
+    House Division (OU)
+    Application Division (OU)
+        Group1 (Group)
+            User1
+            CarUser1
+        Group2 (Group)
+            CarUser2
+        Group3 (Group)
+            User1]]></example>
+        </section>
+        <section>
+            <description>And this LDAP connection string:</description>
+            <example><![CDATA[LDAP://ad.company.com/CN=Users,DC=ad,DC=company,DC=com]]></example>
+        </section>
+        <section>
+            <description>And a setting in the Organizational Unit for groups prompt of:</description>
+            <example><![CDATA[OU=Application Division,DC=ad,DC=company,DC=com]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Then, anyone in Active Directory can login, but only users in an "Application Division" group (i.e. Group1, Group2, Group3) will have access to protected pages.</p>
+                <p>Next, assume the following LDAP connection string:</p>
+            </description>
+            <example><![CDATA[LDAP://ad.company.com/OU=Car Division,DC=ad,DC=company,DC=com]]></example>
+        </section>
+        <section>
+            <description>
+                <p>And assume that the setting for the Organizational Unit for groups  prompt is:</p>
+            </description>
+            <example><![CDATA[OU=Application Division,DC=ad,DC=company,DC=com]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In this case, only users in the Car Division OU will be able to login. Only the users that are assigned to an "Application Division" group will have access to protected pages.</p>
+                <p>This change affects both the Standard Application Server and the Application Server for IIS.</p>
+            </description>
+        </section>
+    </sections>
+    <see>
+        <ref link="Active Directory Integration">IIS Active Directory Integration</ref>
+    </see>
+</page>
