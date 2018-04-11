@@ -40,10 +40,10 @@
                         <xsl:when test="./@link">
                             <xsl:choose>
                                 <xsl:when test="./@target">
-                                    <a href="/documentation/index?search={normalize-space(./@link)}"><xsl:value-of select="." target="./@target"/></a>
+                                    <a href="((A5_BASE_PATH))index?search={normalize-space(./@link)}"><xsl:value-of select="." target="./@target"/></a>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <a href="/documentation/index?search={normalize-space(./@link)}"><xsl:value-of select="." /></a>
+                                    <a href="((A5_BASE_PATH))index?search={normalize-space(./@link)}"><xsl:value-of select="." /></a>
                                 </xsl:otherwise>
                            </xsl:choose>
                         </xsl:when>
@@ -245,16 +245,16 @@
                             <xsl:when test="./@static">
                             <xsl:choose>                            
                             <xsl:when test="ref/@href"><dt class="methodStatic"><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref/@link"><dt class="methodStatic"><a href="/documentation/index?search={ref/@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref"><dt class="methodStatic"><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref/@link"><dt class="methodStatic"><a href="((A5_BASE_PATH))index?search={ref/@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref"><dt class="methodStatic"><a href="((A5_BASE_PATH))index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
                             <xsl:otherwise><dt class="methodStatic"><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
                             <xsl:choose>
                             <xsl:when test="ref/@href"><dt><a href="{ref/@href}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref/@link"><dt><a href="/documentation/index?search={ref/@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
-                            <xsl:when test="ref"><dt><a href="/documentation/index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>                            
+                            <xsl:when test="ref/@link"><dt><a href="((A5_BASE_PATH))index?search={ref/@link}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>
+                            <xsl:when test="ref"><dt><a href="((A5_BASE_PATH))index?search={ref}" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:when>                            
                             <xsl:otherwise><dt><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(name)}')" name="section_{normalize-space(name)}"><xsl:value-of select="name" /></a></dt></xsl:otherwise>
                             </xsl:choose>
                             </xsl:otherwise>
@@ -353,6 +353,7 @@
                                 </xsl:choose>
 							</dt>
 							<dd class="definitionDescriptionTD">
+                                <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
 								<xsl:value-of select="description" />
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
@@ -370,7 +371,7 @@
         <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
         <xsl:if test="title">
             <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:when test="title/@nested"><xsl:value-of select="title/@nested" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
-            <h3 class="section-level-{$depth}"><xsl:if test="title/@icon"><img src="/documentation/pages{title/@icon}" /></xsl:if>&#160;<a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>
+            <h3 class="section-level-{$depth}"><xsl:if test="title/@icon"><img src="((A5_BASE_PATH))pages{title/@icon}" /></xsl:if>&#160;<a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /> </a></h3>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
@@ -468,7 +469,7 @@
                     </xsl:when>
                     <xsl:when test="./@link">
                         <li>
-                            <a href="/documentation/index?search={./@link}">
+                            <a href="((A5_BASE_PATH))index?search={./@link}">
                                 <xsl:value-of select="." />
                             </a>
                         </li>
@@ -843,6 +844,7 @@
                 </xsl:choose>
                 </dt>
 				<dd>
+                    <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
                     <xsl:call-template name="callouts-before"/>
 					<xsl:choose>
 						<xsl:when test="content">
@@ -864,7 +866,7 @@
 					<xsl:if test="ref">
                         <xsl:choose>
                             <xsl:when test="./@href"><a href="{./@href}"><xsl:value-of select="ref" /></a></xsl:when>
-                            <xsl:when test="./@link"><a href="/documentation/index?search={./@link}"><xsl:value-of select="ref" /></a></xsl:when>
+                            <xsl:when test="./@link"><a href="((A5_BASE_PATH))index?search={./@link}"><xsl:value-of select="ref" /></a></xsl:when>
                             <xsl:otherwise><a href="javascript:helpServer.navigateClosestTopic('{normalize-space(ref)}')"><xsl:value-of select="ref" /></a></xsl:otherwise>
                         </xsl:choose>
 					</xsl:if>

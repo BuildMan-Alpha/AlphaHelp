@@ -1,0 +1,85 @@
+<page>
+    <topic>Freeform Layout - Hyperlinks</topic>
+    <description>
+        <p>Hyperlinks can be included in the Freeform List layout. However, you need to make sure to handle event propagation otherwise the URL may not behave as expected. This is done using a5-items.</p>
+    </description>
+    <discussion>
+        <p>When you create a free-form List layout you can use any HTML that you want to lay out each row in the List. Your HTML template will include placeholders for the various fields in the List.</p>
+        <p>For example:</p>
+        </discussion>
+    <sections>
+        <section>
+            <example><![CDATA[<div>
+    Name: {name}<br>
+    Address: {address}
+</div>]]></example>
+        </section>
+        <section>
+            <description>Because the template is HTML, you might expect to be able to add hyperlinks. For example:
+    </description>
+    <example><![CDATA[<div>
+    Name: {name}<br>
+    Address: {address}<br>
+    <a href="page2.a5w?{address}" target="_blank">Open Page</a>
+</div>]]></example>
+        </section>
+        <section>
+            <description>This will not work because the List is configured to handle all events. However, you can make this pattern work by adding markup to your html to stop event propagation. For example:</description>
+            <example><![CDATA[<a href="page2.a5w?{address}" target="_blank" onclick="$e.stopPropagation(event);" ontouchstart="$e.stopPropagation(event);">Open Page</a>]]></example>
+        </section>
+        <section>
+            <description>With the addition of event handlers for the onclick and ontouchstart events which stop event propagation, the hyperlink will work as expected.</description>
+        </section>
+        <section>
+            <title>Adding Event Handlers Using a5-items</title>
+            <description>
+                <p>a5-items make it easy to add events to an part of your List template. To begin, let's modify the template above to read as follows:</p>
+            </description>
+            <example code="cst"><![CDATA[<a href="#" a5-item="item1:page2.a5w">Open Page</a>]]></example>
+        </section>
+        <section>
+            <note>In most situations, you will create the a5-item before you edit the List template. For convenience, we are updating the Template in this example first.</note>
+        </section>
+        <section>
+            <description>
+                <p>Note the new *[cst:a5-item]* attribute. This attribute states that an a5-item exists that handles events for this element. The a5-item here has been named "item1" and takes a parameter, "page2.a5w".</p>
+                <p>We have not yet defined an a5-item called "item1", so let's do that next.</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>On the List Layout tab, locate the *[ui:Quick access...]* button and click it. Select *[ui:Template Items]* from the list. This opens the Temlpate Items editor.</p>
+            </description>
+            <figure>
+                <link>images/templateitems1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Create a new a5-item by clicking the *[ui:Add item]* button and name it "item1". Then click the [...] smart field button for the *[ui:onClick]* property.</p>
+            </description>
+            <description>When you open the Template Items editor you get a screen that looks like this:</description>
+            <figure>
+                <link>images/templateitems2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>In the onClick event, add the following javascript. This code will navigate to the URL passed into the a5-item in our template using the current browser window:</p>
+            </description>
+            <example code="js"><![CDATA[var newAddress = ai + "?" + encodeURIComponent(data.address);
+window.location = newAddress]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If you recall from the Template, the URL to open was passed to the "item1" a5-item as a parameter after the colon: *[cst:page2.a5w]*. This parameter can be accessed using the *[js:ia]* variable in the code for the *[ui:onClick]* event. We also have access to the data in the current list row. This means we do not need to pass the address as part of the parameter. This enables us to encode the address to make sure it is safe to pass as a URL parameter to our a5w page using the *[js:encodeURIComponent()]* function (*[extlink:click here@https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent]* to learn more about this function).</p>
+                <p>*[js:window.location]* is used to navigate to a new page from within JavaScript. By assigning *[js:window.location]* to *[js:newAddress]* - the page you want to open - the browser will navigate to the new page.</p>
+            </description>
+            <note>To navigate to the URL using a new browser window, use the *[extlink:window.open()@https://developer.mozilla.org/en-US/docs/Web/API/Window/open]* JavaScript function instead or create a [Javascript Action] that executes the [Open an .a5w page, static HTML page, URL, or PDF document, in a pop-up window or a DIV] Action Javascript.</note>
+        </section>
+    </sections>
+    <links>
+        <link link="javascript actions">Javascript Action</link>
+        <link link="open an .a5w page, static html page, url, or pdf document, in a pop-up window or a div">Open an .a5w page, static HTML page, URL, or PDF document, in a pop-up window or a DIV</link>
+    </links>
+</page>

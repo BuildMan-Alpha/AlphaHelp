@@ -111,7 +111,7 @@ Hello Sally Rome<br>]]></content>
                 </section>
                 <section>
                     <description>
-                        <p>Notice that since the {Firstname} and {Lastname} placeholders are nested inside the {Customer}...{/Customer} scope placeholders, it is not necessary to use fully qualified placecholders (e.g. {Customer.Firstname}).</p>
+                        <p>Notice that since the {Firstname} and {Lastname} placeholders are nested inside the {Customer}...{/Customer} scope placeholders, it is not necessary to use fully qualified placeholders (e.g. {Customer.Firstname}).</p>
                         <p>The benefit of placing your array as a property of an object, rather than at the top level, is that you can then use the {*header} and {*footer} constructs, and you can compute summary information (such as the number of items in the array, an average value of a field in the array, etc).</p>
                     </description>
                 </section>
@@ -121,11 +121,24 @@ Hello Sally Rome<br>]]></content>
                         <p>Client-side Templates are used in the [List Control], [ViewBox Control], and [FormView Control] to define how data is formatted and displayed in these controls. </p>
                         <p>On the client browser, JavaScript can be used to expand a Client-side Template. The [A5.u.template.expand()] function merges JSON data into a Client-side Template, returning HTML to display in the browser.</p>
                     </description>
-                    <example><![CDATA[JavaScript Example Here]]></example>
+                    <example><![CDATA[var templateString = 'Hello {fname} {lname}';
+var data = {fname: 'David', lname: 'Smith'};
+var settings = { 
+    template: templateString
+}
+var html = A5.u.template.expand(data,settings);]]></example>
                 </section>
                 <section>
                     <description>
-                        <p>Client-side Templates can also be used in conjuction with Xbasic to generate HTML to display. The [a5_merge_JSON_into_template] function can be used to merge JSON data into a template defined using Client-side Template syntax. The template can reference [JavaScript functions], [partial templates], and locally defined CSS styles.</p>
+                        <p>If no other settings are defined other than the template, you can pass in the template string instead of the settings object. For example:</p>
+                    </description>
+                    <example code="cst"><![CDATA[var templateString = 'Hello {fname} {lname}';
+var data = {fname: 'David', lname: 'Smith'};
+var html = A5.u.template.expand(data,templateString);]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>Client-side Templates can also be used in conjunction with Xbasic to generate HTML to display. The [a5_merge_JSON_into_template] function can be used to merge JSON data into a template defined using Client-side Template syntax. The template can reference [JavaScript functions], [partial templates], and locally defined CSS styles.</p>
                      </description>
                 </section>
             </sections>
@@ -435,7 +448,12 @@ Employee is not based in MA or CA<br/>
                 <section>
                     <title>Formatting Directives</title>
                     <description>
-                        <p>You can include formatting directives in the template placeholder to format numeric values and strings, and to format date values.</p>
+                        <p>You can include formatting directives in the template placeholder to format numeric values and strings, and to format date values. Formatting directives make it easy to present data in alternative formats without modifying the underlying value. For example, converting a string to lower case or displaying a numeric value as currency.</p>
+                    </description>
+                </section>
+                <section>
+                    <title nested="2">Numeric Directives</title>
+                    <description>
                         <p>To format a numeric value, use the <![CDATA[:number(formattingDefinition)]]> directive in your placeholder.</p>
                         <p>For example, assume you have a field called Price, which contains this value: 123456.345.</p>
                         <p>You might define the template to emit this field as follows:</p>
@@ -460,6 +478,7 @@ Employee is not based in MA or CA<br/>
                     <content><![CDATA[<div>(617) 555-1234</div>]]></content>
                 </section>
                 <section>
+                    <title nested="2">Date Directives</title>
                     <description>
                         <p>To format a date value, use the :date(formattingDefinition) directive in your placeholder.</p>
                         <p>You can use the following symbols in the formattingDirective.</p>
@@ -498,13 +517,123 @@ Employee is not based in MA or CA<br/>
                     </cases>
                 </section>
                 <section>
+                    <note>The missing data directive can be combined with formatting directives. For example:  <![CDATA[{price:number('#.00')||N/A}]]></note>
+                </section>
+                <section build="4938">
+                    <title nested="3">'Friendly' Date Directives</title>
                     <description>
-                        <p>You can also use the :uppercase and :lowercase directives to force string values to upper or lower case.</p>
+                        <p>In addition to formatting dates using a date format string, you can also format dates to display using a "Friendly Date" format. Friendly dates are dates shown in relation to the current time. For example, "In 1 hour" or "tomorrow".</p>
+                    </description>
+                </section>
+                <section>
+                    <description>
+                        <p>The following directives can be used to format dates or strings using a 'friendly' date format:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <title nested="3">{date:dateRelative(precision,scope)}</title>
+                            <description>
+                                <p></p>
+                            </description>
+                            <list bullet="true">
+                                <item>
+                                    <name>*[precision]* - How many units of time to show in the relative date. The recommended precision is 1. A value of -1 can be used to show all units.</name>
+                                </item>
+                                <item>
+                                    <name>*[scope]* - The scope of difference. This can be "years", "months", "weeks", "days", "hours", "minutes" and/or "seconds". </name>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="3">{string:dateStringRelative(formatIn,precision,scope)}</title>
+                            <description></description>
+                            <list bullet="true">
+                                <item>
+                                    <name>*[formatIn]* - The format definition that describes how the date string is formatted.</name>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="3">{date:dateCalendar(type,showTime)}</title>
+                            <description></description>
+                            <list bullet="true">
+                                <item>
+                                    <name>*[type]* - The type of date to show. Value can be "abbreviated", "standard" or "extended".</name>
+                                </item>
+                                <item>
+                                    <name>*[showTime]* - When to show the time component of the date. Value can be "always", "never", "day" (the default), "3-day", "today", "month" or "year".</name>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="3">{string:dateStringCalendar(formatIn,type,showTime)}</title>
+                            <description></description>
+                            <list bullet="true">
+                                <item>
+                                    <name>*[formatIn]* - The format definition that describes how the date string is formatted.</name>
+                                </item>
+                            </list>
+                        </case>
+                    </cases>
+                    <note>
+                        <p>The 'Friendly' date directives were added to make it easier to utilize the [Date.toCalendar] and [Date.toRelative] JavaScript date formatting functions.</p>
+                    </note>
+                </section>
+                <section>
+                    <description>
+                        <p>The easiest to add a 'Friendly' date directive to a template is with the *[ui:Friendly Date Format Builder]*. The *[ui:Friendly Date Format Builder]* will be shown when you select "'Friendly' date format" from the Insert Directive menu in the List, FormView, ViewBox, or ControlBar builders:</p>
+                    </description>
+                    <figure>
+                        <title>The *[ui:Insert format directive]* menu in the List Control</title>
+                        <link>images/formatdirectives.jpg</link>
+                    </figure>
+                    <figure>
+                        <title>The Friendly Date Format Builder</title>
+                        <link>images/dateformattemplates.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <title nested="2">Text Directives</title>
+                    <description>
+                        <p>There are several directives that can be used for string values. These include:</p>
+                    </description>
+                    <list bullet="true">
+                        <item>
+                            <name>:lowercase</name>
+                        </item>
+                        <item>
+                            <name>:uppercase</name>
+                        </item>
+                        <item>
+                            <name>:sentencecase</name>
+                        </item>
+                        <item>
+                            <name>:titlecase</name>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <title nested="3">:lowercase and :uppercase</title>
+                    <description>
+                        <p>You can use the :uppercase and :lowercase directives to force string values to upper or lower case.</p>
                         <p>For example:</p>
                     </description>
                     <example><![CDATA[{name:uppercase}
 {name:lowercase}]]></example>
-                    <note>The missing data directive can be combined with formatting directives. For example:  <![CDATA[{price:number('#.00')||N/A}]]></note>
+                </section>
+                <section build="4938">
+                    <title nested="3">Using :sentencecase and :titlecase</title>
+                    <description>
+                        <p>In addition to *[cst::uppercase]* and *[cst::lowercase]*, you can also use the *[cst::sentencecase]* and *[cst::titlecase]* directives to style text. These directives can be used to format strings with upper and lowercase letters.</p>
+                        <p>:sentencecase will capitlize the first letter of the first word in the string. All other characters will be lower case. For example, "John Doe" becomes "John doe" when the field that contains the value (e.g. Fullname) is formatted using :sentencecase:</p>
+                    </description>
+                    <example code="cst"><![CDATA[{fullname:sentencecase}]]></example>
+                </section>
+                <section>
+                    <description>
+                        <p>:titlecase will capitalize the first letter of every word (and lower case all others.) For example, assume a field called "title" contains the value "Getting started with client-side templates". This text can be formatted to read "Getting Started With Client-side Templates" using the :titlecase directve as shown below:</p>
+                    </description>
+                    <example code="cst"><![CDATA[{title:titlecase}]]></example>
                 </section>
                 <section>
                     <title>Expressions</title>
@@ -1092,44 +1221,12 @@ Fred Smith<br/>
                     <description>
                         <p>You can use the special "root" and "temp" variables in a template by enclosing them in [ and ].</p>
                         <p>The example below demonstrates the use of both [root] and [temp] in the template.</p>
-                        <p>TIP: To watch a video of how the template used in this example was developed, watch these videos:</p>
+                        <p>TIP: To watch a video of how the template used in this example was developed, watch this video:</p>
                     </description>
                     <videos>
                         <video>
-                            <name>Watch Video - Part 1</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_1.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 2</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_2.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 3</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_3.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 4</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_4.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 5</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_5.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 6</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_6.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 7</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_7.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 8</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_8.swf</link>
-                        </video>
-                        <video>
-                            <name>Watch Video - Part 9</name>
-                            <link>http://www.ajaxvideotutorials.com/V12Videos/ux_client_side_template_tutorial_9.swf</link>
+                            <name>Watch Video</name>
+                            <link>https://www.viddler.com/v/4f5b3e82</link>
                         </video>
                     </videos>
                 </section>
@@ -1665,7 +1762,7 @@ center: 'Boston MA'
                 <section>
                     <description>
                         <p>Where *[js:a]*, *[js:b]* and *[js:c]* are data variables that you want to define so that if they are referenced in an *[js:{*if}]* block, the *[js:{*if}]* block will evaluate correctly.</p>
-                        <p>For example, assume the data passsed to a template is:</p>
+                        <p>For example, assume the data passed to a template is:</p>
                     </description>
                     <example><![CDATA[{bar: 'world'}]]></example>
                 </section>
@@ -1696,7 +1793,7 @@ center: 'Boston MA'
                 <section>
                     <title>Defined/Undefined</title>
                     <description>
-                        <p>The defined and undefined directives provde a shorthand syntax for checking if a list of variables are or are not defined.</p>
+                        <p>The defined and undefined directives provide a shorthand syntax for checking if a list of variables are or are not defined.</p>
                         <p> It is common in the logical expressions in a *[js:{*if}]* block to check that certain variables are defined or undefined. The code to do this can be cumbersome and the *[js:<![CDATA[<defined<variableList>>]]>]* and *[js:<![CDATA[<undefined<variableList>>]]>]* directives make your template more readable.</p>
                         <p>For example, imagine you had the following template:</p>
                     </description>
@@ -1752,7 +1849,7 @@ center: 'Boston MA'
             <sections>
                 <section>
                     <title>&lt;ul&gt; Example</title>
-                    <description>This example demonstrates usign HTML unordered lists with Client-side Templates.</description>
+                    <description>This example demonstrates using HTML unordered lists with Client-side Templates.</description>
                 </section>
                 <section>
                     <description>The &lt;ul&gt;&lt;/ul&gt; tags define an unordered list. &lt;li&gt;&lt;/li&gt; tags placed inside the list tags define an entry in the list </description>
@@ -1965,6 +2062,8 @@ center: 'Boston MA'
         <link link="a5_merge_JSON_into_template function">a5_merge_JSON_into_template</link>
         <link href="#section1_Partial Templates">partial templates</link>
         <link href="#section1_Functions">JavaScript functions</link>
+        <link link="api client api date tocalendar method">Date.toCalendar</link>
+        <link link="api client api date torelative method">Date.toRelative</link>
     </links>
     <see>
         <ref link="client side templating syntax">Client-side Template Syntax Reference</ref>

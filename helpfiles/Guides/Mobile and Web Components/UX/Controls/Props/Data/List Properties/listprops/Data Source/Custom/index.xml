@@ -1,11 +1,598 @@
 <page>
     <shortlink>ux list custom properties</shortlink>
     <topic>Custom</topic>
-    <description>Here</description>
-  
-  
-<!--list:.-->
+    <description>Settings defining the Xbasic and optional JavaScript functions to call to populate a List control based on a custom data source.</description>
+    <groups>
+        <group>
+            <title>Xbasic function name</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>The *[ui:Xbasic function name]* property defines the name of the Xbasic function to call to fetch data for the List control. The function must be defined before defining the List's layout. This is because the Fields for the List control are computed by making a call to the Xbasic function to retrieve the fields in the data.</p>
+                        <p>The Xbasic function can be defined in the UX component's Xbasic Functions code section or in the List control. Defining the Xbasic in the List control will keep the Xbasic function with the List, meaning if the List control is copied between components, the Xbasic function that populates will also be copied. See [Define Xbasic in control] to learn more.</p>
+                    </description>
+                </section>
+                <section>
+                    <description>
+                        <p>The Xbasic function is called under the following conditions:</p>
+                    </description>
+                    <list bullet="true">
+                        <item>
+                            <name>When the List is originally populated</name>
+                        </item>
+                        <item>
+                            <name>When a callback is made to go to the next page of data, fetch more data, refresh data, perform sever-side searching or sorting</name>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>The Xbasic function must return data in one of the following formats:</p>
+                    </description>
+                    <list bullet="true">
+                        <item>
+                            <name>A CR-LF delimited list of values representing the List data. Columns in each row are pipe ("|") delimited.</name>
+                        </item>
+                        <item>
+                            <name>A JSON string with an array of objects.</name>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>If specify the data as a CR-LF delimited list of values, the first row in the returned data must be the field names for each column in the List data. The field names can include optional type information. If the data includes "|" or CR-LF characters, you must encode them using *[xb:\pipe;]* or *[xb:\crlf;]*.</p>
+                        <p>The following Xbasic function returns a CR-LF delimited list:</p>
+                    </description>
+                    <example code="xb"><![CDATA[function myXbFunction as c (e as p)
+    dim values as c
+    values =<<%txt%
+Firstname|Lastname|Age=N|HireDate=D
+John|Smith|35|12/15/2005
+Henry|Mancini|23|1/1/2004
+%txt%
 
+    myXbFunction = values
 
+end function]]></example>
+                    <note>
+                        <p>The type specified in the field header indicates the data type for the field when the field is used in a server-side expression (e.g. a conditional style.) The type does not indicate the type of the field in the List data. All List data is string values unless a *[ui:Data transformation]* is defined for a Field.</p>
+                    </note>
+                </section>
+                <section>
+                    <description>
+                        <p>The next example returns data as a JSON string:</p>
+                    </description>
+                    <example code="xb"><![CDATA[function myXbFunction as c (e as p)
+    dim values as c
+    values =<<%json%
+[
+    {"Firstname":"John","Lastname":"Smith","Age":35,"HireDate":Date("12/15/2005")},
+    {"Firstname":"Henry","Lastname":"Mancini","Age":23,"HireDate":Date("1/1/2004")}
+]
+%json%
 
+    myXbFunction = values
+
+end function]]></example>
+                </section>
+                <section>
+                    <title>Xbasic Function Arguments</title>
+                    <description>
+                        <p>The *[xb:e]* object passed to the Xbasic function contains the following parameters. Some parameters are only available if the List includes a search part or if a filter or order have been applied to the List:</p>
+                    </description>
+                    <tip>Put a *[xb:Debug(1)]* statement in your Xbasic function and then run the UX Component in Working Preview. This will open the debugger and allow you to to inspect the contents of the *[xb:e]* object.</tip>
+                    <cases>
+                        <case>
+                            <title nested="2">Arguments</title>
+                            <description>
+                                <p>The following arguments are provided to the Xbasic function when it is called. Some arguments are only available if the Xbasic function is called in an Ajax Callback.</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name-title>Argument</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>e.tmpl</name>
+                                    <description>The component definition.</description>
+                                </item>
+                                <item>
+                                    <name>e.rtc</name>
+                                    <description>The rtc object.</description>
+                                </item>
+                                <item>
+                                    <name>e.arguments</name>
+                                    <description>Values for any arguments defined in the component.</description>
+                                </item>
+                                <item>
+                                    <name>e.dataSubmitted</name>
+                                    <description>Any data from controls on the component. *[xb:e.dataSubmitted]* is only meaningful when the function is called in an Ajax Callback. Use the [eval_valid()] function to validate that a value exists before you use it. EG: *[xb:if eval_valid("e.dataSubmitted.myvar1") then ...]* </description>
+                                </item>
+                                <item>
+                                    <name>e.__javascriptFunctionResults</name>
+                                    <description>If a Javascript function was specified in addition to an Xbasic function, result from the Javascript function</description>
+                                </item>
+                                <item>
+                                    <name>e._state</name>
+                                    <description>State information for the component.</description>
+                                </item>
+                                <item>
+                                    <name>e.listDefinition</name>
+                                    <description>All of the List control's properties.</description>
+                                </item>
+                                <item>
+                                    <name>e.paginateData</name>
+                                    <description>Indicates if data pagination is turned on (*[xb:.T.]*) or off (*[xb:.F.]*).</description>
+                                </item>
+                                <item>
+                                    <name>e.targetPage</name>
+                                    <description>If pagination is enabled, the target page of data to show.</description>
+                                </item>
+                                <item>
+                                    <name>e.targetLogicalRecord</name>
+                                    <description>The target logical record to show.</description>
+                                </item>
+                                <item>
+                                    <name>e.getDataMode</name>
+                                    <description>The data mode. Can be one of the following:</description>
+                                    <list>
+                                        <item>
+                                            <name-title>Mode</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>PopulateList</name>
+                                            <description>When the List is initially populated or refreshed.</description>
+                                        </item>
+                                        <item>
+                                            <name>FetchMore</name>
+                                            <description>When List pagination is turned on, and pagination method is set to FetchMore and the user has clicked the 'Fetch More' button.</description>
+                                        </item>
+                                        <item>
+                                            <name>Navigate</name>
+                                            <description>When List pagination is turned on, and the user has navigates to another 'page' of records.</description>
+                                        </item>
+                                        <item>
+                                            <name>RefreshRow</name>
+                                            <description>When the user refreshes the data in the current row.</description>
+                                        </item>
+                                        <item>
+                                            <name>RefreshRowByKey</name>
+                                            <description>When the user refreshes a set of rows in the List by specifying key values of the rows to refresh.</description>
+                                        </item>
+                                        <item>
+                                            <name>FetchExplicit</name>
+                                            <description>When the user appends rows to the List by specifying key values of the rows to append.</description>
+                                        </item>
+                                        <item>
+                                            <name>Sort</name>
+                                            <description>When the user does a server-side sort on a column.</description>
+                                        </item>
+                                    </list>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="2">Output Arguments</title>
+                            <description>
+                                <p>The Xbasic function can set the following properties in the *[xb:e]* object. These are output variables that can be used to return errors, JavaScript to execute on the client, or other data that is used by other controls.</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name-title>Argument</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>e.fatalError</name>
+                                    <description>Set to *[xb:.T.]* to indicate an error occurred during execution.</description>
+                                </item>
+                                <item>
+                                    <name>e.errorText</name>
+                                    <description>If an error occurs, the error message to display.</description>
+                                </item>
+                                <item>
+                                    <name>e.javascript</name>
+                                    <description>Optional JavaScript to execute when the List is rendered.</description>
+                                </item>
+                                <item>
+                                    <name>e.recordsInQuery</name>
+                                    <description>The number of records returned. This argument is used with the [List-record count] control to display the total records in the List. If you want to use the *[ui:List-record count]* control with a List control that uses a custom data source, you must set this property.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="2">Filter/Order Arguments</title>
+                            <description>
+                                <p>If a filter or order has been applied to the List control, the following arguments will be available:</p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name-title>Argument</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>e.userFilter</name>
+                                    <description>If a filter has been applied to the List, the filter expression.</description>
+                                </item>
+                                <item>
+                                    <name>e.userOrder</name>
+                                    <description>If an order has been applied to the List, the order expression.</description>
+                                </item>
+                                <item>
+                                    <name>e.filterParameters</name>
+                                    <description>If a filter as been applied to the List, contains a CR-LF delimited list of arguments used in the *[xb:e.userFilter]* expression. The format for this expression is *[xb:value|||argumentType|argumentName]*</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="2">Search Arguments</title>
+                            <description>
+                                <p>If the List control has a Search Part, the following properties are provided. These properties </p>
+                            </description>
+                            <list>
+                                <item>
+                                    <name-title>Argument</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>e.delayPopulateTillActiveSearch</name>
+                                    <description>If the List has a search part, indicates if the List should only be populated if there is an active search. If e.getDataMode = "populateList" and there is no active search (e.flagActiveSearch = .f.) then your function should not return any data (other than column heading.)</description>
+                                </item>
+                                <item>
+                                    <name>e.flagActiveSearch</name>
+                                    <description>If the List has a search part, indicates that the user executed a search to find records with which to populate the List.</description>
+                                </item>
+                                <item>
+                                    <name>e.maxPayloadAllowed</name>
+                                    <description>If the List has a search part, the maximum payload allowed for the search results (size of result in bytes). if this value is -1 then no max was specified.</description>
+                                </item>
+                                <item>
+                                    <name>e.maxRowsAllowed</name>
+                                    <description>If the List has a search part, the maximum number of rows allowed for the search result. if this value is -1 then no max was specified. Your function does not need to test if the search result meets the search maximum settings. The tests will be automatically done using the result returned by your function.</description>
+                                </item>
+                                <item>
+                                    <name>e.rowsReturned</name>
+                                    <description>*[Output Property]*. Indicates the number of rows returned by the Xbasic function. This property is required in order to determine if the number of rows returned meets the Maximum search size [number of rows] property for a List.</description>
+                                </item>
+                            </list>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                </section>
+                <section>
+                    <title>Setting the Record Count</title>
+                    <description>
+                        <p>You can optionally set the *[xb:e.recordsInQuery]* property to the number of records returned. This property is used with the [List-record count] pre-defined control. If *[xb:e.recordsInQuery]* is not set, the *[ui:List-record count]* control cannot be used with a List with a custom data source.</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim sqlCount as c = "SELECT * FROM [order details]"
+
+    if (cn.execute(sqlCount)) then
+        dim recordsInQuery as N
+        recordsInQuery = cn.resultSet.data(1)
+        e.recordsInQuery = recordsInQuery
+    else
+        ' error...
+    end if]]></example>
+                </section>
+                <section>
+                    <title>Error Reporting</title>
+                    <description>
+                        <p>If an error occurs while computing the data, the error can be returned to the List by setting the *[xb:e.fatalError]* and *[xb:e.errorText]* properties and then exit the function. For example:</p>
+                    </description>
+                    <example code="xb"><![CDATA[if (cn.open("::Name::conn") <> .t.) then
+    ' Unable to establish connection to database:
+    e.fatalError = .t.
+    e.errorText = "Unable to connect to database. Error was: " + cn.callResult.text
+    exit function
+end if]]></example>
+                </section>
+                <section>
+                    <title>Returning Javascript from Xbasic</title>
+                    <description>
+                        <p>Optional Javascript to execute when the List is rendered can be returned from the Xbasic function in the *[xb:e.javascript]* variable. For example:</p>
+                    </description>
+                    <example code="xb"><![CDATA[e.javascript = "alert('List data has been retrieved!');"]]></example>
+                </section>
+                <section>
+                    <title>Example: SQL Data Source with Pagination</title>
+                    <description>
+                        <p>This example will populate the List with data from the 'Order Details' Northwind sample database. The 'Order Details' table is used because it represents a more complex example - the primary key for this table is multi-column (e.g. orderId and productId.) Key values for multi-column keys are ||| delimited. For example *[xb:12048|||23]* (represents an OrderId of 10248 and a ProductId of 23)</p>
+                        <p>The example includes handling a List with pagination enabled.</p>
+                    </description>
+                </section>
+                <section>
+                    <example code="xb">
+                        <![CDATA[function getData as c (e as p)
+'Open the connection 
+dim cn as sql::Connection
+dim flag as l 
+flag = cn.open("::Name::AADemo-Northwind")
+if flag = .f. then 
+    e.fatalError = .t.
+    e.errorText = "Could not connect to database. " + crlf(2) + "Error reported was: " + cn.CallResult.text 
+    exit function 
+end if 
+
+'Turn on portable SQL 
+cn.PortableSQLEnabled = .t.
+
+'Compute the queryLimit for the SQL query 
+'e.g. "SELECT FIRST x field1 FROM table1" 
+'Note: This is not necessary if the List is not paginated
+dim queryLimit as n 
+queryLimit = ((e.targetPage -1) + 1) * e.pageSize
+
+'Define the SQL queries 
+dim sql as c 
+dim sqlCount as c 
+
+'This is the query that returns the data. If the List is not paginated,
+'you don't need to add a 'FIRST clause.
+sql = "SELECT FIRST "+queryLimit+"  * FROM [order details]"
+
+if e.paginateData  = .f. then 
+    sql = "SELECT * FROM [order details]"
+end if 
+
+'This is the query that returns the count of the number of records in the List query.
+sqlCount = "select count(*) from [order details]"
+
+dim args as sql::arguments 
+
+if e.getDataMode = "PopulateList" .or. e.getDataMode = "fetchMore" .or. e.getDataMode = "Navigate" .or. e.getDataMode = "sort" then 
+    'If the List has a search part which is configured to 'delay populate list till active 
+    'search' then exit if there is no active search
+    if e.delayPopulateTillActiveSearch = .t. then 
+        if e.getDataMode = "populateList" then 
+            if e.flagActiveSearch = "" then 
+                cn.close()
+                exit function 
+            end if 
+        end if 
+    end if 
+
+    'if the user has applied a filter/order, add it in
+    if e.filterParameters <> "" then	
+        a5DialogHelper_ParametersToArguments(e.filterParameters,args)
+    end if 
+    sqlCount =  a5cs_sql_add_filter_order(sqlCount,e.userFilter,"","")
+    
+    dim userOrderClause as c 
+    userOrderClause = e.userOrder
+    if left(e.userOrderDirection,1) = "D" then 
+        userOrderClause = userOrderClause + " DESC"
+    end if 
+    sql =  a5cs_sql_add_filter_order(sql,e.userFilter,"",userOrderClause)
+
+    flag = cn.Execute(sqlCount,args)
+    if flag = .f. then 
+        e.fatalError = .t.
+        e.errorText = "Could not execute count records query. " + crlf(2) + "Error reported was: " + cn.CallResult.text 
+        cn.close()
+        exit function 
+    end if 
+    
+    dim recordsInQuery as n 
+    recordsInQuery = cn.ResultSet.data(1)
+    e.pageCount = round_up(recordsInQuery / e.pageSize,0)
+    
+    e.recordsInQuery = recordsInQuery
+    
+    'set the state of the 'Fetch More' button
+    if e.targetPage = e.pageCount then 
+        e.flagTurnOffFetchMore = .t.
+    else
+        e.flagTurnOffFetchMore = .f.
+    end if 
+end if 
+
+if e.getdatamode = "refreshrowByKey" .or. e.getDataMode = "refreshRow" .or. e.getDataMode = "fetchExplicit" then 
+    dim where as c 
+    dim sqlWhereTemplate as c 
+    sqlWhereTemplate = " ( orderId = :orderId_i_ AND productId = :productId_i_ )"
+
+    dim i as n 
+    dim count as n 
+    count = e.keys.size()
+
+    'create a clause in the WHERE statement for each key in the e.keys[] array.
+    'since the primary key is multi-column, each key in the array will be delimited
+    'with 3 pipes. For example, the key for a record with an OrderId of 10248 and 
+    'a part number of 4 is: 10248|||5
+
+    for i = 1 to count 
+        where = where + stritran(sqlWhereTemplate,"_i_","" + i) + crlf()
+
+        'the orderId is the segment to the left of the ||| delimiter. the data in the array 
+        'must be converted to the correct data type.
+        args.add("orderId" + i, convert_type(word(e.keys[i],1,"|||"), "N") )
+        
+        'the productId is the segment to the right of the ||| delimiter. the data in the array 
+        'must be converted to the correct data type.
+        args.add("productId", convert_type( word(e.keys[i],2,"|||"), "N") )
+
+    next i 
+
+    'at this point the WHERE variable is a crlf delimited list of clauses. Join the clauses 
+    'with the OR keyword.
+    where = stritran( alltrim(where), crlf()," OR ")
+    
+    'now, add the where clause to the sql statement
+    sql = a5cs_sql_add_filter_order(sql,where)
+
+end if 
+
+'execute the query 
+flag = cn.Execute(sql,args)
+
+if flag = .f. then 
+    e.fatalError = .t.
+    e.errorText = "Could not execute query. " + crlf(2) + "Error reported was: " + cn.CallResult.text 
+    cn.close()
+    exit function
+end if 
+
+dim rs as sql::ResultSet
+rs = cn.ResultSet
+if e.getDataMode = "Navigate" .or.e.getDataMode = "fetchMore" then 
+    'move to the target logical row number 
+    rs.GoToRow(e.targetLogicalRecordNumber)
+end if 
+
+dim txt
+
+'dump the data from the resultSet in JSON format
+'txt = rs.ToJSONObjectSyntax()
+'TIP: The .toJSONObjectSyntax() method treats all data as character type.
+'In some cases you will want the data to be correctly typed. You can use the rsToJSON() 
+'function in this case. The disadvantage of rsToJSON() is that it is slightly slower than 
+'rs.toJSONObjectSyntax()
+
+txt = rsToJSON(rs,-1,-1,.f.,.f.)
+
+'The data is a CR-LF delimited string of JSON objects. A comma is needed after each JSON object
+txt = crlf_to_comma(txt)
+
+'now add the leading and closing [ ] to turn the data in a Javascript array object.
+txt = "[" + txt + "]"
+
+getData = txt 
+
+'clean up
+cn.FreeResult()
+delete rs 
+cn.close()
+
+'Store the list state information in the e.listState object. 
+'This is important or else when you navigate to the next page (for example), the filter that 
+'has been applied to the list (if any) will be lost
+'You can store arbitrary information in the e.listState object. This object is available on '
+'all callbacks to this function
+
+e.listState.filter = e.userFilter
+e.listState.order = e.userOrder
+e.listState.filterParameters = e.filterParameters
+
+end function]]>
+                    </example>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Javascript function</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>Before an Ajax callback is made to the Xbasic function that returns the data for the List, an optional *[ui:Javascript function]* can be called. The Javascript function can return data that will be available to the Xbasic function that computes the data for the List. The optional Javascript function is only needed if the Xbasic function needs information that is only available on the client. The data returned can be a string, array or object.</p>
+                        <p>Data from the Javascript function will be available in the *[xb:e.__javascriptFunctionResults]* variable. The variable will only be defined in an Ajax Callback. It is recommended that you define a default value for the *[xb:e.__javascriptFunctionResults]* variable in your Xbasic function. If the variable does not exist when the function is called, it will be created with a default value:</p>
+                    </description>
+                    <example code="xb">
+                        <![CDATA[dim e.__javascriptFunctionResults as c = default ""]]>
+                    </example>
+                </section>
+                <section>
+                    <title>Example 1: Returning a Single Value</title>
+                    <description>
+                        <p>This example demonstrates a Javascript function that returns a single value, *[js:'explodedSlice=3']*:</p>
+                    </description>
+                    <example code="">
+                        <![CDATA[function jsData() {
+    return 'explodedSlice=3';
+}]]>
+                    </example>
+                </section>
+                <section>
+                    <description>
+                        <p>In the Xbasic function, *[xb:xbData]*, the value returned by the Javascript function *[js:jsData()]* can be accessed via the *[xb:e.__javascriptFunctionResults]* variable.</p>
+                    </description>
+                    <example code="xb">
+                        <![CDATA[function xbData as c (e as p)
+    dim e.__javascriptFunctionResults as c = default ""
+    dim explodedSlice as c = ""
+
+    if e.__javascriptFunctionResults <> "" then
+        'e.__javascriptFunctionResult will be a string like this: "explodedSlice=3" - get the word after the = sign.
+        explodedSlice = word(e.__javascriptFunctionResults,2,"=")
+    end if
+
+end function]]>
+                    </example>
+                </section>
+                <section>
+                    <title>Example 2: Returning an Object</title>
+                    <description>
+                        <p>In addition to a single value, an object can be returned from the Javascript function. In the example below, *[js:jsData()]* returns an object with two properties: *[js:explodedPieSlice]* and *[js:name]*.</p>
+                    </description>
+                    <example code="js">
+                        <![CDATA[function jsData() {
+    var o = {};
+    o.explodedPieSlice = 3;
+    o.name = 'East';
+    return o; //function returns an object
+}]]>
+                    </example>
+                </section>
+                <section>
+                    <description>
+                        <p>In the Xbasic function *[xb:xbData()]*, [json_parse()] can be used to convert the object from the Javascript function into a dot variable:</p>
+                    </description>
+                    <example code="xb">
+                        <![CDATA[function xbData as c (e as p)
+    dim e.__javascriptFunctionResults as c = default ""
+    dim p as p
+
+    if e.__javascriptFunctionResults <> "" then
+        'parse the function result - it is in JSON format
+        p = json_parse(e.__javascriptFunctionResults)
+    end if
+
+    dim p.explodedPieSlice as n = default -1
+    dim p.name as c = default ""
+
+end function]]>
+                    </example>
+                </section>
+                <section>
+                    <title>Example 3: Returning an Array</title>
+                    <description>
+                        <p>Data can also be returned as an array from the Javascript function. For example, *[js:jsData()]* below returns an array containing 3 values: *[js:[1,3,5]]*.</p>
+                    </description>
+                    <example code="js">
+                        <![CDATA[function jsData() {
+    var a = [1,3,5];
+    return a; //function returns an array
+}]]>
+                    </example>
+                </section>
+                <section>
+                    <description>
+                        <p>[json_parse()] is used in the Xbasic function to convert the data into a dot variable, making it easier to work with:</p>
+                    </description>
+                    <example code="xb">
+                        <![CDATA[function xbData as c (e as p)
+    dim e.__javascriptFunctionResults as c = default ""
+    dim p as p
+
+    if e.__javascriptFunctionResults <> "" then
+        p = json_parse(e.__javascriptFunctionResults)
+    end if
+
+    dim arraySize as n
+    arraySize = p.size()
+    'array values are in p[1], p[2], etc.
+
+end function]]>
+                    </example>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link link="json_parse function">json_parse()</link>
+        <link link="ux defined controls list record count">List-record count</link>
+        <link link="eval_valid function">eval_valid()</link>
+        <link link="list%20builder%20properties%20search%20part#section1_Maximum search size properties">number of rows</link>
+        <link link="ux list custom advanced properties">Define Xbasic in control</link>
+    </links>
 </page>

@@ -372,7 +372,8 @@ function localToClickHandler(e) {
 }
 
 function onSearch() {
-    let target = "/documentation/pages/search";
+    let basePath = window.location.pathname.split("pages")[0];
+    let target = basePath+"pages/search";
     let pattern = document.getElementsByName("pattern")[0];
     let search = document.getElementsByName("search")[0];
     let display = document.getElementsByName("display")[0];
@@ -430,38 +431,6 @@ function gotoFlattenPage(isFlat) {
 
 
 function loaded() {
-    //var btns = document.querySelectorAll('.clipboardButton');
-    //for (var i = 0; i < btns.length; i++) {
-    //    btns[i].addEventListener('mouseleave', function(e) {
-    //        e.currentTarget.setAttribute('class', 'clipboardButton');
-    //        e.currentTarget.removeAttribute('aria-label');
-    //    });
-    //}
-    function showTooltip(elem, msg) {
-        elem.setAttribute('class', 'clipboardButton tooltipped tooltipped-s');
-        elem.setAttribute('aria-label', msg);
-    }
-    function fallbackMessage(action) {
-        var actionMsg = '';
-        var actionKey = (action === 'cut' ? 'X' : 'C');
-        if (/iPhone|iPad/i.test(navigator.userAgent)) {
-            actionMsg = 'No support :(';
-        } else if (/Mac/i.test(navigator.userAgent)) {
-            actionMsg = 'Press ⌘-' + actionKey + ' to ' + action;
-        } else {
-            actionMsg = 'Press Ctrl-' + actionKey + ' to ' + action;
-        }
-        return actionMsg;
-    }
-    //hljs.initHighlightingOnLoad();    
-    // Load the included clipboard.js
-    //clippy = new Clipboard('.clipboardButton');
-    //clippy.on('success', function(e) {
-    //    showTooltip(e.trigger, 'Copied!');
-    //});
-    //clippy.on('error', function(e) {
-    //    showTooltip(e.trigger, fallbackMessage(e.action));
-    //});
     getGitTimestamp();
     buildVersion();
     betaSoftware();

@@ -32,6 +32,9 @@ var dirCreateRecurs = function(folderName) {
         fs.mkdirSync(folderName);
     }
 };
+
+
+
 var indentLevelCalc = function(txt) {
     var i;
     for (i = 0; i < txt.length; ++i) {
@@ -68,7 +71,7 @@ var protectXml = function(content) {
         content.indexOf("<") >= 0 ||
         content.indexOf(">") >= 0
     ) {
-        content = "<![CDATA[" + content + "]]>";
+        content = content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
     return content;
 };
@@ -175,7 +178,7 @@ var RecursProperties = function(properties, indented) {
     return xml;
 };
 
-var buildContext = function(content) {
+var buildContext = function(content,buildNum) {
     var lines = content.split('\n');
     var line = null;
     var type = null;
@@ -183,8 +186,11 @@ var buildContext = function(content) {
     for (i = 0; i < lines.length; ++i) {
         line = lines[i].trim().toLowerCase();
         if (line.indexOf('class:') === 0 || line.indexOf('namespace:') === 0 || line.indexOf('object:') === 0) {
+			
             context = lines[i].substr(lines[i].indexOf(':') + 1).trim();
             type = line.split(':')[0].trim();
+			console.log('A type:'+type+' ctx: '+context);
+			
             if (line.indexOf('object:') !== 0) {
                 lastContext = context;
             } else if (context.indexOf('.') < 0) {
@@ -204,10 +210,11 @@ var buildContext = function(content) {
                             if (tParentContext) {
                                 allParts[j] += '_' + tParentContext.type;
                             } else {
-                                allParts[j] += '_class';
+								if(allParts[j][0].toUpperCase() ===  allParts[j][0]) allParts[j] += '_class';
+								else allParts[j] += '_namespace';
                             }
                         }
-                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type };
+                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type, build: buildNum};
                         console.log("Added context: " + context + " - path: " + allParts);
                     } else {
                         console.log("Could not find parent: " + allParts[0]);
@@ -228,7 +235,7 @@ var expandShorthand = function(macro, env, args) {
     return null;
 };
 
-var generateXMLHelp = function(content) {
+var generateXMLHelp = function(content,buildNum) {
     var lines = content.split('\n');
     var i, j;
     var context = lastContext;
@@ -368,6 +375,7 @@ var generateXMLHelp = function(content) {
                     topContext = context;
                 } else if (type === "namespace" || type === "class" || type === "object") {
                     context = line.substring(splitPos + 1).trim();
+					console.log('B type:'+type+' ctx: '+context);
                     if (context.indexOf('.') < 0 && type === "object" && topContext) {
                         // Object does not have a fully qualified name
                         //titleContext = context; // This line strips out the class prefix for context - which is deemed undesirable now
@@ -600,7 +608,9 @@ var generateXMLHelp = function(content) {
         }
         methodIndex[lContext].push({ name: pageName.split(".").pop(), description: description });
     }
-    var xml = "<page api=\"js\" generated=\"true\">\r\n";
+	var buildTxt = '';
+	if(buildNum != '') buildTxt = 'build="'+buildNum+'" ';
+    var xml = "<page "+buildTxt+"api=\"js\" generated=\"true\">\r\n";
 
     if (pageName) {
         xml += "\t<shortlink>" + protectXml("api client api " + pageName.replace(/\./g, " ").toLowerCase()) + "</shortlink>\r\n";
@@ -644,6 +654,7 @@ var generateXMLHelp = function(content) {
             var elementName = null;
             if (lastDotPos > 0) {
                 parentContextName = context.substring(0, lastDotPos);
+				console.log('looking: '+parentContextName)
                 if (build.context[parentContextName].type === "class") {
                     parentContextType = "class";
                 } else {
@@ -779,22 +790,28 @@ var generateXMLHelp = function(content) {
 var extractJsHelp = function() {
     async.eachSeries(sourceFiles, function(path, callbackLoop) {
         fs.readFile(path, "utf8", function(err, code) {
-            if (err) {;
+            var fileOps = [];
+            if (err) {
+                console.log(err);
             } else {
                 var options = { loc: true, range: false, comment: true }
                 var syntax = esprima.tokenize(code, options);
                 var i;
-                var fileOps = [];
+				var docStartIndx = 0;
+				var buildNum = '';
                 var contexts = {};
                 lastContext = null;
-
+				
                 console.log("---------- " + path.split("/").pop() + " ----------");
+				
                 for (i = 0; i < syntax.comments.length; ++i) {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
                         if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
-                            content = content.substring(5, content.length - 1).trim();
-                            buildContext(content);
+							docStartIndx = content.indexOf('\n')-1;
+							buildNum = content.substring(5,docStartIndx).trim();
+                            content = content.substring(docStartIndx, content.length - 1).trim();
+                            buildContext(content,buildNum);
                         }
                     }
                 }
@@ -803,8 +820,10 @@ var extractJsHelp = function() {
                     if (syntax.comments[i].type === "Block") {
                         var content = syntax.comments[i].value.trim();
                         if (content.substring(0, 5) === "[DOC:" && content.substring(content.length - 1) === ']') {
-                            content = content.substring(5, content.length - 1).trim();
-                            var helpPage = generateXMLHelp(content);
+							docStartIndx = content.indexOf('\n')-1;
+							buildNum = content.substring(5,docStartIndx).trim();
+                            content = content.substring(docStartIndx, content.length - 1).trim();
+                            var helpPage = generateXMLHelp(content,buildNum);
                             if (!contexts[helpPage.context])
                                 contexts[helpPage.context] = { files: [] };
                             contexts[helpPage.context].files.push({ pagename: helpPage.pagename, xml: helpPage.xml, topContext: helpPage.topContext });
@@ -814,6 +833,7 @@ var extractJsHelp = function() {
                 console.log("\n");
 
                 var ctxName;
+				var buildTxt = '';
                 for (ctxName in contexts) {
                     var ctx = contexts[ctxName];
                     var j;
@@ -823,7 +843,9 @@ var extractJsHelp = function() {
                                 var map = build.context[ctx.files[j].topContext];
                                 if (map) {
                                     if (map.description) {
-                                        var topXml = "<page api=\"js\" generated=\"true\">\r\n";
+										buildTxt = '';
+										if(map.build != '' && typeof map.build == 'string') buildTxt = 'build="'+map.build+'" ';
+                                        var topXml = "<page "+buildTxt+"api=\"js\" generated=\"true\">\r\n";
                                         topXml += "\t<topic>" + map.classname + " Namespace</topic>\r\n";
                                         topXml += "\t<description>" + protectXml(map.description) + "</description>\r\n";
                                         topXml += "\t<!--list:.-->\r\n";

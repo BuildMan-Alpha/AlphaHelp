@@ -1,0 +1,141 @@
+<page>
+    <shortlink>howto get pagevariable value</shortlink>
+    <topic>How to Extract the Value from a URI Query String</topic>
+    <!--How to reference a page variable in a client side expression-->
+    <description>
+        <p>URI Query Strings are used to provide page parameters to a web page -- such as an A5W page or HTML page. A specific value for a variable in a query string can be extracted on the client using JavaScript.</p>
+    </description>
+    <discussion>
+        <p>A URI Query String is a string of variables represented as "name=value" pairs separated by ampersands (&amp;). For example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example><![CDATA[var1=alpha&var2=beta&lastname=Smith&firstname=Betty]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The value for a specific variable can be extracted using JavaScript to parse the string.</p>
+            </description>
+        </section>>
+        <section>
+            <title>Parsing a Query String</title>
+            <description>
+                <p>The following function extracts the value for a specific *[js:varname]* from a query string *[js:str]*:</p>
+            </description>
+            <example code="js"><![CDATA[function getVariableFromURIString(str,varname) {
+    var result = "";
+    var s = str;
+    var indx = s.indexOf(varname+"=");
+    if (indx != -1) {
+        result = s.split(varname+"=")[1].split("&")[0];
+    }
+    return result;
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>It can be used as follows to extract the value for a variable named "V.R1.LASTNAME" from a query string that was created using the [{dialog.object}.getData()] method:</p>
+            </description>
+            <example code="js"><![CDATA[var d = {dialog.object}.getData();
+var lastname = getVariableFromURIString(d,"V.R1.LASTNAME");]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The same function can be used to extract state variable values from the Grid Component state info object that are fetched using the [{grid.object}.getStateInfo()] method. For example:</p>
+            </description>
+            <example code="js"><![CDATA[var stateData = {grid.object}.getStateInfo();
+//State variable names in the Grid are prefixed with the string "_si2."
+var myvar1 = getVariableFromURIString(stateData,"__si2.myvar1");]]></example>
+        </section>
+        <section>
+            <description>
+                <p>This is a simple function and does not enforce that the variable name matches. Rather, it assumes that the full variable name has been specified. If one or more variables end with the same string or a variable name ends with the same name as another variable, this method will not work to extract the value from the string. In order to enforce that the entire name matches, you must first convert the query string into an array. Then, you must iterate over each entry in the string and compare the variable name against the variable you want to extract the value for. For example:</p>
+            </description>
+            <example code="js"><![CDATA[function getVariableFromURIString(str,varname) {
+    var result = "";
+    var s = str;
+    s = s.split("&");
+    for (let value of s) {
+        value = value.split("=")
+        if (value[0] == varname) {
+            // match
+            result = value[1];
+            break;
+        }
+    }
+    return result;
+}]]></example>
+        </section>
+        <section>
+            <title>Decoding Query Strings</title>
+            <description>
+                <p>You may need to decode the query string. To decode the query string, use the *[js:decodeURIComponent()]* function. For example, suppose you have the following query string and you want to extract the value for "task_name":</p>
+            </description>
+            <example code=""><![CDATA[task_name=update%20website&percentcomplete=12%25&assigned_to=emp112]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The getVariableFromURIString() function above returns the following value:</p>
+            </description>
+            <example><![CDATA[update%20website]]></example>
+        </section>
+        <section>
+            <description>
+                <p>However, note that the spaces in the string are still encoded as "20%". *[js:decodeURIComponent()]* can be used to decode the string to its original value:</p>
+            </description>
+            <example code="js"><![CDATA[var s = decodeURIComponent(value);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>After decoding the string, the value is now this:</p>
+            </description>
+            <example><![CDATA[update website]]></example>
+        </section>
+        <section>
+            <description>
+                <p>*[js:decodeURIComponent()]* is a built-in function in the standard JavaScript framework. See the *[extlink:decodeURIComponent() documentation@https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent]* on Mozilla's website to learn more about this function.</p>
+                <p>If you want to build your own query strings, check out Alpha Anywhere's [A5.ajax] namespace which includes a number of functions that are useful for building query strings for Ajax Callbacks.</p>
+            </description>
+        </section>
+        <section>
+            <title>Referencing a Page Variable in a Client-side Expression</title>
+            <description>
+                <p>Client side expressions (calc fields, show/hide expressions, enable expressions, conditional image, and conditional style) can refer to session variables if you explicitly 'register' the session variables, as explained in the UI when you define one of these client side expressions.</p>
+                <p>However, you cannot directly reference a page variable in a client side expression. This section explains how you can do it.</p>
+                <p>Say you want to hide a control if a page variable called 'var1' is equal to 'alpha'.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>Define this show/hide expression:</p>
+                    </description>
+                    <example caption="A show/hide expression for a field in a UX"><![CDATA[getPageVariable('var1') = 'alpha']]></example>
+                </step>
+                <step>
+                    <description>
+                        <p>Add this function to Javascript Function Declarations:</p>
+                    </description>
+                    <example code="js"><![CDATA[function getPageVariable(varname) {
+    var a = new String(window.location);
+    a = a.split('?');
+    a = a[1].split('&');
+    var indx = $u.a.find(a,varname+'=',false,false)
+    a=a[indx].split('=')[1];
+    return a;
+}]]></example>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>How does this work? It gets the page URL from the window.location object in the browser's DOM, then parses the URL to extract the variable value.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link link="ux component getdata method">{dialog.object}.getData()</link>
+        <link link="js a5 ajax namespace">A5.ajax</link>
+        <link link="grid component getstateinfo method">{grid.object}.getStateInfo()</link>
+    </links>
+    <terms>page variables,url encode,url decode,uri encode,uri decode,query string,page parameters,client side expressions</terms>
+</page>

@@ -5,10 +5,69 @@
         <p>Fires when the Grid needs select records to display in the Grid. If you want to base the Grid on a stored procedure you can use this event to return a resultset to the Grid.</p>
     </description>
     <discussion>
-        <p>This event fires when the Grid performs a query to get a resultset of records to show in the Grid.</p>
+        <p>Each time the Grid is rendered it executes a SQL query to get a resultset of data to display in the Grid. This event fires before the select query is executed. You can add an event handler to this event to compute the resultset yourself and tell Alpha Anywhere not to try to to get the resultset itself.</p>
     </discussion>
     <sections>
         <section>
+            <important>
+                <p> If your Grid is based on a stored procedure then you *[must]* define code for this event.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>If your event handler takes over the responsibility of computing the resultset, it must set these properties:</p>
+            </description>
+            <example code="xb"><![CDATA[' Set the resultset to display in the Grid
+e.rs = e.cn.resultSet
+
+' Indicate the resultset has been computed and Alpha Anywhere 
+' should not query the data source for records
+e.handled = .t.]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Here is a sample onSQLSelectQuery event handler that you might write:</p>
+            </description>
+            <example code="xb"><![CDATA[function onSQLSelectQuery as v (e as p)
+
+    dim flag as L
+    flag = e.cn.execute("exec mySelectStoredProcedure @city=:whatcity",e.arguments)
+    if flag = .t. then
+        e.rs = e.cn.resultSet
+        e.handled = .t.
+    else
+        e.fatalError = .t.
+        e.errorText = e.cn.callResult.text
+    end if 
+
+end function]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the above example, the resultset that was returned was positioned at the first record. Alpha Anywhere will then navigate in the resultset to the correct starting record to display (for example, you might have requested to show page 3 of the Grid).</p>
+                <p>However, your stored procedure might be able to 'chunk' the records more efficiently than Alpha Anywhere, and so in addition to the e.handled property you can also set the e.paginationHandled handled property to .t..</p>
+                <p>The 'e' object that is passed into the onSQLSelectQuery event handler contains the following properties which would be useful if you wanted to handle the pagination of the resultset yourself in the event handler:</p>
+            </description>
+            <list bullet="true">
+                <item>
+                    <name>e.recordCount - number of records in the Grid query </name>
+                </item>
+                <item>
+                    <name>e.targetPage - the page number of records to be shown </name>
+                </item>
+                <item>
+                    <name>e.targetLogicalRecord - the logical record number of the first record to be shown (e.g. if targetPage is 3 and records per page is 10, then targetLogicalRecord is 21) </name>
+                </item>
+                <item>
+                    <name>e.rowCount - the number of records per page to show in the Grid </name>
+                </item>
+                <item>
+                    <name>e.pageCount - the number of pages that the Grid contains. (e.g. if the grid contains 25 records and there are 10 records per page, pageCount is 3) </name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Event Arguments &amp; Properties</title>
             <description>The following variables are available to you in the event:</description>
             <list>
                 <item>
