@@ -550,12 +550,39 @@
                     <xsl:for-each select="tr">
                         <tr class="A5Row">
                         <xsl:for-each select="th">
-                            <th class="A5Header"><xsl:call-template name="text-content" /></th>
+                            <xsl:choose>
+                                <xsl:when test="./@rowspan">
+                                    <xsl:choose>
+                                        <xsl:when test="./@colspan">
+                                            <th class="A5Header" rowspan="{./@rowspan}" colspan="{./@colspan}"><xsl:call-template name="text-content" /></th>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <th class="A5Header" rowspan="{./@rowspan}"><xsl:call-template name="text-content" /></th>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:when test="./@colspan">
+                                    <th class="A5Header" colspan="{./@colspan}"><xsl:call-template name="text-content" /></th>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <th class="A5Header"><xsl:call-template name="text-content" /></th>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:for-each>
                         <xsl:for-each select="td">
                             <xsl:choose>
                                 <xsl:when test="./@rowspan">
-                                    <td class="A5Cell" rowspan="{./@rowspan}"><xsl:call-template name="text-content"  /></td>
+                                    <xsl:choose>
+                                        <xsl:when test="./@colspan">
+                                            <td class="A5Cell" rowspan="{./@rowspan}" colspan="{./@colspan}"><xsl:call-template name="text-content"  /></td>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <td class="A5Cell" rowspan="{./@rowspan}"><xsl:call-template name="text-content"  /></td>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:when test="./@colspan">
+                                    <td class="A5Cell" colspan="{./@colspan}"><xsl:call-template name="text-content"  /></td>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <td class="A5Cell"><xsl:call-template name="text-content" /></td>
