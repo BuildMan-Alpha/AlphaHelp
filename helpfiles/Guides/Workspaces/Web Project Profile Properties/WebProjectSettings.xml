@@ -233,6 +233,143 @@
                         </case>
                     </cases>
                 </section>
+                <section build="5022">
+                    <title>Audit table (for SQL tables)</title>
+                    <description>
+                        <p>Auditing can be enabled to keep track of edits made to SQL tables in an application. Information about each Insert, Update and Delete is kept in the Audit table. This table keeps track of the type of edit, the user id of the person making the edit, the name of table that was edited, and the old and new value of each field that was edited.</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <videos>
+                                <title>Video: Auditing Table Edits</title>
+                                <description>
+                                    <p> In many applications it is desirable to keep track of every edit made to a SQL table so you can know what fields were changed, who made the edit and when the edit was made. This is often achieved by added update, insert and delete triggers to the SQL database. But in cases where it is not possible to modify the database, you can use the built-in auditing feature in Alpha Anywhere.</p>
+                                    <p>In the first video we show how the auditing feature is set up and used.</p>
+                                    <p>In cases where updates to SQL tables are made in your own Xbasic code (as opposed to from UX and Grid components), it is necessary to manually update the audit log. In the second video we show how this is done.</p>
+                                </description>
+                                <date>2018-15-06</date>
+                                <video>
+                                    <name>Watch Video Part 1</name>
+                                    <link>https://www.viddler.com/v/9f4b4693</link>
+                                </video>
+                                <video>
+                                    <name>Watch Video Part 2</name>
+                                    <link>https://www.viddler.com/v/5e9f39a9</link>
+                                </video>
+                            </videos>
+                        </case>
+                    </cases>
+                </section>
+                <section>
+                    <description>
+                        <p>To turn on the Auditing feature, check the *[ui:Keep track of edits to tables made through Grid and UX components]* property.</p>
+                    </description>
+                    <figure>
+                        <link>images/audit1.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Once you do this, you will be able to specify the connection string to the database where the Audit table is stored. You can either map an existing table, or create a new table.</p>
+                    </description>
+                    <figure>
+                        <link>images/audit2.gif</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>By default, the User Id of the user who made the edit to a table is obtained from the Alpha Anywhere security framework (by evaluating the context.security.currentUser expression). However, if you are not using the Alpha Anywhere security framework, you can define a custom expression to get the user id of the person who made the edit.</p>
+                        <p>In the case where you are making updates to SQL tables in your own Xbasic code, you will need to manually update the audit log table. There are two helper function in Xbasic to make this easy:</p>
+                    </description>
+                    <list bullet="true">
+                        <item>
+                            <name>[a5Helper_getAuditInfoFromSQLStatement()] - Called before the SQL is executed to capture the new and old values for each field being edited.</name>
+                        </item>
+                        <item>
+                            <name>[a5Helper_writeToAuditingLog()] - Writes to the Audit table after the SQL has been executed.</name>
+                        </item>
+                    </list>
+                </section>
+                <section>
+                    <description>
+                        <p>For example, the following code updates a table and also updates the audit log:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::AADemo-Northwind")
+dim args as sql::arguments
+args.add("primaryKey","ALFKI")
+args.add("title","Manager")
+
+
+dim sql as c
+sql = "update Customers set ContactTitle = :title where CustomerID = :primaryKey"
+
+'capture the BEFORE update values
+dim dataJson as c
+dataJson = a5Helper_getAuditInfoFromSQLStatement(cn,sql,args.xml)
+
+flag = cn.Execute(sql,args)
+
+'write to the auditing table
+a5Helper_writeToAuditingLog(cn,"Update",dataJson,"CustomerID","ALFKI")]]></example>
+                    <tip>The Audit table can grow to be very large in a large application used by many people. You might want to implement a strategy to purge old records from the audit table from time to time.</tip>
+                </section>
+                <section>
+                    <description>
+                        <p>A complete list of properties for configuring table auditing are listed below:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <title nested="2">Keep track of edits to tables made through Grid and UX Components</title>
+                            <description>If checked, enables table auditing in Grid and UX Components.</description>
+                        </case>
+                        <case>
+                            <title nested="2">Connection string</title>
+                            <description>The *[ui:Connection string]* property defines the connection to the SQL database where the audit table is defined. If the audit table doesn't exist, you can create one using  the *[ui:Create Audit Table]* link at the bottom of the *[ui:Define Audit Table]* dialog.</description>
+                            <figure>
+                                <link>images/auditTable1.png</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title nested="2">Table name</title>
+                            <description>
+                                <p>The *[ui:Table name]* property defines the table in the database where the audits are written. If no table exists in your database, you can create the table from within Alpha Anywhere using the *[ui:]* link. Using this link will both create the table and populate the *[ui:Field map]*, as well.</p>
+                                <p>If you manually create the audit table, the table must contain the following fields:</p>
+                            </description>
+                            <example><![CDATA[Field name: id, Type: Numeric(10), Primary key: True, Allow Nulls: False, Is Auto-increment: True
+Field name: operation, Type: Character(20), Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: UserId, Type: Character(100), Primary key: False, Allow Nulls: True, Is Auto-increment: False
+Field name: dateStamp, Type: DateTime, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: data, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: databaseTableName, Type: Character(100), Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: primaryKeyFields, Type: Character(200), Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: primaryKeyValue, Type: Character(200), Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: connectionStringToDatabases, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: comment, Type: Character(100), Primary key: False, Allow Nulls: True, Is Auto-increment: False]]></example>
+                        </case>
+                        <case>
+                            <title nested="2">Field map</title>
+                            <description>
+                                <p>The *[ui:Field map]* defines a mapping between columns in the audit table and the data collected and written to the table by Alpha Anywhere. The *[ui:Auto map fields]* link can be used to automatically map fields in the table to the audit fields.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="2">Expression for User Id</title>
+                            <description>
+                                <p>Defines the user Id to log in the audit table. If you use the Alpha Anywhere Security Framework, *[xb:Context.Security.CurrentUser]* will be used to retrieve the user Id.</p>
+                            </description>
+                            <figure>
+                                <link>images/auditTable2.png</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If you are not using the Alpha Anywhere Security Framework, you can define a custom expression for the user Id. In many cases, the user Id is stored in a session variable that is set when a user logs into the system. For example, *[xb:Context.session.userid]*. To set the *[ui:Expression for User Id]* to use this session variable, you would uncheck the *[ui:Use security framework to get User Id?]* and enter the following in the *[ui:Expression to evaluate to get User Id]* text box:</p>
+                            </description>
+                            <example><![CDATA[Context.session.userid]]></example>
+                        </case>
+                    </cases>
+                </section>
                 <section>
                     <title>Repository Settings</title>
                     <cases>
@@ -450,4 +587,8 @@
             </sections>
         </group>
     </groups>
+    <links>
+        <link link="api a5helper writetoauditinglog function">a5Helper_writeToAuditingLog()</link>
+        <link link="api a5helper getauditinfofromsqlstatement function">a5Helper_getAuditInfoFromSQLStatement()</link>
+    </links>
 </page>
