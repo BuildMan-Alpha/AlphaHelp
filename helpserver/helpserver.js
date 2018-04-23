@@ -240,6 +240,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 bookName = "guide";
                 break;
             case "HowTo":
+            case "FAQ":
                 bookName = "howTo";
                 break;
             case "Ref":
@@ -249,6 +250,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 bookName = "releaseNotes";
                 break;
             case "Troubleshooting":
+            case "Issues":
                 bookName = "faq";
                 break;
             default:
