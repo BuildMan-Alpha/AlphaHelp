@@ -1,0 +1,69 @@
+<page api="xb" build="5022">
+    <shortlink>api a5helper writetoauditinglog function</shortlink>
+    <topic>a5Helper_writeToAuditingLog Function</topic>
+    <description>Writes an entry to the audit table in an application with auditing enabled.</description>
+    <prototypes>
+        <prototype>dim result as c = a5Helper_writeToAuditingLog(cn as SQL::Connection, operationType as C, dataJSON as C, pkFields as C, pkValue as C [, comment as C])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>cn</name>
+            <type>SQL::Connection</type>
+            <description>An open connection to the database where the audit table is located.</description>
+        </argument>
+        <argument>
+            <name>operationType</name>
+            <type>C</type>
+            <description>The type of operation being performed. Can be 'UPDATE', 'INSERT', or 'DELETE'.</description>
+        </argument>
+        <argument>
+            <name>dataJSON</name>
+            <type>C</type>
+            <description>JSON text object that contains the old and new data value for the fields being modified.</description>
+        </argument>
+        <argument>
+            <name>pkFields</name>
+            <type>C</type>
+            <description>The name of the primary key field in the table being modified.</description>
+        </argument>
+        <argument>
+            <name>pkValue</name>
+            <type>C</type>
+            <description>The value for the primary key for the record in the table being modified.</description>
+        </argument>
+        <argument optional="true">
+            <name>comment</name>
+            <type>C</type>
+            <description>An optional comment to include in the audit log, such as the name of the script that performs the update.</description>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>If auditing is turned on for a web project, will update the auditing log. 'dataJSON' has the data for field old/new values. To get dataJSON, call [a5Helper_getAuditInfoFromSQLStatement()] before the CRUD operation occurs (for Update and Delete).</p>
+    </discussion>
+    <example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::Northwind")
+dim args as sql::arguments
+args.add("primaryKey","ALFKI")
+args.add("title","Manager")
+
+
+dim sql as c
+sql = "update Customers set ContactTitle = :title where CustomerID = :primaryKey"
+
+'capture the BEFORE update values
+dim dataJson as c
+dataJson = a5Helper_getAuditInfoFromSQLStatement(cn,sql,args.xml)
+
+flag = cn.Execute(sql,args)
+
+'write to the auditing table
+a5Helper_writeToAuditingLog(cn,"Update",dataJson,"CustomerID","ALFKI")]]></example>
+    <links>
+        <link link="api a5helper getauditinfofromsqlstatement function">a5Helper_getAuditInfoFromSQLStatement()</link>
+    </links>
+    <see>
+        <ref link="api a5helper getauditinfofromsqlstatement function">a5Helper_getAuditInfoFromSQLStatement Function</ref>
+        <ref link="server ref Web Project Settings#section1_Audit table (for SQL tables)">Audit Table</ref>
+    </see>
+    <limitations>Used in Web Applications Configured to use an Audit Table</limitations>
+</page>

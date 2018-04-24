@@ -1,0 +1,98 @@
+<page api="xb" build="5022">
+    <shortlink>api a5helper getauditinfofromsqlstatement function</shortlink>
+    <topic>a5Helper_getAuditInfoFromSQLStatement Function</topic>
+    <description>Computes the fields and operation for a SQL statement as a JSON object in an application with auditing enabled.</description>
+    <prototypes>
+        <prototype>dim resultJSON as C = a5Helper_getAuditInfoFromSQLStatement(cn as sql::Connection, sql as C, argsxml as C [, comment as C])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>cn</name>
+            <type>SQL::Connection</type>
+            <description>An open connection to the database where the audit table is located.</description>
+        </argument>
+        <argument>
+            <name>sql</name>
+            <type>C</type>
+            <description>An INSERT, UPDATE, or DELETE SQL statement.</description>
+        </argument>
+        <argument>
+            <name>argsxml</name>
+            <type>C</type>
+            <description>The arguments referenced by the SQL statement in XML format. See the [SQL::Arguments] XML property to retrieve arguments in an XML format from a SQL::Arguments object.</description>
+        </argument>
+        <argument optional="true">
+            <name>comment</name>
+            <type>C</type>
+            <description>An optional comment to include in the audit log, such as the name of the script that performs the update.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>resultJSON</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>Returns a JSON object that contains the information for the audit table. If auditing is not enabled in the [Web Project Properties], this function will return an empty string. The JSON object contains the following properties:</description>
+            <properties>
+                <property>
+                    <name>fields</name>
+                    <description>An array of objects containing the following properties:</description>
+                    <properties>
+                        <property>
+                            <name>fieldname</name>
+                            <description>The name of the field in the table being modified.</description>
+                        </property>
+                        <property>
+                            <name>value</name>
+                            <description>The new value.</description>
+                        </property>
+                        <property>
+                            <name>oldvalue</name>
+                            <description>The original value.</description>
+                        </property>
+                    </properties>
+                </property>
+                <property>
+                    <name>operation</name>
+                    <description>The type of operation being performed: UPDATE, INSERT, or DELETE.</description>
+                </property>
+                <property>
+                    <name>tableName</name>
+                    <description>The name of the table being modified.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5Helper_getAuditInfoFromSQLStatement]* function takes a SQL statement (INSERT, UPDATE, or DELETE) and a set of arguments defined as XML and generates the information to log in the [Audit Table].</p>
+    </discussion>
+    <example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::Northwind")
+dim args as sql::arguments
+args.add("primaryKey","ALFKI")
+args.add("title","Manager")
+
+dim sql as c
+sql = "update Customers set ContactTitle = :title where CustomerID = :primaryKey"
+
+'capture the BEFORE update values
+dim dataJson as c
+dataJson = a5Helper_getAuditInfoFromSQLStatement(cn,sql,args.xml)
+? dataJson
+= {
+	"fields": "[\n{\n\t\"fieldname\": \"ContactTitle\",\n\t\"value\": \"Manager\",\n\t\"oldvalue\": \"Sales Representative\"\n}]",
+	"operation": "Update",
+	"tableName": "Customers"
+}]]></example>
+    <links>
+        <link link="api sql namespace arguments class">SQL::Arguments</link>
+        <link link="server ref Web Project Settings#section1_Audit table (for SQL tables)">Audit Table</link>
+        <link link="server ref Web Project Settings#section1_Audit table (for SQL tables)">Web Project Properties</link>
+    </links>
+    <see>
+        <ref link="api a5helper writetoauditinglog function">a5Helper_writeToAuditingLog Function</ref>
+        <ref link="server ref Web Project Settings#section1_Audit table (for SQL tables)">Audit Table</ref>
+    </see>
+    <limitations>Used in Web Applications Configured to use an Audit Table</limitations>
+</page>
