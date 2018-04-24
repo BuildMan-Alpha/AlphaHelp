@@ -1,0 +1,562 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Alpha Cloud XBasic API." />
+<meta name="shortlink" content="Alpha Cloud Alpha Anywhere Developers Guide Alpha Cloud XBasic API" />
+<title>Alpha Cloud Alpha Anywhere Developers Guide Alpha Cloud XBasic API</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="Alpha Cloud XBasic API">The Alpha Cloud XBasic API</a></h2>
+<br/>
+
+<p>
+<a href="#Overview">Overview</a><br/>
+<a href="#asksYouCanPerform">Tasks You Can Perform</a><br/>
+<a href="#GettingStarted">Getting Started</a><br/>
+<a href="#AMoreCompleteExample">A More Complete Example</a><br/>
+<a href="#DeployingPreviouslyPublished">Deploying a Previously Published Application</a><br/>
+<a href="#DeployApplicationComplete">Calling DeployApplicationComplete()</a><br/>
+<a href="#FunctionList">A Complete List of Alpha Cloud XBasic API Functions</a><br/>
+</p>
+
+<h3><a id="Overview">Overview</a></h3>
+
+<p>Alpha Cloud is about deploying applications directly from Alpha Anywhere.
+If you are building a SaaS (Software as a Service) application you may want to deploy published applications automatically to implement provisioning and maintenance.
+The Alpha Cloud XBasic API (Application Programming Interface) makes it possible to build a web application that can be used to do this.
+</p><br/>
+
+
+<p>With the Alpha Cloud XBasic API, you can manage web sites, security applications and deployments from XBasic on either the desktop or Alpha Cloud.
+In this section we will introduce the concepts and help you get started in automating deployment from within an XBasic script.
+</p>
+
+<p><strong>Notes: </strong></br/>
+<ol>
+	<li>The XBasic script you are running will most likely be part of a web application and quite possibly running on Alpha Cloud itself.</li>
+	<li>The functions implemented in the Alpha Cloud XBasic API focus on automation of SaaS applications.  
+		Many tasks (such as uploading certificates and publishing applications) must still be done using the Alpha Cloud Dialog interface.
+		</li>
+</ol>
+</p>
+
+
+<h3><a id="TasksYouCanPerform">Tasks You Can Perform</a></h3>
+
+<p>Your provisioning application may be used by your own internal staff or prospective customers.
+You will see a number of functions that can help you navigate your own subscription as well those with which you can populate dropdown lists for prospects.
+</p>
+
+<p>
+<a href="#AutomatedDeployment">Automated Deployment</a><br/>
+<a href="#ListItems">List Items</a><br/>
+<a href="#ValidationFunctions">Validation Functions</a></br/>
+</p>
+
+<h4><a id="AutomatedDeployment">Automated Deployment</a></h4>
+
+<p>The functions below schedule a deployment, create a new deployment for an existing web site and security application, or create everything from scratch.</p>
+
+<dl>
+
+	<dt>ScheduleApplicationDeployment()</dt>
+		<dd>Creates a new schedule item for an existing deployment selecting application version and Alpha Anywhere Application Server for IIS build.
+			This function assumes the deployment has already been added and the web site and security application have already been assigned.
+			</dd>
+	<dt>DeployApplicationToWebSite()</dt>
+		<dd>Deploys a previously published application to a web site.
+			The web site and security application must exist, but the deployment is created if it does not exist.
+			</dd>
+	<dt>DeployApplicationComplete()</dt>
+		<dd>Does a complete deployment of a previously published application.
+			Any objects not previously defined, such as web sites and security applications, can be created at the same time.
+			Again, the caller must have permission to create any needed resources.
+			</dd>
+</dl>
+
+<h4><a id="ListItems">List Items</a></h4>
+
+<p>The "List" functions return lists of items suitable for adding to dropdown lists for selection.
+</p>
+<p><strong>Note: </strong>Some of the lists are global and others depend on setting the current subscription, 
+account, application and/or deployment to establish the context of the call.
+</p>
+
+<dl>
+	<dt>ListAccounts()</dt><dd>Returns a crlf() delimited list of all accounts for the current subscription.</dd>
+	<dt>ListApplications()</dt><dd>Returns a crlf() delimited list of applications for the current subscription and account.</dd>
+	<dt>ListApplicationVersions()</dt><dd>Returns a crlf() delimited list of versions of the current application that have been published.</dd>
+	<dt>ListBuilds()</dt><dd>Returns a crlf() delimited list of Alpha Anywhere Application Server for IIS builds available.</dd>
+	<dt>ListCertificates()</dt><dd>Returns a crlf() delimited list of certificate names for the current subscription.</dd>
+	<dt>ListRegions()</dt><dd>Returns a crlf() delimited list of regions available.</dd>
+	<dt>ListServerGroups()</dt><dd>Returns a crlf() delimited list of server groups for the current subscription.</dd>
+	<dt>ListWebSites()</dt><dd>Returns a crlf() delimited list of web sites for the current subscription.</dd>
+</dl>
+
+<h4><a id="ValidationFunctions">Validation Functions</a></h4>
+
+<p>There are also validation functions that can be used to verify manually entered input.</p>  
+
+<p>For example:</p>
+
+<dl>
+	<dt>CertificateNameIsValid()</dt><dd>Returns .t. if the certificate named is valid.</dd>
+	<dt>RegionNameIsValid()</dt><dd>Returns .t. if the specified region name is valid></dd>
+	<dt>RegularExpressionIsValid()</dt><dd>Returns .t. if a regular expression is valid.  
+		This function can be used when prompting for a regular expression to be used to validate a password when setting up a Security Application.
+		</dd>
+</dl>
+
+
+<h3><a id="GettingStarted">Getting Started</a></h3>
+
+<p>The Alpha Cloud XBasic API exposes many of the same services provided by dialogs, but with a slightly simpler programmatic API.  
+For example GUIDs are used internally to create unique keys.  These are not exposed in the Alpha Cloud API.
+</p>
+
+<p>To use the Alpha Cloud XBasic API we need to create a programmatic token to stand in for our password in code.  
+For each web request that invokes the API we will also need to register the API and create a client object to make calls with.
+</p>
+
+<p>This section will walk through the steps needed to make some simple calls to the Alpha Cloud XBasic API.</p>
+
+<br/>
+<p>
+<ol>
+	<li><p><strong>Creating a Programmatic Token</strong><br/>
+
+		<p>Alpha Cloud includes the ability to create a programmatic token so that your user password does not need to be embedded into XBasic code or stored with your program data.  
+			You will still want to protect your token, but the token separates password management from program maintenance.  
+			Either your password or a token you maintain can be used to log in to the Alpha Cloud API (think of the token as standing in for your password).
+			</p>
+
+		<p>To create a programmatic token, select Alpha Cloud from the web control panel and then select Settings and Generate Programmatic Token from the menus that drop down.
+			</p>
+		<img border="0" src="ScreenShots/WebControlPanelAlphaCloudMenuSecurityProgrammaticToken.jpg">
+    		<br/>
+
+		<p>	Using the Generate Programmatic Token dialog, you can create up to two programmatic tokens (new ones after that will rotate out the oldest token).  
+			It is recommended that you rotate tokens out on a schedule to protect access to your Alpha Cloud user account.
+			</p>
+		<p><strong>Note: </strong>Be sure to save your token off someplace safe when you create it.  
+			Tokens are securely hashed and cannot be retrieved later.
+			</p>
+		<img border="0" src="ScreenShots/GenerateProgrammaticToken.jpg">
+		</p>
+		<br/>
+		</li>
+
+	<li><p><strong>Registering the API</strong><br/>
+
+		<p>Once per process execution, the Alpha Cloud API must be registered.  
+			This process checks for the latest DLL, and installs a new one if necessary and then loads the DLL and registers types in the XBasic namespace system.
+			When running on Alpha Anywhere Application Server for IIS as a web request, you will want to do this at least once for the request.
+			You can do this on an A5W page, or in the function that handles the request.
+			</p>
+		<p><strong>Note: </strong>There is no performance penalty for additional calls to register the API.</p>
+
+		<p>The XBasic code required to do this as follows (shown in an interactive window session):</p>
+		<br/>
+		<p>	r = AlphaCloud::API::Register()<br/>
+			?r.Success
+		</p>
+
+		<p>The Register() function returns a CallResult object a Success, a Warning and an Error logical properties and a Text property with more complete information.</p>
+
+		<p>Once the API is registered, the AlphaCloud namespace is populated.</p>
+
+		</p>
+		<br/>
+		</li>
+	
+	<li><p><strong>Creating the API Client</strong><br/>
+
+		<p>To call functions on the Alpha Cloud XBasic API you will need to dimension the client as follows:</p>
+
+		<p>DIM cl as alphacloud::Client = new Alphacloud::Client(":&lt;my user name/e-mail&gt; ", "&lt;my password or programmatic token&gt;", “&lt;my subscription name&gt;”)</p>
+
+		<p><strong>Note: </strong>There are other optional parameters that are used for Alpha Software development staff for testing.</p>
+
+		</p>
+		<br/>
+		</li>
+
+	<li><p><strong>Populating Variables With the Current Context</strong><br/>
+
+		<p>Depending on the function you call, you may need to provide more context information for the call.
+		For example, a valid subscription is required to list out available regions, but you cannot schedule a deployment without providing 
+		the names of the affected account and application).
+		</p>
+
+		<p>To set the context, simply assign the names to the related properties as below.</p>
+
+		<p>	
+			<table>
+				<tr><td>cl.SubscriptionName</td><td>=</td><td>"Alpha Software"</td></tr>
+				<tr><td>cl.Account</td><td>=</td><td>"Primary"</td></tr>
+				<tr><td>cl.Application</td><td>=</td><td>"DemoMobile"</td></tr>
+			</table>
+		</p>
+
+		<p><strong>Note: </strong>You can omit the subscription name on the constructor and set it as above.  
+				As long as the property is set before the first API call, you will not get an error.
+				</p>
+
+		<p>Remember,a subscription has one or more accounts.  
+			The default account name is “Primary”).  
+			You can create applications within an account and then create one or more deployments for each application.  
+			This hierarchy provides a complete path to a deployment.
+			</p>
+		<br/>
+		<p><strong>Subscription<br/>
+			Account<br/>
+			Application<br/>
+			Deployment</strong></p>
+
+		<p>Web sites, security applications and server groups are all owned by the subscription directly.</p>
+
+		</p>
+		<br/>
+		</li>
+
+	<li><p><strong>Calling API Client Functions</strong><br/>
+
+		<p>Once you have registered the Alpha Cloud API, dimensioned your client object and set the context, you can begin calling API functions.</p>
+		<br/>
+		<p>	dim RegionList as C<br/>
+			?cl.ListRegions(RegionList)<br/>
+			?RegionList<br/>
+		</p>
+		<br/>
+		<p>Note that Alpha Cloud API uses the pattern common to Alpha Anywhere of returning a logical .t. or .f. from function calls.  
+		The property <strong>CallResult</strong> has the description of any error that may have occurred:</p>
+		<br/>
+		<p>? cl.CallResult.text</p>
+		</p>
+		<br/>
+		</li>
+</ol>
+</p>
+<br/>
+
+<h3><a id="AMoreCompleteExample">A More Complete Example</a></h3>
+
+<p>Here is a more complete example. 
+The XBasic script below registers the Alpha Cloud XBasic API, dimensions a client object, sets the context and lists out the regions.
+</p>
+<p><strong>Tip: </strong>If you run the script below in the XBasic interactive window it will display a list of regions.
+</p>
+<br/>
+<p>	r = AlphaCloud::API::Register()<br/>
+	?r.Success<br/><br/>
+	DIM cl as alphacloud::Client = new Alphacloud::Client("&lt;my user name/e-mail&gt; ", "&lt;my password or programmatic token&gt;")<br/>
+	cl.SubscriptionName      = "Alpha Software"<br/>
+	cl.Account               = "Primary"<br/>
+	cl.Application           = "DemoMobile"<br/><br/>
+
+	dim RegionList as C<br/>
+	?cl.ListRegions(RegionList)<br/>
+	?RegionList<br/>
+	</p>
+<br/>
+
+<h3><a id="DeployingPreviouslyPublished">Deploying a Previously Published Application</a></h3>
+
+<p>There are three ways to get your application deployed to a web site.  
+Depending on your needs you can use the functions as you require.</p>
+
+<p>In order to deploy a published application we need a  web site, a security application and server group (in public tenancy, this value is ignored, so set it to "Default").
+You must define or create a web site.</p>
+
+<dl>
+	<dt>ScheduleApplicationDeployment()</dt>
+		<dd>Use this function to schedule a deployment (start a web site/application with a specific version of your application, 
+		a specific build of Alpha Anywhere and a logging option as well as an option for security publication).</dd>
+	<dt>DeployApplicationToWebSite()</dt>
+		<dd>Use this function to deploy to an existing web site and security application (the deployment does not need to exist yet).</dd>
+	<dt>DeployApplicationComplete()</dt>
+		<dd>Use this function to deploy an existing application version to a web site, security application and deployment.  
+		None of the objects need be defined before making this call.  
+		It does a complete deployment in a single call.  
+		The parameters are more complicated for this function, but it can be easier to use, once they are set up.</dd>
+</dl>
+
+
+<h3><a id="DeployApplicationComplete">Calling DeployApplicationComplete()</a></h3>
+
+<p>The function DeployApplicationComplete()can be used to create a new web site, security application and deployment and to schedule deployment 
+of a previously published application.</p>
+<p>In the example interactive session below, you can see the definitions of the web site, the security application and the deployment as well as the schedule itself.</p>
+<br/>
+
+<p>
+	' -----------------------------------------------------------------------------------------<br/>
+	' -- Create a web site, security application and schedule a new deployment with them<br/>
+	' -----------------------------------------------------------------------------------------<br/><br/>
+
+	dim DeplComplete as AlphaCloud::DeployApplicationCompleteRequest<br/><br/> 
+
+	DeplComplete.DeploymentName	= "APITest5"<br/>
+	DeplComplete.ApplicationPath	= "/"<br/><br/>
+
+	' Web Site (the HostName and CertificateName must be omitted if you do not have a certificate)<br/>
+	DeplComplete.WebSite.Name			= "APITest5"<br/>
+	DeplComplete.WebSite.RegionName		= "US-East"<br/>
+	DeplComplete.WebSite.HostName		= "mobiledemo.alphacloudsamples.com"<br/>
+	DeplComplete.WebSite.CertificateName	= "mobiledemo.alphacloudsamples.com"<br/><br/>
+
+	' Security Application
+	DeplComplete.SecurityApplication.Name									= "TestSA5"<br/>
+	DeplComplete.SecurityApplication.RegionName							= "US-East"<br/>
+	DeplComplete.SecurityApplication.PasswordSettings.ChangeonFirstUse			= AlphaCloud::BooleanOrDefault::Default<br/>
+	DeplComplete.SecurityApplication.PasswordSettings.ExpirationINMinutes			= -1<br/>
+	DeplComplete.SecurityApplication.PasswordSettings.MinimumLength				= -1<br/>
+	DeplComplete.SecurityApplication.PasswordSettings.StrengthRegularExpression	= ""<br/><br/>
+
+	' Schedule
+	DeplComplete.Schedule.ApplicationVersion		= 84<br/>
+	DeplComplete.Schedule.AlphaAnywherebuildNumber	= 4655<br/>
+	DeplComplete.Schedule.ApplicationLoggingOption	= "Diagnostic"<br/>
+	DeplComplete.Schedule.SecurityPublishOption	= "Preserve"<br/>
+	DeplComplete.Schedule.LocalStartTime			= now()<br/>
+	DeplComplete.Schedule.LocalEndTime			= addMonths(now(), 3)<br/>
+	'DeplComplete.Schedule.LocalEndTime			= System::DateTime::MaxValue<br/>
+
+	?cl.DeployApplicationComplete(DeplComplete)<br/>
+	= .T.<br/><br/>
+
+	?cl.DisableApplicationDeployment(DeplComplete.DeploymentName)<br/>
+	= .T.<br/>
+
+	</p>
+	<br/>
+	<br/>
+
+
+
+<h3><a id="FunctionList">A Complete List of Alpha Cloud XBasic API Functions</a></h3>
+
+<p>Here is a complete list of the Alpha Cloud XBasic API functions accessed using the Client object.</p>
+
+<dt> Client(UserName AS C, Password AS C [, SubscriptionIn AS C [, CloudImplementation AS C]])  'Public Constructor
+
+<dl>
+	<dt>CertificateNameIsValid</dt><dd>
+			<p>CertificateNameIsValid AS L (CertificateName AS C)</p>
+			<p>Checks the value of CertificateName to see if it is a valid certificate for the subscription.</p>
+			<p>Returns .t. if the certificate name matches a certificate for the subscription and .f. if it does not.</p>
+			</dd>
+	<dt>CreateApplicationDeployment</dt><dd>
+			<p>CreateApplicationDeployment AS L (Request AS AlphaCloud::SubscriptionApplicationDeployment)</p>
+			<p>Creates a new deployment for an application.</p>
+			<p>You must DIM an object of type AlphaCloud::SubscriptionApplicationDeployment and populate it prior to making the call.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>CreateSecurityApplication</dt><dd>
+			<p>CreateSecurityApplication AS L (Request AS AlphaCloud::SubscriptionSecurityApplication)</p>
+			<p>Creates a new security application.</p>
+			<p>You must DIM an object of type AlphaCloud::SubscriptionSecurityApplication and populate it prior to making the call.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>CreateWebSite</dt><dd>
+			<p>CreateWebSite AS L (Request AS AlphaCloud::SubscriptionWebSite)</p>
+			<p>Creates a new web site.</p>
+			<p>You must DIM an object of type AlphaCloud::SubscriptionWebSite and populate it prior to making the call.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>DeployApplicationComplete</dt><dd>
+			<p>DeployApplicationComplete AS L (Request AS AlphaCloud::DeployApplicationCompleteRequest)</p>
+			<p>Creates a new deployment from a full specification (see the example above).</p>
+			<p>You must DIM an object of type AlphaCloud::DeployApplicationCompleteRequest and populate it prior to making the call.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>DeployApplicationToWebSite</dt><dd>
+			<p>DeployApplicationToWebSite AS L (Request AS AlphaCloud::DeployApplicationToWebSiteRequest)</p>
+			<p>Deploys an application to an existing web site.</p>
+			<p>You must DIM and object of type AlphaCloud::DeployApplicationToWebSiteRequest and populate it prior to making the call.
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>DisableApplicationDeployment</dt><dd>
+			<p>DisableApplicationDeployment AS L (DeploymentName AS C)</p>
+			<p>Disables a deployment.</p>
+			<p><strong>Important: </strong>Disabling a deployment that has been scheduled will stop the deployed application as soon as Alpha Cloud applies the change.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>DisableSecurityApplication</dt><dd>
+			<p>DisableSecurityApplication AS L (SecurityApplicationName AS C)</p>
+			<p>Disables a security application.</p>
+			<p><strong>Important: </strong>Disabling a security application will stop any deployed application assigned to it as soon as Alpha Cloud applies the change.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>DisableWebSite</dt><dd>
+			<p>DisableWebSite AS L (WebSiteName AS C)</p>
+			<p>Disables a web site.</p>
+			<p><strong>Important: </strong>Disabling a web site will stop any deployed application assigned to it as soon as Alpha Cloud applies the change.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>EnableApplicationDeployment</dt><dd>
+			<p>EnableApplicationDeployment AS L (DeploymentName AS C)</p>
+			<p>Enables a deployment.</p>
+			<p><strong>Important: </strong>Enabling a deployment that has been scheduled will start the deployed application as soon as Alpha Cloud applies the change 
+				provided the subscription, account, application, web site and security application are enabled.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>EnableSecurityApplication</dt><dd>
+			<p>EnableSecurityApplication AS L (SecurityApplicationName AS C)</p>
+			<p>Enables a security application.</p>
+			<p><strong>Important: </strong>Enabling a security application will start or restart any scheduled deployment assigned to it 
+				as soon as Alpha Cloud applies the change provided the subscription, account, application, deployment and web site are enabled.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>EnableWebSite</dt><dd>
+			<p>EnableWebSite AS L (WebSiteName AS C)</p>
+			<p>Enables a web site.</p>
+			<p><strong>Important: </strong>Enabling a web site will start or restart any scheduled deployment assigned to it 
+				as soon as Alpha Cloud applies the change provided the subscription, account, application, deployment and security application are enabled.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>GetApplicationCurrentVersion</dt><dd>
+			<p>GetApplicationCurrentVersion AS L (BYREF Version AS N, Application AS C)</p>
+			<p>Gets the current version number for the application requested within the current subscription and account.</p>
+			<p>You must dim Version as N prior to calling the function.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>GetApplicationDeployment</dt><dd>
+			<p>GetApplicationDeployment AS L (BYREF ApplicationDeployment AS P, ApplicationDeploymentName AS C)</p>
+			<p>Gets an AlphaCloud::ApplicationDeployment object for the deployment requested within the current subscription, account and application.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>GetSecurityApplication</dt><dd>
+			<p>GetSecurityApplication AS L (BYREF SecurityApplication AS P, SecurityApplicationName AS C)</p>
+			<p>Gets an AlphaCloud::SecurityApplication object for the security application named within the current subscription. </p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>GetWebSite</dt><dd>
+			<p>GetWebSite AS L (BYREF WebSite AS P, WebSiteName AS C)</p>
+			<p>Gets an AlphaCloud::WebSite object for the web site named within the current subscription.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListAccounts</dt><dd>
+			<p>ListAccounts AS L (BYREF AccountList AS C)</p>
+			<p>Returns a crlf() delimited list of accounts for the current subscription in AccountList.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListApplicationDeployments</dt><dd>
+			<p>ListApplicationDeployments AS L (BYREF ApplicationDeploymentList AS C)</p>
+			<p>Returns a crlf() delimited list of deployments in ApplicationDeploymentList for the current subscription, account, and application.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListApplications</dt><dd>
+			<p>ListApplications AS L (BYREF ApplicationList AS C)</p>
+			<p>Returns a crlf() delimited list of applications in ApplicationList for the current subscription and account.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListApplicationVersions</dt><dd>
+			<p>ListApplicationVersions AS L (BYREF Versions AS C)</p>
+			<p>returns a crlf() delimited list of the versions that have been published for an application in Versions.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListBuilds</dt><dd>
+			<p>ListBuilds AS L (BYREF Builds AS C)</p>
+			<p>Returns a crlf() delimited list of builds available on Alpha Cloud.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListCertificates</dt><dd>
+			<p>ListCertificates AS L (BYREF Certificates AS C)</p>
+			<p>Returns a crlf() delimited list of certificates in Certificates for the current subcription.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListRegions</dt><dd>
+			<p>ListRegions AS L (BYREF Regions AS C)</p>
+			<p>Returns a crlf() delmited list of available Alpha Cloud regions in Regions.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListSecurityApplications</dt><dd>
+			<p>ListSecurityApplications AS L (BYREF SecurityApplicationList AS C)</p>
+			<p>Returns a crlf() delimited list of security applications in SecurityApplicationList for the current subscription.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListServerGroups</dt><dd>
+			<p>ListServerGroups AS L (BYREF ServerGroups AS C)</p>
+			<p>Returns a crlf() delimited list of server groups in ServerGroups for the current subscription.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>ListWebSites</dt><dd>
+			<p>ListWebSites AS L (BYREF WebSiteList AS C)</p>
+			<p>Returns a crlf() delimited list of web sites in WebSiteList for the current subscription.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>RegionNameIsValid</dt><dd>
+			<p>RegionNameIsValid AS L (RegionName AS C)</p>
+			<p>Validates an Alpha Cloud region name.</p>
+			<p>Returns .t. if the region is a valid Alpha Cloud region.</p>
+			</dd>
+	<dt>RegularExpressionIsValid</dt><dd>
+			<p>RegularExpressionIsValid AS L (RegularExpression AS C)</p>
+			<p>Validates a regular expression intended to be used to validate passwords.</p>
+			<p>Returns .t. if the expression is valid.</p>
+			</dd>
+	<dt>ScheduleApplicationDeployment</dt><dd>
+			<p>ScheduleApplicationDeployment AS L (DeploymentName AS C, Request AS AlphaCloud::ApplicationDeploymentSchedule)</p>
+			<p>Creates a new schedule line for a deployment.</p>
+			<p>You must DIM and populate an AlphaCloud::ApplicationDeploymentSchedule prior to making this call.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetApplicationDeploymentStatus</dt><dd>
+			<p>SetApplicationDeploymentStatus AS L (DeploymentName AS C, Status AS C)</p>
+			<p>Sets the status for a deployment.</p>
+			<p><strong>Important: </strong>Changing the status of a deployment will either force a new deployment or stop a running deployment.
+			This operation will occur the next time Alpha Cloud looks for changes and applies them.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetSecurityApplicationPasswordSettings</dt><dd>
+			<p>SetSecurityApplicationPasswordSettings AS L (SecurityApplicationName AS C, PasswordSettings AS AlphaCloud::SubscriptionSecurityApplicationPasswordSettings)</p>
+			<p>Updates the password options for a security application.  
+			You must DIM an AlphaCloud::SubscriptionSecurityApplicationPasswordSettings object and populate it before calling this function.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetSecurityApplicationRegion</dt><dd>
+			<p>SetSecurityApplicationRegion AS L (SecurityApplicationName AS C, RegionName AS C)</p>
+			<p>Assigns the region provided to the security group.</p>
+			<p><strong>Important: </strong> 
+			There is currently no facility to migrate security data between regions.
+			A Security Application is backed by a database with users and roles.  
+			This database is initialized during the first deployment.
+			If you change the region after security information has been published, the original security information will be republished to the new region.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetWebSiteHostNameAndCertificate</dt><dd>
+			<p>SetWebSiteHostNameAndCertificate AS L (WebSiteName AS C, HostName AS C, CertificateName AS C)</p>
+			<p>Assigns the host name and certificate name to the web site.  Note, you must make sure that your DNS provider has a CNAME that matches your host name and certificate.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetWebSiteRegion</dt><dd>
+			<p>SetWebSiteRegion AS L (WebSiteName AS C, RegionName AS C)</p>
+			<p>Assigns the region named to the web site.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetWebSiteServerGroup</dt><dd>
+			<p>SetWebSiteServerGroup AS L (WebSiteName AS C, ServerGroupName AS C)</p>
+			<p>Assigns the server group named to the web site.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+	<dt>SetWebSiteTenancy</dt><dd>
+			<p>SetWebSiteTenancy AS L (WebSiteName AS C, TenancyName AS C)</p>
+			<p>Assigns the tenancy named to the web site.</p>
+			<p>Returns .t. if the function succeeds and .f. if it does not.</p>
+			</dd>
+
+</dl>
+<br/>
+<br/>
+
+</body>
+</html>
