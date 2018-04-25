@@ -1,0 +1,129 @@
+<html>
+ 
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Preparing to move from development to production." />
+<meta name="shortlink" content="Alpha Cloud Alpha Anywhere Developers Production" />
+<title>Alpha Cloud Alpha Anywhere Developers Guide Moving To Production</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="PreparingForProduction">Preparing for Production</a></h2>
+<br/>
+<br/>
+<p>
+<a href="#UnderstandingProduction">Understanding Production Requirements</a><br/>
+<a href="#Checklist">A Checklist for Production Deployment</a><br/>
+</p>
+
+<h3><a id="UnderstandingProduction">Understanding Production Requirements</a></h3><br/>
+
+<p>Alpha Cloud makes it easy to create deployments for development.  
+DNS names are automatically generated and HTTPS (TLS/SSL) is enabled by default.
+Alpha Cloud provides a certificate automatically.  
+As a result, you can publish and deploy applications for development and test that are available on the internet.
+</p>
+<p>Moving an application from development to test to production is done in a "pull" fashion in Alpha Cloud.
+Rather than dictating a framework or pipeline, Alpha Cloud allows each deployment you define to be scheduled with the 
+appropriate version of your application and build of Alpha Anywhere.</p>
+<ul>
+<li>Developers publish and deploy new versions to development deployments to do local testing.</li>
+<li>When QA is ready to work on a particular version of an application, they simply schedule the"Test" deployment (or whatever name you choose) with that version.</li>
+<li>When a version of the application is fully tested and ready for production, you simply schedule the "Production" deployment (or whatever name you choose) with the tested version.</li>
+<li>If you want to do custom deployments for specific groups or customers or to test Alpha Anywhere updates, you can create a deployment with a unique name and schedule your chosen version of the application.</li>
+</ul>
+<p> You get the picture.  You create a pipeline by defining deployments.  Each deployment "pulls" a specific application version number and build of
+Alpha Anywhere Application Server for IIS of your choosing.</p>
+
+<p><strong>So what is special about production?</strong></p>
+<p>Production deployments tend to be qualitatively different only in that you make sure you have a friendly host name (rather than the Alpha Cloud generated DNS name) 
+and install a TLS certificate to go with it and you are probably referencing a live database rather than a test database.</p>
+<p>While you don't have to set up a production deployment immediately, it is a good idea to set it up early in the process so you can do live testing prior to 
+the first release and get in the habit of promoting development publications to test and production deployments.</p>
+
+
+<h3><a id="Checklist">A Checklist for Production Deployment</a></h3><br/>
+
+<p>There are several things that you will want to do differently for your production deployment:</p>
+<ol>
+	<li><p><strong>Choose HTTPS</strong></p>
+		<p>Web Sites on Alpha Cloud default to the HTTPS Service setting.
+		HTTPS is used to secure connections between a browser, mobile device or other client and your deployed application using TLS (Transport Level Security).
+		You may have heard of this as SSL (Secure Sockets Layer); a name which is also commonly used, but the SSL protocol has been deprecated and is no longer considered secure.
+		HTTPS will be using the TLS protocol.</p>
+
+		<p>During test, you may want to set a host name, but not require a certificate to be purchased for TLS/SSL.
+		You have the option to choose HTTP for your web site, but this is not recommended and may be removed as an option in the future.</p>
+		<p>For help in verifying or changing the service setting for your web site see <a href="Manageing Web Sites.html">Managing Web Sites</a>.</p>
+		</li>
+
+	<li><strong>Set up a Host Name</strong></p>
+		<p>Web sites are accessed from a browser or other client using a DNS name.  
+		The DNS name is composed of a host name followed by a domain name (sometimes there are additional subdomains as well).<p>
+
+		<p>For example:  the DNS name www.mydomain.com is accessed with the URL (Uniform Request Locator) https://www.mydomain.com</p>
+
+		<p>Alpha Cloud generates a name you can use right away that is formatted from the names of your subscription and the name you give your web site
+			and that name can be used, but tends to be long and unfriendly.</p>
+
+		<p>You will want to set up a host name for your own domaing and assign it to your production web site.</p>
+		<p>For help in understaning domain names and setting yours up, see <a href="Domains.html">Adding Your Web Sites to Your Own Domain</a>.</p>
+		<p>For help in verifying or changing the host name setting for your web site see <a href="Managing Web Sites.html">Managing Web Sites</a>.</p>
+		</li>
+
+	<li><strong>Install a Certificate</strong></p>
+		<p>Secure connections between a client and your web site depend on encryption of the data, but just as importantly
+			you must know that the connection established is with the correct server.</p>
+		<p>The TLS protocol (as with SSL before it) relies on cryptographically signed certificates (based on the X509 standard) to authenticate the server.
+			You will need to acquire such a certificate to use your own host name on your site.</p>
+		<p>For help in uploading certificates to Alpha Cloud see 
+			<a href="Certificates.html">Managing TLS(SSL) Certificates for Web Sites Accessed Using Your Own Domain Name</a>.</p>
+		<p>For help in verifying or changing the certificate for your web site see <a href="Managing Web Sites.html">Managing Web Sites</a>.</p>
+		</li>
+
+	<li><strong>Set Logging to Basic or None</strong></p>
+		<p>When you schedule a new deployment you have the option of choosing a level of logging; 
+				What information is recorded about the activity of your deployed application.</p>
+		<p>In a production deployment, logging too much information can adversely affect performance.
+			Unless you are actively investigating an issue that can not be reproduced in development, 
+			you will probably want to set your logging to Basic or None.</p>
+		<p>For help in verifying or changing the logging level when scheduling a deployment see 
+			<a href="Managing Deployments.html#DeploymentScheduleProperties">Managing Deployments</a>.</p>
+		</li>
+
+	<li><strong>Set Database and Storage Connection Strings In Deployment Properties</strong></p>
+		<p>Each deployment can have different connection strings for database access and for storage.</p>
+		<p>Make sure that your connection strings are set properly in your production deployment to reference your production database and storage.</p>
+		<p>For help in verifying or changing the connection strings for a deployment see 
+			<a href="Managing Deployments.html#ManageDeploymentProperties">Managing Deployment Properties</a>.</p>
+		</li>
+
+	<li><strong>Limit Access to Your Database By IP</strong></p>
+		<p>Make sure connections to your database are limited to administrators and the web server itself.</p>
+		<p>Alpha Cloud uses up to three IP addresses (referred to as Egress IPS) for each region to access Amazon RDS and other databases.  
+			You can see the addresses from which your web site will access your database on the Manage Web Sites dialog.
+				<a href="Managing Web Sites.html">Managing Web Sites</a> dialog.</p>
+
+		<p>For help in verifying the egress IPs for your web site see <a href="Managing Web Sites.html">Managing Web Sites</a>.</p>
+		</li>
+
+	<li><strong>Secure Your Database Connection</strong></p>
+		<p>It is important that connections between the web server and your production database be secure.
+			This is especially true if your database is hosted outside of Amazon AWS and must be accessed over the internet.</p>
+
+
+		<p>For help in creating a secure connection string to your database see
+			<a href="https://www.alphasoftware.com/documentation/index?search=Alpha Anywhere Secure database Connections">
+			AlphaDAO - Secure Database Connections</a>
+			</p>
+		</li>
+</ol>
+		
+</body>
+
+</html>
