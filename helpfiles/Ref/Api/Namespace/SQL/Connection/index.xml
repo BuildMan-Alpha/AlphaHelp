@@ -17,6 +17,65 @@ cs = "{A5API='Access', A5Syntax='Access', FileName='C:\Program Files\a5v6\MDBFil
 = .T.]]></example>
 
 </section>
+<section>
+<title>An Important Note About Assigning the ResultSet Property to Variables</title>
+<description>
+<p>Except for a few database providers, when executing queries against most databases, the client driver does not support multiple active result sets.
+Attempting to execute a new query while processing the results of a previous query does not work.</p>
+<p>In order to simplify the most common case, AlphaDAO connections automatically release an active ResultSet and reconnect to the database
+when a new query is executed, but there is still a variable referencing the active result set.</p>
+<p>This is fine in most cases, but can cause unexpected behavior within a transaction. Because the SQL::Connection object "disconnects" from the 
+referenced result set (and the connection that owns it), the transaction is effectively lost.</p>
+
+<p>In order to prevent this behavior, it is important that when the SQL::Connection ResultSet property value is assigned to a variable, that
+variable is cleared out prior to executing another query by using the DELETE keyword on the variable.</p>
+<p>Below are some examples of code that can cause a problem with connections showing how to avoid the problem.</p>
+<example><![CDATA[
+' Basic example showing two active result sets
+' Note: At the end of this script there are two active result sets and two active connections.
+DIM c as SQL::Connection
+DIM cs as C
+cs = "{A5API='Access', A5Syntax='Access', FileName='C:\Program Files\a5v6\MDBFiles\Alphasports.mdb', UserName='Admin'}"
+? c.Open(cs)
+= .T.
+?c.Execute("select * from Customers")
+rs = c.ResultSet
+?c.Execute("select * from Orders")
+
+' What happens if we are in a transaction?
+' Note: At the end of this script there are two active connections.
+' The UPDATE statements are executed on two different connections, the latter is NOT in the transaction.
+DIM c as SQL::Connection
+DIM cs as C
+cs = "{A5API='Access', A5Syntax='Access', FileName='C:\Program Files\a5v6\MDBFiles\Alphasports.mdb', UserName='Admin'}"
+? c.Open(cs)
+= .T.
+?c.BeginTransaction()
+?c.Execute("Update ...")
+?c.Execute("select * from Orders")
+rs = c.ResultSet
+?c.Execute("update ...")
+
+' How do we fix the problem?
+' By using the DELETE statement, we release the result set and the SQL::Connection object will not reconnect to the database.
+' Note: At the end of this script there is a single connection.
+' The UPDATE statements are executed on two different connections, the latter is NOT in the transaction.
+DIM c as SQL::Connection
+DIM cs as C
+cs = "{A5API='Access', A5Syntax='Access', FileName='C:\Program Files\a5v6\MDBFiles\Alphasports.mdb', UserName='Admin'}"
+? c.Open(cs)
+= .T.
+?c.BeginTransaction()
+?c.Execute("Update ...")
+?c.Execute("select * from Orders")
+rs = c.ResultSet
+.. do something with the result set
+DELETE rs
+?c.Execute("update ...")
+
+]]></example>
+
+</section>
 </sections>
 
 	<properties>
