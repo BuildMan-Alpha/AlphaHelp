@@ -1,0 +1,170 @@
+<html>
+
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Supplementary instructions for working with SAP Web Services." />
+<meta name="shortlink" content="SAP Web Service Clients" />
+<title>SAP Web Service Clients</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Web Services</h1>
+
+<h2><a id="SAPWebServices">SAP Web Service Clients</a></h2>
+
+<div>
+<p>
+<a href="#Overview">Overview</a><br/>
+<a href="#Connecting">Connecting to SAP Web Services</a><br/>
+<a href="#LongURL">SAP Uses a Very Long URL</a><br/>
+<a href="#FunctionPerService">SAP Generates a Separate Service For Each Function</a><br/>
+<a href="#Timeouts">Watch for Timeouts</a><br/>
+<a href="#Nesting">SAP Request and Response Objects Tend to Nest</a><br/>
+<a href="#DateFields">Working with Date Fields</a><br/>
+</p>
+
+<h3><a id="Overview">Overview</a></h3>
+
+<p>Alpha Anywhere has been used by some customers to connect to SAP web services.
+This article summarizes experience gained in working with those customers.</p>
+
+<p><strong>Note: </strong>The following discussion assumes you have previous experience with SOAP Web Services and Alpha Anywhere.
+If you have not read the help topic <a href="SOAP Services.html">SOAP Services</a> you may want to start there.</p>
+
+<h3><a id="Connecting">Connecting to SAP Web Services</a></h3>
+<p>The appropriate binding and credential settings for SAP services appear to be the following:<br/>
+
+	<blockquote>
+	DIM binding as System::ServiceModel::BasicHttpBinding <br/>
+	binding.Security.Mode = System::ServiceModel::BasicHttpSecurityMode::TransportCredentialOnly<br/>
+	binding.Security.Transport.ClientCredentialType = System::ServiceModel::HttpClientCredentialType::Basic<br/><br/>
+
+	DIM endpoint as System::ServiceModel::EndpointAddress = new System::ServiceModel::EndPointAddress(ServiceURL)<br/><br/>
+
+	DIM Client as MyNamespace::GetList_OutClient = new MyNamespace::GetList_OutClient(Binding, EndPoint)<br/>
+	Client.ClientCredentials.HttpDigest.AllowedImpersonationLevel.value__ =  3 ' Impersonation<br/>
+	Client.ClientCredentials.HttpDigest.ClientCredential.UserName = UserName<br/>
+	Client.ClientCredentials.HttpDigest.ClientCredential.Password = Password<br/>
+	Client.ClientCredentials.UserName.UserName = UserName<br/>
+	Client.ClientCredentials.UserName.Password = Password
+	</blockquote>
+</p>
+<p><strong>Note: </strong>ServiceURL, UserName and Password are assumed to be variables in the script that have been 
+populated with the respective values.</p>
+
+
+<h3><a id="#LongURL">SAP Uses a Very Long URL</a></h3>
+<p>Most web services use a URL that ends with the name of the service.  
+SAP Web Services pass a lot of information as query parameters.
+Be sure those query parameters are preserved in the endpoint/Address used for your service call.</p>
+<p>For example:<br/>
+	<blockquote>
+	http://server.domain.com:51000/XISOAPAdapter/MessageServlet?senderParty=&senderService=BS_XXXX_Q&receiverParty=&receiverService=&interface=GetList_Out&interfaceNamespace=http://XXXX.com//XXXX/GetList/DR6001
+	</blockquote>
+<p>
+
+
+<h3><a id="FunctionPerService">SAP Generates a Separate Service For Each Function</a></h3>
+<p>Each function that is generated into a web service becomes a separate web service.</p>
+<p>As a result, you will need to treat each function as a completely separate service with its own assembly and client initialization code.</p>
+
+
+<h3><a id="Timeouts">Watch for Timeouts</a></h3>
+<p>In some environments we have noticed issues with timeouts.</p>
+<p>You can increas the default timeouts as shown below:<br/>
+	<blockquote>
+	DIM binding as System::ServiceModel::BasicHttpBinding<br/><br/>
+
+	binding.OpenTimeout        = new System::TimeSpan(0,0,10)    ' Connect<br/>
+	binding.ReceiveTimeout     = new System::TimeSpan(0,0,20)    ' Inactivity<br/>
+	binding.SendTimeout        = new System::TimeSpan(0,1,0)     ' Write Operation<br/>
+	binding.CloseTimeout       = new System::TimeSpan(0,0,15)    ' Close Operation<br/>
+	</blockquote>
+</p>
+
+<h3><a id="Nesting">SAP Request and Response Objects Tend to Nest</a></h3>
+<p>In the typical request and response pattern discussed in the help topic <a href="SOAP Services.html#RequestResponse">SOAP Services</a>,
+there is a class for the request and a class for the response.
+The call takes the form Response = Client.Method(Request).</p>
+<p>SAP web services tend to nest down an additional level, defining a property prefixed with "MT" as shown below. 
+The data type of the the property value tends to have DT as a prefix.</p>
+	<blockquote>
+	' Create the request, response and client<br/>
+	DIM Request as ::MyService::GetList_OutRequest<br/> 
+	DIM Response as ::MyService::GetList_OutResponse<br/>
+	Request.MT_GetList_Request = new ::MyService::DT_GetList_Request()<br/>
+	Request.MT_GetList_Request.RequestId = "1"<br/><br/>
+
+	' Call the service<br/>
+	Response = Client.GetList_Out(Request)<br/><br/>
+
+	' Check the call status<br/>
+	DIM ListResponse as ::MyService::DT_GetList_Response = Response.MT_GetList_Response<br/><br/>
+
+	' If values returned are in an array, you can walk through the array as follows:<br/>
+	for i = 1 to ListResponse.Get.Count<br/>
+		<blockquote>
+                Items = Plants + ListResponse.Get.GetValue(1).Item + crlf()<br/>
+		</blockquote>
+	next<br/>
+	</blockquote>
+</p>
+
+<h3><a id="DateFields">Working with Date Fields</a></h3>
+
+<p>An error can occur when passing datetime fields to an SAP service that defines an element as type xsd:datetime.
+The SOAP UI format of the date (2017-01-25T13:21:32.8908456-06:00) is slightly different than the one generating the error (2018-02-02T18:25:23.793 
+- note that in this case it has seven digits of fractional time whereas the reported SOAP error only has three).</p>
+
+<p>Passing DateTime values to SAP from WCF clients is a known issue.  Here are a couple of links to related posts.<br/>
+	<blockquote>
+
+	<h href="https://stackoverflow.com/questions/31725962/pass-net-datetime-value-to-sap-xsddate">Stack Overflow discussion</a><br/>
+	<a href="https://archive.sap.com/discussions/thread/3342876">SAP Discussion Thread</a></br>
+	</blockquote>
+</p>
+
+<p>The most effective workaround to this issue so far requires making a change to the WSDL file and regenerating the client.<br/>
+<ol>
+<li><p>Download and save the WSDL file by referencing the URL for the WSDL in a browser and saving the contents to a text file.</li>
+<li><p>Edit the WSDL file, changing the field type of the offending element (Order_Date in this example) from “xsd:datetime” to “xsd:string”.<br/>
+	<blockquote>
+	&lt;xsd:element name=&quot;Order_Date&quot; type=&quot;<strong>xsd:string</strong>&quot; &gt;
+		<blockquote>
+		&lt;xsd:annotation&gt;
+			<blockquote>
+			&lt;xsd:appinfo source=&quot;http://sap.com/xi/TextID&quot;&gt;d8d78f827aae11e28b885c260a3a7662&lt;/xsd:appinfo&gt;
+			</blockquote>
+		&lt;/xsd:annotation&gt;
+		</blockquote>
+	&lt;/xsd:element&gt;	
+	</blockquote>
+	</p>
+	</li>
+<li><p>Rebuild the WCF client from the new WSDL file using Dotnet::Services::GenerateWCFServiceFromWSDL().
+	</p></li>
+<li>In XBasic code that assigns the field, replace the assignment of the current date as follows:<br/>
+	<blockquote>
+	objHeader.Order_Date = now()
+	</blockquote>
+        becomes<br/>
+	<blockquote>
+	objHeader.Order_Date = System::String::Format("{0:yyyy-MM-ddTHH:mm:ss.fffffffZ}", now())
+	</blockquote>
+	<p><strong>Note: </strong>In this example, we use "now()" may the source may also be a datetime variable or datetime literal.</p>
+	</li>
+</ol>
+
+
+
+
+<br/>
+<br/>
+
+</div>
+
+</body>
+</html>
