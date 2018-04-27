@@ -1,0 +1,743 @@
+<html>
+
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="A tutorial on using SOAP and WCF services in Alpha Anywhere applications." />
+<meta name="shortlink" content="SOAP Service Clients" />
+<title>SOAP Web Service Clients</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Web Services</h1>
+
+<h2><a id="SOAPConcepts">SOAP Web Serice Clients</a></h2>
+
+<div>
+<p>
+<a href="#Overview">Overview and Concepts</a><br/>
+	<blockquote>
+	<a href="#WhatAre">What are web services?</a></br/>
+	<a href="#WhatHappens">What has to happen to make a web service call?</a><br/>
+	<a href="#SOAP">Simple Object Access Protocol - SOAP</a><br/>
+	<a href="#WSDL">Web Service Definition Language - WSDL</a><br/>
+	<a href="#WCF">Windows Communication Foundation - WCF</a><br/>
+	</blockquote>
+<a href="#CreatingProxies">Creating and Using Web Service Proxies in XBasic</a><br/>
+	<blockquote>
+	<a href="#CreateWebReference">Creating a Web Reference</a><br/>
+	<a href="#TestingWebReferences">Testing a Web Reference</a><br/>
+	</blockquote>
+<a href="#AdvancedTopics">Advanced Topics</a><br/>
+	<blockquote>
+	<a href="#Bindings">Bindings</a><br/>
+	<a href="#Security">Security</a><br/>
+	<a href="#Timeouts">Timeouts</a><br/>
+	<a href="#Quotas">Quotas</a><br/>
+	</blockquote>
+<a href="#NetNotXBasic">.NET is Not XBasic</a><br/>
+<a href="#TroubleshootingTips">Troubleshooting Tips</a><br/>
+<a href="#Conclusion">Conclusion</a><br/>
+</p>
+
+
+
+
+<h3><a id="Overview">Overview</a></h3>
+
+<p>This article will discuss in depth what web services are, specifically SOAP web services and how Microsoft WCF 
+can be used to interact with them.  We are going to discuss some of the basic concepts, look at XBasic code and then 
+learn to use tools that will help automate the process of integrating your web service.</p>
+
+<p>After working through the examples, you should understand<br/>
+<ul>
+	<li>What a web service is</li>
+	<li>What makes SOAP web services work and how they are "discoverable"</li>
+	<li>How to generate a .Net assembly that connects to a web service</li>
+	<li>How to connect securely to a web service</li>
+	<li>How to troubleshoot your client when calling functions on a web service</li>
+</ul>
+</p>
+
+<h3><a id="WhatAre">What are web services?</a></h3>
+
+<p>A web service is a standardized” way of communicating between a client and a server program using web protocols.  
+By this, we mean that a wide variety of programming languages implemented on different platforms (Linux and Windows for example) can
+pass requests and responses back and forth in a consistent way.
+</p>
+
+<img border="0" src="images/WebServicesSimple.jpg"><br/>
+
+<p>If web services don't sound like a big deal it is because decades of experience and trial and error have led to
+numerous standards from which web services have evolved.  
+That history includes DCE/RPC, APPC, CORBA, DCOM, and CGI, SOAP and RESTful services.
+All of these protocols have complexities and the most common approach for publicly available web services is to 
+include a downloadable SDK (Software Development Kit) that can be installed along with your client application.
+We will talk about how SOAP and Alpha Anywhere make it possible to create a client SDK yourself.
+</p>
+Most new services are implemented using a protocol called RESTful (Representational State Transfer), or REST services, 
+because they tranfer a stateful object between a client and a server.
+RESTful services map standard HTTP calls (PUT, GET, POST, DELETE) to the traditional read and update behaviors.
+The acronym CRUD (Create, Read Update, Delete) has been around for many years, and RESTful services attempt
+to present HTTP verbs that are equivalent to these operations.</p>
+
+<p>While the number of RESTful services is growing rapidly, there are still many implemented services
+built using the SOAP protocol.
+We will not cover RESTful services in this article, but will instead show how to consume a SOAP service.
+</p>
+
+<h3><a id="WhatHappens">What has to happen to make a web service call?</a></h3>
+<p>There are a number of things that have to work just right to make a web service call.  
+To get a sense of what you would have to do to implement web services from scratch in your own code, consider the following:</p>
+<ul>
+	<li>First we have to find the service.  This requires that we know the TCP/IP address (or server name) and the port to connect to.</li>
+	<li>All of the data we want to send must be converted into a stream of data (serialized using standard bit formats and character sets).</li>
+	<li>We need to format and make a specific request and the server needs to send a response.</li>
+	<li>All of the data we got back needs to be converted back into the objects/variables our programming environment understands (deserialized).</li>
+	<li>Oh… yeah…, and while you’re at it…do it all securely!</li>
+</ul>
+
+<p><strong>Note: </strong>Web Service APIs make all of this look like a function call.</p>
+
+
+<h3><a id="SOAP">Simple Object Access Protocol - SOAP</a></h3>
+
+<p>SOAP is a standard format that uses HTTP (or HTTPS) to make a web service request using the same HTTP protocol that browsers use.
+The request can be passed through firewalls and reach the target server, taking advantage of HTTP aware infrastructure.
+This is really important because most installations allow HTTP (port 80) and HTTPS (443), but close off other ports.
+Although the server responding to the request needs to recognize a service request, the intervening network devices don't need to understand what SOAP is.
+</p>
+
+<p>Requests are formatted using XML (Extensible Markup Language) and the data is formatted as XML as well.
+XML looks very much like HTML that is used to format web pages.</p>
+
+<p>You can code a SOAP "envelope" by hand, but in most cases, a tool is used to generate a "proxy" object that 
+looks like a class or library in a programming language familiar to you, such as XBasic.  
+Under the covers, the proxy object makes use of other software to deserialize the data and format the SOAP envelope required by the server.
+</p>
+
+<p>Often, the server side implementation is also generated; producing what is referred to as a "stub" that 
+a programmer on that side can use as a template to implement the actual behavior of the request you have made.</p>
+
+<br/>
+<img border="0" src="images/WebServicesOverview.jpg"><br/>
+
+<p>Here is an example of an HTTP request sent using the SOAP protocol.</p>
+
+<p><blockquote>
+POST /InStock HTTP/1.1<br/>
+Host: www.example.org <br/>
+Content-Type: application/soap+xml; charset=utf-8 <br/>
+Content-Length: 299 <br/>
+SOAPAction: &quot;http://www.w3.org/2003/05/soap-envelope&quot; <br/>
+<br/>
+&lt;?xml version=&quot;1.0&quot;?&gt; <br/>
+&lt;soap:Envelope xmlns:soap=&quot;http://www.w3.org/2003/05/soap-envelope&quot;&gt;<br/>
+	&lt;soap:Header&gt; &lt;/soap:Header&gt; <br/>
+	&lt;soap:Body&gt; <br/>
+		&lt;m:GetStockPrice xmlns:m=&quot;http://www.example.org/stock/Surya&quot;&gt; <br/>
+		&lt;m:StockName&gt;IBM&lt;/m:StockName&gt; <br/>
+		&lt;/m:GetStockPrice&gt; <br/>
+	&lt;/soap:Body&gt; <br/>
+&lt;/soap:Envelope&gt; <br/>
+</blockquote>
+</p>
+
+<p><a href="https://en.wikipedia.org/wiki/SOAP">Wikipedia</a></p>
+
+<h3><a id="WSDL">Web Service Definition Language - WSDL</a></h3>
+
+<p>SOAP Services are self describing.  
+This is a great feature for development tools such as Alpha Anywhere because it makes it possible to generate a client proxy automatically.
+What you are presented with is a class that represents the service with methods on it that you can call from XBasic directly.
+This "proxy" object usually has a name that ends with or contains "Client".<br/></p>
+<p><strong>Note: </strong>In addition to the proxy or client class with the methods, there are usually additional classes
+that define objects to be passed as part of a request or returned as part of a response.
+These objects may contain other objects, creating a sometimes overwhelming, hierarchy of objects. 
+</p>
+
+<p>Because of the complexity of describing the set of method calls exposed by a SOAP service, the XML describing a SOAP service is typically
+quite large and difficult to read.</p>
+
+<p><strong>Example WSDL Contents</strong><br/><br/>
+<blockquote>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;<br/>
+&lt;wsdl:definitions xmlns:wsdl=&quot;http://schemas.xmlsoap.org/wsdl/&quot; targetNamespace=&quot;http://www.webserviceX.NET&quot; xmlns:http=&quot;http://schemas.xmlsoap.org/wsdl/http/&quot; xmlns:soap12=&quot;http://schemas.xmlsoap.org/wsdl/soap12/&quot; xmlns:s=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:soap=&quot;http://schemas.xmlsoap.org/wsdl/soap/&quot; <br/>
+xmlns:tns=&quot;http://www.webserviceX.NET&quot; xmlns:mime=&quot;http://schemas.xmlsoap.org/wsdl/mime/&quot; xmlns:soapenc=&quot;http://schemas.xmlsoap.org/soap/encoding/&quot; xmlns:tm=&quot;http://microsoft.com/wsdl/mime/textMatching/&quot;&gt;<br/>
+&lt;wsdl:types&gt;<br/>
+&lt;s:schema targetNamespace=&quot;http://www.webserviceX.NET&quot; elementFormDefault=&quot;qualified&quot;&gt;<br/>
+&lt;s:element name=&quot;GetWeather&quot;&gt;&lt;s:complexType&gt;&lt;s:sequence&gt;<br/>
+&lt;s:element name=&quot;CityName&quot; type=&quot;s:string&quot; maxOccurs=&quot;1&quot; minOccurs=&quot;0&quot;/&gt;&lt;s:element name=&quot;CountryName&quot; type=&quot;s:string&quot; maxOccurs=&quot;1&quot; minOccurs=&quot;0&quot;/&gt;&lt;/s:sequence&gt;&lt;/s:complexType&gt;&lt;/s:element&gt;<br/>
+&lt;s:element name=&quot;GetWeatherResponse&quot;&gt;&lt;s:complexType&gt;&lt;s:sequence&gt;<br/>
+&lt;s:element name=&quot;GetWeatherResult&quot; type=&quot;s:string&quot; maxOccurs=&quot;1&quot; minOccurs=&quot;0&quot;/&gt;&lt;/s:sequence&gt; &lt;/s:complexType&gt;&lt;/s:element&gt;<br/>
+&lt;s:element name=&quot;GetCitiesByCountry&quot;&gt;&lt;s:complexType&gt;&lt;s:sequence&gt;<br/>
+&lt;s:element name=&quot;CountryName&quot; type=&quot;s:string&quot; maxOccurs=&quot;1&quot; minOccurs=&quot;0&quot;/&gt;&lt;/s:sequence&gt;&lt;/s:complexType&gt;&lt;/s:element&gt;<br/>
+&lt;s:element name=&quot;GetCitiesByCountryResponse&quot;&gt;&lt;s:complexType&gt;&lt;s:sequence&gt;<br/>
+&lt;s:element name=&quot;GetCitiesByCountryResult&quot; type=&quot;s:string&quot; maxOccurs=&quot;1&quot; minOccurs=&quot;0&quot;/&gt;&lt;/s:sequence&gt;&lt;/s:complexType&gt;&lt;/s:element&gt;<br/>
+&lt;s:element name=&quot;string&quot; type=&quot;s:string&quot; nillable=&quot;true&quot;/&gt;<br/>
+&lt;/s:schema&gt;<br/>
+&lt;/wsdl:types&gt;<br/>
+<br/>
+...and the listing goes on for pages!...
+</blockquote>
+</p>
+
+<p>WSDL is generally generated by the server side and is retrieved by making a web request and appending "?WSDL" to the URL that references the service.</p>
+
+<p>Alpha Anywhere uses WSDL files to generate client side .Net assemblies that can be used from XBasic to call the web service described.</p>
+
+<h3><a id="WCF">Windows Communication Foundation - WCF</a></h3>
+
+<p>Windows Communication Foundation (WCF) is a proprietary Microsoft technology intended to create a general purpose
+environment for SOAP, RESTful web services with XML and JSON data,
+and using a variety of transports including HTTP on TCP/IP, queues, e-mail and named pipes.
+It is highly configurable and can be deployed using multiple transports at once with the same software implementation.
+</p>
+
+<p>Unfortunately, WCF is conceptually simple but proved to have introduced complexities in trying to be a general solution to many problems.
+A few years ago Microsoft decided to "open source" WCF and stopped further development of the technology.
+You can find out more about WCF in .NET Core at <a href="https://www.dotnetfoundation.org/blog/2015/05/20/wcf-is-open-source">WCF is Open Source</a>
+<p>
+
+<p>Nonetheless, there are still many web services used in Microsoft shops that implement services using WCF.</p>
+
+<h4>The ABCs of WCF</h4>
+
+<p>In theory, WCF is quite simple.  The letters A, B, and C are used to describe the fundamental concepts.</p>
+<ul>
+	<li><p><strong>A - Address </strong>refers to how we find the destination server (the "endpoint").  
+		For TCP/IP transports it is the server name and the port on the server to be accessed (usually 80 or 443).</p></li>
+	<li><p><strong>B - Binding </strong>is about how the data will reach the endpoint. This is generally SOAP over HTTP,
+		but can vary.</p></li>
+	<li><p><strong>C - Contract </strong>is an agreement (between the client and the server) as to what requests are to be made
+		and what data will be sent between them.</p></li>
+</ul>
+
+<p>The contract is integral to the implementation of the service, but the address and binding can be changed in the configuraion file (also XML).</p>
+
+
+<h3><a id="CreatingProxies">Creating and Using Web Service Proxies in XBasic</a></h3>
+
+<p>A web service that exposes the WSDL (Web Service Definition Language) from the site itself, makes it possible to read the latest version
+and generate a proxy from the client.  
+Sometimes you will be given a file containing the WSDL instead.
+There are methods to generate the proxy from the WSDL directly as well.  
+In this example, we are going to implicitly make a web call to read the WSDL from a server directly and use it to generate the proxy.
+</p>
+
+<p>There are three steps required to integrate a SOAP Web Service into XBasic:</p>
+<ol>
+	<li>Generate the web service proxy (a .NET assembly/DLL).  Do this once.</li>
+	<li>Add the new assembly to the XBasic type system.  Do this once per running application/process.</li>
+	<li>Dimension (DIM) a variable of the type of the web service client object and use it to make calls to the service object as needed.</li>
+</ol>
+
+<h4>Step 1: Generate the Web Service Proxy</h4>
+
+<p>You can use the tools in Alpha Anywhere to generate a proxy, or do it from XBasic itself.  Let's start with XBasic.</p>
+
+<p>In the code example below, we are going to use the DotNet::Services class to generate the proxy assembly in the file specified.
+To get the Web Service Definition Language (WSDL), we need the URL for the service 
+(and possibly a username and password, but these are optional parameters to the generation function).
+</p>
+
+
+<p><blockquote><strong>An XBasic Example of Generating a Web Service Proxy</strong><br/><br/>
+
+DIM ProxyAssembly as C = "c:\temp\myProxy.dll"<br/>
+DIM WSDLURL as C = "http://hostname.com/service.svc?WSDL"<br/><br/>
+
+IF .not. File.Exists(ProxyAssembly)<br/>
+	<blockquote>DIM Sv as DotNet::Services<br/>
+	Sv.GenerateWebServiceClientFromURL(WSDLURL, ProxyAssembly)
+	</blockquote>
+END IF
+</blockquote>
+</p>
+<p><blockquote>
+<strong>Notes:</strong><br/>
+<ol>
+	<li>GenerateWebServiceClientFromURL returns true or false.  Check the CallResult property.</li>
+	<li>Do this once.  Save the file and install it on your server in the executable path.</li>
+	<li>The “.svc” extension is used by Microsoft for its web services.  You may also find “.asmx”, “.php”, “.soap.2”, “.cfc”, another one, or even none at all.</li>
+</ol>
+</blockquote></p>
+<br/>
+<img border="0" src="images/GeneratingWebServiceClients.jpg"><br/>
+<br/>
+
+<p>From the diagram, you can see that there are actually three files produced by the generator:<br/>
+<df>
+	<dt>The Proxy Assembly</dt>
+		<dd>This is the assembly you will register and use to talk to your web service.</dd>
+	<dt>The Debugging Symbol File(PDB)</dt>
+		<dd>This file can be used within Visual Studio to debug your assembly. 
+			We may ask for this file in troubleshooting a web service connection.</dd>
+	<dt>The Source Code</dt>
+		<dd>This file is a C# source file that is generated and then compiled into your assembly.
+			It contains all of the source code that makes the service you are calling different from other services.
+			You can learn a lot about the service in reading this file.</dd>
+</df><br/>
+
+<h4>Step 2: Add the Assembly to the XBasic Type system</h4>
+
+<p>Once you have created the assembly (a DLL) containing the proxy, you will need to make this file part of your
+web project so it is installed with your other files.  
+Put the file in a folder under your web project called "bin" and add it to your web project.
+</p>
+
+<p>The XBasic type system does not know about your new assembly, so you will need to register the assembly in order
+to use it.  The <strong>DotNet</strong> namespace has an object called Services that you can use to register
+your assembly within XBasic.  Calling this system updates the global XBasic type system so your assembly can be used.</p>
+
+<p>Create a Dotnet::Services object by dimensioning a variable and pass in a unique namespace to access your assemblies types
+and keep them separate from other types in XBasic that might have the same name.  
+In the example below, we use the name "::Serv", but you should probably choose a name that will help you remember it, such as the service name.
+</p>
+
+<p>Once per running process you must add the assembly to the XBasic type system.  
+If you are running under IIS, multiple processes may be running on multiple servers and it is difficult
+to know whether a request is running on a particular server and a specific process for the first time.
+You can use the XBasic static function <strong>Type::Definition::Exists()</strong> to determine if your
+namespace already exists so you don't call DotNet::RegisterAssembly() more than once per running process
+</p>
+
+<p><blockquote><strong>An XBasic Example of Adding the Assembly to the XBasic Type System</strong><br/><br/>
+IF .not. Type::Definition::Exists(" ::Serv ") THEN<br/>
+	dim Sv     as DotNet::Services<br/>
+	dim Assy as DotNet::AssemblyReference<br/>
+	Assy.FileName = " c:\temp\myproxy.dll "<br/>
+	Sv.RegisterAssembly(“::Serv”, Assy)<br/>
+END IF<br/><br/>
+
+</blockquote></p>
+
+<p><blockquote>
+<strong>Notes:</strong><br/>
+<ol>
+	<li>RegisterAssembly returns true or false.  Check the CallResult property.</li>
+	<li>Use a namespace (“::Serv” is probably not a good namespace!) that is unique on your server.  
+		In many cases, the root namespace in the assembly is unique enough and you can use “::” to 
+		install it in the root of the Alpha Anywhere type system.</li>
+</ol>
+</blockquote></p>
+
+
+
+<h4>Step 3: DIM the Client Variable</h4>
+
+<p>Once the assembly has been added to the XBasic type system, you can dimension (DIM) a variable
+containing an instance of the client class.  
+Use the variable to make service calls by simply calling a function and the client and proxy implementation
+will take care of making the actual calls to the server.
+</p>
+
+<p><blockquote><strong>Dimensioning the XBasic Variable to Create the Client</strong><br/><br/>
+DIM Client as ::Serv::Client
+</blockquote></p>
+
+<p><blockquote>
+<strong>Notes:</strong><br/>
+<ol>
+	<li>Do this as needed.  You do not have to hold on to the Client variable.</li>
+	<li>Don’t worry that this looks too easy!  We’ll add more code later… </li>
+</ol>
+</blockquote></p>
+
+<p>
+Once the client is dimmed, you can call its functions as with any .NET assembly.<br/>
+<br/>
+It could be as simple as:<br/><br/>
+	<blockquote>
+	DIM Client AS ::Serv::Client<br/>
+	Result = Client.SumValues(1,2,3,4,5)<br/>
+	</blockquote><br/>
+<br/>
+…but it probably won’t…and we will see why...</br>
+<p>
+</p>
+
+
+<h4>Step 4: "Wait! What? How do I use this thing?"</h4>
+
+<p>Once we have a client, we have to figure out how to set valid parameters and process the response. 
+With all due respect to the calculator example above, most we services just aren't as simple as that.</p>
+<p>The XBasic interactive window is a really great place to explore.</p>
+<p>As you saw above, we keep the generated C# source.  Sometimes this is just as helpful because it 
+includes declared types.</p>
+
+<p>You can create a script in the Interactive Window of the Alpha Anywhere development environment to 
+generate, register and explore your client object using auto-help.</p>
+
+<p><strong>Note: </strong>The proxy client is a .Net assembly.  
+These assemblies loaded (what happens when you register your assembly) only once per running .Net application domain.
+If you are testing in the development environment and you need to regenerate your assembly, you may
+need to exit Alpha Anywhere to unload the assembly.
+</p>
+
+<h3><a id="CreateWebReference">Creating a Web Reference</a></h3>
+
+<p>Now that you understand what it takes to generate and make use of a proxy to make calls to a web service lets look at a tool to make things easier.
+You can accomplish most of what we have done in XBasic to create a reference to a SOAP web service directly from the web control panel.  
+In this section we will show how to a create and test a web reference. 
+The assembly generated is automatically added to your web project.
+</p>
+
+<p>
+<ol>
+	<li>From the Web Control panel, select "Web Reference from the list of objects and click the new button toward the top of the workspace.<br/><br/>
+		<img border="0" src="images/WebReferenceNew.jpg"><br/>
+		</li><br/>
+	<li>The New Web Reference dialog will be displayed. 
+		<ul>
+			<li>Enter the URL for the service followed by "?WSDL" to retrieve the WSDL from the service.</li>
+			<li>The service URL will generally be the same as the URL above it, but without the "?WSDL".  If it is not, enter the URL for the service.</li>
+			<li>Enter a unique name for the service.  This is the name you will use in your code, so it must be valid for use as an XBasic variable.</li>
+			<li>Select a Service Type from the following:<br/>
+				<df>
+					<dt>SOAP</dt><dd>Use this value for older services that make simple function calls.</dd>
+					<dt>SOAP12</dt><dd>Newer non-Microsoft implementations often require version 1.2 of SOAP</dd>
+					<dt>WCF</dt><dd>Despite the name, this option does not require a WCF service.  
+							Instead it generates a WCF client and can talk to many types of services including SOAP.
+							You will generally want to choose WCF as the option.
+							If your service URL ends with ".svc" definitely use this option.
+						</dd>
+				</dt><br/>
+				<strong>Note: </strong>There is no automatic way to know which option to choose.
+							You may have to experiment or ask your service provider how their service is implemented.<br/>
+				</li>
+			<li>Your web service may require a username and password to download the WSDL.  
+					This is uncommon for public services, but does happen for services companies use internally.</li>
+			<li>Once you have entered all values and made your selection, 
+		</ul>				
+		<img border="0" src="images/WebReferenceNew.jpg"><br/>
+		</li>
+</ol>
+		</blockquote>
+<br/></p>
+		
+<h3><a id="TestingWebReferences">Testing a Web Reference</a></h3>
+
+<p>Once your Web Reference is created, you can test it by selecting Web References in the list on web control panel and then double 
+clicking it on item in the list to the right.<br/><br/>
+		<blockquote>		
+		<img border="0" src="images/WebReferenceSelect.jpg"><br/>
+		</blockquote>
+<br/></p>
+
+<p>The Edit/Explore Web Reference dialog can be used to edit your settings or to explore the methods published by the service and the arguments and return
+types for those methods.<br/><br/>
+		<blockquote>
+		<img border="0" src="images/WebReferenceTest.jpg"><br/>
+		</blockquote>
+<br/></p>
+
+<p>Select the method you want to work with and click the <strong>Test Method</strong> link to generate XBAsic code you can test with.
+The editor will open with a test script generated for your service.  You will need to provide values for arguments.
+<br/><br/>
+		<blockquote>
+		<img border="0" src="images/WebReferenceInteractive.jpg"><br/>
+		</blockquote>
+<br/></p>
+
+
+<p>After you make your changes, you can copy the edited script to the clipboard.  
+Click the <strong>Execute</strong> button to execute your script and see the results.<br/><br/>
+A window will open with the results of your web service call.<br/><br/>
+		<blockquote>
+		<img border="0" src="images/WebReferenceResults.jpg"><br/>
+		</blockquote>
+<br/></p>
+
+<h3><a id="#AdvancedTopics">Advanced Topics</a></h3>
+
+<p>As we discussed when introducing Windows Communication Foundation (WCF), the intention behind WCF was to provide flexibility
+when a service is installed and configured.  
+The settings required by the configured web service as installed on the server must be matched on the client.
+</p>
+
+<p>In many applications the executable is configured using a file with the same base name and a ".config" extension.
+It is possible to create a ".config" file for alpha5.exe (the executable for the Alpha Anywhere development environment
+or for A5ApplicationServer.exe (the executable for the Classic version of Alpha Anywhere Application Server).
+With IIS installations, however, Alpha Anywhere is not even running an executable.  
+Instead, each process is run under the w3wp.exe application; which is used for all web sites.
+</p>
+<p>To configure a service client in XBasic, you set options on the client object, sometimes using additional classes that
+are part of the .NET framework. We will discuss some of them in the sections below.</p>
+
+<h4><a id="#Bindings">Bindings</a></h4>
+<p>As we discussed in the section above introducting Windows Communication Foundation (WCF), bindings (the B in ABC) is the way the client
+communicates with the server.</p>
+<p>WCF is designed to support many different bindings - ways of communicating.  
+These include HTTP, WS* protocols, simple TCP/IP bindings and MSMQ (Microsoft Message Queueing).</p>
+
+<p>The list below includes some of the more common bindings that are part of the System.ServiceModel namespace in the .NET framework:<br/>
+<ul>
+	<li>BasicHttpBinding</li>
+	<li>WSHttpBinding</li>
+	<li>WS2007HttpBinding</li>
+	<li>WSDualHttpBinding</li>
+	<li>NetTcpBinding</li>
+	<li>NetNamedPipeBinding</li>
+	<li>NetMsmqBinding</li>
+	<li>WSFederationHttpBinding</li>
+	<li>NetPeerTcpBinding</li>
+	<li>MsmqIntegrationBinding</li>
+	</ul>
+</ul>
+<br/>
+<strong>Note: </strong>If necessary, you can even write your own custom binding, but that is well beyond the scope of this article.
+</p>
+
+<h5>Setting a specific binding from XBasic</h5>
+<p>The default constructor for a service client creates a default binding and end point. 
+Sometimes that binding is not the one configured on the server.
+If the bindings don't match, we may have to explicitly create it as part of dimensioning the client object.</p>
+
+<p>To explicitly set the binding on a client object, we must declare variables for a binding and and an endpoint (the A is for Address in our WCF discussion).
+In the example below, we create a WSHttpBinding (a secure binding).  
+The contstructors generated by the .NET framework do not include constructors that only include a binding.
+We must also create an EndPointAddress object with the URL we want to connect to.<p>
+
+<p>In the simplest case, we would dimension the client object by simply declaring the variable.<br/>
+	<blockquote>
+	DIM MyClient as Serv::MyClient<br/>
+	</blockquote>
+In order to explicitly choose the binding, we must use a constructor for the web service client (Serv::MyClient() in this case)
+and pass it the binding and endpoint object.<br/>
+You will have to provide the endpoint URL as a constructor argument for the System::ServiceModel::EndPointAddress object.<br/>
+
+	<blockquote>
+	DIM b as System::ServiceModel::WSHttpBinding<br/>
+	DIM e as System::ServiceModel::EndPointAddress  	= new System::ServiceModel::EndPointAddress("http://…")<br/>
+	DIM MyClient as Serv::MyClient 					= new Serv::MyClient(b, e)<br/>
+	</blockquote>
+
+<p><strong>Note: </strong>A constructor is a special function of a class that allows it to execute code when it is being created.
+You can also pass arguments when creating the object and there can be multiple implementations of the constructor that accept different arguments.
+</p>
+
+
+<h4><a id="#Security">Security</a></h4/>
+
+<h5>Credentials</h5>
+<p>WCF clients can set security a number of ways, again, depending on the requirements set by the server configuration. 
+You can set a username and password using the ClientCredentials property of the client.  
+You can also set HttpDigest credentials, Windows credentials, and you can even set credentials based on a certificate.  
+Again, the one you require will depend on how the server side is configured.<p>
+
+	<blockquote>
+	client.ClientCredentials.UserName.UserName = “<user>“<br/>
+	client.ClientCredentials.UserName.Password = “<password>“<br/><br/>
+
+	client.ClientCredentials.HttpDigest.ClientCredential.UserName = “<user>"<br/>		
+	client.ClientCredentials.HttpDigest.ClientCredential.Password = “<password>“<br/><br/>
+
+	client.ClientCredentials.Windows.ClientCredential.UserName = “<user>“<br/>
+	client.ClientCredentials.Windows.ClientCredential.Password = “<password>“<br/><br/>
+
+	client.ClientCredentials.ClientCertificate.SetCertificate(<br/>
+		System::Security::Cryptography::X509Certificates::StoreLocation::LocalMachine,<br/>
+		 System::Security::Cryptography::X509Certificates::StoreName::My,<br/>
+		 System::Security::Cryptography::X509Certificates::X509FindType::FindBySubjectName,		“client.com”)<br/>
+	</blockquote>
+
+<h5>Security Mode</h5>
+<p>Security in web services can be implemented at two levels: the message, and the transport. 
+Security can be disabled, or enabled at either the transport or the message level, or both.
+Transport level security is done at the network level.  For example, SSL authentication occurs at the transport level.
+Message level security relies on the message itself to take care of authentication.</p>
+
+<p>Once the security level is selected, the type of credentials must also be set.</p>
+
+<p><strong>Setting the Security Mode</strong></p>
+	<blockquote>
+	b.Security.Mode = System::ServiceModel::SecurityMode::BasicHttpSecurityMode::None
+		(Transport, Message, TransportCredentialOnly, TransportWithMessageCredential)
+	</blockquote>
+
+<p><strong>Setting the Transport Credential Type</strong></p>
+
+
+	<blockquote>
+	b.Security.Transport.ClientCredentialType = System::ServiceModel::HttpClientCredentialType::None
+		(Basic, Certificate, Digest, InheritedFromHost, Ntlm, Windows)
+	</blockquote>
+
+<p><strong>Setting the Message Credential Type</strong></p>
+	<blockquote>
+	b.Security.Message.ClientCredentialType = System::ServiceModel::MessageCredentialType::UserName 
+		(Certificate, IssuedToken, UserName, Windows)
+	</blockquote>
+
+<p><strong>Example: Basic Security with WCF</strong></p>
+<p>In this example we want to set up basic security using Transport level security.<br/>
+	<blockquote>
+	DIM b as System::ServiceModel::BasicHttpBinding<br/>
+	b.MessageEncoding 			= System::ServiceModel::WSMessageEncoding::Text <br/>
+	b.Security.Mode 				= System::ServiceModel::SecurityMode::Transport<br/>
+	b.Security.Transport.ClientCredentialType 	= System::ServiceModel::HttpClientCredentialType::None<br/>
+	b.Security.Transport.ProxyCredentialType 	= System::ServiceModel::HttpProxyCredentialType::None <br/><br/>
+
+	DIM e as system::ServiceModel::EndPointAddress = <br/>
+	new System::ServiceModel::EndPointAddress("http://xxxxxxxxx")<br/><br/>
+
+	dim MyClient as ::Serv::MyClient = new ::Serv::MyClient(b, e)<br/>
+
+	</blockquote>
+</p>
+
+<p><strong>Example: Windows Security with WCF</strong></p>
+<p>In this example we want to set up Windows (integrated) security.  Node that the security mode set is "None".<br/>
+	<blockquote>
+	DIM b as System::ServiceModel::WSHttpBinding<br/>
+	b.Security.Mode 		          	= System::ServiceModel::SecurityMode::None<br/>
+	b.Security.transport.ClientCredentialType 	= System::ServiceModel::HttpClientCredentialType::Windows <br/>
+	b.Security.Transport.ProxyCredentialType 	= System::ServiceModel::HttpProxyCredentialType::None <br/>
+	b.Security.Transport.Realm 	           	= ""<br/>
+	b.Security.Message.ClientCredentialType  	= System::ServiceModel::HttpClientCredentialType::Windows <br/>
+	b.Security.Message.NegotiateServiceCredential 	= .t.<br/><br/>
+
+	DIM e as System::ServiceModel::EndPointAddress = new System::ServiceModel::EndPointAddress("http://…")<br/><br/>
+
+	DIM MyClient as ::Serv::MyClient = new ::Serv::MyClient(b, e)<br/>
+
+	</blockquote>
+
+</p>
+
+
+<h4><a id="#Timeouts">Timeouts</a></h4>
+<p>The binding has four properties that control timeouts when making web service requests.<br/>
+<ul>
+	<li>OpenTimeout - Limits the time the client will wait trying to connect to the server.</li>
+	<li>ReceiveTimeout - Limits the time the client will wait to receive a response.</li>
+	<li>SendTime - Limits the time the client will wait to complete a write operation.</li>
+	<li>Closetimeout - Limits the time the client can hold the connection open.</li>
+	</ul>
+</p>
+<p>you can set the timeout on the binding as with other settings.  Note that the property is set using the .NET type System::Timespan.
+The constructor being used in the example below accepts hours, minutes and seconds.<br>
+	<blockquote>
+	DIM b as System::ServiceModel::BasicHttpBinding<br/>
+	b.OpenTimeout 		= new System::TimeSpan(0,0,10) 	' Connect<br/>
+	b.ReceiveTimeout 	= new System::TimeSpan(0,0,20) 	' Inactivity<br/>
+	b.SendTimeout  		= new System::TimeSpan(0,1,0)	' Write Operation<br/>
+	b.CloseTimeout 		= new System::TimeSpan(0,0,15)	' Close Operation<br/><br/>
+
+	DIM e as system::ServiceModel::EndPointAddress = new System::ServiceModel::EndPointAddress("http://xxxxxxxxx")<br/><br/>
+
+	DIM ScriptService as ::Serv::MyClient = new ::Serv::MyClient(b, e)<br/>
+
+	</blockquote>
+
+</p>
+
+<h4><a id="#Quotas">Quotas</a></h4>
+
+<p>The binding has properties that can be set to adjust quotas for a variety of data related values.  
+These values determine how much data can be returned in a single call.
+If you run into problems, you will need to adjust the quotes. 
+The example below can handle most responses.
+<br/>
+	<blockquote>
+	DIM b as System::ServiceModel::BasicHttpBinding<br/>
+	b.MaxReceivedMessageSize 		= 10485760<br/>
+	b.maxBufferSize 			= 10485760<br/>
+	b.MaxBufferPoolSize 			= 10485760<br/>
+	b.ReaderQuotas.maxDepth 		= 32<br/>
+	b.ReaderQuotas.MaxStringContentLength 	= 10485760<br/>
+	b.ReaderQuotas.MaxArrayLength 		= 16384<br/>
+	b.ReaderQuotas.MaxBytesPerRead 		= 4096<br/>
+	b.ReaderQuotas.maxNameTableCharCount 	= 16384<br/><br/>
+
+	DIM e as system::ServiceModel::EndPointAddress = new System::ServiceModel::EndPointAddress("http://xxxxxxxxx")<br/><br/>
+
+	DIM ScriptService as ::Serv::MyClient = new ::Serv::MyClient(b, e)<br/><br/>
+	</blockquote>
+</p>
+
+<p>There is another setting that must actually be changed for each behavior or operation on a client. 
+The script below can be executed on your client object some time prior to the call.
+It enumerates over all of the operations the object supports and sets the MaxItemsInObjectGraph value for each operation.<br/>
+
+	<blockquote>
+	Operations = MyClient.Endpoint.Contract.Operations <br/>
+	for i = 1 to Operations.Count
+		<blockquote>
+		Operation = Operations[i]<br/>
+		Behaviors = Operation.Behaviors<br/><br/>
+	
+		Enumerator = Behaviors.GetEnumerator()<br/>
+		while Enumerator.MoveNext() 
+			<blockquote>
+			Current = Enumerator.Current <br/>
+			if Current.gettype().FullName = \
+				<blockquote>
+				"System.ServiceModel.Description.DataContractSerializerOperationBehavior"<br/>
+			          Current.MaxItemsInObjectGraph = 2147483647
+				</blockquote>
+			end if
+			</blockquote>
+		end while
+		</blockquote>
+	next
+	</blockquote>
+</p>
+
+<h3><a id="NetNotXBasic">.NET is Not XBasic</a></h3>
+<p>XBasic is a BASIC language derivative and has its own syntax and runtime semantics.  
+.Net implements a runtime environment with its own semantics; often different that XBasic.
+Alpha Anywhere integrates .NET functionality into XBasic, but there are often times where the semantics of the two environments are 
+simply too different to work as expected.</p>
+
+<p>Some key areas that XBasic and .Net differ are:</br>
+
+<ul>
+	<li>.NET arrays are immutable.  The size of a .NET array cannot change; thought he values of entries can.
+		There are other types in .Net that provide functionality to the XBasic array (ability to resize).</li>
+		</li>
+	<li>.NET enumerated types are objects.  In XBasic, enumerations are constant integers that make setting values easer to read.<br/> 	 
+		<ul>
+			<li>Enumerated types in .NET have a static property for each value allowed.</li>
+			<li>You can use the enumerated type's Parse() function to convert a string to an enumerated type (including sets such as “Read, Write”).</li>
+		</ul></li>
+	<li>.Net to Xbasic conversions of primitive can get “interesting”.  
+		You can dim an object of type System::DateTime and interact with it as an object.
+		If you assign a .Net value type such as DateTime to an untyped variable it will be converted to the XBasic "T" or Time variable time.
+		</li>
+</ul>
+</p>
+
+
+<h3><a id="#TroubleshootingTips">Troubleshooting Tips</a></h3>
+
+<p>Troubleshooting SOAP web services can be frustrating at times.  
+Here are some ideas to make it less so.</p>
+<ul>
+	<li>See if the creator of the service has provided:
+		<ul>
+			<li>Documentation (especially with C# examples)</li>
+			<li>A client SDK for .Net.  Why generate a client assembly if you don't have to?</li>
+		</ul></li>
+	<li>Find a working C# client example and configuration file if at all possible. C# is quite readable and may provide important clues.</li>
+	<li>Look at the C# generated when a proxy assembly is created.  Again, there may be clues as to what is expected in this file.</li>
+	<li>When all else fails – download the Windows SDK and run SvcUtil.exe.  
+		If SvcUtil.exe can’t generate a working assembly, Alpha Anywhere will not be able to call the service.
+		If it does generate a working assembly, but Alpha Anywhere won't, please send us a complete example so we can determine whether it is a bug.</li>
+	</ul>
+
+<h3><a id="#Conclusion">Conclusion</a></h3>
+<p>Web Services is a very big topic and we've dug in pretty deeply, but only scratched the surface. 
+Alpha Anywhere and Alpha Anywhere Application server are designed to make creating and deploying applications faster and easier.
+If you run into specific issues or discover something we can do better, we hope you will contact us with a well thought out and reproducible case.
+With the right example code, we can often resolve an issue with you or address a deficiency in the product very quickly.</p>
+<br/>
+<br/>
+
+</div>
+
+</body>
+</html>
