@@ -25,10 +25,12 @@
 	<a href="#WSDL">Web Service Definition Language - WSDL</a><br/>
 	<a href="#WCF">Windows Communication Foundation - WCF</a><br/>
 	</blockquote>
-<a href="#CreatingProxies">Creating and Using Web Service Proxies in XBasic</a><br/>
+<a href="#CreatingProxies">Creating and Using Web Service Proxies</a><br/>
 	<blockquote>
+	<a href="#CreatingProxiesXBasic">Creating Proxies in XBasic</a><br/>
 	<a href="#CreateWebReference">Creating a Web Reference</a><br/>
 	<a href="#TestingWebReferences">Testing a Web Reference</a><br/>
+	<a href="#RequestResponse">The Request Response Pattern</a><br/>
 	</blockquote>
 <a href="#AdvancedTopics">Advanced Topics</a><br/>
 	<blockquote>
@@ -221,12 +223,17 @@ You can find out more about WCF in .NET Core at <a href="https://www.dotnetfound
 <h3><a id="CreatingProxies">Creating and Using Web Service Proxies in XBasic</a></h3>
 
 <p>A web service that exposes the WSDL (Web Service Definition Language) from the site itself, makes it possible to read the latest version
-and generate a proxy from the client.  
-Sometimes you will be given a file containing the WSDL instead.
+and generate a proxy from a development environment like Alpha Anywhere.
+In this section we will see how you can generate a proxy by writing XBasic or by creating a Web Reference in the Web Control panel.
+</p>  
+
+<h4><a id="CreatingProxiesXBasic">Creating Proxies in XBasic</a></h4>
+
+<p>You can create a new proxy using XBasic directly by invoking a function on the DotNet::Services object.
+Sometimes you will be given a file containing the WSDL instead. 
 There are methods to generate the proxy from the WSDL directly as well.  
 In this example, we are going to implicitly make a web call to read the WSDL from a server directly and use it to generate the proxy.
 </p>
-
 <p>There are three steps required to integrate a SOAP Web Service into XBasic:</p>
 <ol>
 	<li>Generate the web service proxy (a .NET assembly/DLL).  Do this once.</li>
@@ -234,7 +241,7 @@ In this example, we are going to implicitly make a web call to read the WSDL fro
 	<li>Dimension (DIM) a variable of the type of the web service client object and use it to make calls to the service object as needed.</li>
 </ol>
 
-<h4>Step 1: Generate the Web Service Proxy</h4>
+<h5>Step 1: Generate the Web Service Proxy</h5>
 
 <p>You can use the tools in Alpha Anywhere to generate a proxy, or do it from XBasic itself.  Let's start with XBasic.</p>
 
@@ -281,7 +288,7 @@ END IF
 			You can learn a lot about the service in reading this file.</dd>
 </df><br/>
 
-<h4>Step 2: Add the Assembly to the XBasic Type system</h4>
+<h5>Step 2: Add the Assembly to the XBasic Type system</h5>
 
 <p>Once you have created the assembly (a DLL) containing the proxy, you will need to make this file part of your
 web project so it is installed with your other files.  
@@ -328,7 +335,7 @@ namespace already exists so you don't call DotNet::RegisterAssembly() more than 
 
 
 
-<h4>Step 3: DIM the Client Variable</h4>
+<h5>Step 3: DIM the Client Variable</h5>
 
 <p>Once the assembly has been added to the XBasic type system, you can dimension (DIM) a variable
 containing an instance of the client class.  
@@ -362,7 +369,7 @@ It could be as simple as:<br/><br/>
 </p>
 
 
-<h4>Step 4: "Wait! What? How do I use this thing?"</h4>
+<h5>Step 4: "Wait! What? How do I use this thing?"</h5>
 
 <p>Once we have a client, we have to figure out how to set valid parameters and process the response. 
 With all due respect to the calculator example above, most we services just aren't as simple as that.</p>
@@ -452,6 +459,39 @@ A window will open with the results of your web service call.<br/><br/>
 		<img border="0" src="images/WebReferenceResults.jpg"><br/>
 		</blockquote>
 <br/></p>
+
+<h3><a id="#RequestResponse">The Request Response Pattern</a></h3>
+<p>WCF services tend to use a request/response pattern to make web service calls.  
+By this, we mean that the request is actually an object itself and the call returns an object referred to as a response object.
+The type information generated into an assembly will reflect this in the function signatures.
+</p>
+<p>The format of a complete call looks something like this:<br/>
+<blockquote>
+DIM Request as MyNamespace::MyFunctionRequest<br/>
+DIM Response as MyNamespace::MyFunctionResponse<br/>
+Request.SomeValue = ‘value’<br/>
+Response = MyClient.MyFunction(Request)<br/>
+</blockquote>
+</p>
+
+<p>Here is an example of a request/response call using the WorldPay web service being executed in the interactive window of Alpha Anywhere.<br/>
+<blockquote>
+DIM Request as WorldPay::ProcessCCSaleRequest<br/>
+Request.ccinfo = new WorldPay::CreditCardInfo()<br/>
+Request.ccinfo.acctid	= "TEST0"<br/>
+Request.ccinfo.ccname	= "Tony Test"<br/>
+Request.ccinfo.ccnum	= "5454545454545454"<br/>
+Request.ccinfo.amount	= 3.00<br/>
+Request.ccinfo.expmon	= 03<br/>
+Request.ccinfo.expyear	= 2010<br/><br/>
+
+Response = Client.ProcessCCSale(Request)<br/>
+?response.ProcessCCSaleReturn <br/>
+authcode = "DECLINED:1000420001:VALID PIN REQUIRED:"<br/>
+</blockquote>
+</p>
+<p>Note that we had to dim a request object and populate arguments for the request.  
+The call resulted in an error and the response has an authcode property with the actual message.</p>
 
 <h3><a id="#AdvancedTopics">Advanced Topics</a></h3>
 
