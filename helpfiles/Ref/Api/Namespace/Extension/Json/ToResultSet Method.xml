@@ -26,8 +26,6 @@
 
 %json%
 
-dim b as office::exceldocument
-
 dim rs as sql::ResultSet
 
 rs = extension::json::ToResultSet(json_i)
@@ -36,5 +34,51 @@ ID,Company,Last_Name,First_Name
 1,Company A,Bedecs,Anna
 2,Company B,Gratacos Solsona,Antonio
 3,Company C,Axen,Thomas
-]]></example>	
+]]></example>
+    <sections> 
+        <section>
+            <title>Supply a Schema</title>
+            <description>If the structure is known ahead of time, the TableInfo can be supplied, this will gaurentee a specific order and will make sure that the columns are presented in the order specified. </description>
+            <example><![CDATA[
+dim json_i as c = <<%json%
+[
+{"ID" : "1", "Company" : "Company A", "Last_Name" : "Bedecs", "First_Name" : "Anna"},
+{"ID" : "2", "Company" : "Company B", "Last_Name" : "Gratacos Solsona", "First_Name" : "Antonio"},
+{"ID" : "3", "Company" : "Company C", "Last_Name" : "Axen", "First_Name" : "Thomas"}
+]
+
+%json%
+
+dim rs as sql::ResultSet
+dim ti as sql::TableInfo
+dim idcol as sql::DataTypeInfo
+idcol.name = "ID"
+idcol.AlphaType = "N"
+ti.AddColumn(idcol)
+dim companyCol as sql::DataTypeInfo
+companyCol.name = "First_Name"
+companyCol.AlphaType = "C"
+ti.AddColumn(companyCol)
+dim fnameCol as sql::DataTypeInfo
+fnameCol.name = "First_Name"
+fnameCol.AlphaType = "C"
+ti.AddColumn(fnameCol)
+dim mnameCol as sql::DataTypeInfo
+mnameCol.name = "Middle_Name"
+mnameCol.AlphaType = "C"
+ti.AddColumn(mnameCol)
+dim lnameCol as sql::DataTypeInfo
+lnameCol.name = "Last_Name"
+lnameCol.AlphaType = "C"
+ti.AddColumn(lnameCol)
+res = extension::json::ToResultSet(json_i,ti)
+?res.toJson()
+[
+{"ID" : "1", "First_Name" : "Anna", "Middle_Name" : "", "Last_Name" : "Bedecs"},
+{"ID" : "2", "First_Name" : "Antonio", "Middle_Name" : "", "Last_Name" : "Gratacos Solsona"},
+{"ID" : "3", "First_Name" : "Thomas", "Middle_Name" : "", "Last_Name" : "Axen"}
+]
+]]></example></section>
+    </sections>	
+
 </page>
