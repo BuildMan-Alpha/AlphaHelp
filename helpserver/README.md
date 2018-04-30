@@ -8,7 +8,15 @@ In the ./AlphaHelp/helpserver folder run
 npm update
 ```
 
-For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter.
+You will need to install xsltproc as well:
+
+```
+npm install xsltproc
+```
+
+If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpfiles/xsltproc_win directory into AlphaHelp/helpfiles. These files are not tracked under git and will be ignored when copied into the helpserver folder.
+
+For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter. You will need to create a directory called "generated" in the project root before you can run helpserver.js. After this directory has been created, you can run the following command from within AlphaHelp/helpserver to run the helserver without search:
 
 ```
 node helpserver.js -nosearch
@@ -23,7 +31,7 @@ After the refresh, navigate to the root URL  *127.0.0.1:3002/* , you should be a
 documentation site locally now.
 
 For a fully implementation (working search) run helpserver.js with the -local parameter. You will need to install and run the 
-elasticsearch service on your system. 
+elasticsearch service on your system.
 
 ```
 node helpserver.js -local
