@@ -50,10 +50,10 @@
 <h3><a id="Overview">Overview</a></h3>
 
 <p>This article will discuss in depth what web services are, specifically SOAP web services and how Microsoft WCF 
-can be used to interact with them.  We are going to discuss some of the basic concepts, look at Xbasic code and then 
+can be used to interact with them.  We are going to cover some of the basic concepts, look at Xbasic code and then 
 learn to use tools that will help automate the process of integrating your web service.</p>
 
-<p>After working through the examples, you should understand<br/>
+<p>After working through the examples, you should understand:<br/>
 <ul>
     <li>What a web service is</li>
     <li>What makes SOAP web services work and how they are "discoverable"</li>
@@ -149,8 +149,8 @@ SOAPAction: &quot;http://www.w3.org/2003/05/soap-envelope&quot;
 <h3><a id="WSDL">Web Service Definition Language - WSDL</a></h3>
 
 <p>SOAP Services are self describing.  
-This is a great feature for development tools such as Alpha Anywhere because it makes it possible to generate a client proxy automatically.
-What you are presented with is a class that represents the service with methods on it that you can call from Xbasic directly.
+Web Service Definition Language is a great feature for development tools such as Alpha Anywhere because we can use WSDL files to generate a client proxy automatically.
+What you are presented with in your code is a class that represents the service that has methods that you can call from Xbasic directly.
 This "proxy" object usually has a name that ends with or contains "Client".<br/></p>
 <p><strong>Note: </strong>In addition to the proxy or client class with the methods, there are usually additional classes
 that define objects to be passed as part of a request or returned as part of a response.
@@ -206,7 +206,8 @@ You can find out more about WCF in .NET Core at <a href="https://www.dotnetfound
 <p>In theory, WCF is quite simple.  The letters A, B, and C are used to describe the fundamental concepts.</p>
 <ul>
     <li><p><strong>A - Address </strong>refers to how we find the destination server (the "endpoint").  
-        For TCP/IP transports, it is the server name and the port on the server to be accessed (usually 80 or 443).</p></li>
+        For TCP/IP transports, the address is a URL made up of the server name and the port on the server to be accessed (usually 80 or 443) followed by a path to the server.
+	This will be everything up to the list of query arguments, if any.</p></li>
     <li><p><strong>B - Binding </strong>is about how the data will reach the endpoint. This is generally SOAP over HTTP,
         but can vary.</p></li>
     <li><p><strong>C - Contract </strong>is an agreement (between the client and the server) as to what requests are to be made
@@ -228,18 +229,18 @@ In this section, we will see how you can generate a proxy by writing Xbasic or b
 <p>You can create a new proxy using Xbasic directly by invoking a function on the DotNet::Services object.
 Sometimes you will be given a file containing the WSDL instead. 
 There are methods to generate the proxy from the WSDL directly as well.  
-In this example, we are going to implicitly make a web call to read the WSDL from a server directly and use it to generate the proxy.
+In this example, we are going to implicitly make a web call to read the WSDL from a server directly and use that download WSDL to generate the proxy.
 </p>
 <p>There are three steps required to integrate a SOAP Web Service into Xbasic:</p>
 <ol>
     <li>Generate the web service proxy (a .NET assembly/DLL).  Do this once.</li>
     <li>Add the new assembly to the Xbasic type system.  Do this once per running application/process.</li>
-    <li>Dimension (DIM) a variable of the type of the web service client object and use it to make calls to the service object as needed.</li>
+    <li>Dimension (DIM) a variable of the type of the web service client object and use the variable to make calls to the service object as needed.</li>
 </ol>
 
 <h5>Step 1: Generate the Web Service Proxy</h5>
 
-<p>You can use the tools in Alpha Anywhere to generate a proxy or do it from Xbasic itself.  Let's start with Xbasic.</p>
+<p>You can use the tools in Alpha Anywhere to generate a proxy or generate the proxy from Xbasic itself.  Let's start with Xbasic.</p>
 
 <p>In the code example below, we are going to use the DotNet::Services class to generate the proxy assembly in the file specified.
 To get the WSDL, we need the URL for the service 
@@ -261,7 +262,7 @@ END IF
 <strong>Notes:</strong><br/>
 <ol>
     <li>GenerateWebServiceClientFromURL() returns true or false.  Check the CallResult property on the DotNet::Services object.</li>
-    <li>Do this once: Save the file and install it on your server in the executable path.</li>
+    <li>Do this once: Save the assembly (DLL) file generated and install that assembly on your server in the executable path.</li>
     <li>The ".svc" extension is used by Microsoft for its web services.  You may also find ".asmx", ".php", ".soap.2", ".cfc", another one, or even none at all.</li>
 </ol>
 </blockquote></p>
@@ -278,7 +279,7 @@ END IF
             We may ask for this file for troubleshooting a web service connection.</dd>
     <dt>The Source Code</dt>
         <dd>This file is a C# source file that is generated and then compiled into your assembly.
-            It contains all of the source code that differentiates the service you are calling service from other services.
+            The file contains all of the source code that differentiates the service you are calling service from other services.
             You can learn a lot about the service in reading this file.</dd>
 </df><br/>
 
@@ -286,7 +287,7 @@ END IF
 
 <p>Once you have created the assembly (a DLL) containing the proxy, you will need to make the assembly file part of your
 web project so it is installed with your other files.  
-Put the file in a folder under your web project called "bin" and add it to your web project.
+Put the file in a folder under your web project called "bin" and add the file to your web project.
 </p>
 
 <p>The Xbasic type system does not know about your new assembly, so you will need to register the assembly in order
@@ -320,8 +321,8 @@ END IF
 <ol>
     <li>RegisterAssembly returns true or false.  Check the CallResult property of the DotNet::Services object.</li>
     <li>Use a namespace ("::Serv" is probably not a good namespace!) that is unique on your server.  
-        In many cases, the root namespace in the assembly is unique enough. You can use "::" to 
-        install it in the root of the Alpha Anywhere type system.</li>
+        In many cases, the root namespace in the assembly is unique enough. 
+	You can use "::" to install the assembly in the root of the Alpha Anywhere type system.</li>
 </ol>
 </blockquote></p>
 
@@ -353,7 +354,7 @@ DIM Client as ::Serv::Client
 DIM Client AS ::Serv::Client
 Result = Client.SumValues(1,2,3,4,5)
 </pre>
-<p>Most cases probably won't be this simple; we will see why later.</p>
+<p>Most cases probably won't be this simple. We will see why later.</p>
 
 
 <h5>Step 4: "Wait! What? How do I use this thing?"</h5>
@@ -361,8 +362,8 @@ Result = Client.SumValues(1,2,3,4,5)
 <p>Once we have a client, we have to figure out how to set valid parameters and process the response. 
 Most web services are more complex than the calculator example above.</p>
 <p>The Xbasic interactive window is a really great place to explore.</p>
-<p>As you saw above, we keep the generated C# source.  Sometimes this is just as helpful because it 
-includes declared types.</p>
+<p>As you saw above, we keep the generated C# source.  
+Sometimes this is just as helpful because the generate source includes declared types.</p>
 
 <p>You can create a script in the Interactive Window of the Alpha Anywhere development environment to 
 generate, register and explore your client object using auto-help.</p>
@@ -389,14 +390,16 @@ The assembly generated is automatically added to your web project.
     <li>The New Web Reference dialog will be displayed. 
         <ul>
             <li>Enter the URL for the service followed by "?WSDL" to retrieve the WSDL from the service.</li>
-            <li>The service URL will generally be the same as the URL above it, but without the "?WSDL".  If it is not, enter the URL for the service.</li>
-            <li>Enter a unique name for the service.  This is the name you will use in your code, so it must be valid for use as an Xbasic variable.</li>
+            <li>The service URL will generally be the same as the URL above it, but without the "?WSDL".  
+		If it is not, enter the URL for the service.</li>
+            <li>Enter a unique name for the service.  This is the name you will use in your code, 
+		so it must be valid for use as an Xbasic variable.</li>
             <li>Select a Service Type from the following:<br/>
                 <df>
                     <dt>SOAP</dt><dd>Use this value for older services that make simple function calls.</dd>
                     <dt>SOAP12</dt><dd>Newer, non-Microsoft implementations often require version 1.2 of SOAP</dd>
                     <dt>WCF</dt><dd>Despite the name, this option does not require a WCF service.  
-                            Instead it generates a WCF client and can talk to many types of services including SOAP.
+                            Instead Alpha Anywhere generates a WCF client that can talk to many types of services including SOAP.
                             You will generally want to choose WCF as the Service Type.
                             If your service URL ends with ".svc", definitely use this option.
                         </dd>
@@ -416,8 +419,8 @@ The assembly generated is automatically added to your web project.
         
 <h3><a id="TestingWebReferences">Testing a Web Reference</a></h3>
 
-<p>Once your Web Reference is created, you can test it by selecting Web References in the list on Web Project Control Panel and then double 
-clicking it on item in the list to the right.<br/><br/>
+<p>Once your Web Reference is created, you can test it by selecting <strong>Web References</strong> in the list on Web Project Control Panel and then double 
+clicking on the Web Reference in the list to the right.<br/><br/>
         <blockquote>        
         <img border="0" src="images/WebReferenceSelect.jpg"><br/>
         </blockquote>
@@ -445,7 +448,8 @@ A window will open with the results of your web service call.<br/><br/>
         <img border="0" src="images/WebReferenceResults.jpg"><br/>
         </blockquote>
 <br/></p>
-<p>After you make your changes and are satisfied with the results, you can copy the edited Xbasic script to the clipboard and paste it into a server side script.</p>
+<p>After you make your changes and are satisfied with the results, you can copy the edited Xbasic script to the clipboard and paste the script into the 
+XBasic editor for a server side script.</p>
 <h3><a id="#RequestResponse">The Request Response Pattern</a></h3>
 <p>WCF services tend to use a request/response pattern to make web service calls.  
 By this, we mean that the request is actually an object itself and the call returns an object referred to as a response object.
@@ -521,7 +525,7 @@ These include HTTP, WS* protocols, simple TCP/IP bindings and MSMQ (Microsoft Me
 <h5>Setting a specific binding from Xbasic</h5>
 <p>The default constructor for a service client creates a default binding and end point. 
 Sometimes the default binding is not the one configured on the server.
-If the bindings don't match, we may have to explicitly create it as part of dimensioning the client object.</p>
+If the bindings don't match, we may have to explicitly create a binding of the type required as part of dimensioning the client object.</p>
 
 <p>To explicitly set the binding on a client object, we must declare variables for a binding and an endpoint (the A is for Address in our WCF discussion).
 In the example below, we create a WSHttpBinding (a secure binding).  
@@ -533,7 +537,7 @@ We must also create an EndPointAddress object with the URL we want to connect to
 DIM MyClient as Serv::MyClient
 </pre>
 <p>In order to explicitly choose the binding, we must use a constructor for the web service client (Serv::MyClient() in this case)
-and pass it the binding and endpoint object.<br/>
+and pass the binding and endpoint object as parameters to the constructor.<br/>
 You will have to provide the endpoint URL as a constructor argument for the System::ServiceModel::EndPointAddress object.</p>
 <pre class="codeSection">
 DIM b as System::ServiceModel::WSHttpBinding
@@ -541,7 +545,7 @@ DIM e as System::ServiceModel::EndPointAddress = new System::ServiceModel::EndPo
 DIM MyClient as Serv::MyClient                 = new Serv::MyClient(b, e)
 </pre>
 
-<p><strong>Note: </strong>A constructor is a special function of a class that allows it to execute code when it is being created.
+<p><strong>Note: </strong>A constructor is a special function of a class that allows code to be executed when an object of a class is being created.
 You can also pass arguments when creating the object and there can be multiple implementations of the constructor that accept different arguments.
 </p>
 
@@ -716,8 +720,8 @@ simply too different to work as expected.</p>
             <li>You can use the enumerated type's Parse() function to convert a string to an enumerated type (including sets such as "Read, Write").</li>
         </ul></li>
     <li>.NET to Xbasic conversions of primitives can get "interesting".  
-        You can dim an object of type System::DateTime and interact with it as an object.
-        If you assign a .NET value type such as DateTime to an untyped variable it will be converted to the Xbasic "T" or Time variable.
+        You can dimension an object of type System::DateTime and interact with the variable you declare as an object.
+        If you assign a .NET value type such as DateTime to an untyped variable the value will be converted to the Xbasic "T" or Time variable.
         </li>
 </ul>
 </p>
@@ -737,7 +741,8 @@ Here are some ideas to make it less so.</p>
     <li>Look at the C# generated when a proxy assembly is created.  Again, there may be clues as to what is expected in this file.</li>
     <li>When all else fails, download the Windows SDK and run SvcUtil.exe.  
         If SvcUtil.exe can't generate a working assembly, Alpha Anywhere will not be able to call the service.
-        If it does generate a working assembly, but Alpha Anywhere won't, please send us a complete example so we can determine whether it is a bug.</li>
+        If SvcUtil.exe is able to generate a working assembly, but Alpha Anywhere is not, please send us a complete example so we can determine whether or not
+	the difference in behavior is a bug.</li>
     </ul>
 
 <h3><a id="#Conclusion">Conclusion</a></h3>
