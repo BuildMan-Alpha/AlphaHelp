@@ -389,29 +389,26 @@ to manual start up by default. The Alpha Anywhere Application Server for IIS ins
 and ensures that it is running. The LocalStateServer setting will have IIS use this service for storing session state.
 </p>
 
-<h2>StateServer</h2>
-<p>
-This is similar to LocalStateServer. An aspnet_state.exe service is running on a remote machine and IIS will connect to that for storing
-session state. StateServer is also similar to SqlServer in that session state is stored/accessed on a separate machine which will allow
-you to set up a web farm. That is, allow you to have more than one web server process request for a single web site. Each web server 
-will point to the same session state data. However, the aspnet_state.exe service only stores session state in memory so if the aspnet_state.exe
-service is shut down or crashes the session state data cannot be recovered. The amount of session state that it can handle is also restricted
-to the amount of memory on the system. Virtual memory means that running out of memory is unlikely, but performance will degrade as physical 
-memory is exceeded. Storing session state under SqlServer persists the session state so that it is recoverable and SqlServer may scale
-better than StateServer.
-<div class="sectionWarning">Setting up to use a remote aspnet_state.exe is not trivial. If you are not familiar with
-managing IIS and the aspnet_state.exe service then Redis would be the recommended way to define session state storage in a web farm configuration.
-</div>
-</p>
-
 <h2 name="redis">Redis</h2>
 <p>
 	<a href="images/redis.png"><img src="images/redis.png" alt="Redis session state provider configuration."></img></a>
 </p>
-<p>Redis is a free, distributable, in-memory database with a backingstore. It is also similar to SQLServer in that session state is stored/accessed on a separate machine, allowing yout o setup a web farm. The key difference between Redis and other database-based mechanisms is performance. Unless the database for storing session state has been very finely-tuned, database session state providers such as SQLServer will write to disk more often. Redis keeps data in-memory and only writes to disk as-needed.</p>
-<p>Redis cal also has built-in support for replication and can be run in a cluster. This ensures sessions are more reliable, allowing for failures such as server becoming unresponsive or loss of connectivity to a server with minimal service interruptions to the user.</p>
-<p>When configuring Redis, the service should be setup to restrict port access and use an Access key. Using SSL is also recommended. See <a href="">Appedix A: Configuring Redis</a> for more details.</p>
-<p><div class="sectionNote"></div></p>
+<p>Redis is a free, distributable, in-memory database with a backing store and is the preferred session state provider when using IIS behind a load balancer. Session state under Redis is stored and accessed on a separate machine, allowing you to setup a web farm. Redis keeps data in-memory and only writes to disk as-needed.</p>
+<p>Redis has built-in support for replication and can be run in a cluster. This ensures sessions are more reliable, allowing for failures such as server becoming unresponsive or loss of connectivity to a server with minimal service interruptions to the user.</p>
+<p>When configuring Redis, the service should be setup to restrict port access and use an Access key. Using SSL is also recommended. See <a href="configureRedis">Appedix A: Configuring Redis</a> for more details.</p>
+
+<h2>StateServer</h2>
+<p>
+This is similar to LocalStateServer. An aspnet_state.exe service is running on a remote machine and IIS will connect to that for storing
+session state. StateServer is also similar to Redis in that session state is stored/accessed on a separate machine which will allow
+you to set up a web farm. That is, allow you to have more than one web server process request for a single web site. Each web server 
+will point to the same session state data. However, the aspnet_state.exe service only stores session state in memory so if the aspnet_state.exe
+service is shut down or crashes the session state data cannot be recovered. The amount of session state that it can handle is also restricted
+to the amount of memory on the system. Virtual memory means that running out of memory is unlikely, but performance will degrade as physical 
+memory is exceeded.
+<div class="sectionWarning">In a web farm configuration, Redis is the preferred session state provider to use due to performance benefits.</div>
+</p>
+
 <h2>None</h2>
 <p>
 The profile provider allows you to store persistent data for a logged in user. This is different from the Session State which is only 
@@ -639,7 +636,37 @@ publishing Application Server Demo web application.
 </p>
 	<a name="appendix"><h1>Appendix</h1></a>
 	<a name="configureRedis"><h2>Appendix A: Configuring Redis</h2></a>
-	<p>In order to use Redis as a session state provider, you must setup Redis on your server. The Redis server is included in the executable folder for the Application Server for IIS. To</p>
+	<p>In order to use Redis as a session state provider, you must setup Redis on your server. If you don't have Redis installed as a service, or running on another machine, the easiest way to get started is to open a command window, change directory to the A5v12 executable folder and run redis-server.exe.</p>
+<pre class="codeSection">
+C:\Program Files (x86)\A5V12 Application Server for IIS&gt;redis-server.exe
+
+[12312] 30 Jun 13:49:33.959 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server.exe /path/to/redis.conf
+                _._
+            _.-``__ ''-._
+        _.-``    `.  `_.  ''-._           Redis 3.0.501 (00000000/0) 64 bit
+    .-`` .-```.  ```\/    _.,_ ''-._
+    (    '      ,       .-`  | `,    )     Running in standalone mode
+    |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+    |    `-._   `._    /     _.-'    |     PID: 12312
+    `-._    `-._  `-./  _.-'    _.-'
+    |`-._`-._    `-.__.-'    _.-'_.-'|
+    |    `-._`-._        _.-'_.-'    |           http://redis.io
+    `-._    `-._`-.__.-'_.-'    _.-'
+    |`-._`-._    `-.__.-'    _.-'_.-'|
+    |    `-._`-._        _.-'_.-'    |
+    `-._    `-._`-.__.-'_.-'    _.-'
+        `-._    `-.__.-'    _.-'
+            `-._        _.-'
+                `-.__.-'
+
+[12312] 30 Jun 13:49:33.986 # Server started, Redis version 3.0.501
+[12312] 30 Jun 13:49:33.989 * The server is now ready to accept connections on port 6379
+</pre>
 </div>
+	<p>In a production environment, Redis should be configured to use SSL and restrict port access to trusted clients. For information on how to configure Redis securely, visit the following resources:</p>
+	<ul>
+		<li><a href="https://redis.io/topics/config" target="_blank">Redis configuration</a> - Includes a link to a self documented example redis.config file that can be used to configure Redis</li>
+		<li><a href="https://redis.io/topics/security" target="_blank">Redis Security</a> - Check out the sections on "Network security" and "Authentication feature".</li>
+	</ul>
 </body>
 </html>
