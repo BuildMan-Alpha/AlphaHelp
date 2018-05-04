@@ -1,0 +1,322 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="A complete WCF Web Service example." />
+<meta name="shortlink" content="An Example WCF Service" />
+<title>Web Services - Example WCF Web Service</title>
+</head>
+
+<body>
+
+<h1>Web Services: An Example WCF Service</h1>
+
+<h2><a name="Overview">Overview</a></h2>
+
+<p>Finding a working example of a web service to explore WCF web services can be difficult.
+We have included a fully working WCF web service with this article so you can start working with WCF web services right away.
+Installing and running this service can also be useful in identifying issues.
+</p>
+
+<p>
+In the sections below, you will:
+<ul>
+	<li>Install the web service files on you local computer</li>
+	<li>Run the service</li>
+	<li>Create and test a client assembly using XBasic</li>
+	<li>Create and test a Web Reference from the Web Control Panel</li>
+</ul>
+</p>
+<p>
+For your convenience, we have created a working web service and compiled it so the application is ready to run. 
+The download also includes a complete Visual Studio 2017 solution and project files.
+You should be able to make changes and recompile the service if you wish.
+</p> 
+
+<div class="sectionNote">
+You will need to have .NET 4.7.1 or higher installed on your system.
+Installing Alpha Anywhere should address any prerequisites.
+</div>
+
+<br/>
+<h2><a name="Section2GettingStarted">Getting Started</a></h2>
+
+<h3><a name="Section2SettingUpTheService">Setting Up The Service</a></h3>
+
+<p>
+The example web service is ready to run on your local system. 
+Follow the instructions below to download, install and run the example.
+</p>
+<p>
+<ol>
+	<li>Download the service example from <a href="Downloads/ExampleWCFService.zip">ExampleWCFService.zip</a>.</li>
+	<li>Unzip the file into a folder of your choosing.  In this article we will assume "c:\Example".</li>
+	<li>To run the service, navigate to the folder "ExampleWCFService/bin/Release" and select ExampleWCFService.exe.</li>
+	<li>Right click on the executable and select <strong>Run as Administrator</strong> by clicking with the left mouse button.</li>
+	<li>You should see a DOS window open up and text that shows your service is running on port 8777 on the local host as shown below.<br/><br/>
+	<pre class="codeSesion">
+	Application GUID: 02639d71-0935-35e8-9d1b-9dd1a2a34627
+	The service is ready at http://localhost:8777/ExampleWCFService
+	Press <Enter> to stop the service.
+	</pre>
+		</li>
+</ol>
+</p>
+
+<h3><a name="Section2Testing">Verifying That The Service Is Working</a></h3>
+<p>
+As you can see from the text above, your service is running on port 8777.
+Now let's confirm that we can connect to the service.
+</p>
+
+<ol>
+<li><p>
+Click on <a href="http://localhost:8777/ExampleWCFService">http://localhost:8777/ExampleWCFService</a><br/></br>
+You should see a test page that looks like the following:
+</p>
+<p>
+<img border="0" src="images/ExampleServiceInBrowser.jpg"><br/>
+</p>
+</br>
+</li>
+<li>
+<p>
+Click on <a href="http://localhost:8777/ExampleWCFService?WSDL">http://localhost:8777/ExampleWCFService?WSDL</a><br/></br>
+You should see a listing of the WSDL for the service that looks like the following:
+</p>
+<p>
+<img border="0" src="images/ExampleServiceWSDLInBrowser.jpg"><br/>
+</p>
+</li>
+</ol>
+
+</br>
+<h2><a name="Section3Connecting">Connecting To The Service Using XBasic</a></h2>
+
+<p>
+In order to connect to the service from XBasic, we must first generate an assembly and then register it in the type system of Alpha Anywhere.
+</p>
+<p>
+For a more in depth discussion of creating XBasic clients for services see
+	<a href="Soap Services.html#section1_CreatingProxies">Creating and Using Web Service Proxies in Xbasic</a>.
+</p>
+
+<p>
+<ol>
+	<li><p>Create the client assembly.</br></br>
+		The XBasic example below will check to see if the client assembly exists in the temporary folder for your user and, if not, 
+			generates a new assembly client assembly.
+		For this example, the temporary folder is sufficient.<br/><br/>
+		If you want to publish the assembly in your web project you will need to put the assembly into the <strong>bin</strong>
+			folder under the root of the web project.
+		</p>
+		<p>
+<pre class="codeSection">
+' Generate a client assembly if needed.
+dim srv as dotnet::Services 
+Path = File.Temp_path_get()
+AssemblyFileName = Path + "ExampleWCF.dll"
+if .not. file.exists(AssemblyFileName)
+	if .not. srv.GenerateWCFWebServiceClientFromURL("http://localhost:8777/ExampleWCFService?WSDL", AssemblyFileName)
+		showvar(srv.callresult.text, "Error Generating Assembly")
+		end 
+	end if 
+end if
+
+</pre>
+		</p>
+		</li>
+	<li><p>Register the types in the assembly in the XBasic type system.<br/></br>
+		The XBasic example below checks to see if the client assembly has been registered by looking for
+			a namespace hat matches the name "ExampleWCF".
+		If the type is not found, it calls the RegisterAssembly function on an instance of the DotNet::Services object.
+		This will register all of the types in the assembly under the root namesapce "ExampleWCF" so the assembly types
+			are distinguishable from other types in the runtime.
+		</p>
+		<p>
+<pre class="codeSection">
+' Register the type if needed.
+dim srv as dotnet::Services 
+if .not. ::Type::Definition::Exists("ExampleWCF")
+	dim ay as dotnet::AssemblyReference 
+	ay.Filename = AssemblyFileName 
+	if .not. srv.RegisterAssembly("::ExampleWCF", ay)
+		showvar(srv.callresult.text, "Error Registering Assembly")
+	end if
+end if	
+</pre>
+		</p>
+		</li>
+
+	<li><p>Create the client object.</br></br>
+		Dimension a binding object, an endpoint, and the client itself, so we can make service calls.</br></br>
+		</p>
+	<p>
+<pre class="codeSection">
+' Create a binding and endpoint and then create the client object.
+dim binding as System::ServiceModel::BasicHttpBinding
+dim endpoint as System::ServiceModel::EndpointAddress \
+	= new System::ServiceModel::EndpointAddress("http://localhost:8777/ExampleWCFService")
+dim Client as ::WCF::CustomerServiceClient = new ::WCF::CustomerServiceClient(binding, endpoint)
+
+</pre>
+		</p>
+		</li>
+
+	<li><p>Make web service calls using the functions exposed by the client object.</br></br>
+		For each service call, dimension a request object, set any parameters and invoke the function,
+			passing the request and receiving the response.<br/>
+		The XBasic script below lists out the products and customers, and then retrieves a customer.
+		The customer is returned as a Customer object with orders and order items within it.
+		</p>
+		<p>
+		Web services often accept and return complex objects and collections in a single call.
+		</p>
+<p>
+<pre class="codeSection">
+
+' Get a list of Products
+dim ListProductsRequest as ::WCF::ListProductsRequest
+r = Client.ListProducts(ListProductsRequest)
+dim Text as C
+Text = "There are " + r.ListProductsResult.Length + " products." + crlf(2)
+
+for each s in r.ListProductsResult
+	*Concat(Text, s + crlf())
+next
+*Concat(Text, crlf(2))
+
+' Get a list of Customers
+dim ListCustomersRequest as ::WCF::ListCustomersRequest
+r = Client.ListCustomers(ListCustomersRequest)
+*Concat(Text, "There are " + r.ListCustomersResult.Length + " customers." + crlf(2))
+
+for each s in r.ListCustomersResult
+	*Concat(Text, s + crlf())
+next
+*Concat(Text, crlf(2))
+
+' List out the orders for the first customer.
+dim FirstCustomer as C = r.ListCustomersResult[1]
+dim GetCustomerRequest as ::WCF::GetCustomerRequest
+GetCustomerRequest.Name = FirstCustomer
+r = Client.GetCustomer(GetCustomerRequest)
+Customer = r.GetCustomerResult
+*Concat(Text, "Customer: " + Customer.CompanyName + \
+	" of " + Customer.City + " has " + Customer.Order.Length + " orders." + crlf(2))
+
+
+for each o in Customer.Order
+	*Concat(Text, "Date: " + o.CreateDate + crlf(2))
+	for each i in o.Item
+		*Concat(Text, "Product = '" + i.Product.Name + \
+			"' Quantity = " + i.Quantity + " " + i.product.UnitOfMeasure + crlf())
+	next; 
+*Concat(Text, crlf(3))
+next
+
+
+ShowVar(Text, "Results")</pre>
+</pre>
+		</p>
+		</li>
+</ol>
+</p>
+
+<h2><a name="Section4WebReferences">Generating And Using Web References</a></h2>
+<p>
+Now that you have had a chance to see the XBasic required to communicate with a web service, let's look at an easier way to
+create and maintain client assemblies that proxy a web service.
+</p>
+<p>Using the web control panel, you can create a <strong>Web Reference</strong> object.  
+This object manages creating the client assembly and registering it in the XBasic type system.
+</p>
+<p>With a Web Reference you can also explore the web service and create test scripts to call functions.
+</p>
+
+<p>
+For a more in depth discussion of creating and using Web Reference components
+	<a href="Soap Services.html#section2_CreateWebReference">Creating a Web Reference</a>.
+</p>
+<h3><a name="section5GeneratingWebReference">Generating The Web Reference</a></h3>
+<p>
+<ol>
+	<li>From the Web Project Control Panel, select "Web Reference" from the list of objects and click the "New" button 
+		in the Web Project Control Panel toolbar.<br/><br/>
+		<img border="0" src="images/WebReferenceNew.jpg">
+		<br/>
+		</li>
+
+	<li>When prompted to select the service type, click on the button labeled SOAP<br/><br/>
+		<img border="0" src="images/ExampleServiceSOAPorRest.jpg">
+		<br/>
+		<br/>
+		</li>
+	<li>The New Web Reference dialog will be displayed.<br/><br/>
+		<img border="0" src="images/ExampleServiceNewWebReference.jpg">
+		<br/>
+		<br/>
+		</li>
+	<li>Enter the URL http://localhost:8777/ExampleWCFService?WSDL to retrieve the WSDL from the service.</li>
+	<li>Tab away from the control and the service name (ExampleWCFService) will be populated.</li>
+	<li>Leave all other values at their defaults<br/></li>
+	<li>Click OK</li>
+</ol>
+</p>
+<p>The new Web Reference will be added to the control panel.</br</br>
+        <blockquote>        
+        <img border="0" src="images/ExampleServiceWebReferenceSelect.jpg"><br/>
+        </blockquote>
+</p>
+<br/>        
+<h3><a name="section4TestingWebReference">Testing The Web Reference</a></h3>
+
+<p>Once your Web Reference is created, you can test it by selecting <strong>Web References</strong> in the list on Web Project Control Panel and then double 
+clicking on the Web Reference in the list to the right.<br/><br/>
+        <blockquote>        
+        <img border="0" src="images/ExampleServiceWebReferenceSelect.jpg"><br/>
+        </blockquote>
+<br/></p>
+
+<p>The Edit/Explore Web Reference dialog can be used to explore a web reference and to generate a working script to call a function on the client object.
+<br/><br/>
+        <blockquote>
+        <img border="0" src="images/ExampleServiceExplorer.jpg"><br/>
+        </blockquote>
+<br/></p>
+
+<p>To create a working script, select <strong>GetCustomer</strong> in the list of functions on the left and then click <strong>Test Method</strong> 
+on the bottom left of the dialog.
+This will generate Xbasic code you can use for testing.
+The editor will open with a test script generated for you.  
+<br/><br/>
+        <blockquote>
+        <img border="0" src="images/ExampleServiceXBasicGenie.jpg"><br/>
+        </blockquote>
+<br/></p>
+
+
+<p>The script is almost complete.  It needs a valid customer name.  
+Replace the empty quotes on line three ("arg_Request.Name = "") with the value "American Soft Drink Company".</p>
+<p>Click the <strong>Execute</strong> button to execute your script and see the results.<br/><br/>
+A window will open with the results of your web service call.<br/><br/>
+        <blockquote>
+        <img border="0" src="images/ExampleServiceWebReferenceTestOutput.jpg"><br/>
+        </blockquote>
+<br/></p>
+<br/>
+<br/>
+
+<h2><a name="Summary">Summary</a></h2>
+
+<p>You should now have a working web service, an XBasic script to create and test a client assembly,
+and a Web Reference you can use to make calls from a web application.
+Real world web services tend to be more complicated, particularly from a configuration standpoint.
+Be sure to review the instructions above and to read <a href="Soap Services.html">SOAP Web Service Clients</a>
+for a more complete look at SOAP and WCF web service integration.
+
+</div>
+
+</body>
+</html>
