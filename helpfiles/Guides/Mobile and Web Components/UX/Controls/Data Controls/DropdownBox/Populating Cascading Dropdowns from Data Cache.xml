@@ -1,0 +1,134 @@
+<page>
+    <shortlink>ux dropdown cascading data cache</shortlink>
+    <topic>Populating Cascading DropdownBox Controls Using the Client-side Data Cache</topic>
+    <description>Individual DropdownBox controls can be populated using the Client-side Data Cache easily using the *[ui:client-side-data-cache:cacheItemName(displayDataColumn,storedValueColumn)]* directive. However, this method does not work for cascading DropdownBoxes.</description>
+    <sections>
+        <section>
+            <title>Overview</title>
+            <description>
+                <p>A cascading DropdownBox is a DropdownBox that is filtered based on the selected value in a parent DropdownBox control. For example, filtering a DropdownBox of cities based on a selected state. In connected applications, this is easily accomplished by configuring the child control (the DropdownBox whose choices are filtered based on the value of another control) to use a dynamic data source with *[ui:Cascading choices]*.</p>
+            </description>
+            <figure>
+                <title>A DropDownBox control configured with a dynamic data source and Cascading choices</title>
+                <link>images/dbcascading.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>In an offline application, however, this approach doesn't work because the child DropdownBox is populated by making an Ajax Callback to the application server to generate the list of choices. DropdownBoxes in offline applications can be populated from the Client-side Data Cache. The Client-side Data Cache can include items that are dynamically populated from a data source. The data is stored locally, allowing for offline access. You can also recompute the Client-side Data Cache item when a connection is available. This gives you the ability to update lists that may change over time.</p>
+                <p>To populate a DropDownBox using the Client-side Data Cache, the following directive is used:</p>
+            </description>
+            <example><![CDATA[client-side-data-cache:cacheItemName(displayDataColumn,storedValueColumn)]]></example>
+        </section>
+        <section>
+            <figure>
+                <link>images/populatedropdownboxfromcache.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>While this option allows you to populate the control offline, it doesn't support the filtering required to create cascading DropdownBoxes.</p>
+            </description>
+        </section>
+        <section>
+            <title>Implementing Cascading DropdownBoxes with the Client-side Data Cache</title>
+            <description>
+                <p>To create cascading DropdownBoxes in an offline application, the Client-side Data Cache can be used in combination with some JavaScript. This is done as follows:</p>
+            </description>
+            <steps>
+                <step>
+                    <description>Define your Client-side Data Cache items.</description>
+                </step>
+                <step>
+                    <description>Create two or more DropdownBoxes with temporary static data values.</description>
+                </step>
+                <step>
+                    <description>Implement JavaScript functions that will populate the DropDownBoxes.</description>
+                </step>
+                <step>
+                    <description>Call the JavaScript function to populate the child DropDownBox to the onChange event for the DropDownBox that contains the filter value.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>In the example of a city control filtered on the value in a state, two functions are created: one to populate the state control, a second to populate the city. The function to populate the state control is shown below. The function reads the data from a Client-side Data Cache item called "country" that is populated from a SQL Database. This function is called in the onRenderComplete client-side event for the UX Component to populate the control:</p>
+            </description>
+            <example code=""><![CDATA[function populateCountry() { 
+    var _onOffline = function() { };
+    var _onServerNotAvailable = function() { ;};
+    var _onSuccess = function(data) { 
+    
+        var arr = [''];
+        for(var i = 0; i < data.length; i++) { 
+            arr.push(data[i].Country);
+        }
+        {dialog.Object}.populateDropdownBox('COUNTRY',arr,true);
+    
+    };
+    var _onFail = function() { ;};
+    var _filter = '';
+    var _order = '';
+    {dialog.object}.getFromDataCache('country',_onSuccess,_onFail,_filter,_order,_onOffline,_onServerNotAvailable);
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>A second function is defined to populate the city field. This function takes a parameter - *[js:country]* - that is used to filter the list of options. The function reads the data from a Client-side Data Cache item called "city" that is also populated from a SQL Database. Cities are only added to the list of options if the *[js:country]* passed to the function matches the country in the Client-side Data Cache item "city". This function is called from the onChange event for the state DropDownBox control:</p>
+            </description>
+            <example code=""><![CDATA[function populateCity(country) { 
+    var _onOffline = function() { };
+    var _onServerNotAvailable = function() { ;};
+    var _onSuccess = function(data) { 
+        var arr = [''];
+        for(var i = 0; i < data.length; i++) { 
+            if(data[i].Country == country) { 
+                arr.push(data[i].City);
+            }
+        }
+        {dialog.Object}.populateDropdownBox('CITY',arr,true);
+    
+    };
+    var _onFail = function() { 	;};
+    var _filter = '';
+    /*
+    NOTE:	we could have set the filter here as follows: 
+    _filter = 'data.Country == "' + country + '"';
+    if we did this, then we would not have had to filter the data in the _onSuccess function
+    
+    */
+    
+    var _order = '';
+    {dialog.object}.getFromDataCache('city',_onSuccess,_onFail,_filter,_order,_onOffline,_onServerNotAvailable);
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>By using this approach, cascading DropdownBoxes can be added to any offline-enabled application. </p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+            <description>
+                <p>For a full details on how this is done, watch the video and example component below.</p>
+            </description>
+            <videos>
+                <title>Cascading DropdownBoxes Using the Client-side Data Cache</title>
+                <description>
+                    <p>Cascading dropdown boxes allow you to dynamically change the choices in a child dropdown box based on the selection in the parent DropdownBox. The UX component makes it very easy to define cascading DropdownBoxes. However, in applications that are designed to work offline, you cannot use the standard way of creating cascading DropdownBoxes because if you are offline you cannot make the Ajax callback to populate the child DropdownBoxes when the parent DropdownBox value is changed. However, you can still implement cascading dropdown boxes in offline applications by populating the DropdownBoxes from data in the client-side data cache.</p>
+                    <p>In this video we show how data in the client-side data cache is used to create cascading DropdownBoxes.</p>
+                </description>
+                <date>2018-04-30</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/f5e6ca82</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/cascadingdropdown_using_clientside_datacache.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+</page>
