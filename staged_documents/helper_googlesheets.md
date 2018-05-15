@@ -1,3 +1,7 @@
+# Helper::GoogleSheets Class
+
+---
+
 ## Get Data By Sheet and optional range
 
 ### GetSheetRaw as C(sheetname  as C[, range  as C]) 
@@ -61,6 +65,8 @@ sam,spade
 
 ```
 
+---
+
 ## Get Data By Named Range
 
 ### GetNamedRangeRaw as C(namedrange  as C) 
@@ -92,10 +98,69 @@ gs.spreadsheet= "<spreadsheetid>"
 = [{"score" : 400}]
 ```
 
-```
+### GetNamedRangeText as C(namedrange  as C[, separator  as C])  
+
+Get named range as crlf delimited lines of delimited text defaulting to comma separated if to separator specified.
+
+```xbasic
+dim gs as helper::GoogleSheet
+gs.namedresource= "<namedresource>"
+gs.spreadsheet= "<spreadsheetid>"
 ?  gs.GetNamedRangeText("HISCORE")
 = 400
 ```
+
+---
+
+## Update Sheet Cell Values
+
+### UpdateSheetRaw as L(sheetname  as C,values  as C[, range  as C])
+
+Update a sheet using a raw JSON Array or arrays (at optional range / default to A1 if unspecified)
+
+```xbasic
+dim gs as helper::GoogleSheet
+gs.namedresource= "<namedresource>"
+gs.spreadsheet= "<spreadsheetid>"
+gs.UpdateSheetRaw("customers",<<%JSON%
+[
+    [
+      "jane",
+      "doe"
+    ]
+  ]
+%JSON%,"B1:B1")
+```
+
+### UpdateSheetJSON as L(sheetname  as C,values  as C[, columnNames  as C[, range  as C]])  
+
+Update a sheet using JSON array of objects, arranged using the supplied columnnames.  If column names are not supplied, then the first record is used to generate the column names.
+```xbasic
+dim gs as helper::GoogleSheet
+gs.namedresource= "<namedresource>"
+gs.spreadsheet= "<spreadsheetid>"
+gs.UpdateSheetRaw("customers",<<%JSON%
+[
+    {
+     "firstname" : "jane",
+     "lastname" : "doe"
+    }
+  ]
+%JSON%,"firstname,lastname","B1:B1")
+```
+
+### UpdateSheetText as L(sheetname  as C,values  as C[, separator  as C[, range  as C]])  
+
+Update a sheet using a delimited text and an optional range.
+
+```xbasic
+dim gs as helper::GoogleSheet
+gs.namedresource= "<namedresource>"
+gs.spreadsheet= "<spreadsheetid>"
+gs.UpdateSheetRaw("customers","jane|doe", "|","B1:B1")
+```
+
+---
 
 ### GetNamedRanges as C([ details  as L])
 
