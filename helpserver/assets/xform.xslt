@@ -548,7 +548,7 @@
                 <xsl:when test="local-name()='p'">
                     <xsl:choose>
                         <xsl:when test="table">
-                            <xsl:call-template name="table" />
+                            <xsl:call-template name="text-html" />
                         </xsl:when>
                         <xsl:when test="list">                        
                             <xsl:call-template name="list" />
