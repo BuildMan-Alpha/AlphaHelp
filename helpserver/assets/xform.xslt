@@ -550,8 +550,17 @@
                         <xsl:when test="table">
                             <xsl:call-template name="text-html" />
                         </xsl:when>
-                        <xsl:when test="list">                        
+                        <xsl:when test="list">
                             <xsl:call-template name="list" />
+                        </xsl:when>
+                        <xsl:when test="example">
+                            <xsl:call-template name="example-template" />
+                        </xsl:when>
+                        <xsl:when test="steps">
+                            <xsl:call-template name="step-content" />
+                        </xsl:when>
+                        <xsl:when test="cases">
+                            <xsl:call-template name="case-content" />
                         </xsl:when>
                         <xsl:otherwise>
                             <p><xsl:value-of select="." /></p>
