@@ -316,7 +316,7 @@
                         <xsl:when test="name/@href"> <a href="{name/@href}"><xsl:value-of select="name" /></a> </xsl:when>
                         <xsl:otherwise> <xsl:value-of select="name" /> </xsl:otherwise>
                     </xsl:choose>
-                    <xsl:if test="description"> <span class="bulletItemDesc" > <xsl:value-of select="description" /> </span> </xsl:if>
+                    <xsl:if test="description"> <span class="bulletItemDesc" > <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each> </span> </xsl:if>
                     <xsl:if test="list"> <xsl:call-template name="list"/> </xsl:if>
                 </li>
             </xsl:for-each>
@@ -354,7 +354,7 @@
 							</dt>
 							<dd class="definitionDescriptionTD">
                                 <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
-								<xsl:value-of select="description" />
+                                <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each>
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
 								</xsl:if>
