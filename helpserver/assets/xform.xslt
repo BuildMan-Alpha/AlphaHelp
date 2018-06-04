@@ -342,16 +342,23 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<div>
-							<dt class="definitionNameTD" >
-                                <xsl:choose>
-                                    <xsl:when test="name/@href">
-                                        <a href="{name/@href}"><xsl:value-of select="name" /></a>
-                                    </xsl:when>
-                                    <xsl:otherwise>
+                            <xsl:choose>
+                                <xsl:when test="name/@href">
+                                    <dt class="definitionNameTD" >
+                                       <a href="{name/@href}"><xsl:value-of select="name" /></a>
+                                    </dt>
+                                </xsl:when>
+                                <xsl:when test="name/@code">
+                                    <dt class="definitionNameTDCode" >
+                                       <xsl:value-of select="name" />
+                                    </dt>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <dt class="definitionNameTD" >
                                         <xsl:value-of select="name" />
-                                    </xsl:otherwise>
-                                </xsl:choose>
-							</dt>
+                                    </dt>
+                                </xsl:otherwise>
+                            </xsl:choose>
 							<dd class="definitionDescriptionTD">
                                 <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
                                 <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each>
