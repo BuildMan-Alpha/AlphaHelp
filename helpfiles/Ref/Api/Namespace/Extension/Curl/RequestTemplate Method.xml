@@ -95,5 +95,69 @@ else
     'no response
 end]]></example>
         </section>
+        <section>
+        <title>Post Commands</title>
+        <description>
+           <p>Posting data with a simple body, like JSON, requires populating a "body" property. </p>
+           <p>Below is an example appending a range of values to a google sheet.</p>
+        </description>
+        <example code="xb"><![CDATA[
+dim json as c = <<%json%
+{
+    "uri": "https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetid}/values/{SheetName}!A1:D1:append?valueInputOption=USER_ENTERED",
+    "body": { "range": "{SheetName}!A1:D1", "majorDimension": "ROWS", "values": [ [ "=ROW()-1" , "sam", "smith", "smithco"] ] },
+    "auth" : {
+       "bearer" : "{namedresource.access_token}"  
+    },
+    "headers" :  {
+      "Content-Type" : "application/json"
+    }
+}
+%json%
+dim namedResource as c = "GoogleSheet"
+dim vars as p
+dim vars.spreadsheetid as c = speadsheetId
+dim vars.SheetName as c = "Customers"
+dim args as sql::arguments
+dim response as extension::CurlResponse
+response = extension::curl::RequestTemplate(json,namedResource,vars,args)
+end]]></example> 
+		</section>
+        <section>
+        <title>Multipart Forms</title>
+            <description>
+                <p>Posting data to a multipart form requires defining a 'form' property with an object that has user supplied names (to tag the items) and sub properties of either body (for embedded content), or filename (for files stored on disk to upload). </p>
+                <p>Both body and filename form 'parts' can include optional content length and content type.  content-length of 'length' will calculate the length from the supplied input.</p>
+                <p>Below is an example of uploading a file to google drive.</p>
+            </description>
+        <example code="xb"><![CDATA[
+dim json as c = <<%json%
+{
+    "uri": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+    "form" : {
+        "metadata" : {
+           "body" : { "name" : "{remoteName}" , "parents" : [ "{folderId}" ] },
+           "content-length" : "length"
+        } ,
+        "media" : {
+            "filename" : "{localname}" ,
+            "Content-Type" : "{mimetype}" 
+        }
+    },
+    "auth" : {
+       "bearer" : "{namedresource.access_token}"
+    }
+}
+%json%
+dim vars as p
+dim vars.folderId as c = folderId
+dim vars.remoteName as c = file.filename_parse(filename,"ne")
+dim vars.localname as c = strtran(filename,chr(92),"/")
+dim vars.mimetype as c = resolve_mime_type(file.filename_parse(filename,"e"))
+dim args as sql::arguments
+dim response as extension::curlresponse
+response = extension::curl::RequestTemplate(json,namedResource,vars,args)
+end]]></example>
+        </section>
     </sections>
 </page>
