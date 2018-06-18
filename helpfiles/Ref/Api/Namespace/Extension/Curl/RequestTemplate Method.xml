@@ -1,0 +1,163 @@
+<page api="xb" build="5098">
+    <shortlink>api extension namespace curl class requesttemplate method</shortlink>
+    <topic>Extension::Curl RequestTemplate Method</topic>
+    <description>Simple CURL request template, populated from optional named resource, variables and arguments, from request JSON or supplied properties.</description>
+    <prototypes>
+        <prototype static="true">.RequestTemplate as Extension::CurlResponse (request as C | request as P, C namedResource [, variables as C | variables as P [, args as SQL::Arguments]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>request</name>
+            <types>
+                <type>C</type>
+                <type>P</type>
+            </types>
+            <description>Request defined as a JSON string or dot variable.</description>
+        </argument>
+        <argument>
+            <name>namedResource</name>
+            <type>c</type>
+            <description>A Named Resource. The Named Resource can contain information for authentication (such as authentication information for Salesforce or Google.) Named Resources are defined in *[ui:Project Properties]* on the Web Projects Control Panel.</description>
+        </argument>
+        <argument optional="true">
+            <name>variables</name>
+            <types>
+                <type>C</type>
+                <type>P</type>
+            </types>
+            <description>Default = *[xb:null_value()]*. Defines values for variables used in the request URI.</description>
+        </argument>
+        <argument optional="true">
+            <name>args</name>
+            <type>SQL::Arguments</type>
+            <description>Default = *[xb:null_value()]*.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>response</name>
+            <types>
+                <type>Extension::CurlResponse</type>
+            </types>
+            <description>The response returned by the call.</description>
+        </return>
+    </returns>
+    <sections>
+        <section>
+            <description>
+                <p>When defining the URI and the headers in the JSON passed to the extension::curl::RequestTemplate() method, there are two special placeholders that you can use:</p>
+            </description>
+            <list bullet="true">
+                <item>
+                    <name>*[xb:{namedresource.access_token}]* - the access token that was retrieved when the authentication, defined in the Named Resource, was performed</name>
+                </item>
+                <item>
+                    <name>*[xb:{namedresource.resourceURL}]* - the base URL for the request as returned by the service when the authentication, defined in the NamedResource, was performed.</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>The values for these placeholders are resolved by the specified Named Provider (see the *[xb:namedResource]* variable in the example code below).</p>
+                <p>Sample Xbasic code showing how a REST API call is made to the Salesforce API. </p>
+                <p>(Assume that the authentication details for the Salesforce account have been saved in a Named Provider called *[xb:salesforcetoken]*. )</p>
+                <p>Notice that the URI specified in the JSON string has an argument name in it (*[xb::id]*)</p>
+            </description>
+            <example code="xb"><![CDATA[dim json as c = <<%json%
+{
+    "uri": "{namedresource.resourceurl}/services/data/v39.0/sobjects/Account/:id",
+    "auth": {
+        "bearer" : "{namedresource.access_token}"
+    }
+}
+%json%
+dim namedResource as c = "salesforcetoken"
+
+'define the value of the arguments used in the URI
+dim args as sql::arguments
+args.add("id","0011N00001EBYRDQA5")
+
+'instead of putting the account id in a sql::argument, we could have
+'used a variable and referenced the variable in the URI as {accountNumber)
+'instead of :id
+'for example: /services/data/v39.0/sobjects/Account/{accountNumber}
+
+dim vars as p
+vars.accountNumber = "0011N00001EBYRDQA5"
+
+dim response as extension::CurlResponse
+response = extension::curl::RequestTemplate(json,namedResource,vars,args)
+
+if response.content <> "" then
+    dim json as c
+    json = response.content
+else
+    'no response
+end]]></example>
+        </section>
+        <section>
+        <title>Post Commands</title>
+        <description>
+           <p>Posting data with a simple body, like JSON, requires populating a "body" property. </p>
+           <p>Below is an example appending a range of values to a google sheet.</p>
+        </description>
+        <example code="xb"><![CDATA[
+dim json as c = <<%json%
+{
+    "uri": "https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetid}/values/{SheetName}!A1:D1:append?valueInputOption=USER_ENTERED",
+    "body": { "range": "{SheetName}!A1:D1", "majorDimension": "ROWS", "values": [ [ "=ROW()-1" , "sam", "smith", "smithco"] ] },
+    "auth" : {
+       "bearer" : "{namedresource.access_token}"  
+    },
+    "headers" :  {
+      "Content-Type" : "application/json"
+    }
+}
+%json%
+dim namedResource as c = "GoogleSheet"
+dim vars as p
+dim vars.spreadsheetid as c = speadsheetId
+dim vars.SheetName as c = "Customers"
+dim args as sql::arguments
+dim response as extension::CurlResponse
+response = extension::curl::RequestTemplate(json,namedResource,vars,args)
+end]]></example> 
+		</section>
+        <section>
+        <title>Multipart Forms</title>
+            <description>
+                <p>Posting data to a multipart form requires defining a 'form' property with an object that has user supplied names (to tag the items) and sub properties of either body (for embedded content), or filename (for files stored on disk to upload). </p>
+                <p>Both body and filename form 'parts' can include optional content length and content type.  content-length of 'length' will calculate the length from the supplied input.</p>
+                <p>Below is an example of uploading a file to google drive.</p>
+            </description>
+        <example code="xb"><![CDATA[
+dim json as c = <<%json%
+{
+    "uri": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+    "form" : {
+        "metadata" : {
+           "body" : { "name" : "{remoteName}" , "parents" : [ "{folderId}" ] },
+           "content-length" : "length"
+        } ,
+        "media" : {
+            "filename" : "{localname}" ,
+            "Content-Type" : "{mimetype}" 
+        }
+    },
+    "auth" : {
+       "bearer" : "{namedresource.access_token}"
+    }
+}
+%json%
+dim vars as p
+dim vars.folderId as c = folderId
+dim vars.remoteName as c = file.filename_parse(filename,"ne")
+dim vars.localname as c = strtran(filename,chr(92),"/")
+dim vars.mimetype as c = resolve_mime_type(file.filename_parse(filename,"e"))
+dim args as sql::arguments
+dim response as extension::curlresponse
+response = extension::curl::RequestTemplate(json,namedResource,vars,args)
+end]]></example>
+        </section>
+    </sections>
+</page>

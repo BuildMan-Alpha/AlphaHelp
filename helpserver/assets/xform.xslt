@@ -316,7 +316,7 @@
                         <xsl:when test="name/@href"> <a href="{name/@href}"><xsl:value-of select="name" /></a> </xsl:when>
                         <xsl:otherwise> <xsl:value-of select="name" /> </xsl:otherwise>
                     </xsl:choose>
-                    <xsl:if test="description"> <span class="bulletItemDesc" > <xsl:value-of select="description" /> </span> </xsl:if>
+                    <xsl:if test="description"> <span class="bulletItemDesc" > <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each> </span> </xsl:if>
                     <xsl:if test="list"> <xsl:call-template name="list"/> </xsl:if>
                 </li>
             </xsl:for-each>
@@ -342,19 +342,26 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<div>
-							<dt class="definitionNameTD" >
-                                <xsl:choose>
-                                    <xsl:when test="name/@href">
-                                        <a href="{name/@href}"><xsl:value-of select="name" /></a>
-                                    </xsl:when>
-                                    <xsl:otherwise>
+                            <xsl:choose>
+                                <xsl:when test="name/@href">
+                                    <dt class="definitionNameTD" >
+                                       <a href="{name/@href}"><xsl:value-of select="name" /></a>
+                                    </dt>
+                                </xsl:when>
+                                <xsl:when test="name/@code">
+                                    <dt class="definitionNameTDCode" >
+                                       <xsl:value-of select="name" />
+                                    </dt>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <dt class="definitionNameTD" >
                                         <xsl:value-of select="name" />
-                                    </xsl:otherwise>
-                                </xsl:choose>
-							</dt>
+                                    </dt>
+                                </xsl:otherwise>
+                            </xsl:choose>
 							<dd class="definitionDescriptionTD">
                                 <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
-								<xsl:value-of select="description" />
+                                <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each>
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
 								</xsl:if>
@@ -533,6 +540,9 @@
             <xsl:when test="table">
                 <xsl:call-template name="text-html" />
             </xsl:when>
+            <xsl:when test="list">
+                <xsl:call-template name="text-html" />
+            </xsl:when>
             <xsl:otherwise>
                 <p><xsl:value-of select="." /></p>
             </xsl:otherwise>
@@ -543,7 +553,29 @@
         <xsl:for-each select="*">
             <xsl:choose>
                 <xsl:when test="local-name()='p'">
-                    <p><xsl:value-of select="." /></p>
+                    <xsl:choose>
+                        <xsl:when test="table">
+                            <xsl:call-template name="text-html" />
+                        </xsl:when>
+                        <xsl:when test="list">
+                            <xsl:call-template name="list" />
+                        </xsl:when>
+                        <xsl:when test="example">
+                            <xsl:call-template name="example-template" />
+                        </xsl:when>
+                        <xsl:when test="steps">
+                            <xsl:call-template name="step-content" />
+                        </xsl:when>
+                        <xsl:when test="cases">
+                            <xsl:call-template name="case-content" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <p><xsl:value-of select="." /></p>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:when test="local-name()='list'">
+                    <xsl:call-template name="list"/>
                 </xsl:when>
                 <xsl:when test="local-name()='table'">
                     <div class="A5EmbeddedTable"><table class="A5Table">
@@ -935,7 +967,7 @@
         <xsl:if test="warning">
             <xsl:choose>
                 <xsl:when test="warning/p">
-                    <div class="sectionWarning" ><xsl:for-each select="warning/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionWarning" ><xsl:for-each select="warning"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionWarning" ><xsl:value-of select="warning" /></div> 
@@ -945,7 +977,7 @@
         <xsl:if test="deprecated">
             <xsl:choose>
                 <xsl:when test="deprecated/p">
-                    <div class="sectionDeprecated" ><xsl:for-each select="deprecated/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionDeprecated" ><xsl:for-each select="deprecated"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionDeprecated" ><xsl:value-of select="deprecated" /></div>
@@ -955,7 +987,7 @@
         <xsl:if test="obsolete">
             <xsl:choose>
                 <xsl:when test="obsolete/p">
-                    <div class="sectionObsolete" ><xsl:for-each select="obsolete/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionObsolete" ><xsl:for-each select="obsolete"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionObsolete" ><xsl:value-of select="obsolete" /></div>
@@ -968,7 +1000,7 @@
         <xsl:if test="note">
             <xsl:choose>
                 <xsl:when test="note/p">
-                    <div class="sectionNote" ><xsl:for-each select="note/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionNote" ><xsl:for-each select="note"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionNote" ><xsl:value-of select="note" /></div>
@@ -978,7 +1010,7 @@
         <xsl:if test="important">
             <xsl:choose>
                 <xsl:when test="important/p">
-                    <div class="sectionImportant" ><xsl:for-each select="important/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionImportant" ><xsl:for-each select="important"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionImportant" ><xsl:value-of select="important" /></div>
@@ -988,7 +1020,7 @@
         <xsl:if test="tip">
             <xsl:choose>
                 <xsl:when test="tip/p">
-                    <div class="sectionTip" ><xsl:for-each select="tip/p"><p><xsl:value-of select="." /></p></xsl:for-each></div>
+                    <div class="sectionTip" ><xsl:for-each select="tip"><xsl:call-template name="text-content"/></xsl:for-each></div>
                 </xsl:when>
                 <xsl:otherwise>
                     <div class="sectionTip" ><xsl:value-of select="tip" /></div>
