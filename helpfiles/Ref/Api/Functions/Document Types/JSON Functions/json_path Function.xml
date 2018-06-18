@@ -1,0 +1,141 @@
+<page api="xb" build="5100">
+    <shortlink>xb json path function</shortlink>
+    <topic>json_path Function</topic>
+    <description>Extracts a portion of a JSON string.</description>
+    <prototypes>
+        <prototype>c string = json_path(c json, c path)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>json</name>
+            <types>
+                <type>c</type>
+            </types>
+            <description>A JSON string</description>
+        </argument>
+        <argument>
+            <name>path</name>
+            <type>c</type>
+            <description>The path defining what portion of the JSON to extract.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>string</name>
+            <types>
+                <type>c</type>
+            </types>
+            <description>Returns the portion of the JSON that matches the path.</description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:json_path()]* function allows you to extract portions of a JSON string and perform certain types of simple calculations on a JSON string.</p>
+        <p>When working with XML data, there is a well known standard, called XPath, for extracting parts of the XML data. JSON Path allows for similar functionality when working with JSON data.</p>
+        <p>For example:</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[dim path as c
+
+'get the author for all books in the store
+path = "$.store.book[*].author"
+
+dim json as c
+
+json = <<%json%
+{
+  "store": {
+    "book": [
+      {
+        "category": "reference",
+        "author": "Nigel Rees",
+        "title": "Sayings of the Century",
+        "price": 8.95
+      },
+      {
+        "category": "fiction",
+        "author": "Evelyn Waugh",
+        "title": "Sword of Honour",
+        "price": 12.99
+      },
+      {
+        "category": "fiction",
+        "author": "Herman Melville",
+        "title": "Moby Dick",
+        "isbn": "0-553-21311-3",
+        "price": 8.99
+      },
+      {
+        "category": "fiction",
+        "author": "J. R. R. Tolkien",
+        "title": "The Lord of the Rings",
+        "isbn": "0-395-19395-8",
+        "price": 22.99
+      }
+    ],
+    "bicycle": {
+      "color": "red",
+      "price": 19.95
+    }
+  }
+}
+%json%
+
+dim result as c
+
+result = json_path(json,path)
+
+= [
+    "Nigel Rees",
+    "Evelyn Waugh",
+    "Herman Melville",
+    "J. R. R. Tolkien"
+]]]></example>
+        </section>
+        <section>
+            <description>The chart below describes what will be returned by the *[xb:json_path()]* function for the specified path. The examples in this chart are from the *[extlink:NPM JSONPath documentation@https://www.npmjs.com/package/JSONPath]*:</description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr><th>JSON Path Syntax</th><th>Returns</th></tr>
+                    <tr><td>$.store.book[*].author</td><td>The authors of all books in the store</td></tr>
+                    <tr><td>$..author</td><td>All authors</td></tr>
+                    <tr><td>$.store.*</td><td>All things in store, which are its books (a book array) and a red bicycle (a bicycle object).</td></tr>
+                    <tr><td>$.store..price</td><td>The price of everything in the store.</td></tr>
+                    <tr><td>$..book[2]</td><td>The third book (book object)</td></tr>
+                    <tr><td>$..book[(@.length-1)]</td><td rowspan="2">The last book in order.</td></tr>
+                    <tr><td>$..book[-1:]</td></tr>
+                    <tr><td>$..book[0,1]</td><td rowspan="2">The first two books</td></tr>
+                    <tr><td>$..book[:2]</td></tr>
+                    <tr><td>$..book[0][category,author]</td><td>The categories and authors of all books</td></tr>
+                    <tr><td>$..book[?(@.isbn)]</td><td>Filter all books with an ISBN number</td></tr>
+                    <tr><td>$..book[?(@.price&lt;10)]</td><td>Filter all books cheaper than 10</td></tr>
+                    <tr><td>$..*[?(@property === 'price' &amp;&amp; @ !== 8.95)]</td><td>Obtain all property values of objects whose property is price and which does not equal 8.95</td></tr>
+                    <tr><td>$</td><td>The root of the JSON object (i.e., the whole object itself)</td></tr>
+                    <tr><td>$..*</td><td>All Elements (and text) beneath root in an XML document. All members of a JSON structure beneath the root.</td></tr>
+                    <tr><td>$..</td><td>All Elements in an XML document. All parent components of a JSON structure including root.</td></tr>
+                    <tr><td>$..[?(@.price&gt;19)]^</td><td>Parent of those specific items with a price greater than 19 (i.e., the store value as the parent of the bicycle and the book array as parent of an individual book)</td></tr>
+                    <tr><td>$.store.*~</td><td>The property names of the store sub-object ("book" and "bicycle"). Useful with wildcard properties.</td></tr>
+                    <tr><td>$.store.book[?(@path !== "$['store']['book'][0]")]</td><td>All books besides that at the path pointing to the first</td></tr>
+                    <tr><td>$..book[?(@parent.bicycle &amp;&amp; @parent.bicycle.color === "red")].category</td><td>Grabs all categories of books where the parent object of the book has a bicycle child whose color is red (i.e., all the books)</td></tr>
+                    <tr><td>$..book.*[?(@property !== "category")]</td><td>Grabs all children of "book" except for "category" ones</td></tr>
+                    <tr><td>$..book[?(@property !== 0)]</td><td>Grabs all books whose property (which, being that we are reaching inside an array, is the numeric index) is not 0</td></tr>
+                    <tr><td>$.store.*[?(@parentProperty !== "book")]</td><td>Grabs the grandchildren of store whose parent property is not book (i.e., bicycle's children, "color" and "price")</td></tr>
+                    <tr><td>$..book.*[?(@parentProperty !== 0)]</td><td>Get the property values of all book instances whereby the parent property of these values (i.e., the array index holding the book item parent object) is not 0</td></tr>
+                    <tr><td>$..book..*@number()</td><td>Get the numeric values within the book array</td></tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <title>json_path in Javascript</title>
+            <description>You can also use JSON Path on the client side (in your Javascript code). The Javascript function is also called [json_path()].</description>
+        </section>
+    </sections>
+    <links>
+        <link link="syslib json path method">json_path()</link>
+    </links>
+    <see>
+        <ref link="syslib json path method">json_path() (JavaScript)</ref>
+    </see>
+</page>
