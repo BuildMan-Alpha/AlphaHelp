@@ -1,0 +1,116 @@
+<page api="xb">
+      <shortlink>api sql namespace connection class copyfrom function</shortlink>
+   <topic>SQL::Connection::CopyFrom Function</topic>
+   <description>Copy tables and data from one connection to another.</description>
+   
+   <prototype>Succeeded as L = CopyFrom(SourceConnection as SQL::Connection [, Schema as SQL::Schema [,EventScript as C]])</prototype>
+   <arguments>
+   <argument>
+         <name>Succeeded</name>
+         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
+</description>
+     </argument>
+     
+     <argument>
+         <name>SQL::Connection</name>
+         <description>A SQL::Connection object from which the data should be copied.
+</description>
+     </argument>
+    
+     <argument>
+         <name>Schema</name>
+         <description>An optional SQL::Schema object that contains desired tables and any overrides in schema definitions required.
+</description>
+     </argument>
+   </arguments>
+     <argument>
+         <name>EventScript</name>
+         <description>An optional script to process events as tables are copied.
+</description>
+     </argument>
+   <discussion>
+The CopyFrom() method copies tables and their data from the source connection to the connection the function is called on.
+Only the tables, indexes and data are copied. Views, stored procedures, stored functions and sequences are not copied.
+   </discussion>
+ 
+   <see>
+      <ref link="SQL::Connection Object">SQL::Connection Object</ref>
+   </see>
+  <terms>sql,connection,database,function,index,object,operation</terms>
+<sections
+<section>
+	<example>!CDATA[[
+function CopyDB as C (SourceName as C, SourceCS as C, DestName as C, DestCS as C, IncludeData as L)
+dim Result as c	
+dim Timer as Util::Timer 
+dim Source as SQL::Connection 
+dim Dest   as SQL::Connection
+Source.BulkReadEnabled = .t.
+Dest.BulkWriteEnabled = .t.
+
+EventScript = <<%code%
+FUNCTION UpdateBegin(Context as P, RowsExpected as N, BYREF ProgressInterval as N, BYREF Cancel as L)
+	statusbar.Set_Text("Update Begin Expecting " + RowsExpected)
+END FUNCTION 
+
+FUNCTION UpdateProgress(Context as P, RowsUpdated as N, RowsExpected as N, BYREF Cancel as L)
+	statusbar.Set_Text("Update Progress " + RowsUpdated + " of " + RowsExpected)
+END FUNCTION 
+
+FUNCTION UpdateEnd(Context as P, RowsUpdated as N)
+	statusbar.Set_Text("Update End with  " + RowsUpdated + " rows.")
+END FUNCTION 
+
+
+FUNCTION TableBegin(Context as P, Action as C, TableName as C)
+	statusbar.Set_Text("Table Begin of " + Action + " for table  " + TableName)
+END FUNCTION
+
+FUNCTION TableEnd(Context as P, Action as C, TableName as C)
+	statusbar.Set_Text("Table End of " + Action + " for table  " + TableName)
+
+END FUNCTION 
+
+FUNCTION DatabaseBegin(Context as P, Action as C, TablesExpected as N)
+	statusbar.Set_Text("Database Begin of " + Action + " for " + TablesExpected + "tables.")
+END FUNCTION 
+
+											
+FUNCTION DatabaseEnd(Context as P, Action as C)
+	statusbar.Set_Text("Database End of " + Action)
+END FUNCTION 
+%code%
+
+Description = SourceName + " to " + DestName
+
+if Source.Open(SourceCS) then
+	if Dest.Open(DestCS) then
+		Timer.Start()	
+		if Dest.Copyfrom(Source, null_value(), EventScript) then
+			Timer.Stop()
+			*Concat(Result, "Copying " + Description + ": took " + Timer.ElapsedMilliseconds / 1000 + " seconds." + crlf())
+			if  IncludeData
+				List = Dest.ListTables()
+				for i = 1 to line_count(List)
+					TableName = word(List, i, crlf())
+					SQLQuery = "SELECT count(*) FROM " + Dest.GenerateNativeColumnName(TableName)
+					*Concat(Result, TableName + " = " + Dest.ToString(SQLQuery) + crlf())
+				next
+			end if
+			*Concat(Result, crlf())
+		else
+			*Concat(Result, "Error copying " + Description + ": " + Dest.CallResult.Text + crlf(2))
+		end if
+	else
+		*Concat(Result, "Unable to open destination connection string '" + DestName + "': " + Dest.CallResult.Text + crlf(2))
+	end if
+else
+	*Concat(Result, "Unable to open source connection string '" + SourceName + "': " + Source.CallResult.Text + crlf(2))
+end if
+	
+CopyDB = Result
+end function
+	]]</example>
+</section>
+</sections>
+</page>
