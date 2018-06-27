@@ -403,10 +403,31 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
 
         if (args.format == ".xml") {
-            if (args.content.substring(0, 10) == "<methodref") {
-                result = "<methods>" + args.content + "</methods>"
-            } else {
-                result = "<list><item><name-title>Name</name-title></item>" + args.content + "</list>";
+            var entries = args.content;
+            entries = entries.split("\n");
+
+            var methods = [];
+            var articles = [];
+            var type = "";
+            // for each entry, push to appropriate array 
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].substring(0,10) == "<methodref") {
+                    type = "method";
+                } else if (entries[i].substring(0,5) == "<item") {
+                    type = "articles";
+                }
+
+                if (type == "method") {
+                    methods.push(entries[i]);
+                } else {
+                    articles.push(entries[i]);
+                }
+            }
+            if (articles.length > 0) {
+                result = result + "<list><item><name-title>Name</name-title></item>" + articles.join("\n") + "</list>\n";
+            }
+            if (methods.length > 0) {
+                result = result + "<methods>" + methods.join("\n") + "</methods>\n";
             }
         } else {
             result = "<dl id='generatedTopics'>" + args.content + "</dl>";
