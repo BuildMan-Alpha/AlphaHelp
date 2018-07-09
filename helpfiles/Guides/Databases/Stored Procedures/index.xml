@@ -10,34 +10,48 @@
     <sections>
         <section>
             <title>Example: Calling SQL Stored Procedures</title>
-            <description>The following script was stored in an A5W page named "sql_connect.a5w". The values for the variables password, username, and Database_name were provided.</description>
-            <example>
-                <![CDATA[<%a5
-Dim Conn as P
-Dim rs as P
-Dim sql as C
-dim connection_string as C
-conn = ole.create("ADODB.Connection")
-rs = ole.create("adodb.recordset")
-connection_string = "Provider=MSDASQL.1;Password= " + password + ";User ID= " + username + " ;Persist Security Info=True;Initial Catalog=" + Database_name + ";Data Source=" + Database_name
-conn.ConnectionString = connection_string
-%>]]>
-            </example>
+            <description>The following Xbasic script can be used to call a stored procedure. The script executes a stored procedure, called 'SalesByCustomerYear', and displays the total sales in a message box. The year and customer id are passed in as arguments to the stored procedure.</description>
+            <example code="xb"><![CDATA[dim year as c = "1996"
+dim customer as c = "BOLID"
+
+dim cn as sql::Connection
+if (cn.open("::Name::myConnection")) then
+    dim sql as c = "exec SalesByCustomerYear @year=:year, @cust_id=:customer"
+    dim args as sql::Arguments
+    args.set("year",year)
+    args.set("customer",customer)
+    if (cn.execute(sql,args) <> .f.) then
+        dim totalSales as n = cn.ResultSet.data(1)
+        ui_msg_box("Results","Total sales for " + customer + " in " + year + " : " + alltrim(str(totalSales,250,2,"$(")))
+    else
+        ' error
+        ui_msg_box("Error","Error executing stored procedure. Error was: "+cn.callResult.text,UI_STOP_SYMBOL)
+    end if
+else
+    ' error
+    ui_msg_box("Error","Error connecting to database. Error was: "+cn.callResult.text,UI_STOP_SYMBOL)
+end if]]></example>
         </section>
         <section>
-            <description>The page that needed to make a connection included "sql_connect.a5w".</description>
-            <example>
-                <![CDATA[<%a5
-a5w_include("sql_connect.a5w")
-dim rs as P
-rs = ole.create("adodb.recordset")
-rs.CursorType = 3
-conn.Open()
-sql = "sp_user_names " + "'" + user_id +"'"
-rs.Open(sql,conn)
-Name = rs.fields.item(0).value
-%> ]]>
-            </example>
+            <description>The stored procedure for this example is shown below. This stored procedure is based on the Northwind SQL Server database:</description>
+            <example code="sql"><![CDATA[SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Description:	Calculates the total for orders for a customer in a given year
+-- =============================================
+CREATE PROCEDURE SalesByCustomerYear 
+	-- Add the parameters for the stored procedure here
+	@cust_id Nchar(5), 
+	@year Nchar(4) 
+AS 
+	SELECT SUM("Order Subtotals".subtotal) AS total
+	FROM [Orders] INNER JOIN "Order Subtotals" ON [Orders].OrderID = "Order Subtotals".OrderID
+	WHERE [Orders].CustomerID = @cust_id AND [Orders].ShippedDate BETWEEN '1/1/'+@year AND '12/31/'+@year]]></example>
+        </section>
+        <section>
+            <note>You can find the .mdf files for the SQL Server Northwind database in the Alpha Anywhere installation directory in *[MDBFiles]* &gt; *[northwind_mdf.zip]*. Extract the contents to your user folder and attach the .mdf files to your local SQL Server or SQLLocalDB instance using SQL Server Management Studio.</note>
         </section>
         <section>
             <description>To learn more, check out the resources below.</description>
@@ -52,4 +66,7 @@ Name = rs.fields.item(0).value
         <ref link="how to call a sql server stored procedure from a grid">How to call a SQL Server stored procedure from a Grid</ref>
         <ref link="howto use output arguments with stored procedures">How to Use Output Arguments with Stored Procedures in Xbasic</ref>
     </see>
+    <links>
+        <link href="">here</link>
+    </links>
 </page>
