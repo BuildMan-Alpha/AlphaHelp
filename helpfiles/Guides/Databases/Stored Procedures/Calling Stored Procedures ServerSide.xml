@@ -1,0 +1,138 @@
+<page>
+    <shortlink>databases calling stored procedures webapp</shortlink>
+    <topic>Calling Stored Procedures in Server-side Code</topic>
+    <description>
+        <p>Stored procedures can be called in server-side scripts in web and mobile applications to perform calculations or compute data to return to the client.</p>
+    </description>
+    <discussion>
+        <p>Stored procedures can be called in web and mobile applications in server-side scripts. They can be used in sever-side events or [Ajax Callbacks] to compute information that is returned to the client. The two examples below demonstrate how to send data from the client to the server that is used to call a stored procedure to compute the total sales for a customer. The result is then sent back to the client where it is shown in a popup window or in a control on the component.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Example: In a UX Component</title>
+            <description>
+                <p>This example demonstrates calling a stored procedure in an Ajax Callback, which is called when the user clicks a button. The stored procedure computes the total sales for a customer for a given year. The UX Component contains two controls that specify the Year and Customer ID.</p>
+                <p>The UX also contains a button with the following action javascript defined in the button's click event:</p>
+            </description>
+            <figure>
+                <link>images/createAJAjax.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Ajax Callback action is configured to call the *[xb:getTotalSales]* Xbasic function (defined in the [Xbasic functions section] of the UX component), which is shown below:</p>
+            </description>
+        </section>
+        <section>
+            <example code="xb"><![CDATA[function getTotalSales as c (e as p)
+    ' Define a variable to hold the Javascript to return to the client's browser:
+    dim js as c = ""
+
+    ' Get the year and customer id from the submitted data and store it in variables.
+    ' e._currentRowDataNew contains the values for the year and customer controls in
+    ' the UX Component
+    dim year as c = e._currentRowDataNew.year
+    dim customer as c = e._currentRowDataNew.customer
+
+    dim cn as sql::Connection
+
+    ' Open the connection
+    if (cn.open("::Name::Northwind")) then
+
+        ' Define the sql statement to execute the stored procedure
+        dim sql as c = "exec SalesByCustomerYear @year=:year, @cust_id=:customer"
+
+        ' set the arguments for the stored procedure
+        dim args as sql::Arguments
+        args.set("year",year)
+        args.set("customer",customer)
+
+        ' Execute the query and test the result
+        if (cn.execute(sql,args) <> .f.) then
+            ' Get the total sales from the result set:
+            dim totalSales as n = cn.ResultSet.data(1)
+
+            ' Compute the javascript to put the total sales value in the 'TOTALSALES' text box
+            ' defined in the UX Component:
+            js = js + "var sales = "+totalSales+";"+crlf()
+            js = js + "var total = $u.n.toStr(sales,2,',','$','');"+crlf()
+            js = js + "{dialog.object}.setValue('TOTALSALES','Total sales for " + customer + " in " + year + " : '+total);"+crlf()
+        else
+            ' The query failed. Read the error message from the SQL::Connection object
+            ' and generate the javascript to display the error message in a popup window:
+            js = js + "{dialog.object}.setValue('TOTALSALES','');"
+            js = js + "alert('Error executing stored procedure. Error was: "+js_escape(cn.callResult.text)+"');"
+        end if
+        
+        ' close the connection
+        cn.close()
+    else
+        ' Could not connect to the database. Read the error message from the SQL::Connection 
+        ' object and generate the javascript to display the error message in a popup window:
+        js = js + "{dialog.object}.setValue('TOTALSALES','');"
+        js = js + "alert('Error connecting to database. Error was: "+js_escape(cn.callResult.text)+"');"
+    end if
+
+    ' Return the Javascript to execute in the client's browser:
+    getTotalSales = js
+end function]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The Xbasic function reads the year and customer values from the submitted data (*[xb:e._currentRowDataNew.year]* and *[xb:e._currentRowDataNew.customer]*) for use the SQL statement to call the stored procedure. After the stored procedure executes successfully, the result is returned to the client and displayed in a control on the UX Component called 'TOTALSALES'.</p>
+            </description>
+            <figure>
+                <link>images/storedProcedureUX3.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>The stored procedure for this example is shown below. This stored procedure is based on the Northwind SQL Server database:</description>
+            <example code="sql"><![CDATA[SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Description:	Calculates the total for orders for a customer in a given year
+-- =============================================
+CREATE PROCEDURE SalesByCustomerYear 
+	-- Add the parameters for the stored procedure here
+	@cust_id Nchar(5), 
+	@year Nchar(4) 
+AS 
+	SELECT SUM("Order Subtotals".subtotal) AS total
+	FROM [Orders] INNER JOIN "Order Subtotals" ON [Orders].OrderID = "Order Subtotals".OrderID
+	WHERE [Orders].CustomerID = @cust_id AND [Orders].ShippedDate BETWEEN '1/1/'+@year AND '12/31/'+@year]]></example>
+        </section>
+        <section>
+            <note>You can find the .mdf files for the SQL Server Northwind database in the Alpha Anywhere installation directory in *[MDBFiles]* &gt; *[northwind_mdf.zip]*. Extract the contents to your user folder and attach the .mdf files to your local SQL Server or SQLLocalDB instance using SQL Server Management Studio.</note>
+        </section>
+        <section>
+            <description>
+                <p>This example is based on the Grid Component example below. Watch the videos for the Grid Component example to learn more about calling stored procedures.</p>
+            </description>
+        </section>
+        <section>
+            <title>Example: In a Grid Component</title>
+            <description>This video explains how to call a stored procedure from a Grid component that calculates the total annual sales for a customer. Javascript is used to prompt the user to get the year used to calculate the total annual sales. An ajax callback is then made to the server to an Xbasic function that calls the stored procedure and returns the total to the client, which is displayed in a popup window.</description>
+            <videos>
+                <video>
+                    <name>Calling a Stored Procedure Part 1</name>
+                    <link>https://www.viddler.com/v/8aa79545</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <description>In this second video, we present an alternative for passing arguments from Javascript to the Xbasic callback function. It also includes a discussion of using Firebug for debugging ajax callbacks client-side.</description>
+            <videos>
+                <video>
+                    <name>Calling a Stored Procedure Part 2</name>
+                    <link>https://www.viddler.com/v/af886fe</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="server js Understanding Ajax Callbacks">Ajax Callbacks</link>
+        <link link="ux%20component%20code%20xbasic%20in%20ux%20components">Xbasic functions section</link>
+    </links>
+</page>
