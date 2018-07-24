@@ -14,11 +14,11 @@
 		</xsl:for-each>
 	</xsl:template>
 	<xsl:template match="page-content" name="page-content" >
-        <xsl:if test="./@api"><div class="apiLanguage" style="display:none;">
+        <xsl:if test="./@api"><div class="apiLanguage" style="">
         <xsl:choose>
             <xsl:when test="./@api='xb'">Xbasic</xsl:when>
             <xsl:when test="./@api='js'">JavaScript</xsl:when>
-            <xsl:when test="./@api='cstempate'">Client Side Template</xsl:when>
+            <xsl:when test="./@api='cstemplate'">Client Side Template</xsl:when>
             <xsl:otherwise><xsl:value-of select="./@api" /></xsl:otherwise>
         </xsl:choose>
         </div></xsl:if>
