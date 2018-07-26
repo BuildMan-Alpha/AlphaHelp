@@ -39,6 +39,74 @@ data = sortsubstr(data,chr(10),"A") ]]></example>
         <section>
             <description>[Click here to download the component] used in the videos above.</description>
         </section>
+        <section>
+            <title>Yahoo Finance API Discontinued</title>
+            <description>
+                <p>As of May 2017, the Yahoo Finance API used in this example is no longer available. The *[xb:get_series]* function shown in the videos above has been rewritten to use the Alpha Vantage API. The function below demonstrates how to use the Alpha Vantage API to accomplish the same result as the Yahoo Finance API:</p>
+            </description>
+            <example code="xb"><![CDATA[function get_series as c(e as p)
+	dim ticker as c = "GM"
+	
+	if eval_valid("e.dataSubmitted.TICKER") then
+		ticker = e.dataSubmitted.TICKER
+	end if
+	
+	dim dt as d = date()
+	dim yearN as n = year(dt)
+	dim monthN as n = month(dt)
+	dim dayN as n = day(dt)
+	if monthN <= 0 then
+		monthN = 12
+		yearN = yearN-1
+	else
+		monthN= monthN-1
+	end if
+	dim year as c = ""+yearN
+	dim month as c = ""+monthN
+	dim dayNumber as c = ""+dayN
+	
+	dt = ctod(year+"-"+month+"-"+dayNumber)
+	
+	'' Get your API Key at www.alphavantage.co
+	'' Replace "YOURAPIKEY" in the text below with your API key:
+	dim url as c = "https://www.alphavantage.co/query?apikey=YOURAPIKEY&function=TIME_SERIES_DAILY_ADJUSTED&symbol="+ticker
+	dim json as c = http_get_page2(url)
+	
+	dim jso as extension::JSON
+	jso.setJson(json)
+	jso = jso.getIndexed(1)
+
+	dim arr[8] as c
+	dim data as c = ""
+	dim count1 as n = jso.getLength()
+
+	for index1 = 0 to count1-1
+		dim tickerDate as c = jso.nameIndexed(index1)
+		if (ctod(tickerDate) < dt)
+			exit for
+		end if
+
+		dim jsf as extension::JSON
+		jsf = jso.getIndexed(index1)
+
+		dim count as n = jsf.getLength()
+		for index = 0 to count-1
+			dim name as c = jsf.nameIndexed(index)
+			arr[index+1] = jsf.getProperty(name)
+		next
+
+		'Date,Open,High,Low,Close,Volume,AdjClose
+		data = data+tickerDate+"|"+arr[1]+"|"+arr[2]+"|"+arr[3]+"|"+arr[4]+"|"+arr[6]+"|"+arr[5]+crlf()
+	next
+
+	data = sortsubstr(data,chr(10),"A")
+
+	get_series = data
+end function]]></example>
+        </section>
+        <section>
+            <description>Alpha Vantage requires an API key in order to use their web service. *[extlink:Click here to get your API key from Alpha Vantage@https://www.alphavantage.co/]*.</description>
+        </section>
     </sections>
     <links>
         <link href="http://www.ajaxvideotutorials.com/V11Videos/StockPrice.a5wcmp">Click here to download the component</link>
