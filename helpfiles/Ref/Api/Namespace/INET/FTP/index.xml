@@ -1,11 +1,14 @@
 <page api="xb">
 	<shortlink>api inet ftp class method</shortlink>
 	<topic>INET::FTP Class</topic>
+	<description>
+		<p>Class for uploading data using FTP/SFTP.</p>
+	</description>
 	<properties>
 		<property generated="true">
 			<name>CallResult</name>
 			<type>CallResult</type>
-			<description>CallResult property</description>
+			<description>The result of the last call to a method on the FTP class.</description>
 		</property>
 		<property generated="true">
 			<name>Host</name>
@@ -30,12 +33,12 @@
 		<property generated="true">
 			<name>RequireValidCertificate</name>
 			<type>L</type>
-			<description>Default = *[xb:.t.]*. Defines whether or not a valid certificate is required to establish a connection.</description>
+			<description>Default = *[xb:.t.]*.  If set to .t., SSL connections will validate the certificate.</description>
 		</property>
 		<property generated="true">
 			<name>BufferSize</name>
 			<type>N</type>
-			<description>Default = 8192. The size of the buffer.</description>
+			<description>Default = 8192. The buffer size to use in transferring files. Performance can be improved on large file transfers by increasing the size of this buffer. Setting the property is optional.</description>
 		</property>
 		<property generated="true">
 			<name>TimeOut</name>
@@ -53,32 +56,63 @@
 			<description>The password for authentication.</description>
 		</property>
 		<property generated="true" readonly="true">
-			<name>LengthSent</name>
-			<type>N</type>
-			<description>The amount of data sent.</description>
-		</property>
-		<property generated="true" readonly="true">
 			<name>TotalLength</name>
 			<type>N</type>
-			<description>The total size of the data.</description>
-		</property>
-		<property generated="true">
-			<name>UserContext</name>
-			<type>P</type>
-			<description>The user context.</description>
+			<description>The total length of the file or buffer being sent.</description>
 		</property>
 		<property generated="true">
 			<name>EventScript</name>
 			<type>C</type>
-			<description>An event script.</description>
+			<description>An XBasic script that implements one or more functions to respond to the *[xb:SendBegin]*, *[xb:SendProgress]*, *[xb:SendCancelled]* and *[xb:SendCompleted]* events. Note that *[xb:SendBegin]* and *[xb:SendProgress]* pass a flag that can be set to *[xb:.t.]* to cancel the transfer. See example above.</description>
+		</property>
+		<property generated="true">
+			<name>UserContext</name>
+			<type>P</type>
+			<description>A reference to an Xbasic object to be passed into event functions. Use this to provide some context for event scripts such as the file requested and the target name.</description>
 		</property>
 		<property generated="true" readonly="true">
-			<name>SampleEventScript</name>
-			<type>C</type>
-			<description>A sample event script that can be used as a framework to create your own event script.</description>
+			<name>LengthSent</name>
+			<type>N</type>
+			<description>The length of data sent so far. Used with the XBasic event script to display or respond to progress events.</description>
 		</property>
 	</properties>
 	<!--list:.-->
+	<example code="xb"><![CDATA[dim f as inet::ftp
+dim ctxt as p
+ctxt.SourceFile = "String - 'Fred - xxxxx' "
+ctxt.TargetFile = "fred.txt"
+
+statusbar.set_text("Starting test...")
+
+f.host = "kurt64"
+f.UserContext = ctxt
+f.eventscript = <<%code%
+FUNCTION SendBegin as L (FTP as INET::FTP, ExpectedSize as N, BYREF ProgressInterval as N, BYREF Cancel as L)
+    ' Turn off progress events.
+    'ProgressInterval = 1
+    statusbar.set_text("Beginning transfer of " + ftp.usercontext.SourceFile +" to " + ftp.usercontext.TargetFile)
+END FUNCTION
+
+FUNCTION SendProgress as L (FTP as INET::FTP, ExpectedSize as N, BytesSent as N, BYREF Cancel as L)
+    statusbar.set_text("Transferred " + BytesSent + " of " + ExpectedSize + " from " + ftp.usercontext.SourceFile + " to " + ftp.usercontext.TargetFile)
+END FUNCTION
+
+FUNCTION SendCanceled as L (FTP as INET::FTP)
+    statusbar.set_text("Canceled transfer of " + ftp.usercontext.SourceFile + " to " + ftp.usercontext.TargetFile)
+END FUNCTION
+
+FUNCTION SendCompleted as L (FTP as INET::FTP, SizeSent as N)
+    statusbar.set_text("Completed transfer of " + ftp.usercontext.SourceFile + " to " + ftp.usercontext.TargetFile)
+END FUNCTION
+
+FUNCTION SendEnd as L (FTP as INET::FTP)
+     statusbar.set_text("Ready to send again!")
+END FUNCTION
+%code%
+
+f.sendstringdata(ctxt.SourceFile, ctxt.TargetFile)
+'showvar(f.usercontext)
+showvar(f.eventscript + crlf() + "Status" + crlf() + f.callresult.text + crlf() + f.callresult.nativetext, "Done")]]></example>
 	<see>
 		<ref link="api inet namespace index">INET</ref>
 		<ref link="api callresult class method">CallResult Object</ref>
