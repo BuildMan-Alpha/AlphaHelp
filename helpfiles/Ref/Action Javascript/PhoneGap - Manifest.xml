@@ -1,0 +1,227 @@
+<page build="5235">
+    <shortlink>aj phonegap manifest</shortlink>
+    <topic>PhoneGap - Manifest... (multiple actions)</topic>
+    <description>Download multiple files to a device and other related actions.</description>
+    <discussion>
+        <p>The *[ui:PhoneGap - Manifest ... (multiple actions)]* action makes it easy to download multiple files (including SQLite database files) to a device so that these files can be accessed while the application is offline.</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/pgmanifestaction.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <title>File Manifest Actions</title>
+            <figure>
+                <link>images/pgmanifestActions.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The following actions are available:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Action name</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Fetch files in manifest</name>
+                            <description>Fetches the files listed in a manifest and stores the files on the mobile device.</description>
+                        </item>
+                        <item>
+                            <name>List manifest files on device</name>
+                            <description>Show the files on the device that were stored when the manifest was downloaded.</description>
+                        </item>
+                        <item>
+                            <name>Delete manifest files</name>
+                            <description>Deletes all of the manifest files for a particular folder.</description>
+                        </item>
+                        <item>
+                            <name>Get manifest base folder</name>
+                            <description>Gets the base folder in the device's filesystem where the manifest files are stored.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>These actions are described in more detail (along with their properties) below.</p>
+            </description>
+        </section>
+        <section>
+            <title>Fetch files in manifest</title>
+            <description>
+                <p>The *[ui:Fetch files in a manifest]* action downloads one or more files at a location specified by a manifest. The manifest can be defined at design time as a JSON array or downloaded from a URL.</p>
+                <p>The properties for this action include:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Manifest type</title>
+                    <description>
+                        <p>The *[ui:Manifest type]* defines how the manifest is provided. It can either be a static JSON array that defines the files to download or a URL where the manifest can be found.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Manifest JSON</title>
+                    <description>
+                        <p>If the *[ui:Manifest type]* is "JSON", then you must set this property. The Manifest JSON is a JSON array containing a list of objects with the following properties:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>url</name>
+                                    <description>The URL where the file can be downloaded.</description>
+                                </item>
+                                <item>
+                                    <name>type</name>
+                                    <description>The file type. This can be "sqlite", "folder", or "file".</description>
+                                </item>
+                                <item>
+                                    <name>targetFolder</name>
+                                    <description>The location to save the file on the mobile device's filesystem. This property does not apply to SQLite files, which are always stored in a special location using the *[ui:Manifest folder]* name and *[ui:three underscores]* as a prefix on the SQLite database file. For example, *[json:folder___db1.db]*.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>If *[json:type]* is set to "folder", the folder *[must]* be zipped into a single file.</p>
+                        <p>If *[json:type]* is set to "sqlite", the file *[must]* either have a *[ui:.db]* extension or be a zipped archive containing one or more SQLite databases (which must have the *[ui:.db]* extension.)</p>
+                        <p>If you are downloading SQLite database files, it is recommended that these files are zipped to minimize the amount of data to download.</p>
+                        <p>The example JSON below is a manifest file that demonstrates how to define each *[json:type]*:</p>
+                    </description>
+                    <example code="json"><![CDATA[[
+    {
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/allimages.zip",
+        "type": "folder",
+        "targetFolder": "folder1"
+    },
+    {
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/sqlite2.db",
+        "type": "sqlite"
+    },
+    {
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/snow.JPG",
+        "type": "file",
+        "targetFolder": "images"
+    },
+    {
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/SQLiteNorthwind.zip",
+        "type": "sqlite"
+    }
+]]]></example>
+                </case>
+                <case>
+                    <title nested="2">Manifest URL</title>
+                    <description>If the *[ui:Manifest type]* is set to "URL", you must specify the URL where the manifest can be found. The manifest must use the same JSON array format as the one used for the *[ui:Manifest JSON]* property above.</description>
+                </case>
+                <case>
+                    <title nested="2">Manifest folder</title>
+                    <description>The name of the manifest folder to save the files on the device.</description>
+                </case>
+                <case>
+                    <title nested="2">Manifest download options</title>
+                    <description>Specify options, such as whether progress should be displayed while the manifest files are downloaded. For example:</description>
+                    <example code="json"><![CDATA[{
+    showProgress: true,
+    progress: {
+        color: 'pink',
+        width: '600px',
+        progressElement: 'div id where progress is shown'
+    }
+}]]></example>
+                </case>
+                <case>
+                    <title nested="2">File system part</title>
+                    <description>Defines where in the file system the manifest should be downloaded. The *[ui:File system part]* can be "temp", "private", "saved", "public", or "persistent".</description>
+                </case>
+                <case>
+                    <title nested="2">On complete javascript</title>
+                    <description>
+                        <p>When the operation completes, the *[ui:On complete javascript]* event is triggered.</p>
+                        <p>You can specify JavaScript in this event to process the result of the action, including checking to see if any errors occurred while files were being fetched.</p>
+                        <p>Your code can reference an object called 'obj'. This object has these properties:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>error</name>
+                                    <description>
+                                        <p>true/false indicating if the manifest was downloaded.</p>
+                                        <p>If *[json:error]* is true, it does not mean that every file in the manifest was downloaded.</p>
+                                        <p>The information about whether an individual file listed in the manifest was downloaded is in the obj.array property.</p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>errorText</name>
+                                    <description>if error is false, the reason for the error</description>
+                                </item>
+                                <item>
+                                    <name>array</name>
+                                    <description>an array of objects. Each object has the name of a manifest file and other information indicating if the file was successfully downloaded.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>List manifest files on device</title>
+            <description>
+                <p>The *[ui:List manifest files on device]* action gets a list of the manifest files that were saved to the device. This list is returned as a JavaScript array that is passed to the *[ui:onComplete]* event where you can write your own JavaScript to process the information.</p>
+                <p>The properties for this action include:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Manifest folder</title>
+                    <description>The name of the manifest folder where the files were saved on the device.</description>
+                </case>
+                <case>
+                    <title nested="2">onComplete Javascript</title>
+                    <description>
+                        <p>The *[ui:onComplete Javascript]* event is triggered when the file list is available. The JavaScript can reference 'array' - an array of files in the manifest account. Each item in the array is an object with the following properties - name (the filename) and type ('file' or 'SQLiteDB')</p>
+                        <p>For example:</p>
+                    </description>
+                    <example code="js"><![CDATA[var msg = [];
+for(var i = 0; i < array.length; i++) {
+    msg.push(array[i].name + ' -- ' + array[i].type)
+}
+$('pre1').innerHTML = msg.join('\n');]]></example>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Delete manifest files</title>
+            <description>
+                <p>The *[ui:Delete manifest files]* operation deletes all manifest files in the manifest folder. When the operation completes, either the *[ui:onSucceed]* or *[ui:onFail]* JavaScript will be triggered.</p>
+                <p>The properties for this action include:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Manifest folder</title>
+                    <description>The name of the manifest folder where the files were saved on the device.</description>
+                </case>
+                <case>
+                    <title nested="2">onSuccess javascript</title>
+                    <description>JavaScript to execute if the operation succeeds.</description>
+                </case>
+                <case>
+                    <title nested="2">onFail javascript</title>
+                    <description>JavaScript to execute if the operation fails.</description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Get manifest base folder</title>
+            <description>
+                <p>The *[ui:Get manifest base folder]* action retrieves the base folder name where the manifest files are stored on the device. The name of the folder is stored in a JavaScript variable, which is defined by the *[ui:Variable name]* property.</p>
+                <p>The properties for this action include:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Variable name</title>
+                    <description>The variable to assign the base folder name. This is a JavaScript variable.</description>
+                </case>
+                <case>
+                    <title nested="2">Manifest folder</title>
+                    <description>The name of the manifest folder where the files were saved on the device.</description>
+                </case>
+            </cases>
+        </section>
+    </sections>
+</page>
