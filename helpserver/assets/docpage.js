@@ -432,7 +432,6 @@ function gotoFlattenPage(isFlat) {
 
 function loaded() {
     getGitTimestamp();
-    buildVersion();
     betaSoftware();
     showAnnouncement();
 }
@@ -468,99 +467,6 @@ function betaSoftware() {
             content.setAttribute("class", classes);
         }
     }
-}
-
-function buildVersion() {
-   /*
-    * Alpha versions table
-      add new versions to end
-      add old versions to beginning
-    */
-    var builds = [
-        { "version": "versionTag12_1_0_0", upto: 1495 },
-        { "version": "versionTag12_1_0_0", upto: 1498 },
-        { "version": "versionTag12_1_0_0", upto: 1500 },
-        { "version": "versionTag12_1_0_0", upto: 1503 },
-        { "version": "versionTag12_1_0_0", upto: 1507 },
-        { "version": "versionTag12_1_0_0", upto: 1605 },
-        { "version": "versionTag12_1_0_0", upto: 1607 },
-        { "version": "versionTag12_1_0_0", upto: 1617 },
-        { "version": "versionTag12_1_0_0", upto: 1620 },
-        { "version": "versionTag12_1_0_0", upto: 1749 },
-        { "version": "versionTag12_1_0_0", upto: 1755 },
-        { "version": "versionTag12_1_0_0", upto: 1759 },
-        { "version": "versionTag12_1_0_0", upto: 1770 },
-        { "version": "versionTag12_1_0_0", upto: 1788 },
-        { "version": "versionTag12_1_0_0", upto: 1790 },
-        { "version": "versionTag12_1_0_0", upto: 1794 },
-        { "version": "versionTag12_1_0_0", upto: 1826 },
-        { "version": "versionTag12_1_0_0", upto: 1839 },
-        { "version": "versionTag12_1_0_0", upto: 1856 },
-        { "version": "versionTag12_2_0_0", upto: 2089 },
-        { "version": "versionTag12_2_0_0", upto: 2091 },
-        { "version": "versionTag12_2_0_0", upto: 2118 },
-        { "version": "versionTag12_2_0_0", upto: 2128 },
-        { "version": "versionTag12_3_0_0", upto: 2399 },
-        { "version": "versionTag12_3_0_0", upto: 2442 },
-        { "version": "versionTag12_3_0_0", upto: 2446 },
-        { "version": "versionTag12_3_1_0", upto: 2614 },
-        { "version": "versionTag12_3_1_1", upto: 2682 },
-        { "version": "versionTag12_3_1_1", upto: 2684 },
-        { "version": "versionTag12_3_1_1", upto: 2689 },
-        { "version": "versionTag12_3_5_0", upto: 2970 },
-        { "version": "versionTag12_3_5_0", upto: 2988 },
-        { "version": "versionTag12_3_5_0", upto: 2991 },
-        { "version": "versionTag12_3_5_0", upto: 2999 },
-        { "version": "versionTag12_4_0_0", upto: 3522 },
-        { "version": "versionTag12_4_0_1", upto: 3550 },
-        { "version": "versionTag12_4_1_0", upto: 3583 },
-        { "version": "versionTag12_4_1_1", upto: 3596 },
-        { "version": "versionTag12_4_1_2", upto: 3603 },
-        { "version": "versionTag12_4_1_2", upto: 3629 },
-        { "version": "versionTag12_4_1_2", upto: 3633 },
-        { "version": "versionTag12_4_2_0", upto: 3670 },
-        { "version": "versionTag12_4_3_0", upto: 3922 },
-        { "version": "versionTag12_4_3_1", upto: 3962 },
-        { "version": "versionTag12_4_3_2", upto: 4077 },
-        { "version": "versionTag12_4_3_2", upto: 4081 },
-        { "version": "versionTag12_4_3_2", upto: 4089 },
-        { "version": "versionTag12_4_3_2", upto: 4095 },
-        { "version": "versionTag12_4_3_2", upto: 4099 },
-        { "version": "versionTag12_4_3_2", upto: 4105 },
-        { "version": "versionTag12_4_3_2", upto: 4119 },
-        { "version": "versionTag12_4_4_0", upto: 4238 },
-        { "version": "versionTag12_4_4_1", upto: 4246 },
-        { "version": "versionTag12_4_4_3", upto: 4254 },
-        { "version": "versionTag12_4_4_4", upto: 4346 },
-        { "version": "versionTag12_4_4_5", upto: 4491 },
-        { "version": "versionTag12_4_5_0", upto: 4582 },
-        { "version": "versionTag12_4_5_0", upto: 4584 },
-        { "version": "versionTag12_4_5_1", upto: 4642 }
-   ];
-   /*
-    * ---- end
-    */
-
-   // Set the styling
-   var ele = document.getElementById("buildNumber");   
-   if( ele ) {
-       var buildNumber = ele.getAttribute("data-build");
-       var i;
-       var versionClass = "versionTagPrerelease";
-
-       if( buildNumber )
-           buildNumber = parseInt(buildNumber); 
-       else 
-           buildNumber = 0;
-       
-       for( i = 0 ; i < builds.length ; ++i ) {
-           if( builds[i].upto >= buildNumber ) {
-               versionClass = builds[i].version;
-               break;
-           }
-       }
-       ele.setAttribute('class', versionClass);
-   }
 }
 
 function getGitTimestamp() {
