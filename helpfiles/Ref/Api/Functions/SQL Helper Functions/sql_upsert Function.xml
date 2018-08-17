@@ -1,0 +1,141 @@
+<page api="xb" build="4770">
+    <shortlink>api sql upsert function</shortlink>
+    <topic>sql_upsert Function</topic>
+    <description>
+        <p>Updates or Inserts a record in a SQL table.</p>
+    </description>
+    <prototypes>
+        <prototype>p result = sql_upsert(A connection,c tablename,c fieldValuePairs [,c primaryKey [, a primaryKeyValue [, L execute [, P e ]]]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>connection</name>
+            <types>
+                <type>C</type>
+                <type>SQL::Connection</type>
+            </types>
+            <description>Either an open SQL::connection object, or the name of a connection string.</description>
+        </argument>
+        <argument>
+            <name>tablename</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>The name of table to update.</description>
+        </argument>
+        <argument>
+            <name>fieldValuePairs</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>The fields to update with corresponding values specified as either a CR-LF delimited list of the form *[xb:fieldname=value]*, or a JSON string (see example). Date values must be specified using *[xb:yyyy-mm-dd]* format.</description>
+        </argument>
+        <argument optional="true">
+            <name>primaryKey</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>The name of primary key field. If primaryKey is multi column use ||| to delimit (e.g. *[xb:OrderNumber|||PartNumber]*). If primaryKey is blank or omitted, then the action is automatically assumed to be an INSERT.</description>
+        </argument>
+        <argument optional="true">
+            <name>primaryKeyValue</name>
+            <types>
+                <type>A</type>
+            </types>
+            <description>The value of primary key. If primaryKey is multi-column, use ||| to delimit (e.g. *[xb:10245|||23]*). If the primaryKeyValue is blank or omitted, then the action is automatically assumed to be an INSERT.</description>
+        </argument>
+        <argument optional="true">
+            <name>execute</name>
+            <types>
+                <type>L</type>
+            </types>
+            <description>If false, the SQL is not executed. However, you can still examine the result.sql and result.arguments properties to see what SQL was generated.</description>
+        </argument>
+        <argument optional="true">
+            <name>e</name>
+            <types>
+                <type>P</type>
+            </types>
+            <description>A dot variable with with one or more sub-properties. Used in the case where the fieldValuePairs contains dot variables for the value. For example, assume that one line in the cr-lf delimited list of fieldValuePairs *[xb:containedname=e.whatname]* and the e variable that was passed in contained *[xb:e.whatname = "John Smith"]*, the *[xb:e.whatname]* in the fieldValuePairs would be resolved before the SQL was executed.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>P</type>
+            </types>
+            <description>Returns an object with the following properties:</description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Indicates whether or not an error occurred.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>If *[xb:error]* is true, information about the error.</description>
+                </property>
+                <property>
+                    <name>sql</name>
+                    <type>C</type>
+                    <description>The SQL that was generated.</description>
+                </property>
+                <property>
+                    <name>arguments</name>
+                    <type>C</type>
+                    <description>The XML for the arguments that were generated.</description>
+                </property>
+                <property>
+                    <name>action</name>
+                    <type>C</type>
+                    <description>The action performed. Will be either "Insert" or "Update".</description>
+                </property>
+                <property>
+                    <name>rowsAffected</name>
+                    <type>N</type>
+                    <description>The number of rows affected by the operation if an UPDATE was executed. In some databases (e.g. MySQL) if the record specified by the primary key is not found an error is returned (result.error = .t.), while in other databases (e.g. SQL Server) the result.error flag is .f., but rowsAffected will be 0.</description>
+                </property>
+                <property>
+                    <name>lastInsertedIdentity</name>
+                    <type>A</type>
+                    <description>If an INSERT was executed, the value of the primary key field (if its value was auto-generated.) </description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:sql_upsert()]* function is a high level Xbasic function that complements the [sql_update()] and [sql_insert()] functions. The *[xb:sql_upsert()]* function will update a record if the record exists in the database. Otherwise it will insert a new record into the database.</p>
+    </discussion>
+    <example code="xb"><![CDATA[dim cn as sql::Connection
+cn.open("::Name::myconnstring")
+tablename = "mytable"
+fieldsValuePairs = <<%str%
+name=fred smith
+date of birth=1952/12/18
+salary=78000
+%str%
+
+'You can also specify field values using JSON
+fieldsValuePairs = <<%str%
+{ 
+    "name" : "fred smith",
+    "date of birth" : "1954/11/25",
+    "salary" : "78000"
+}
+%str%
+
+primaryKey = "id"
+primarykeyValue = "1"
+
+p = sql_upsert(cn,tablename,fieldsValuePairs,primaryKey,primaryKeyvalue)]]></example>
+    <see>
+        <ref link="api sql update function">sql_update()</ref>
+        <ref link="api sql insert function">sql_insert()</ref>
+    </see>
+    <links>
+        <link link="api sql update function">sql_update()</link>
+        <link link="api sql insert function">sql_insert()</link>
+    </links>
+</page>
