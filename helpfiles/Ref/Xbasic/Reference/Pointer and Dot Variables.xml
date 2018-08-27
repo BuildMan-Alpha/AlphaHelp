@@ -5,20 +5,21 @@
 	<sections>
 		<section>
 			<title>Defining Dot Variables</title>
-			<description>The general syntax for a pointer variable is as follows:</description>
-			<example code="xb"><![CDATA[dim MyPointer as P
-dim MyPointer.character_data as C
-dim MyPointer.logical_data as L
-dim MyPointer.numeric_data as N
-dim MyPointer.date_data as D
-...
-dim MyPointer.MyArray as P
-dim MyPointer.MyArray[1].character_data as C
-...]]></example>
+			<description>The general syntax for a pointer variable is as follows:</description>
+			<example code="xb"><![CDATA[dim MyPointer as P
+dim MyPointer.character_data as C
+dim MyPointer.logical_data as L
+dim MyPointer.numeric_data as N
+dim MyPointer.date_data as D
+'...
+dim MyPointer.MyArray[10] as P
+dim MyPointer.MyArray[1].character_data as C
+'...]]></example>
 		</section>
 		<section>
-			<description>In the following case the variable Family is implicitly defined as type P (pointer) and the variable lastname is implicitly defined as type C (character).</description>
-			<example code="xb"><![CDATA[Family.lastname = "smith"
+			<description>In the following case the variable Family is implicitly defined as type P (pointer) and the variable lastname is implicitly defined as type C (character).</description>
+			<example code="xb"><![CDATA[dim Family as p
+Family.lastname = "smith"
 Family.father = "John"
 Family.mother = "Irene"
 Family.children.child1 = "Tim"
@@ -32,16 +33,18 @@ Family.children.child2 = "Lara"
 				<p>You can see the sub-elements of a variable by typing the variable name with a question mark in the Interactive window.</p>
 				<p>For example:</p>
 			</description>
-			<example code="xb"><![CDATA[? Family = children
+			<example code="xb"><![CDATA[? Family
++children.
 father = "John"
-lastname = "Smith"
-mother = "Irene"
- ]]></example>
+lastname = "smith"
+mother = "Irene"]]></example>
 		</section>
 		<section>
 			<description>Or:</description>
-			<example code="xb"><![CDATA[? Family.children = child1 = "Tim"
-child2 = "Lara" ]]></example>
+			<example code="xb"><![CDATA[
+? Family.children
+= child1 = "Tim"
+child2 = "Lara"]]></example>
 		</section>
 		<section>
 			<description>The sub-elements of a variable can be of different types. For example, you could delete the family.father variable and define the following:</description>
@@ -51,10 +54,11 @@ Family.father.age = 46 ]]></example>
 		</section>
 		<section>
 			<description>The sub-elements of a variable can also be arrays. For example, you could define the following dot variable:</description>
-			<example code="xb"><![CDATA[dim family as P
+			<example code="xb"><![CDATA[dim Family as P
 Family.father = "John"
 Family.mother = "Joan"
-dim family.kids[10] as P
+
+dim Family.kids[10] as P
 Family.kids[1].NAME = "Sammy"
 Family.kids[1].age = 4
 Family.kids[2].NAME = "Sonia"
@@ -68,27 +72,43 @@ Family.kids[3].age = 2 ]]></example>
 		</section>
 		<section>
 			<title>Assigning Dot Variables</title>
-			<description>When you assign a dot variable to another dot variable, all of the sub-elements of the other dot variable point to the sub-elements of the original dot variable. For example, assume you typed the following into the Interactive window (after defining the Family variable as shown above):</description>
+			<description>When you assign a dot variable to another dot variable, all of the sub-elements of the other dot variable point to the sub-elements of the original dot variable. For example, assume you typed the following into the Interactive window (after defining the Family variable as shown above):</description>
 			<example code="xb"><![CDATA[a = family
-? a.lastname = "Smith"
-? a.children.child1 = "Tim"
+
+? a.lastname
+= "smith"
+
+? a.children.child1
+= "Tim"
+
 family.lastname = "Jones"
-? family.lastname = "Jones"
-? a.lastname = "Jones" ]]></example>
+? family.lastname
+= "Jones"
+
+? a.lastname
+= "Jones"]]></example>
 		</section>
 		<section>
 			<description>
 				<p>(because "A" simply points to the sub-elements of "family")</p>
-				<p>You can also use the PROPERTY_RECURSE_ASSIGN() function to assign one dot variable to another. When you use this function, instead of pointing to the original dot variable's sub-elements, the new dot variable contains its own copy of each sub-element. For example, assume you typed the following into the Interactive window (after defining the Family variable as shown above):</p>
+				<p>You can also use the PROPERTY_RECURSE_ASSIGN() function to assign one dot variable to another. When you use this function, instead of pointing to the original dot variable's sub-elements, the new dot variable contains its own copy of each sub-element. For example, assume you typed the following into the Interactive window (after defining the Family variable as shown above):</p>
 			</description>
-			<example code="xb"><![CDATA[? family.lastname = "Jones"
+			<example code="xb"><![CDATA[? family.lastname
+= "Jones"
+
 'assign at least one sub-element of a new variable B to define it
 b.lastname = ""
 property_recurse_assign(b, family)
-? b.lastname = "Jones"
+
+? b.lastname
+= "Jones"
+
 family.lastname = "Clemmens"
-? family.lastname = "Clemmens"
-? b.lastname = "Jones" ]]></example>
+? family.lastname
+= "Clemmens"
+
+? b.lastname 
+= "Jones"]]></example>
 		</section>
 		<section>
 			<description>
@@ -98,24 +118,24 @@ family.lastname = "Clemmens"
 		</section>
 		<section>
 			<title>Using Pointers and Dot Variables with Functions</title>
-			<description>You can pass multiple values to a function when those values are stored as the dot variables of a single pointer.</description>
-			<example code="xb"><![CDATA[dim ptr as P
-dim ptr.firstname as C
-dim ptr.lastname as C
-dim ptr.phone as C
+			<description>You can pass multiple values to a function when those values are stored as the dot variables of a single pointer.</description>
+			<example code="xb"><![CDATA[dim ptr as P
+dim ptr.firstname as C
+dim ptr.lastname as C
+dim ptr.phone as C
 display_name(ptr)
  ]]></example>
 		</section>
 		<section>
 			<description>The function below receives a single variable with multiple components.</description>
-			<example code="xb"><![CDATA[function display_name as V (myptr as P)
-    ui_msg_box("Name and Phone", alltrim(myptr.firstname) + " " + alltrim(myptr.lastname) + " " + myptr.phone)
+			<example code="xb"><![CDATA[function display_name as V (myptr as P)
+    ui_msg_box("Name and Phone", alltrim(myptr.firstname) + " " + alltrim(myptr.lastname) + " " + myptr.phone)
 end function
  ]]></example>
 		</section>
 		<section>
 			<title>Returning Multiple Values from a Function</title>
-			<description>Functions typically return a single value of a single type. However, it possible to return multiple variables from a function. One scenario is as follows:</description>
+			<description>Functions typically return a single value of a single type. However, it possible to return multiple variables from a function. One scenario is as follows:</description>
 			<cases>
 				<case>
 					<description>the calling function creates a data structure that contains multiple variables (a dot variable or an array )</description>
@@ -135,10 +155,10 @@ end function
 		</section>
 		<section>
 			<description>The following sample code in the calling script or function illustrates how this might be done.</description>
-			<example code="xb"><![CDATA[dim mds as P
-dim mds.firstname as C
-dim mds.lastname as C
-dim mds.age as N
+			<example code="xb"><![CDATA[dim mds as P
+dim mds.firstname as C
+dim mds.lastname as C
+dim mds.age as N
 mds.firstname = "George"
 mds.lastname = "Washington"
 mds.age = 35
@@ -146,10 +166,10 @@ FunctionName(mds) ]]></example>
 		</section>
 		<section>
 			<description>The receiving function would have code like this. Note that it can reference the mds data structure without actually knowing its true name. Note also that FunctionName does not have to do anything to return the changes to the variables.</description>
-			<example code="xb"><![CDATA[FUNCTION FunctionName as V (abc as P)
-    abc.firstname = "Abraham"
-    abc.lastname = "Lincoln"
-    abc.age = 29
+			<example code="xb"><![CDATA[FUNCTION FunctionName as V (abc as P)
+    abc.firstname = "Abraham"
+    abc.lastname = "Lincoln"
+    abc.age = 29
 END FUNCTION
  ]]></example>
 		</section>
@@ -178,7 +198,7 @@ END FUNCTION
 			<title>Storing and Retrieving "Dot" Variables in Library Files</title>
 			<description>
 				<p>Alpha Anywhere allows you to store "dot" variables in Alpha Anywhere library files ( .ALB, .DDD and .SET files), or in text files.</p>
-				<p>Certain Alpha Anywhere internal settings that are database specific (such as Backup preferences for a database, or Network Optimize settings) are stored in "dot" variables in the current database's library.</p>
+				<p>Certain Alpha Anywhere internal settings that are database specific (such as Backup preferences for a database, or Network Optimize settings) are stored in "dot" variables in the current database's library.</p>
 				<p>In addition to internal Alpha Anywhere settings, you can also store user defined "dot" variables in libraries.</p>
 				<p>The Variable Functions and Methods topic describes the commands to save "dot" variables in libraries, and load "dot" variables from libraries.</p>
 			</description>
@@ -190,11 +210,11 @@ END FUNCTION
 				<p>"Dot" variables can also be stored in Alpha Anywhere Library files, or in text files. See the A5_LOAD_SETTINGS() and A5_SAVE_SETTINGS() methods for details.</p>
 				<p>When you store a "dot" variable in the Registry, Alpha Anywhere automatically stores all of the sub-elements of the "dot" variable in the registry under the key value that you specify, relative to the root key. The root key is:</p>
 			</description>
-			<example><![CDATA[HKEY_CURRENT_USER\Software\Alpha Software\Alpha Anywhere 5.0 ]]></example>
+			<example><![CDATA[HKEY_CURRENT_USER\Software\Alpha Software\Alpha Five 5.0 ]]></example>
 		</section>
 		<section>
 			<description>If you specify that variables are to be stored under the key value UserIdentity, then the variables are stored in this key:</description>
-			<example><![CDATA[HKEY_CURRENT_USER\Software\Alpha Software\Alpha Anywhere 5.0\UserIdentity]]></example>
+			<example><![CDATA[HKEY_CURRENT_USER\Software\Alpha Software\Alpha Five 5.0\UserIdentity]]></example>
 		</section>
 		<section>
 			<description>
