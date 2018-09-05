@@ -1,0 +1,126 @@
+<page api="xb" build="5313">
+    <shortlink>a5w_getextendeduserinfo function</shortlink>
+    <topic>a5w_getExtendedUserInfo Function</topic>
+    <description>Reads data from the Extended User Information table.</description>
+    <prototypes>
+        <prototype>p Result = a5w_getExtendedUserInfo(userid as c)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>userid</name>
+            <type>C</type>
+            <description>The User Id to get information for from the Extended User Information Table.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <types>
+                <type>p</type>
+            </types>
+            <description>Returns a dot variable with the following properties:</description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>
+                        <p>If an error occurs, *[xb:error]* will be *[xb:.t.]*. Check the value of *[xb:errorText]* to learn more about what error occurred. An error will occur if the [Extended User Information Table] has not been configured or if an error occurred while querying the database.</p>
+                        <p>If no error occurs, this property will be *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>If an error occurs, contains information about the error encountered. See "Fixing Common Errors" below for info on how to fix known errors.</description>
+                </property>
+                <property>
+                    <name>json</name>
+                    <type>C</type>
+                    <description>A JSON string containing the user info retrieved from the Extended User Information Table. This property will only be available if *[xb:error]* is .f..</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5w_getExtendedUserInfo]* function retrieves information stored for a user in the [Extended User Information Table].</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Examples</title>
+            <description>
+                <p>This basic example demonstrates reading data from the extended user information table for user id "john.smith@acme.com":</p>
+            </description>
+            <example code="xb"><![CDATA[dim p as p
+p = a5w_getExtendedUserInfo('john.smith@acme.com')
+
+?p.error
+= .f.
+
+?p.json = <<%txt%
+{
+    "FIRSTNAME" : "John",
+    "LASTNAME" : "Smith",
+    "COMPANY" : "Acme Corp"
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The next example demonstrates how you would get extended user information for the currently logged in user in an AjaxCallback:</p>
+            </description>
+            <example code="xb"><![CDATA[function getUserInfo as c (e as p)
+    dim userId as c = a5ws_GetCurrentUser()
+
+    dim javascript as c = ""
+    dim info as p
+    info = a5w_getExtendedUserInfo(userId)
+
+    if (info.error == .f.) then
+        ' successfully got data
+        javascript = "alert('"+js_escape(info.json)+"');"
+    else
+        ' an error occurred:
+        javascript = "alert('Error occurred retrieving user data. Error was: "+js_escape(info.errorText)+"');"
+    end if
+    getUserInfo = javascript
+end function]]></example>
+        </section>
+        <section>
+            <title>Fixing Common Errors</title>
+            <description>A list of common errors and how to fix them are listed below:</description>
+            <cases>
+                <case>
+                    <title nested="2">Connection string not defined</title>
+                    <description>
+                        <p>The connection string was not configured in the Extended User Information Table settings. To fix, go to the [Extended User Information Table] settings and check to make sure the *[ui:Connection string]* property is a valid connection string.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Extended info table not defined</title>
+                    <description>
+                        <p>No Extended table was defined. To fix, make sure the *[ui:Table name]* property for the [Extended User Information Table] settings has been set to a table in your database.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">UserId field not defined</title>
+                    <description>
+                        <p>The User Id field was not configured in the Extended User Information Table settings. Visit the [Extended User Information Table] settings and set the *[ui:Userid field name]* property to the field in the extended user information table that contains the User Id.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Could not open database for Extended UserInfo table.</title>
+                    <description>
+                        <p>This error can occur if the connection string defined for connecting to the Extended User Information Table is not correct. Check that the *[ui:Connection string]* is correct in the [Extended User Information Table] configuration.</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+    </sections>
+    <links>
+        <link link="security framework extended user information table">Extended User Information Table</link>
+    </links>
+    <see>
+        <ref link="security framework extended user information table">Storing Additional User Information</ref>
+        <ref link="a5w_savetoexteneduserinfo function">a5w_saveToExtendedUserInfo Function</ref>
+        <ref link="a5wcb_extendeduserinfotablefields function">a5wcb_extendedUserInfoTableFields Function</ref>
+    </see>
+</page>

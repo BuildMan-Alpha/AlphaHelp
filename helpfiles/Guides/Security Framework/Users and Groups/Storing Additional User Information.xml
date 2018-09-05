@@ -1,0 +1,174 @@
+<page build="5307">
+    <shortlink>security framework extended user information table</shortlink>
+    <topic>Storing Additional User Information</topic>
+    <description>When you use the Security Framework in an Alpha Anywhere application, the table that contains the list of user names and passwords is a system table which cannot be modified to add fields to store additional information about each user. Instead, an Extended User Information Table must be used.</description>
+    <discussion>
+        <p>In order to store additional information about each user in your system it is necessary to create another table in a SQL database. This table is called the *[ui:Extended User Information Table]*. It can have any structure that you like, but it must have a primary key field that contains the id of the user. The user id field should be indexed.</p>
+        <p>To create an *[ui:Extended User Information Table]*, open the Web Security dialog by clicking the Web Security button on the Web Projects Control Panel. Then, launch the Security Settings dialog and click the *[ui:Extended user-info table]* hyperlink at the bottom of the dialog.</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/securitysettings_extendedinfo.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will bring up a dialog that will allow you to specify an existing table, or create a new table in the target SQL database.</p>
+            </description>
+            <figure>
+                <link>images/extendeduserinfolinking.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <figure>
+                <link>images/extendeduserinfocreate.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When a user logs into an application, a session variable is automatically created to hold information from the matching record in the Extended User Information Table. The session variable is called:</p>
+            </description>
+            <example code="json"><![CDATA[session.extendedUserInformationJSON]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The value in the session variable is a JSON representation of the value in each field in the Extended User Information Table. </p>
+                <p>For example, assume the following:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>the Id of the currently logged in user is john.smith@acme.com.</name>
+                        </item>
+                        <item>
+                            <name>an Extended User Information Table has been defined for the project.</name>
+                        </item>
+                        <item>
+                            <name>the  Extended User Information Table contains these fields: USERID, FIRSTNAME, LASTNAME, AVATARURL, COMPANY, DEPARTMENT</name>
+                        </item>
+                        <item>
+                            <name>the record in the Extended User Information Table for this user contains these value:</name>
+                            <list bullet="true">
+                                <item>
+                                    <name>john.smith@acme.com </name>
+                                </item>
+                                <item>
+                                    <name>John</name>
+                                </item>
+                                <item>
+                                    <name>Smith</name>
+                                </item>
+                                <item>
+                                    <name>http://images.acme.com/smith_john.png</name>
+                                </item>
+                                <item>
+                                    <name>Acme Corporation</name>
+                                </item>
+                                <item>
+                                    <name>Sales</name>
+                                </item>
+                            </list>
+                        </item>
+                    </list>
+                </p>
+                <p>When the user logs in the session.extendedUserInformationJSON variable will be set to the following string value:</p>
+            </description>
+            <example code="json"><![CDATA[{ 
+    "USERID" : "john.smith@acme.com",
+    "FIRSTNAME" :"John",
+    "LASTNAME" : "Smith",
+    "AVATARURL" : "http://images.acme.com/smith_john.png",
+    "COMPANY" : "Acme Corporation",
+    "DEPARTMENT" : "Sales"
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Your server-side code can get the individual values in the string by first using the json_parse() function.</p>
+                <p>For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim p as p
+dim json as c
+json = session.extendedUserInformationJSON
+if json <> "" then
+    p = json_parse(session.extendedUserInformationJSON)
+    dim lastname as c
+    lastname = p.lastname
+end if]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In addition, if the user logs in from a UX or Tabbed UI (i.e. not the Login component), a client-side Javascript object will be created with values for each of the fields in the Extended User Information Table.</p>
+                <p> This object is called A5.extendedUserInformation</p>
+            </description>
+            <tip>
+                <p>If your Extended User Information Table has a specially named field called ActiveLanguage then the value in this field can be used to set the active language for the app. Normally the active language is set by specifying the language in the session.__protected__activeLanguage variable.</p>
+            </tip>
+        </section>
+        <section>
+            <title>Templates</title>
+            <description>
+                <p>A sample template component is available to edit data in the Extended User Information Table for the currently logged in user.</p>
+                <p>When you create a new UX component, select the SecurityFramework-Edit_ExtendedUserInformation template.</p>
+                <p>The template automatically generates a form based on the fields you have defined in the Extended User Information table for your web project.</p>
+            </description>
+        </section>
+        <section>
+            <title>Functions</title>
+            <description>The following functions can be used to interact with the Extended User Information Table for a user.</description>
+            <cases>
+                <case>
+                    <title nested="2">a5w_getExtendedUserInfo()</title>
+                    <description>
+                        <p>The a5w_getExtendedUserInfo() function reads data from the Extended User Information table. It can be used to retrieve information for the specified user. For example:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim p as p
+p = a5w_getExtendedUserInfo('john.smith@acme.com')
+
+?p.error
+= .f.
+
+?p.json = <<%txt%
+{
+    "FIRSTNAME" : "John",
+    "LASTNAME" : "Smith",
+    "COMPANY" : "Acme Corp"
+}]]></example>
+                </case>
+                <case>
+                    <description>See [a5w_getExtendedUserInfo() Function] for more information.</description>
+                </case>
+                <case>
+                    <title nested="2">a5w_saveToExtendedUserInfo()</title>
+                    <description></description>
+                    <example code="xb"><![CDATA[dim json as c
+json = <<%txt%
+{
+    "FIRSTNAME" : "John",
+    "LASTNAME" : "Smith",
+    "COMPANY" : "Acme Corp"
+}
+%txt%
+
+dim p as p
+p = a5w_savetoExtendedUserInfo("john.smith@acme.com",json)]]></example>
+                </case>
+                <case>
+                    <description>See [a5w_saveToExtendedUserInfo() Function] for more information.</description>
+                </case>
+                <case>
+                    <title nested="2">a5wcb_extendedUserInfoTableFields()</title>
+                    <description>The a5wcb_extendedUserInfoTableFields() function returns a list of fields in the Extended User Information Table.</description>
+                </case>
+                <case>
+                    <description>See [a5wcb_extendedUserInfoTableFields() Function] for more information.</description>
+                </case>
+            </cases>
+        </section>
+    </sections>
+    <links>
+        <link link="a5w_getextendeduserinfo function">a5w_getExtendedUserInfo() Function</link>
+        <link link="a5w_savetoexteneduserinfo function">a5w_saveToExtendedUserInfo() Function</link>
+        <link link="a5wcb_extendeduserinfotablefields function">a5wcb_extendedUserInfoTableFields() Function</link>
+    </links>
+</page>
