@@ -1611,15 +1611,15 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         console.log("favicon is missing");
                     }
                 });
-            } else if ((req.path === '/') 
-                    || (req.path === '/pages') 
-                    || (req.path === '/pages/') 
-                    || (req.path === '/pages/index.html') 
-                    || (req.path === '/documentation') 
-                    || (req.path === '/documentation/') 
-                    || (req.path === '/documentation/pages') 
-                    || (req.path === '/documentation/pages/') 
-                    || (req.path === '/documentation/pages/index.html')) {
+            } else if ((req.path.toLowerCase() === '/') 
+                    || (req.path.toLowerCase() === '/pages') 
+                    || (req.path.toLowerCase() === '/pages/') 
+                    || (req.path.toLowerCase() === '/pages/index.html') 
+                    || (req.path.toLowerCase() === '/documentation') 
+                    || (req.path.toLowerCase() === '/documentation/') 
+                    || (req.path.toLowerCase() === '/documentation/pages') 
+                    || (req.path.toLowerCase() === '/documentation/pages/') 
+                    || (req.path.toLowerCase() === '/documentation/pages/index.html')) {
                 var path = "/index.html";
                 help.get(path, function(err, data, type) {
                     if (err) {
@@ -1643,8 +1643,12 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         }
                     }
                 }
-                var pagePrefix = helpHandler.getAbsolutePath();
-                if ((req.path === pagePrefix + 'pages/index.html') || (req.path === pagePrefix) || (req.path === pagePrefix.substr(0, pagePrefix.length - 1)) || (req.path === pagePrefix + 'pages/') || (req.path === pagePrefix + 'pages')) {
+                var pagePrefix = helpHandler.getAbsolutePath().toLowerCase();
+                if ((req.path.toLowerCase() === pagePrefix + 'pages/index.html') 
+                 || (req.path.toLowerCase() === pagePrefix) 
+                 || (req.path.toLowerCase() === pagePrefix.substr(0, pagePrefix.length - 1)) 
+                 || (req.path.toLowerCase() === pagePrefix + 'pages/') 
+                 || (req.path.toLowerCase() === pagePrefix + 'pages')) {
                     var path = "/index.html";
                     helpHandler.get(path, function(err, data, type) {
                         if (err) {
