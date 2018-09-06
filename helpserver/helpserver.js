@@ -1423,7 +1423,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         basepath = basepath || "/documentation/";
 
         // rewrite to URL ENCODE THE URL.
-        return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://www.alphasoftware.com" + basepath + "pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
+        return "?subject=Problem with page: " + title + " [" + page + "]" + "&body=Describe problem with the %22https://documentation.alphasoftware.com" + basepath + "pages" + replaceAll(page, " ", "%2520").replace(".xml_html", ".xml") + "%22 documentation page (located 'c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page.replace(".xml_html", ".xml"), "/", "\\") + "'):";
     }
 
     //Modify the body record posted to elastic search
