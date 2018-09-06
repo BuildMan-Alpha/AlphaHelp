@@ -1611,7 +1611,15 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         console.log("favicon is missing");
                     }
                 });
-            } else if ((req.path === '/pages/index.html') || (req.path === '/') || (req.path === '/pages/') || (req.path === '/pages')) {
+            } else if ((req.path === '/') 
+                    || (req.path === '/pages') 
+                    || (req.path === '/pages/') 
+                    || (req.path === '/pages/index.html') 
+                    || (req.path === '/documentation') 
+                    || (req.path === '/documentation/') 
+                    || (req.path === '/documentation/pages') 
+                    || (req.path === '/documentation/pages/') 
+                    || (req.path === '/documentation/pages/index.html')) {
                 var path = "/index.html";
                 help.get(path, function(err, data, type) {
                     if (err) {
