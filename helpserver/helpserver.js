@@ -907,9 +907,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         basepath = basepath || "/documentation/";
         var shareLink;
         page = page.replace(".xml_html", ".xml");
-        shareLink = "https://www.alphasoftware.com" + basepath + "pages" + page;
+        shareLink = "https://documentation.alphasoftware.com" + basepath + "pages" + page;
         if (symName) {
-            shareLink = encodeURI("https://www.alphasoftware.com" + basepath + "index?search=" + symName);
+            shareLink = encodeURI("https://documentation.alphasoftware.com" + basepath + "index?search=" + symName);
         }
         return shareLink;
     };
