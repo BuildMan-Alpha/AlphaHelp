@@ -439,8 +439,8 @@ function loaded() {
 function showAnnouncement() {
     // start and end should be in GMT time!
     var maintenance = {
-        start: new Date("Wed, 05 Apr 2017 03:00:00 GMT"),
-        end: new Date("Wed, 05 Apr 2017 04:00:00 GMT")
+        start: new Date("Thu, 06 Sep 2018 13:00:00 GMT"),
+        end: new Date("Thu, 06 Sep 2018 22:00:00 GMT")
     };
     
     var now = new Date();
@@ -449,7 +449,7 @@ function showAnnouncement() {
     }
     
     var ele = document.getElementById("announcement");
-    ele.innerHTML = "The documentation servers will be down for scheduled maintenance between " + maintenance.start.toLocaleString() + " and " + maintenance.end.toLocaleString() + ".  During this time, the Alpha Anywhere help documentation may be temporarily unavailable as we make improvements to our system. Thank you for your patience during this time.";
+    ele.innerHTML = "Maintenance will be performed on the documentation servers between " + maintenance.start.toLocaleString() + " and " + maintenance.end.toLocaleString() + ".  During this time, the Alpha Anywhere help documentation may be temporarily unavailable as we make improvements to our system. Thank you for your patience during this time.";
     ele.style.display = "block";
 }
 
