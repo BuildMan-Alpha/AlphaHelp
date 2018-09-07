@@ -1,0 +1,146 @@
+<page build="4346">
+    <shortlink>critical changes alpha anywhere 4_4_4</shortlink>
+    <topic>Deprecated and Obsolete Features introduced in Alpha Anywhere 4.4.4</topic>
+    <description>Several changes were made to the Request object in Alpha Anywhere 4.4.4, including the deprecation of multiple properties. Read this article to find out what change are needed in order to update your applications to Alpha Anywhere 4.4.4 or newer.</description>
+    <discussion>
+        <p>As part of an ongoing initiative to standardize functionality between the Alpha Anywhere Application Server (AA Server)  and the Application Server for IIS (AA Server for IIS), the Request object in the AA Server server will be undergoing a number of changes. While no immediate action is required from developers, there are a number of planned changes that will potentially introduce incompatibilities for existing Xbasic code. Alpha Software is committed to minimizing the impact of these changes, and this release of Alpha Anywhere includes several new properties and methods on the Request object to allow developers to begin transitioning their code at their convenience. Future releases will continue to add functionality to ease this transition. All new functionality will work identically when running under either the AA Server or the AA Server for IIS.</p>
+        <p>The goal of these changes is to ensure that your applications will work identically on both the AA Server and the AA Server for IIS, thus allowing for a seamless transition between servers should you decide to deploy your app using the AA Server for IIS</p>
+        <p></p>
+    </discussion>
+    <sections>
+        <section>
+            <title>New Functionality</title>
+            <list bullet="true">
+                <item>
+                    <name>Request.A5WIncludePath  - a read-only character property indicating the path that will be used as the default location for a5w_include()</name>
+                </item>
+                <item>
+                    <name>Request.HttpMethod -  a read-only character property indicating the HTTP method used when the request was made. This is a replacement for Request.Request_Method, which is now deprecated.</name>
+                </item>
+                <item>
+                    <name>Request.GetCookie(CookieName as c) as System::Web::HttpCookie</name>
+                </item>
+                <item>
+                    <name>Request.HasCookie(CookieName as c) as l</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Request.Cookies will be changing to be a System::Web::HttpCookieCollection in the future. Currently it is an Xbasic property class ("dot variable"). Once changed, any Xbasic code expecting a property class will fail. To prepare for the upcoming change, the new HasCookie() and GetCookie() methods can be used to replace code that directly operates on Request.Cookies. These methods will continue to work even after the underlying type of Request.Cookies is changed. These methods also work consistently in both the AA Server and the AA Server for IIS.</p>
+                <p>Request.GetCookie() returns null if the specified cookie does not exist, or returns a System::Web::HttpCookie instance if the cookie exists. Existence of the cookie can be checked in advance with Request.HasCookie().</p>
+                <p></p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Sample to see if a cookie exists</title>
+                    <example code="xb"><![CDATA[if Request.HasCookie("MyCookie") then
+    'cookie exists in the request
+else
+    'cookie is NOT included in the request
+end if]]></example>
+                </case>
+                <case>
+                    <title nested="2">Sample to read a cookie's value</title>
+                    <example code="xb"><![CDATA[dim GreetingName as c = ""
+if Request.HasCookie("Greeting") then
+    dim GreetingCookie as System::Web::HttpCookie = Request.GetCookie("Greeting")
+    GreetingName = GreetingCookie.Value
+else
+    GreetingName = "new user"
+end if
+Response.Write("Welcome " + GreetingName)]]></example>
+                </case>
+                <case>
+                    <title nested="2">Sample of updating legacy code</title>
+                    <description>
+                        <p>Sample old syntax:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim MyCookieValue as c = ""
+if eval_valid("Request.Cookies.MyCookie")
+    MyCookieValue = Request.Cookies.MyCookie
+end if]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>Sample new syntax:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim MyCookieValue as c = ""
+if Request.HasCookie("MyCookie")
+    MyCookieValue = Request.GetCookie("MyCookie").Value
+end if]]></example>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <list bullet="true">
+                <item>
+                    <name>Request.GetHeader(HeaderName as c) - returns a header value as a string</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Headers will be changing to a System::Collections::Specialized::NameValueCollection. Currently it is a character string containing the raw header text of the HTTP request. To prepare for the upcoming change, the new GetHeader() method can be used to replace code that directly operates on Request.Headers. These method will continue to work even after the underlying type of Request.Headers is changed. This method also works consistently in both the AA Server and the AA Server for IIS.</p>
+                <p>The Request.GetHeader() method always returns a string value. If the specified header name does not exist in the request, the returned value will be an empty string. There is no distinction between a header that does not exist, and a header that exists with an empty value.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Sample updating getting the value of a specific header</title>
+                    <description>
+                        <p>Sample old syntax:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim HeaderValue as c = ""
+HeaderValue = alltrim(extract_string(wr.Headers,"MyHeader: ",chr(10)))]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>Sample new syntax:</p>
+                    </description>
+                    <example code="xb"><![CDATA[dim HeaderValue as c = Request.GetHeader("MyHeader")]]></example>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Deprecated Request Object Properties</title>
+            <list bullet="true">
+                <item>
+                    <name>Accept - replace with GetHeader("Accept")</name>
+                </item>
+                <item>
+                    <name>AcceptCharset - replace with GetHeader("Accept-Charset")</name>
+                </item>
+                <item>
+                    <name>AcceptEncoding - replace with GetHeader("Accept-Encoding")</name>
+                </item>
+                <item>
+                    <name>AcceptLanguage - replace with GetHeader("Accept-Language")</name>
+                </item>
+                <item>
+                    <name>Cookie - replace with GetHeader("Cookie")</name>
+                </item>
+                <item>
+                    <name>HTTP_Request - no replacement</name>
+                </item>
+                <item>
+                    <name>IfModifiedSince - replace with GetHeader("If-Modified-Since")</name>
+                </item>
+                <item>
+                    <name>IfUnmodifiedSince - replace with GetHeader("If-Unmodified-Since")</name>
+                </item>
+                <item>
+                    <name>REQUEST_METHOD - replace with HttpMethod</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Additional Documentation</title>
+            <description>
+                <p>Full documentation for the .Net class System::Web::HttpCookie can be found at *[extlink:https://msdn.microsoft.com/en-us/library/system.web.httpcookie.aspx]*</p>
+                <p>Full documentation for the .Net class System::Web::HttpCookieCollection can be found at *[extlink:https://msdn.microsoft.com/en-us/library/system.web.httpcookiecollection.aspx]*</p>
+                <p>Full documentation for the .Net class System::Collections::Specialized::NameValueCollection can be found at *[extlink:https://msdn.microsoft.com/en-us/library/system.collections.specialized.namevaluecollection.aspx]*</p>
+                <p></p>
+            </description>
+        </section>
+    </sections>
+</page>
