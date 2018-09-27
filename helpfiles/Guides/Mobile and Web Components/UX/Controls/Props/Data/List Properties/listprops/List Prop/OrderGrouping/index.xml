@@ -1,7 +1,414 @@
-<page>
+<page build="2089">
     <shortlink>ux list builder csfilterorder properties</shortlink>
-    <title>Client-side Filter/Order. and Grouping</title>
-    <description>Here</description>
-    <!--list:.-->
+    <topic>Client-side Filter/Order, and Grouping</topic>
+    <description>List data can be filtered, ordered, and grouped using client-side expressions.</description>
+    <discussion>
+        <p>A client-side filter, order, or group break can be defined for any List. These client-side expressions are applied after data has been loaded tinto the List control. If you have defined a server-side filter or order, the client-side filter and order will be applied in addition to the server side filter and/or order.</p>
+        <p>The *[ui:Client-side Filter/Order, and Grouping]* properties are used to create filter, order, and/or group break expressions that will be evaluated on the client's device or browser. These properties and how to use them are described in detail below.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Filter</title>
+            <description>
+                <p>The *[ui:Filter]* is a JavaScript expression used to filter the data in the List. The filter expression is applied to each row in the List. The expression must evaluate to *[js:true]* or *[js:false]*.</p>
+                <p>If the expression is *[js:true]*, the row is shown. If the expression is *[js:false]*, the row is hidden.</p>
+                <p>The expression can reference fields in the current row using the *[js:data]* variable. You can use the *[ui:Insert field name]* link in the filter expression builder to insert fields into the filter expression.</p>
+            </description>
+            <important>The *[js:data]* variable name and field names are case sensitive.</important>
+        </section>
+        <section>
+            <figure>
+                <link>images/filterExpression.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>For example, in a List that has a 'State' field, the following expression can be used to only show records where the 'State' field is equal to 'MA':</p>
+            </description>
+            <example code="js"><![CDATA[data.State == 'MA']]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the next example, records will only be shown if the 'State' is 'MA' and the first character of the 'Name' field beings with 'A':</p>
+            </description>
+            <example code="js"><![CDATA[data.State == 'MA' && data.Name.substr(0,1) == 'A']]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the JavaScript double equals *[js:==]* are used for equality, single quotes are used for string constants, and *[js:&amp;&amp;]* are used for the 'and' operator.</p>
+            </description>
+        </section>
+        <section>
+            <title>Order</title>
+            <description>
+                <p>The *[ui:Order]* is a field or expression that defines how the List should be ordered (i.e. sorted).</p>
+                <p>The order expression is defined as a CR-LF delimited list of fields. For example, to order records by 'State' and then by 'Lastname' within each state, you would specify the following expression:</p>
+            </description>
+            <example code=""><![CDATA[State
+Lastname]]></example>
+        </section>
+        <section>
+            <description>
+                <p>By default, the data in each column is assumed to be character data. If the data should not be treated as character data, you can specify an optional data type override for a field. For example, the following definition specifies that the 'HireDate' field should be treated as a date:</p>
+            </description>
+            <example code=""><![CDATA[HireDate|Date:MM-dd-yyyy]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If the 'HireDate' contained a time portion, the time portion can be included in the data type override. For example:</p>
+            </description>
+            <example><![CDATA[HireDate|Date:MM/dd/yyyy 0h:0m:0s A]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The following overrides are available:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Override</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Number</name>
+                            <description>Field will be treated as numerical data.</description>
+                        </item>
+                        <item>
+                            <name>Date:dateFormat</name>
+                            <description>Field will be treated as a date with the specified date or date-time format. The format is defined using the same format codes used to o define the Date (and time) formats for the UX Component. See the [Date format] property to learn more about date formats.</description>
+                        </item>
+                        <item>
+                            <name>Logical</name>
+                            <description>Field will be treated as boolean (true/false) data.</description>
+                        </item>
+                        <item>
+                            <name>Character</name>
+                            <description>Field will be treated as character data. This is the default behavior for all fields.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>The *[dateFormat]* format can be specified as a date value containing the day, month, and year (e.g. *[xb:MM-dd-yyyy]*, *[xb:dd-MM-yyyy]*) or a date-time value containing both the date and time values. For example, *[xb:dd-MM-yyyy 0h:0m A]*.</p>
+                <p>You can also specify an optional sort direction. By default, all fields are sorted in ascending order.</p>
+            </description>
+            <example code=""><![CDATA[Lastname|Character|Desc
+HireDate|Date:dd-MM-yyyy|Asc]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If the field is a character field, you may also specify the number of characters used to sort the field. By default, the sort is performed on all characters in the field. In the example below, the field is ordered on the first character in the 'Lastname' field in descending order:</p>
+            </description>
+            <example code=""><![CDATA[Lastname|Character|Desc|1]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If you omit the parameter for number of characters, or set it to -1, the sort is performed on all characters in the field.</p>
+            </description>
+        </section>
+        <section>
+            <title>Has client-side group breaks</title>
+            <description>
+                <p>If checked, the *[ui:Has client-side group breaks]* property enables client-side group breaks for the List.</p>
+                <p>Client-side group breaks are inserted into the List on the after the List has been populated. Client-side group breaks offer several advantages over server-side group breaks. Namely:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>You can define multiple levels of group breaks. Server-side group breaks only allow for one level of grouping.</name>
+                        </item>
+                        <item>
+                            <name>You can dynamically change the grouping on the List at any time using JavaScript. (There is an action in Action Javascript to help you do this. See [List Control Actions - Client-side group breaks] for more information).</name>
+                        </item>
+                        <item>
+                            <name>You can apply group breaks regardless of the data source for the List.</name>
+                        </item>
+                        <item>
+                            <name>You can display Group Headers and Group Footers (server-side grouping only shows a header).</name>
+                        </item>
+                        <item>
+                            <name>You have complete control over the HTML that is displayed in the header and footer.</name>
+                        </item>
+                        <item>
+                            <name>You can include any summary data that you want in the header and footer (for example, average value of some column in the group).</name>
+                        </item>
+                    </list>
+                </p>
+            </description>
+            <note>*[Server-side vs. Client-side Group Breaks]*: One advantage of server-side group breaks over client-side group breaks is when the List data source is based on a SQL query and you have turned on the List pagination option. In this case, summary data shown in a List header will be for all of the data in that group, not just the records that are currently visible in the List.</note>
+        </section>
+        <section>
+            <description>
+                <p>In the image below, the List has two levels of grouping: Country and City. Notice that a custom style has been defined for the second level group headers (showing the city name in blue, with a left padding of 50px).</p>
+            </description>
+            <figure>
+                <link>images/listgrouping.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Here is the same List, but this time showing some summary data in the top level group header:</p>
+            </description>
+            <figure>
+                <link>images/groupbreaks_client_with_sumamry.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>To turn on client-side grouping for a List, check the *[ui:Has client-side group breaks]* property for the List as shown in the image below:</p>
+            </description>
+            <figure>
+                <link>images/hasclientsidegroups.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>After you have enabled group breaks, you can click the smart field option for the [Group breaks definition] property (below) to open the Client-side Grouping genie.</p>
+            </description>
+        </section>
+        <section>
+            <title>Group breaks definition</title>
+            <description>The *[ui:Group breaks definition]* defines the group break(s) for the List. Each group added using the *[ui:Add Group]* button is configured using the properties listed below:</description>
+            <cases>
+                <case>
+                    <title nested="2">Sort definition</title>
+                    <description>
+                        <p>The columns in the List on which the data is to be sorted. You can specify multi-level sorts, ascending or descending, and the number of characters in the field on which you want to sort.</p>
+                        <p>For more information on how to define a *[ui:Sort definition]*, see [Order] above.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Group break expression</title>
+                    <description>
+                        <p>A JavaScript expression that can reference fields from the current row in the List. If the value in this expression changes, a new group is started.</p>
+                        <p>For example, assume the *[ui:Sort definition]* for the current group sorts the List data on the 'Lastname' field. To create a new group every time the 'Lastname' changed, you would specify the following expression:</p>
+                    </description>
+                    <example code="js"><![CDATA[data.Lastname]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>If you wanted to break only when the first letter of the 'Lastname' field changed, you could specify a JavaScript expression. The following expression will create a new group break every time the first letter of the 'Lastname' field changes:</p>
+                    </description>
+                    <example code="js"><![CDATA[data.Lastname.substr(0,1)]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>If the *[ui:Sort definition]* includes multiple columns, you can include these columns in the group break expression. For example, suppose a two-level sort was defined on the 'Lastname' and 'Firstname' fields. You might define the following group break expression:</p>
+                    </description>
+                    <example code="js"><![CDATA[data.Lastname + ',' + data.Firstname]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>You do not need to include all sort fields in the *[ui:Group break expression]*. A group break expression can reference as many or as few sort fields as desired. For example, you might still define the following expression even though the sort definition includes both the 'Firstname' and 'Lastname' fields:</p>
+                    </description>
+                    <example code="js"><![CDATA[data.Lastname.substr(0,1)]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>this will start a new group every time the first letter of the 'Lastname' field changes. The rows in the group will be ordered using the defined *[ui:Sort definition]* (e.g. Lastname, Firstname).</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">HTML expression (Header)</title>
+                    <description>
+                        <p>A JavaScript expression that returns the HTML to display in the group header. This expression has reference to these fields: *[js:group]* and *[js:data]*. *[js:group]* is the value of the group break expression, and *[js:data]* is an array containing the rows that are shown in this group. Having access to the array of data in the group means you can compute any type of summary value to show in the header or footer.</p>
+                        <p>For example:</p>
+                    </description>
+                    <example code="js"><![CDATA['Records in state of: ' + group + ' (count: <b>' + data.length + '</b>)']]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>If the list has 10 records for the state of 'CA', the header would display as:</p>
+                    </description>
+                </case>
+                <case>
+                    <content><![CDATA[Records in the state of: CA (count: <b>10</b>)]]></content>
+                </case>
+                <case>
+                    <cases>
+                        <case>
+                            <title nested="3">Summary Fields</title>
+                            <description>
+                                <p> When you define the HTML for the header or footer, you can click the smart field button to open a genie. This genie has an option that makes it easy to include summary data in the header or footer. For example, in the image below, which shows the editor for the header HTML expression, the user has clicked on the *[ui:Insert summary field]* hyperlink, and the Summary Field Genie is displayed.</p>
+                            </description>
+                            <figure>
+                                <link>images/htmlheaderexpression.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p> When you use the Summary Field genie, the generated JavaScript that is inserted into the expression calls a special helper method of the List object. For example, here is the code to compute the average of the Price column:</p>
+                            </description>
+                            <example code="js"><![CDATA[ this.groupSummary(data,'Price:N','avg')]]></example>
+                            <note>The groupSummary() method ignores NULL values in the data.</note>
+                        </case>
+                        <case>
+                            <description>
+                                <p> In the example below, the average is computed and then formatted using a format string:</p>
+                            </description>
+                            <example code="js"><![CDATA[Number(this.groupSummary(data,'Price:N','avg')).toFormat('# ##0,00')]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>Note that the method passes the *[js:data]* array as the first argument, the field to summarize as the second argument, and the summary type as the third argument to the *[js:this.groupSummary]* function.</p>
+                                <p>The groupSummary() method can be used to compute the *[js:total]*, *[js:average]*, *[js:count]*, *[js:first]*, *[js:last]*, *[js:min]*, and *[js:max]* value of any field in the *[js:data]* array.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">Using Custom JavaScript Functions</title>
+                            <description>
+                                <p>You can also define your own JavaScript functions that can be used to compute the header HTML. The custom JavaScript function must take two parameters, *[js:group]* and *[js:data]*. For example, you might define the HTML header expression as follows:</p>
+                            </description>
+                            <example code="js"><![CDATA[myFunction(group,data)]]></example>
+                        </case>
+                        <case>
+                            <description>
+                                <p>The JavaScript function *[js:myFunction]* could be defined as follows to return the HTML for the header:</p>
+                            </description>
+                            <example code="js"><![CDATA[function myFunction(group,data) {
+    var html = "";
+    var numRecords = data.length;
 
+    html = numRecords + " total for " + group;
+
+    return html;
+}]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">Classname (Header)</title>
+                    <description>
+                        <p>One or more class names to apply to the group header. The default class name for this property is *[css:[theme:listBox.base.item.titleClassName]]*</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Has footer</title>
+                    <description>
+                        <p>Defines whether or not a Footer should be generated for each group. If checked, the *[ui:HTML expression]* and *[ui:Classname]* properties will be exposed in the *[ui:Footer]* category.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">HTML expression (Footer)</title>
+                    <description>
+                        <p>A JavaScript expression that returns the HTML to display in the footer. See the [HTML expression (header)] above for more information on how create the expression.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Classname (Footer)</title>
+                    <description>
+                        <p>One or more class names to apply to the group footer. By default, this property is blank.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Include group in navigator</title>
+                    <description>
+                        <p>Specified if data from this group are included in the Navigator. For the top level group, this option must always be checked.</p>
+                        <p>When you have a lot of records in a List, scrolling the List to the bring a section of the List into view can be tedious - especially on mobile devices where there is no vertical scroll bar. The List Navigator makes it easy to scroll a List that has group breaks. In the image below a List is shown with group breaks on the first character of the Contactname field. A List Navigator is shown on the right side of the List.</p>
+                        <p>See [List Navigator] to learn more.</p>
+                    </description>
+                    <figure>
+                        <link>images/listnavigator.jpg</link>
+                    </figure>
+                </case>
+                <case build="5334">
+                    <title nested="2">Default group names</title>
+                    <description>
+                        <p>By default, the group breaks shown in a List when client-side grouping is turned on, are dynamically computed from the actual data in the List. However, you might want certain groups to appear in the List regardless of whether the List contains any data for that group. You can specify a list of default groups that should always appear in the List using the *[ui:Default group names]* property. </p>
+                        <p>In the image shown below, default groups for the Country group have been defined. These default groups are 'South Africa' and 'Zimbabwe'.</p>
+                    </description>
+                    <figure>
+                        <link>images/client-side-grouping_defaultgroups1.jpg</link>
+                    </figure>
+                    <note>Default group names are only available for the top level group.</note>
+                </case>
+                <case>
+                    <description>
+                        <p>The image shown below shows how a List that does not have any data for either South Africa or Zimbabwe would be rendered. Notice that the actual HTML shown for these two empty groups is defined by the JavaScript specified in the [Javascript for HTML for default group] property.</p>
+                    </description>
+                    <figure>
+                        <link>images/client-side-grouping_defaultgroups2.gif</link>
+                    </figure>
+                </case>
+                <case build="5334">
+                    <title nested="2">Javascript for HTML default group</title>
+                    <description>
+                        <p>This property can be used to compute the HTML shown for an empty group.</p>
+                        <p>The JavaScript must return the HTML to display in the empty group. Your code can reference *[js:group]* - the name of the empty group. For example:</p>
+                    </description>
+                    <example code="js"><![CDATA[return "There is no data for " + group]]></example>
+                </case>
+                <case>
+                    <description>
+                        <p>This will produce the result shown below:</p>
+                    </description>
+                    <figure>
+                        <link>images/client-side-grouping_defaultgroups2.gif</link>
+                    </figure>
+                </case>
+                <case build="5334">
+                    <title nested="2">Classname for default groups</title>
+                    <description>
+                        <p>One or more class names to apply to empty groups. By default, this property is blank.</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Videos</title>
+        </section>
+        <section>
+            <videos>
+                <title>Client-side Grouping and List Navigator</title>
+                <description>
+                    <p>Group breaks can be inserted into the List control. The group breaks can be 'server-side' group breaks, or 'client-side' group breaks. The advantage of 'client-side' group breaks is that they can be dynamically applied to the data in the List. That means you can easily switch from grouping the data by 'Lastname' to grouping by 'City', etc. You can also display summary values in the group headers and footer.</p>
+                    <p>For lists that have group breaks (regardless of whether the group breaks were computed server-side or client-side), you can also display a List Navigator, which allows the user to easily scroll a long List.</p>
+                    <p>In this video we give an overview of client-side group breaks and the List Navigator. Then, we go into depth on setting up client-side grouping using Action Javascript (to apply the group breaks after the List is initially rendered) and in the List definition itself (so that when the List is initially rendered, the group breaks are shown).</p>
+                    <p>We also show how summary data can be inserted into a List header or footer.</p>
+                </description>
+                <date></date>
+                <video>
+                    <name>Watch Video - Overview</name>
+                    <link>https://www.viddler.com/v/3e906b34</link>
+                </video>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/27155f01</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/UX_client_side_grouping.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Aligning Summary Values with List Columns </title>
+                <description>
+                    <p>The List control allows you to insert client-side group breaks in a List and to display summary values in the group headers and footers. In a columnar List layout you typically want to align these summary values with the appropriate List columns.</p>
+                    <p>The genie in the Header/Footer builder make this easy to do. The genie generates a sample JavaScript function that you can easily modify.</p>
+                </description>
+                <date></date>
+                <video>
+                    <name>Watch Video</name>
+                    <link></link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/Clientsidesummary_columnAlign.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link href="#section2_HTML expression (Header)">HTML expression (header)</link>
+        <link href="#section2_Classname (Header)">Classname (Header)</link>
+        <link href="#section1_Group breaks definition">Group breaks definition</link>
+        <link href="#section1_Order">Order</link>
+        <link link="UX Properties Date format">Date format</link>
+        <link href="#section2_Javascript for HTML default group">Javascript for HTML for default group</link>
+        <link link="ux list builder listnav properties">List Navigator</link>
+        <link link="list control actions#section1_Client-side group breaks">List Control Actions - Client-side group breaks</link>
+    </links>
+    <see>
+        <ref link="list control actions#section1_Client-side group breaks">List Control Actions - Client-side Group Breaks</ref>
+    </see>
 </page>
