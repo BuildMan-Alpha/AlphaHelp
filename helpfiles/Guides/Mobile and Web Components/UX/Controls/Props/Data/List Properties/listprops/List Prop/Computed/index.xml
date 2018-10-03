@@ -1,7 +1,88 @@
 <page>
     <shortlink>ux list builder computed columns properties</shortlink>
     <topic>Computed Columns</topic>
-    <description>Here</description>
-    <!--list:.-->
+    <description>Specify dynamically computed columns on the client-side using these properties.</description>
+    <discussion>
+        <p>*[ui:Computed Columns]*, or "Virtual Columns", are columns that are calculated using an expression. Calculated fields are specified in the *[ui:Client-side Calculated Fields]* property.</p>
+        <p>The data for calculated fields to be shown in the List View can be computed on the server (for example as part of the SQL query that retrieves the data) or on the client (i.e. in the browser). *[ui:Client-side Calculated Fields]* are computed on the client. The computed fields can reference data in the List.</p>
+        <p>For example, assume that your List View query has retrieved data for a field called 'QUANTITY' and a field called 'PRICE' (but not for a field called 'TOTAL'). You would like to display a field called 'TOTAL' in the list view that multiplied 'PRICE' by 'QUANTITY'. Here is how you could perform this calculation in the browser
+        (i.e. client-side):</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="js"><![CDATA[data.TOTAL = $u.s.toNum(data.PRICE) * $u.s.toNum(data.QUANTITY);
+data.TAX = $u.s.toNum(data.TOTAL) * .05;]]></example>
+        </section>
+        <section>
+            <description>
+                <p>'TOTAL' and 'TAX' will now be new fields that you can include in the List View template, just like any other field in the List View.</p>
+            </description>
+            <note>
+                <p>Note: The *[js:$u.s.toNum()]* function is used to convert the field from a string to a number so that a numeric calculation can be performed. *[js:$u.s.toNum()]* is a function in the Alpha Anywhere Javascript Library. You can also use *[js:$u.s.toBool()]* to convert to a true/false value.</p>
+            </note>
+        </section>
+        <section>
+            <list bullet="true">
+                <item>
+                    <name>You can compute as many client-side calculated fields as you want. </name>
+                </item>
+                <item>
+                    <name>The definition of the calculated field is written in Javascript.</name>
+                </item>
+                <item>
+                    <name>Each field definition starts with *[js:data.CALCULATED_FIELD_NAME]* followed by *[js:=]* then the Javascript code that defines the field. The code is terminated with a semi-colon.</name>
+                </item>
+                <item>
+                    <name>The field you are defining and all references to existing fields must use the *[js:data.]* prefix (lower case)</name>
+                </item>
+                <item>
+                    <name>Field names are case-sensitive.</name>
+                </item>
+                <item>
+                    <name>Each field definition must be terminated with a semi-colon.</name>
+                </item>
+                <item>
+                    <name>You can reference *[js:index]* in the Javascript definition for each field. *[js:index]* is the row number in the list that is currently being rendered. *[js:index]* is 0 based (i.e. first row in List View has a value of 0).</name>
+                </item>
+                <item>
+                    <name>The Javascript that defines the expression for a particular calculated field can be quite complex. For example, in the example below an anonymous function is defined and then called to compute the value of the RANK field.</name>
+                </item>
+            </list>
+            <example code="js"><![CDATA[data.RANK = function(data,index) { 
+    if(data.RANK > this.summary.RANKAVERAGE) data.RANK = '<&lt;>span style="color: green;">'+data.RANK+'<&lt;>/span>';
+    else data.RANK = '<&lt;>span style="color: green;">'+data.RANK+'<&lt;>/span>';
+    return data.RANK; 
+    }*[highlight:(data,index)]*;]]></example>
+        </section>
+        <section>
+            <important>
+                <p>Notice that in the above example, the anonymous function definition is *[bold:immediately]* followed by a *[bold:call]* to the function, passing in *[js:data]* and *[js:index]*.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>In the above example *[js:this.summary.RANKAVERAGE]* is a value that was computed in the onBeforeListDraw event. The calculated field displays the 'RANK' field in green or red, depending on whether the value for the current row is above or below the
+                average rank.</p>
+            </description>
+        </section>
+        <section>
+            <title>Example 2</title>
+            <description>
+                <p>This example shows how client-side calculated fields can be used to add dynamic images to the List (i.e. the image in each row is based on data in the row)</p>
+            </description>
+            <example code="js"><![CDATA[data.DYNAMICIMAGE = function(data,index) { 
+    if(data.State == 'MA') {
+        return A5.u.icon.html('cssIcon=fa fa-align-center fa-2x {color: #f6b5b5;}'); //use css icon
+    } 
+    else if(data.State == 'CA') {
+        return A5.u.icon.html('cssIcon=fa fa-align-center fa-2x {color: blue;}');
+    }
+    else if(data.State == 'NY') { 
+        return A5.u.icon.html('images/$$application.chrome.png.a5image'); //use built-in image
+    }
+    else return 'Not Defined';
 
+}(data,index);]]></example>
+        </section>
+    </sections>
 </page>
