@@ -1509,6 +1509,12 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             }
         }
         app.use("/", function(req, res) {
+            if (options.stdHeaders) {
+                var headerIndex;
+                for (headerIndex in options.stdHeaders) {
+                    res.setHeader(headerIndex, options.stdHeaders[headerIndex]);
+                }
+            }
             if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
                 var relPath = req.path.substring(9);
                 if (req.path.substring(0, 14) == "/web/describe/")
