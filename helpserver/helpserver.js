@@ -1670,11 +1670,11 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         if (options.useSSL) {
             // HTTP redirects to HTTPS...
             var http = require('http');
-            var httpServer = http.createServer(app);
             var appRD = express();
             appRD.use("/", function(req, res) {
                 res.redirect('https://' + req.headers.host + req.url);
             })
+            var httpServer = http.createServer(appRD);
             httpServer.listen(options.port);
         } else {
             app.listen(options.port);
