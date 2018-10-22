@@ -411,9 +411,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             var type = "";
             // for each entry, push to appropriate array 
             for (var i = 0; i < entries.length; i++) {
-                if (entries[i].substring(0,10) == "<methodref") {
+                if (entries[i].substring(0, 10) == "<methodref") {
                     type = "method";
-                } else if (entries[i].substring(0,5) == "<item") {
+                } else if (entries[i].substring(0, 5) == "<item") {
                     type = "articles";
                 }
 
@@ -1509,6 +1509,12 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             }
         }
         app.use("/", function(req, res) {
+            if (options.stdHeaders) {
+                var headerIndex;
+                for (headerIndex in options.stdHeaders) {
+                    res.setHeader(headerIndex, options.stdHeaders[headerIndex]);
+                }
+            }
             if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
                 var relPath = req.path.substring(9);
                 if (req.path.substring(0, 14) == "/web/describe/")
@@ -1611,15 +1617,15 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         console.log("favicon is missing");
                     }
                 });
-            } else if ((req.path.toLowerCase() === '/') 
-                    || (req.path.toLowerCase() === '/pages') 
-                    || (req.path.toLowerCase() === '/pages/') 
-                    || (req.path.toLowerCase() === '/pages/index.html') 
-                    || (req.path.toLowerCase() === '/documentation') 
-                    || (req.path.toLowerCase() === '/documentation/') 
-                    || (req.path.toLowerCase() === '/documentation/pages') 
-                    || (req.path.toLowerCase() === '/documentation/pages/') 
-                    || (req.path.toLowerCase() === '/documentation/pages/index.html')) {
+            } else if ((req.path.toLowerCase() === '/') ||
+                (req.path.toLowerCase() === '/pages') ||
+                (req.path.toLowerCase() === '/pages/') ||
+                (req.path.toLowerCase() === '/pages/index.html') ||
+                (req.path.toLowerCase() === '/documentation') ||
+                (req.path.toLowerCase() === '/documentation/') ||
+                (req.path.toLowerCase() === '/documentation/pages') ||
+                (req.path.toLowerCase() === '/documentation/pages/') ||
+                (req.path.toLowerCase() === '/documentation/pages/index.html')) {
                 var path = "/index.html";
                 help.get(path, function(err, data, type) {
                     if (err) {
@@ -1644,11 +1650,11 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     }
                 }
                 var pagePrefix = helpHandler.getAbsolutePath().toLowerCase();
-                if ((req.path.toLowerCase() === pagePrefix + 'pages/index.html') 
-                 || (req.path.toLowerCase() === pagePrefix) 
-                 || (req.path.toLowerCase() === pagePrefix.substr(0, pagePrefix.length - 1)) 
-                 || (req.path.toLowerCase() === pagePrefix + 'pages/') 
-                 || (req.path.toLowerCase() === pagePrefix + 'pages')) {
+                if ((req.path.toLowerCase() === pagePrefix + 'pages/index.html') ||
+                    (req.path.toLowerCase() === pagePrefix) ||
+                    (req.path.toLowerCase() === pagePrefix.substr(0, pagePrefix.length - 1)) ||
+                    (req.path.toLowerCase() === pagePrefix + 'pages/') ||
+                    (req.path.toLowerCase() === pagePrefix + 'pages')) {
                     var path = "/index.html";
                     helpHandler.get(path, function(err, data, type) {
                         if (err) {
@@ -1667,8 +1673,18 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 }
             }
         });
-
-        app.listen(options.port);
+        if (options.useSSL) {
+            // HTTP redirects to HTTPS...
+            var http = require('http');
+            var appRD = express();
+            appRD.use("/", function(req, res) {
+                res.redirect('https://' + req.headers.host + req.url);
+            })
+            var httpServer = http.createServer(appRD);
+            httpServer.listen(options.port);
+        } else {
+            app.listen(options.port);
+        }
         if (https_credentails) {
             var https = require('https');
             var httpsServer = https.createServer(https_credentails, app);

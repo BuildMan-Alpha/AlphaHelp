@@ -365,6 +365,8 @@
 								<xsl:if test="list">
 								    <xsl:call-template name="list"/>
 								</xsl:if>
+                                <xsl:call-template name="callouts-before"/>
+                                <xsl:call-template name="callouts-after"/>
 							</dd>
 						</div>
 					</xsl:otherwise>
