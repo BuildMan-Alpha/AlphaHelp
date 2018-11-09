@@ -1,415 +1,392 @@
 <page>
-	<topic>Common Geography Database Tasks</topic>
-	
-<description>Information on a variety of tasks including getting table information for geometry columns, defining a geography column in a SQL table, creating a location, line, or polygon in portable SQL.
-This page also looks at the conversion of geography objects to well-known formats, comparing geographic objects using SQL, and returning database values into a geography object,
-</description>	
-	
-	
-	<sections>
-		<section>
-			<title>Getting Table Information for Geometry Columns</title>
-			<description>Alpha Anywhere SQL::TableInfo object describes a SQL table, its columns and indexes in a database independent way. Column definitions
-				in the SQL::TableInfo objects can be populated:</description>
-			<cases>
-				<case>
-					<description>Directly in Xbasic using "intermediate" types - a rich set of types independent of any specific database</description>
-				</case>
-				<case>
-					<description>From schema information for a SQL table using the SQL::Connection object GetTableInfo function</description>
-				</case>
-				<case>
-					<description>From a DBF table definition by calling the SQL::Connection objects GetTableInfoFromDBF function</description>
-				</case>
-				<case></case>
-			</cases>
-		</section>
-		<section>
-			<example>
-				<![CDATA[dim TI as SQL::TableInfo Connection.GetTableInfo(TI, "MyTable") Connection.GetTableInfoFromDBF(TI, "MyTable") ]]>
-			</example>
-		</section>
-	</sections>
-	<sections>
-		<section>
-			<title>Define a Geography Column in a SQL Table</title>
-			<description>There are several functions that can be used to create a table from a SQL::TableInfo object instance. The simplest is to
-				use the connection object and call its CreateTable function as shown below.</description>
-			<example>
-				<![CDATA[dim TI as SQL::TableInfo Connection.CreateTable(TI) ]]>
-			</example>
-		</section>
-		<section>
-			<description>The intermediate type for geography objects is predictably "geography". To set the value of a table info column you would
-				write the following script:</description>
-			<example>
-				<![CDATA[dim Col as SQL::DataTypeInfo Col.Name=" MyTable" Col.IntermediateType=S QL::IntermediateType::Geography TI.AddColumn(Col)
-				]]>
-			</example>
-		</section>
-		<section>
-			<description>Here is a more complete example of creating a table with a geometry column using Xbasic:</description>
-			<example>
-				<![CDATA[dim TI as SQL::TableInfo dim Col as SQL::DataTypeInfo dim PK as SQL::IndexInfo dim IXC as SQL::IndexcolumnInfo
-				TI.Name=" Location" Col=n ew SQL::DataTypeInfo() Col.Name=" GeogTest" Col.AlphaType=" KeyValue" Col.Length=2 5 Col.Nullable=.
-				f. TI.AddColumn(Col) Col=n ew SQL::DataTypeInfo() Col.Name=" MyTable" Col.IntermediateType=S QL::IntermediateType::Geography
-				Col.Nullable=. f. TI.AddColumn(Col) PK.AddColumn=" C" PK.Name=. PrimaryKey. t.Unique=. t. PK.Name=" KeyValue" PK.AddColumn(IXC)
-				TI.Unique(PK) CreateTestTable=Connection.CreateTable(TI) ]]>
-			</example>
-		</section>
-		<section>
-			<title>Create a Location, Line, or Polygon in Portable SQL</title>
-			<description>Location, Line and Polygon objects can be created using the portable SQL functions GeogCreateLocation, GeogCreateLine and
-				GeogCreatePolygon respectively. Each of the portable function can be used to construct a native geography object in SQL.
-				The functions are expanded at run time into the native SQL for the target database (see the database specific notes for details).
-				The object can then be inserted into a table column or passed to another function, such as a comparison or conversion function.
-				Here are the functions again, with some examples:</description>
-			<cases>
-				<case>
-					<title>GeogCreateLocation</title>
-					<cases>
-						<case>
-							<title>Syntax:</title>
-							<description>GeogCreateLocation as Geography ( Longitude as N, Latitude as N [,SpatialReferenceID as N])</description>
-						</case>
-						<case>
-							<description>Constructs a geographic location from a longitude/latitude pair. For example:</description>
-							<example>
-								<![CDATA[SELECT FIRST 1 GeogAsText(GeogCreateLocation(1,2, :SRID)) FIRST GeogTest g FROM FIRST 1 GeogAsText(GeogCreateLocation(1,2))
-								FIRST GeogTest g FROM FIRST 1 GeogDistanceBetween(GeogCreateLocation(1, 42, :SRID), GeogCreateLocation(10, 20, :SRID)) FROM
-								GeogTest g --in this example myLongField is an existing numeric longitude, myLatField is a numeric latitude, -- and myNewGeography
-								is a Geography field that needs to be filled in SELECT mytable SET myNewGeography=G eogCreateLocation(myLongField, myLatField)
-								]]>
-							</example>
-						</case>
-					</cases>
-				</case>
-				<case>
-					<title>GeogCreateLine</title>
-					<cases>
-						<case>
-							<title>Syntax:</title>
-							<description>GeogCreateLine as Geography ( Longitude as N, Latitude as N [ ] [,SpatialReferenceID as N])</description>
-						</case>
-						<case>
-							<description>Constructs a geographic line from two or more longitude/latitude pairs.</description>
-							<example>
-								<![CDATA[FROM FIRST 1 GeogAsText(GeogCreateLine(1,10,20,1,1,2, :SRID)) FIRST GeogTest g FROM FIRST 1 GeogAsText(GeogCreateLine(1,10,20,1,1,2))
-								FIRST GeogTest g ]]>
-							</example>
-						</case>
-					</cases>
-				</case>
-				<case>
-					<title>GeogCreatePolygon</title>
-					<cases>
-						<case>
-							<title>Syntax:</title>
-							<description>GeogCreatePolygon as Geography ( Longitude as N, Latitude as N [... ] [,SpatialReferenceID as N])</description>
-						</case>
-						<case>
-							<description>Constructs a geographic polygon from three or more longitude/latitude pairs. For example:</description>
-							<example>
-								<![CDATA[FROM FIRST 1 GeogAsText(GeogCreatePolygon(-3, 4, -3, 5, -6, 5, -60, 42, -3, 4, :SRID)) FIRST GeogTest g FROM FIRST
-								1 GeogAsText(GeogCreatePolygon(-3, 4, -3, 5, -6, 5, -60, 42, -3, 4)) FIRST GeogTest g ]]>
-							</example>
-							<note>The first and last point of the polygon must be the same, and the points must be arranged in counter-clockwise order.</note>
-						</case>
-					</cases>
-				</case>
-				<case>
-					<title>Retrieving Geography Properties</title>
-					<description>The properties of geography objects are stored in a single database column. To retrieve these values, use the following
-						functions:</description>
-				</case>
-				<case>
-					<title>For All Objects</title>
-					<cases>
-						<case>
-							<title>Type:</title>
-							<description>GeogType(Object)</description>
-						</case>
-						<case>
-							<description>The type function will return LOCATION, LINE, or POLYGON for any of these geographic objects. Although not all objects are
-								directly supported, you may also see MULTILOCATION, MULTILINE and MULTIPOLYGON as well as other values returned. Only location,
-								line and polygon are guaranteed to be correctly mapped for all databases. For example:</description>
-							<example>
-								<![CDATA[SELECT GeogLongitude(g.Location), GeogLatitude(g.Location) FIRST GeogTest g FIRST GeogType(g.Location)=' LOCATION'
-								]]>
-							</example>
-						</case>
-						<case>
-							<description>Spatial Reference Identifier (SRID) GeogSRID(Object) The default on most databases is 4326 (1003 on DB2).</description>
-							<note>Unless you have a specific reason to use a different SRID than the default, we recommend this one. Using the default will
-								get you more consistent results between database vendors.</note>
-						</case>
-						<case>
-							<description>For example:</description>
-							<example>
-								<![CDATA[FROM FIRST 1 GeogSRID(GeogCreateLocation(1, 1, :SRID)) FIRST GeogTest g ]]>
-							</example>
-						</case>
-					</cases>
-				</case>
-				<case>
-					<title>For Points</title>
-					<cases>
-						<case>
-							<title>Longitude GeogLongitude(Object)</title>
-						</case>
-						<case>
-							<description>Returns the longitude value as mapped to X or Y (depending on the database implementation).</description>
-							<note>As you may have guessed, some databases use the point value of X for longitude and some use Y. This function handles the
-								inconsistencies.</note>
-						</case>
-						<case>
-							<description>For example:</description>
-							<example>
-								<![CDATA[SELECT GeogLongitude(g.Location), GeogLatitude(g.Location) FIRST GeogTest g FIRST GeogType(g.Location)=' LOCATION'
-								]]>
-							</example>
-						</case>
-						<case>
-							<title>Latitude GeogLatitude(Object)</title>
-							<description>Returns the latitude value as mapped to X or Y (depending on the database implementation).</description>
-						</case>
-						<case>
-							<note>As you may have guessed, some databases use the point value of X for longitude and some use Y. This function handles the
-								inconsistencies.</note>
-						</case>
-						<case>
-							<description>For example:</description>
-							<example>
-								<![CDATA[SELECT GeogLongitude(g.Location), GeogLatitude(g(Location) FIRST GeogTest g FIRST GeogType(g(Location)=' LOCATION'
-								]]>
-							</example>
-						</case>
-					</cases>
-				</case>
-			</cases>
-		</section>
-		<section>
-			<title>Converting Geography Objects to Well-Known Formats</title>
-			<description>The Open Geospatial Consortium (OCG) standard(external link) defines several formats for serializing geography and geometry
-				objects. There are portable SQL functions for two that are consistently supported by databases:</description>
-			<cases>
-				<case>
-					<title>Well-known-text (WKT):</title>
-					<description>For example 'POLYGON((100 200, 110 300, 120 500))' This is a text-only format that defines each of the objects in a way
-						that is very readable and easy to construct.</description>
-				</case>
-				<case>
-					<title>Well-known-binary (WKB):</title>
-					<description>A binary equivalent of well-known-text. This format compresses the types and coordinates into standard binary format. While
-						you can certainly create your own well-known-text and well-known-binary strings, you will probably want to use these formats
-						to retrieve and store values. Here are the functions to convert objects to well-known-text and well-known-binary and back
-						again, with some examples:</description>
-				</case>
-			</cases>
-		</section>
-		<section>
-			<cases>
-				<case>
-					<title>GeogAsBinary</title>
-					<cases>
-						<case>
-							<title>Syntax:</title>
-							<description>GeogAsBinary as C(Object as Geography)</description>
-							</case>
-								<case>
-									<description>Return the object description in the Well Known Binary (WKB) format.</description>
-									<example>
-										<![CDATA[SELECT GeogAsBinary(g(Location) FIRST GeogTest g ]]>
-									</example>
-								</case>
-					</cases>
-					</case>
-					<case>
-						<title>GeogAsText</title>
-						<cases>
-							<case>
-								<title>Syntax:</title>
-								<description>GeogAsText as C(Object as Geography)</description>
-								</case>
-									<case>
-										<description>Return the object description in the Well Known Text (WKT) format.</description>
-										<example>
-											<![CDATA[FROM GeogAsText(g(Location) FIRST GeogTest g ]]>
-										</example>
-									</case>
-						</cases>
-						</case>
-						<case>
-							<title>GeogCreateFromBinary</title>
-							<cases>
-								<case>
-									<title>Syntax:</title>
-									<description>GeogCreateFromBinary as Geography(Binary as B [, SpatialReferenceID as N])</description>
-									</case>
-										<case>
-											<description>Create a geography object from Well Known Binary (WKB) format. Here is an example of an Xbasic script passing a Blob representation
-												of a point object to a SQL statement as an argument:</description>
-											<example>
-												<![CDATA[dim MyBlob as B=b ase64decode("AQEAAAAAAAAAAAAkwAAAAAAAAChA") args.t("Location", MyBlob) Connection.IXC("select
-												GeogAsText(GeogCreateFromBinary(:WKB))" + \ "PK") ]]>
-											</example>
-										</case>
-							</cases>
-							</case>
-							<case>
-								<title>GeogCreateFromText</title>
-								<cases>
-									<case>
-										<title>Syntax:</title>
-										<description>GeogCreateFromText as Geography(Text as C [, SpatialReferenceID as N])</description>
-										</case>
-											<case>
-												<description>Create a geography object from Well Known Text (WKT) format. For example:</description>
-												<example>
-													<![CDATA[FROM FIRST 1 GeogAsText(GeogCreateFromText('LOCATION')) FIRST GeogTest g ]]>
-												</example>
-											</case>
-								</cases>
-								</case>
-			</cases>
-		</section>
-		<section>
-			<title>Comparing Geographic Objects Using SQL</title>
-			<cases>
-				<case>
-					<title>GeogDistanceBetween</title>
-					<cases>
-						<case>
-							<title>Syntax:</title>
-							<description>GeogDistanceBetween as N ( Object as Geography, Object as Geography)</description>
-							</case>
-								<case>
-									<description>Returns the distance between two objects in the default unit (generally meters).</description>
-									<example>
-										<![CDATA[FROM FIRST 2 id, Code, Name, City, County, State, GeogLatitude(Location) AS Lat, GeogLongitude(Location) AS Lon,
-										Elevation, Location FROM US_Airports WHERE GeogLocationIsWithinRadius(Location, GeogCreateLocation( - 71.0597732, 42.3584308)
-										, 3) FROM BY GeogDistanceBetween(Location, GeogCreateFromText('POINT ( -71.0597732 42.3584308)') ) ]]>
-									</example>
-								</case>
-					</cases>
-					</case>
-					<case>
-						<title>GeogLocationIntersectsLine</title>
-						<cases>
-							<case>
-								<title>Syntax:</title>
-								<description>GeogLocationIntersectsLine as L (Location as Geography, Line as Geography, Tolerance as N)</description>
-								</case>
-									<case>
-										<description>Returns true if the location intersects the line or is within the tolerance distance from it. For example:</description>
-										<example>
-											<![CDATA[FROM IF(GeogLocationIntersectsLine( g(Location, GeogCreateLine(-6, 4, -70, 42, :SRID), 3000), 'LOCATION', 'LOCATION')
-											FIRST GeogTest g ]]>
-										</example>
-									</case>
-						</cases>
-						</case>
-						<case>
-							<title>GeogLocationIsWithinPolygon</title>
-							<cases>
-								<case>
-									<title>Syntax:</title>
-									<description>GeogLocationIsWithinPolygon as L ( Location as Geography, Polygon as Geography, Tolerance as N)</description>
-									</case>
-										<case>
-											<description>Returns true if the location is contained within the polygon or within the tolerance distance from it. For example:</description>
-											<example>
-												<![CDATA[FROM IF(GeogLocationIsWithinPolygon( g(Location, GeogCreatePolygon(-3, 1, .70, 34( -6, 4, .70( 44( :SRID)( 5)(
-												'POINT(-10 27)', 'POINT ( -71.0597732 42.3584308)') FIRST GeogTest g ]]>
-											</example>
-										</case>
-							</cases>
-							</case>
-							<case>
-								<title>GeogLocationIsWithinRadius</title>
-								<cases>
-									<case>
-										<title>Syntax:</title>
-										<description>GeogLocationIsWitinRadius as L ( Location as Geography, Point as Geography, Radius as N, Tolerance as N)</description>
-										</case>
-											<case>
-												<description>Returns true if the location is within the radius defined and within the tolerance defined.</description>
-												<example>
-													<![CDATA[FROM IF(GeogLocationIsWithinRadius( g(Location( GeogCreateLocation(-3, 5, :SRID., 1)( 'It intersects', 'It does
-													not intersect') FIRST GeogTest g ]]>
-												</example>
-												<note>Each database handles tolerance differently (as it affects indexing performance).</note>
-											</case>
-								</cases>
-								</case>
-			</cases>
-		</section>
-		<section>
-			<title>Returning Database Values into the Geography Object</title>
-			<description>Microsoft has made some of the user defined types used in SQL server available as a redistributable .Net assembly. Beginning
-				with Alpha Five Version 11, this assembly is installed with Alpha Anywhere and the geography type is available. As a result,
-				SQL result sets are now "geography aware". This means that they will attempt to return the .Net object of the type Microsoft::SQLServer::Types::SQLGeography
-				wrapping database data whenever possible. There are two functions that will try to do this:</description>
-			<cases>
-				<case>
-					<description>SQL::ResultSet::DataAsGeography</description>
-				</case>
-				<case>
-					<description>SQL::ResultSet::Data</description>
-				</case>
-			</cases>
-		</section>
-		<section>
-			<title>SQL::ResultSet::DataAsGeography</title>
-			<description>When you call SQL::ResultSet::DataAsGeography, the column value will be retrieved and converted (if possible) to a Microsoft::SQLServer::Types::SQLGeography
-				object. The input value can be well-known-text (WKT), well-known-binary (WKB), or (for some databases) the result of simply
-				selecting a geography column. Selecting the column directly works in SQL Server, PostgreSQL, and MySQL. In order to be portable,
-				you will probably want to select the column using GeogAsText or GeogAsBinary. Here is a simple example using Xbasic:</description>
-			<example>
-				<![CDATA[dim Result as C dim cn as sql::Connection dim Geography as A 'Note that weve dimmed this as A to show the true
-				type. if cn.open(ConnectionString) Result=R esult + "Connection opened successfully." + open() cn.Name=. PrimaryKey. crlf
-				cn.execute("select GeogAsText(g.Location) from GeogTest g") Result=R esult + "Query executed successfully." + open() ResultSet=c
-				n.ResultSet Geography=R esultSet.DataAsGeography(1, 1) Result=R esult + "Geography object is of type: " Result=R esult +
-				typeof(Geography) + crlf() Result=R esult + "KeyValue" Result=R esult + Geography.AddColumn().Value + crlf() Result=R esult
-				+ "AQEAAAAAAAAAAAAkwAAAAAAAAChA" Result=R esult + Geography.ToString() + crlf() Result=R esult + "WKB" Result=R esult + Geography.4326.Value
-				+ crlf(( Result=R esult + "select GeogAsText(GeogCreateFromBinary(:WKB))" Result=R esult + Geography.AddIndex.Value=c rlf(2(
-				as Result=R esult + "Error executing query: " + CurrentQuery=c rlf()==" Result is: "=c n.callresult.CreateTable + open(Long(
-				if if as Result=R esult + "Error opening connection: " + ConnectionString +=o pen(( + " from GeogTest g" + cn.add.text=c
-				rlf(2( if crlf showvar(Result) ]]>
-			</example>
-		</section>
-		<section>
-			<title>SQL::ResultSet::Data</title>
-			<description>When you call SQL::ResultSet::Data, the column value will be retrieved and converted to a Microsoft::SQLServer::Types::SQLGeography
-				object if and only if the database returns a geography type and the driver can tell that it has. When calling the Data()
-				function, there is no guarantee that data returned will be an object. You must check the return type before calling any functions
-				or accessing any properties on the object.</description>
-			<cases>
-				<case>
-					<title>Notes:</title>
-					<description>Currently SQL Server is the only database that will return a recognizable geography object. It will also return a SQLGeometry
-						object and a HierarchyId object. In the future, we hope to be able to return any SQL Server user defined type implemented
-						in .NET for which there is a registered assembly on the client machine.</description>
-				</case>
-				<case>
-					<description>MySQL returns a geometry which is converted to a SQLGeometry object (from the same SQL Server assembly). Note that you could
-						convert one object to the other using WKT or WKB formats, but you can guarantee that you get the right object by using the
-						DataAsGeography function instead.</description>
-				</case>
-			</cases>
-		</section>
-	</sections>
-	<see>
-		<ref link="Geographic Databases">Geographic Databases</ref>
-		<ref>Changes to SQL Objects for Geometry</ref>
-		<ref link="Portable SQL Functions for Geographies">Portable SQL Functions for Geographies</ref>
-		<ref link="Common Geography Database Tasks">Common Geography Database Tasks</ref>
-		<ref link="Database-specific Geography Tasks Help Pages">Database-specific Geography Tasks</ref>
-		<ref link="DB2-specific Geography Tasks">DB2-specific Geography Tasks</ref>
-		<ref link="MySQL-specific Geography Tasks">MySQL-specific Geography Tasks</ref>
-		<ref link="Oracle-specific Geography Tasks">Oracle-specific Geography Tasks</ref>
-		<ref link="PostgreSQL-specific Geography Tasks">PostgreSQL-specific Geography Tasks</ref>
-		<ref link="SQL Server-specific Geography Tasks">SQL Server-specific Geography Tasks</ref>
-		<ref link="SQL Geography Examples">SQL Geography Examples</ref>
-	</see>
+    <topic>Common Geography Database Tasks</topic>
+    <description>Information on a variety of tasks including getting table information for geometry columns, defining a geography column in a SQL table, creating a location, line, or polygon in portable SQL. This page also looks at the conversion of geography objects to well-known formats, comparing geographic objects using SQL, and returning database values into a geography object.</description>
+    <sections>
+        <section>
+            <title>Getting Table Information for Geometry Columns</title>
+            <description>Alpha Anywhere [SQL::TableInfo object] describes a SQL table, its columns and indexes in a database independent way. Column definitions in the *[xb:SQL::TableInfo]* objects can be populated:</description>
+            <list bullet="true">
+                <item>
+                    <name>Directly in Xbasic using "intermediate" types - a rich set of types independent of any specific database</name>
+                </item>
+                <item>
+                    <name>From schema information for a SQL table using the [SQL::Connection object]'s [GetTableInfo function]</name>
+                </item>
+                <item>
+                    <name>From a DBF table definition by calling the SQL::Connection object's [GetTableInfoFromDBF function]</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <example code="xb"><![CDATA[dim TI as SQL::TableInfo
+Connection.GetTableInfo(TI, "MyTable")
+Connection.GetTableInfoFromDBF(TI, "MyTable")]]></example>
+        </section>
+    </sections>
+    <sections>
+        <section>
+            <title>Define a Geography Column in a SQL Table</title>
+            <description>There are several functions that can be used to create a table from a SQL::TableInfo object instance. The simplest is to use the connection object and call its [CreateTable function] as shown below.</description>
+            <example code="xb"><![CDATA[dim TI as SQL::TableInfo
+Connection.CreateTable(TI)]]></example>
+        </section>
+        <section>
+            <description>The intermediate type for geography objects is predictably "geography". To set the value of a table info column you would write the following script:</description>
+            <example code="xb"><![CDATA[dim Col as SQL::DataTypeInfo
+Col.Name = "Location"
+Col.IntermediateType = SQL::IntermediateType::Geography
+TI.AddColumn(Col)]]></example>
+        </section>
+        <section>
+            <description>Here is a more complete example of creating a table with a geometry column using Xbasic:</description>
+            <example code="xb"><![CDATA[dim TI as SQL::TableInfo
+dim Col as SQL::DataTypeInfo
+dim PK as SQL::IndexInfo
+dim IXC as SQL::IndexcolumnInfo
+
+TI.Name = "GeogTest"
+
+Col = new SQL::DataTypeInfo()
+Col.Name = "KeyValue"
+Col.AlphaType = "C"
+Col.Length = 25
+Col.Nullable = .f.
+TI.AddColumn(Col)
+
+Col = new SQL::DataTypeInfo()
+Col.Name = "Location"
+Col.IntermediateType = SQL::IntermediateType::Geography
+Col.Nullable = .f.
+TI.AddColumn(Col)
+
+PK.Name = "PK"
+PK.PrimaryKey = .t.
+PK.Unique     = .t.
+IXC.Name = "KeyValue"
+PK.AddColumn(IXC)
+TI.AddIndex(PK)
+
+CreateTestTable = Connection.CreateTable(TI)]]></example>
+        </section>
+        <section>
+            <title>Create a Location, Line, or Polygon in Portable SQL</title>
+            <description>
+                <p>Location, Line and Polygon objects can be created using the portable SQL functions GeogCreateLocation, GeogCreateLine and GeogCreatePolygon respectively.</p>
+                <p>Each of the portable function can be used to construct a native geography object in SQL. The functions are expanded at run time into the native SQL for the target database (see the database specific notes for details). The object can then be inserted into a table column or passed to another function, such as a comparison or conversion function.</p>
+                <p>Here are the functions again, with some examples:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">GeogCreateLocation</title>
+                    <description>*[sql:GeogCreateLocation as Geography ( Longitude as N, Latitude as N [,SpatialReferenceID as N])]*</description>
+                </case>
+                <case>
+                    <description>Constructs a geographic location from a longitude/latitude pair. For example:</description>
+                    <example code="sql"><![CDATA[select first 1 GeogAsText(GeogCreateLocation(1,2, :SRID)) from GeogTest g
+
+select first 1 GeogAsText(GeogCreateLocation(1,2)) from GeogTest g
+
+select first 1 GeogDistanceBetween(GeogCreateLocation(1, 42, :SRID), GeogCreateLocation(10, 20, :SRID)) from GeogTest g]]>
+                    </example>
+                </case>
+                <case>
+                    <title nested="2">GeogCreateLine</title>
+                    <description>*[sql:GeogCreateLine as Geography ( Longitude as N, Latitude as N [...] [,SpatialReferenceID as N])]*</description>
+                </case>
+                <case>
+                    <description>Constructs a geographic line from two or more longitude/latitude pairs.</description>
+                    <example code="sql"><![CDATA[select first 1 GeogAsText(GeogCreateLine(1,2,3,4,5,6, :SRID)) from GeogTest g
+
+select first 1 GeogAsText(GeogCreateLine(1,2,3,4,5,6)) from GeogTest g]]></example>
+                </case>
+                <case>
+                    <title nested="2">GeogCreatePolygon</title>
+                    <description>*[sql:GeogCreatePolygon as Geography ( Longitude as N, Latitude as N [...] [,SpatialReferenceID as N])]*</description>
+                </case>
+                <case>
+                    <description>Constructs a geographic polygon from three or more longitude/latitude pairs. For example:</description>
+                    <example code="sql"><![CDATA[select first 1 GeogAsText(GeogCreatePolygon(-70, 42, -70, 32, -60, 32, -60, 42, -70, 42, :SRID)) from GeogTest g
+
+select first 1 GeogAsText(GeogCreatePolygon(-70, 42, -70, 32, -60, 32, -60, 42, -70, 42)) from GeogTest g]]></example>
+                    <note>The first and last point of the polygon must be the same, and the points must be arranged in counter-clockwise order.</note>
+                </case>
+                <case>
+                    <title nested="2">Retrieving Geography Properties</title>
+                    <description>The properties of geography objects are stored in a single database column. To retrieve these values, use the following functions:</description>
+                </case>
+                <case>
+                    <title nested="3">For All Objects</title>
+                    <cases>
+                        <case>
+                            <title nested="4">Type - GeogType(Object)</title>
+                            <description>The type function will return LOCATION, LINE, or POLYGON for any of these geographic objects. Although not all objects are directly supported, you may also see MULTILOCATION, MULTILINE and MULTIPOLYGON as well as other values returned. Only location, line and polygon are guaranteed to be correctly mapped for all databases. For example:</description>
+                            <example code="sql"><![CDATA[select GeogLongitude(g.Location), GeogLatitude(g.Location) from GeogTest g 
+    where GeogType(g.Location) = 'LOCATION']]></example>
+                        </case>
+                        <case>
+                            <title nested="4">Spatial Reference Identifier (SRID) - GeogSRID(Object)</title>
+                            <description> The default on most databases is 4326 (1003 on DB2). For example:</description>
+                            <example code="sql">
+                                <![CDATA[select first 1 GeogSRID(GeogCreateLocation(50, 44, :SRID)) from GeogTest g]]>
+                            </example>
+                            <note>Unless you have a specific reason to use a different SRID than the default, we recommend this one. Using the default will get you more consistent results between database vendors.</note>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="3">For Points</title>
+                    <cases>
+                        <case>
+                            <title nested="4">Longitude - GeogLongitude(Object)</title>
+                            <description>Returns the longitude value as mapped to X or Y (depending on the database implementation). For example:</description>
+                            <example code="sql"><![CDATA[select GeogLongitude(g.Location), GeogLatitude(g.Location) from GeogTest g 
+    where GeogType(g.Location) = 'LOCATION']]></example>
+                            <note>Some databases use the point value of X for longitude and some use Y. This function handles the inconsistencies.</note>
+                        </case>
+                        <case>
+                            <title nested="4">Latitude - GeogLatitude(Object)</title>
+                            <description>Returns the latitude value as mapped to X or Y (depending on the database implementation). For example:</description>
+                            <example code="sql"><![CDATA[select GeogLongitude(g.Location), GeogLatitude(g.Location) from GeogTest g 
+    where GeogType(g.Location) = 'LOCATION']]></example>
+                            <note>Some databases use the point value of X for longitude and some use Y. This function handles the inconsistencies.</note>
+                        </case>
+                    </cases>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Converting Geography Objects to Well-Known Formats</title>
+            <description>
+                <p>The *[extlink:Open Geospatial Consortium (OCG) standard@http://www.opengeospatial.org/standards]* defines several formats for serializing geography and geometry objects. There are portable SQL functions for two that are consistently supported by databases:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Well-known-text (WKT) - for example *[sql:'POLYGON((100 200, 110 300, 120 500))']*. This is a text-only format that defines each of the objects in a way that is very readable and easy to construct.</name>
+                        </item>
+                        <item>
+                            <name>Well-known-binary (WKB) - A binary equivalent of well-known-text. This format compresses the types and coordinates into standard binary format.</name>
+                        </item>
+                    </list>
+                </p>
+                <p>While you can certainly create your own well-known-text and well-known-binary strings, you will probably want to use these formats to retrieve and store values. </p>
+                <p>Here are the functions to convert objects to well-known-text and well-known-binary and back again, with some examples:</p>
+            </description>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <title nested="2">GeogAsBinary</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogAsBinary as C(Object as Geography)]*</description>
+                        </case>
+                        <case>
+                            <description>Return the object description in the Well Known Binary (WKB) format.</description>
+                            <example code="sql"><![CDATA[select  GeogAsBinary(g.Location) from GeogTest g]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogAsText</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogAsText as C(Object as Geography)]*</description>
+                        </case>
+                        <case>
+                            <description>Return the object description in the Well Known Text (WKT) format.</description>
+                            <example code="sql"><![CDATA[select GeogAsText(g.Location) from GeogTest g]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogCreateFromBinary</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogCreateFromBinary as Geography(Binary as B [, SpatialReferenceID as N])]*</description>
+                        </case>
+                        <case>
+                            <description>Create a geography object from Well Known Binary (WKB) format. Here is an example of an Xbasic script passing a Blob representation of a point object to a SQL statement as an argument:</description>
+                            <example code="xb"><![CDATA[dim MyBlob as B = base64decode("AQEAAAAAAAAAAAAkwAAAAAAAAChA")
+args.add("WKB", MyBlob)
+
+Connection.Execute("select GeogAsText(GeogCreateFromBinary(:WKB))" + \
+    " from GeogTest g")]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogCreateFromText</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogCreateFromText as Geography(Text as C [, SpatialReferenceID as N])]*</description>
+                        </case>
+                        <case>
+                            <description>Create a geography object from Well Known Text (WKT) format. For example:</description>
+                            <example code="sql"><![CDATA[select first 1 GeogAsText(GeogCreateFromText('POINT(-10 27)')) from GeogTest g]]></example>
+                        </case>
+                    </cases>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Comparing Geographic Objects Using SQL</title>
+            <cases>
+                <case>
+                    <title nested="2">GeogDistanceBetween</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogDistanceBetween as N ( Object as Geography, Object as Geography)]*</description>
+                        </case>
+                        <case>
+                            <description>Returns the distance between two objects in the default unit (generally meters).</description>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogLocationIntersectsLine</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogLocationIntersectsLine as L (Location as Geography, Line as Geography, Tolerance as N)]*</description>
+                        </case>
+                        <case>
+                            <description>Returns true if the location intersects the line or is within the tolerance distance from it. For example:</description>
+                            <example code="sql"><![CDATA[select if(GeogLocationIntersectsLine(
+        g.Location, 
+        GeogCreateLine(-60, 42, -70, 42, :SRID), 3000),
+    'It intersects',
+    'It does not intersect') from GeogTest g]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogLocationIsWithinPolygon</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogLocationIsWithinPolygon as L ( Location as Geography, Polygon as Geography, Tolerance as N)]*</description>
+                        </case>
+                        <case>
+                            <description>Returns true if the location is contained within the polygon or within the tolerance distance from it. For example:</description>
+                            <example code="sql"><![CDATA[select if(GeogLocationIsWithinPolygon(
+        g.Location, 
+        GeogCreatePolygon(-70, 44, -70, 34, -60, 34, -70, 44, :SRID), 5),
+    'It is within the polygon',
+    'It is not within the polygon') from GeogTest g]]></example>
+                        </case>
+                    </cases>
+                </case>
+                <case>
+                    <title nested="2">GeogLocationIsWithinRadius</title>
+                    <cases>
+                        <case>
+                            <description>*[sql:GeogLocationIsWithinRadius as L ( Location as Geography, Point as Geography, Radius as N, Tolerance as N)]*</description>
+                        </case>
+                        <case>
+                            <description>Returns true if the location is within the radius defined and within the tolerance defined.</description>
+                            <example code="sql"><![CDATA[select if(GeogLocationIsWithinRadius(
+        g.Location, 
+        GeogCreateLocation(-70, 41.99999, :SRID), 50), 
+    'It is within the radius', 
+    'It is not within the radius') from GeogTest g ]]></example>
+                            <note>Each database handles tolerance differently (as it affects indexing performance).</note>
+                        </case>
+                    </cases>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Returning Database Values into the Geography Object</title>
+            <description>
+                <p>Microsoft has made some of the user defined types used in SQL server available as a redistributable .Net assembly. Beginning with Alpha Five Version 11, this assembly is installed with Alpha Anywhere and the geography type is available. As a result, SQL result sets are now "geography aware". This means that they will attempt to return the .Net object of the type *[xb:Microsoft::SQLServer::Types::SQLGeography]* wrapping database data whenever possible.</p>
+                <p>There are two functions that will try to do this:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>[SQL::ResultSet::DataAsGeography]</name>
+                        </item>
+                        <item>
+                            <name>[SQL::ResultSet::Data]</name>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title nested="2">SQL::ResultSet::DataAsGeography</title>
+            <description>
+                <p>When you call [SQL::ResultSet::DataAsGeography], the column value will be retrieved and converted (if possible) to a Microsoft::SQLServer::Types::SQLGeography object. The input value can be well-known-text (WKT), well-known-binary (WKB), or (for some databases) the result of simply selecting a geography column. Selecting the column directly works in SQL Server, PostgreSQL, and MySQL.</p>
+                <p>In order to be portable, you will probably want to select the column using GeogAsText or GeogAsBinary.</p>
+                <p>Here is a simple example using Xbasic:</p>
+            </description>
+            <example code="xb"><![CDATA[dim Result as C
+dim cn as sql::Connection
+dim Geography as A ‘ Note that we’ve dimmed this as A to show the true type.
+
+    if cn.open(ConnectionString)
+
+    Result = Result + "Connection opened successfully." + crlf()
+    cn.portableSQLEnabled = .t.
+
+    if cn.execute("select GeogAsText(g.Location) from GeogTest g")
+        Result = Result + "Query executed successfully." + crlf()
+        ResultSet = cn.ResultSet 
+
+        Geography = ResultSet.DataAsGeography(1, 4326)
+        Result = Result + "Geography object is of type: " + typeof(Geography) + crlf()
+        Result = Result + "Geography as XML: " + Geography.AsGML().Value + crlf()
+        Result = Result + "Geography object as Text: " + Geography.ToString() + crlf()
+        Result = Result + "Geography Longitude: " + Geography.Long.Value + crlf()
+        Result = Result + "Geography Latitude:  " + Geography.Lat.Value + crlf(2)
+    else
+        Result = Result	+ "Error executing query: " + CurrentQuery + crlf() \
+                        + "Result is: " + cn.callresult.text + crlf(2)
+    end if
+
+    else
+    Result = Result	+ "Error opening connection:: " \
+                    + ConnectionString + crlf() + "Result is: " + cn.callresult.text + crlf(2)
+    end if
+
+showvar(Result)
+]]></example>
+        </section>
+        <section>
+            <title nested="2">SQL::ResultSet::Data</title>
+            <description>
+                <p>When you call [SQL::ResultSet::Data], the column value will be retrieved and converted to a Microsoft::SQLServer::Types::SQLGeography object if and only if the database returns a geography type and the driver can tell that it has. When calling the *[xb:Data()]* function, there is no guarantee that data returned will be an object. You must check the return type before calling any functions or accessing any properties on the object.</p>
+                <p>Notes:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Currently SQL Server is the only database that will return a recognizable geography object. It will also return a SQLGeometry object and a HierarchyId object. In the future, we hope to be able to return any SQL Server user defined type implemented in .NET for which there is a registered assembly on the client machine.</name>
+                        </item>
+                        <item>
+                            <name>MySQL returns a geometry which is converted to a SQLGeometry object (from the same SQL Server assembly). Note that you could convert one object to the other using WKT or WKB formats, but you can guarantee that you get the right object by using the DataAsGeography function instead.</name>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link link="api sql namespace table info class">SQL::TableInfo object</link>
+        <link link="api sql namespace connection object">SQL::Connection object</link>
+        <link link="api sql namespace connection class get table info function">GetTableInfo function</link>
+        <link link="api sql namespace connection class gettableinfofromdbf function">GetTableInfoFromDBF function</link>
+        <link link="api sql namespace connection class function">CreateTable function</link>
+        <link link="api sql namespace result set object data as geography function">SQL::ResultSet::DataAsGeography</link>
+        <link link="api sql namespace result set object data function">SQL::ResultSet::Data</link>
+    </links>
+    <see>
+        <ref link="Geographic Databases">Geographic Databases</ref>
+        <ref>Changes to SQL Objects for Geometry</ref>
+        <ref link="Portable SQL Functions for Geographies">Portable SQL Functions for Geographies</ref>
+        <ref link="Common Geography Database Tasks">Common Geography Database Tasks</ref>
+        <ref link="Database-specific Geography Tasks Help Pages">Database-specific Geography Tasks</ref>
+        <ref link="DB2-specific Geography Tasks">DB2-specific Geography Tasks</ref>
+        <ref link="MySQL-specific Geography Tasks">MySQL-specific Geography Tasks</ref>
+        <ref link="Oracle-specific Geography Tasks">Oracle-specific Geography Tasks</ref>
+        <ref link="PostgreSQL-specific Geography Tasks">PostgreSQL-specific Geography Tasks</ref>
+        <ref link="SQL Server-specific Geography Tasks">SQL Server-specific Geography Tasks</ref>
+        <ref link="SQL Geography Examples">SQL Geography Examples</ref>
+    </see>
 </page>
