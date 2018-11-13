@@ -1,0 +1,159 @@
+<page build="5445">
+    <shortlink>alphadao multitenant connection</shortlink>
+    <topic>Creating a Multi-tenant Connection</topic>
+    <description>
+        <p>A multi-tenant connection string can be used to build Software-as-a-Service (SaaS) applications in Alpha Anywhere with ease.</p>
+    </description>
+    <discussion>
+        <p>When you create a multi-tenant SaaS application (using any development platform, not specifically Alpha Anywhere), you can either give each tenant their own database, or you can use a shared database for all tenants.</p>
+        <p>Giving each tenant their own database will work well if you do not have a large number of tenants. However, if your application has a large number of tenants, the only practical approach is to have a single database for the application that all tenants share.</p>
+        <p>If you use a shared database, you will need to have a 'tenant id' field in each table so that the records in the table can be associated with the correct tenant. Every time your code executes a SQL CRUD statement, you will need to remember to include the tenant id field in the SQL statement.</p>
+        <p>The Multi-tenant driver is used in cases where you have a shared database for all of the tenants. The multi-tenant driver will automatically inject the tenant id field into the SQL so you do not have to remember to do it. </p>
+        <p>For example, assume you have defined a multi-tenant driver with these properties</p>
+        <p>
+            <list>
+                <item>
+                    <name-title>Property</name-title>
+                    <description-title>Value</description-title>
+                </item>
+                <item>
+                    <name>Connection string</name>
+                    <description>*[ui:::Name::northwind]*</description>
+                </item>
+                <item>
+                    <name>TenantID field name</name>
+                    <description>*[ui:tenantid]*</description>
+                </item>
+                <item>
+                    <name>Session variable for tenant ID</name>
+                    <description>*[ui:tenantid]*</description>
+                </item>
+                <item>
+                    <name>Data type for TenantID field name</name>
+                    <description>*[ui:numeric]*</description>
+                </item>
+            </list>
+        </p>
+        <p>Now, assume you execute the following SQL query:</p>
+        <p>
+            <example code="sql"><![CDATA[SELECT * from Employees]]></example>
+        </p>
+        <p>The SQL statement that will be sent to the database will actually be (assuming that the value of session.mytenantid is 23) :</p>
+        <p>
+            <example code="sql"><![CDATA[SELECT * from Employees WHERE tenantId = 23]]></example>
+        </p>
+        <p>In the case of an INSERT statement, the tenant Id will automatically be set to the value of the current tenant.</p>
+        <p>For example,  your SQL statement:</p>
+        <p>
+            <example code="sql"><![CDATA[INSERT into Employees (firstname, lastname) values (:fname, :lname)]]></example>
+        </p>
+        <p>will automatically be converted to:</p>
+        <p>
+            <example code="sql"><![CDATA[INSERT into Employees (firstname, lastname, tenantid) values (:fname, :lname, 23)]]></example>
+        </p>
+        <p>If there are some tables in your multi-tenant SaaS application that are shared by all tenants (i.e. the tables do not have a tenant ID field), then when you query these tables you will not use the multi-tenant connection string. Instead you will use the base connection string.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>How to Create a Multi-tenant Connection String</title>
+            <description>
+                <p>To create a Multi-tenant connection string, create a new connection string (from the *[ui:Tools]* &gt; *[ui:AlphaDAO Connection strings]* menu on the Web Project Control Panel.)</p>
+                <p>The Select API dialog will appear when you create a new connection. You can either select the MultiTenant option, or the Custom option. Select the Custom option if you want to customize the Xbasic class that implements the Multi-tenant driver.</p>
+            </description>
+            <note>You can also click the [...] smart field button for the *[ui:Connection Type]* in the Create SQL Connection String dialog to change the connection type.</note>
+            <figure>
+                <link>images/createmultitenant.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>If you select the MultiTenant option, the next dialog allows you to set the properties for your multi-tenant connection string.</p>
+            </description>
+            <figure>
+                <link>images/multitenant9.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The properties you must set are:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Property</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Connection string</name>
+                            <description>This is the connection string that points to your database.</description>
+                        </item>
+                        <item>
+                            <name>Tenant ID field name</name>
+                            <description>The name of the tenant ID field in each of the multi-tenant tables in your database (e.g. tenantid)</description>
+                        </item>
+                        <item>
+                            <name>Session variable name</name>
+                            <description>The name of the session variable that will contain the current tenant ID value (this value will typically be set at the time the tenant logs into the application). For example: session.tenantid. *[bold:IMPORTANT:]* Session variables are deleted when a session expires. Therefore you should ensure that the user's login also expires when the session expires.</description>
+                        </item>
+                        <item>
+                            <name>Tenant ID field type</name>
+                            <description>The data type of the tenant ID field - can either be character or numeric.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>If you select the Custom option, you will get this dialog where you must specify the name of the Xbasic class that implements the custom driver. Click the *[ui:Show Example...]* hyperlink to get an example Xbasic class that implements a multi-tenant driver.</p>
+            </description>
+            <figure>
+                <link>images/multitenant2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <figure>
+                <link>images/multitenant3.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Then select the Xbasic class that you created from the examples and fill in the property sheet, as shown below.</p>
+            </description>
+            <figure>
+                <link>images/multitenant4.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>See [Creating Custom Connection Strings] to learn more.</p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>How to Create a Multi-tenant Connection String</title>
+                <description>
+                    <p>When you build multi-tenant SaaS applications that use a shared database, each table in the database must  have a tenant id field and all of your SQL queries must include the tenant Id. When you use a multi-tenant connection string, the tenant id is automatically injected into all SQL statements before the statement is sent to the database. This makes it easier to build multi-tenant SaaS applications, or to convert an existing application to a multi-tenant application because you do not have to manually adjust all of your SQL statements.</p>
+                    <p>In this video we show how a multi-tenant connection string is defined and then we show the results when a SQL SELECT and INSERT statement are executed.</p>
+                </description>
+                <date>2018-10-21</date>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://www.viddler.com/v/3342531</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://www.viddler.com/v/c916ec42</link>
+                </video>
+                <video>
+                    <name>Watch Video - Behind the scenes</name>
+                    <link>http://www.viddler.com/v/3342531</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="alphadao custom connection"></link>
+        <link href="/images/tools/ellipsesButton.png">...</link>
+        <link link="alphadao custom connection#group_Multi-tenant Driver">Creating Custom Connection Strings</link>
+    </links>
+    <see>
+        <ref link="alphadao custom connection">Creating Custom Connection Strings</ref>
+    </see>
+</page>
