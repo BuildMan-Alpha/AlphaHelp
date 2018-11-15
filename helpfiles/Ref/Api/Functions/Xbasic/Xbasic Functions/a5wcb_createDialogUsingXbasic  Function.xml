@@ -1,0 +1,332 @@
+<page api="xb" build="2089">
+    <shortlink>xb a5wcb createdialogusingxbasic function</shortlink>
+    <topic>a5wcb_createDialogUsingXbasic Function</topic>
+    <prototypes>
+        <prototype>a5wcb_createDialogUsingXbasic as v (wp as p, componentName as c [, flagShowProgress = .t.])</prototype>
+    </prototypes>
+    <description>Used to generate a UX Component programmatically.</description>
+    <arguments>
+        <argument>
+            <name>sp</name>
+            <type>P</type>
+            <description>A dot variable containing the definition for the UX Component. The Xbasic tab in the UX builder shows the available properties for each control type.</description>
+        </argument>
+        <argument>
+            <name>componentName</name>
+            <type>C</type>
+            <description>The name for the component. Prefix the name with "__sessionFile__" to create and store the generated component in the user's session folder.</description>
+        </argument>
+        <argument optional="true">
+            <name>flagShowProgress</name>
+            <type>L</type>
+            <description>Default = *[xb:.t.]*. If true,, displays a wait dialog while component is being created. If .f., does not display progress.</description>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>The a5wcb_createDialogUsingXbasic() function can be used to generate an UX component programmatically.</p>
+        <p>Note that for each control, a minimal set of properties is defined. You can add additional properties for each control if necessary. The Xbasic tab in the UX builder shows the available properties for each control type.</p>
+    </discussion>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[dim wp as p
+DIM wp.page_fields[0] as P
+with wp.page_fields[]
+    .controltype = "layout_directive_statictext"
+    .v.StaticText = "Created by Xdialog"
+end with
+
+with wp.page_fields[]
+    .v.variableName = "c"
+    .v.breakType = "None"
+end with
+
+with wp.page_fields[]
+    .v.variableName = "d"
+    .v.label = "Field D"
+    .v.hasWaterMark = .t.
+    .v.waterMark.text = "Enter name"
+end with
+
+with wp.page_fields[]
+    .controltype = "layout_directive_button"
+    .v.buttonText = "click me"
+    .v.javascript.onclick = "alert('click');"
+end with
+
+with wp.page_fields[]
+    .controltype = "layout_directive_FrameBegin"
+    .v.FrameTitle = "frame"
+    .v.Frame.ID = "FRAME_1"
+    .v.Frame.type = "Simple"
+end with
+
+with wp.page_fields[]
+    .controltype = "layout_directive_hyperlink"
+    .v.hyperlinkText = "this is my hyperlink"
+    .v.javascript.onclick = "alert('you clicked a hyperlink');"
+end with
+
+with wp.page_fields[]
+    .controltype = "layout_directive_image"
+    .v.ImageMode = "Static"
+    .v.javascript.onclick = "alert('click on image');"
+    .v.Imagename = "images/$$application.alpha.png.a5image"
+end with
+
+with wp.page_fields[] ' initialize tmpl.page_fields[8]
+    .controltype = "layout_directive_FrameEnd"
+end with
+
+'create the UX and call it 'genByXbasic'
+a5wcb_createDialogUsingXbasic(wp,"genByXbasic",.t.)]]></example>
+        </section>
+        <section>
+            <title>Generating a UX Dynamically in a Web Application</title>
+            <description>
+                <p>You may have a use case that requires the dynamically created UX component at run-time. The UX component, in this case, should be created as a temporary session file. This is done by specifying a name with '__sessionFile__' as a prefix when calling the a5wcb_createDialogUsingXbasic() function.</p>
+                <p>The following sample .A5W page shows how this can be done</p>
+            </description>
+            <example><![CDATA[<%a5
+'define the UX component
+dim wp as p
+DIM wp.page_fields[0] as P
+with wp.page_fields[]
+.controltype = "layout_directive_statictext"
+.v.StaticText = "Created by Xdialog"
+end with
+
+with wp.page_fields[]
+.v.variableName = "c"
+.v.breakType = "None"
+end with
+
+with wp.page_fields[]
+.v.variableName = "d"
+.v.label = "Field D"
+.v.hasWaterMark = .t.
+.v.waterMark.text = "Enter name"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_button"
+.v.buttonText = "click me"
+.v.javascript.onclick = "alert('click');"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_FrameBegin"
+.v.FrameTitle = "frame"
+.v.Frame.ID = "FRAME_1"
+.v.Frame.type = "Simple"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_hyperlink"
+.v.hyperlinkText = "this is my hyperlink"
+.v.javascript.onclick = "alert('you clicked a hyperlink');"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_image"
+.v.ImageMode = "Static"
+.v.javascript.onclick = "{grid.Object}.ajaxCallback('G','{Grid.RowNumber}:all','xb','','',{deviceOfflineFunction: function() { }});"
+.v.Imagename = "images/$$application.alpha.png.a5image"
+end with
+
+with wp.page_fields[] ' initialize tmpl.page_fields[8]
+.controltype = "layout_directive_FrameEnd"
+end with
+
+DIM wp.XbasicFunctionDeclarations as C = <<%code%
+function xb as c (e as p)
+xb = "alert('callback');"
+end function
+%code%
+
+'give the component name a special name that starts with __sessionFile__
+dim componentName as c
+componentName = "__sessionFile__mydynamicUx"
+a5wcb_createDialogUsingXbasic(wp,componentName,.f.)
+
+Delete tmpl
+DIM tmpl as P
+tmpl = a5w_load_component(componentName)
+
+'set the following to properties in tmpl
+tmpl.alias = "MYALIAS"
+tmpl._dialogFilename = file.filename_parse(componentName,"N")
+
+'now run the dynamically generated component
+delete x_ux1
+dim x_ux1 as p
+x_ux1 = a5w_run_Component(tmpx)
+
+?x_ux1.Output.Head.JavaScript
+?x_ux1.Output.Head.CSS_Link
+?x_ux1.Output.Head.Title
+%>
+
+</head>
+    <body>
+        <%a5 ?x_ux1.Output.Body.Dialog2_HTML %>
+    </body>
+</html>]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Alternatively, you might want to generate the UX component dynamically on an Ajax callback. For example, the following Xbasic function in a UX component handles an Ajax callback. The function dynamically creates a UX and then sends the name of the dynamically created UX component back to the UX so that the name can be stored in a variable and used when you want to open this component.</p>
+            </description>
+            <example code="xb"><![CDATA[function xb_generate as c (e as p)
+
+dim wp as p
+DIM wp.page_fields[0] as P
+with wp.page_fields[]
+.controltype = "layout_directive_statictext"
+.v.StaticText = "Created by Xdialog"
+end with
+
+with wp.page_fields[]
+.v.variableName = "c"
+.v.breakType = "None"
+end with
+
+with wp.page_fields[]
+.v.variableName = "d"
+.v.label = "Field D"
+.v.hasWaterMark = .t.
+.v.waterMark.text = "Enter name"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_button"
+.v.buttonText = "click me"
+.v.javascript.onclick = "alert('click');"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_FrameBegin"
+.v.FrameTitle = "frame"
+.v.Frame.ID = "FRAME_1"
+.v.Frame.type = "Simple"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_hyperlink"
+.v.hyperlinkText = "this is my hyperlink"
+.v.javascript.onclick = "alert('you clicked a hyperlink');"
+end with
+
+with wp.page_fields[]
+.controltype = "layout_directive_image"
+.v.ImageMode = "Static"
+.v.javascript.onclick = "{grid.Object}.ajaxCallback('G','{Grid.RowNumber}:all','xb','','',{deviceOfflineFunction: function() { }});"
+.v.Imagename = "images/$$application.alpha.png.a5image"
+end with
+
+
+with wp.page_fields[] ' initialize tmpl.page_fields[8]
+.controltype = "layout_directive_FrameEnd"
+end with
+
+DIM wp.XbasicFunctionDeclarations as C = <<%code%
+function xb as c (e as p)
+xb = "alert('callback');"
+end function
+%code%
+
+fn = "__sessionFile__myuxonthefly"
+a5wcb_createDialogUsingXbasic(wp,fn,.f.)
+'generate a response to send back to the client
+'the name of the dynamically generated UX will be stored
+'in a variable called {dialog.object}._ux
+
+xb_generate = "alert('done: "+js_escape(fn)+"');" + crlf()+\
+"{dialog.object}._ux = '"+js_escape(fn)+"';"
+
+end function ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Now, in order to open this dynamically generated UX, you would need to make another Ajax callback. The easiest way to code this is use use Action Javascript to define an action that opens a UX component, and then convert the action to text mode. Then edit the generated code and replace this line:</p>
+            </description>
+            <example code="xb"><![CDATA[go.dialog2Name = 'Name of component to open';]]></example>
+        </section>
+        <section>
+            <description>
+                <p>with this line:</p>
+            </description>
+            <example code="xb"><![CDATA[go.dialog2Name = {dialog.object}._ux;]]></example>
+        </section>
+        <section build="4077">
+            <title>Absolute Layout Containers</title>
+            <description>You can use the a5wcb_createDialogUsingXbasic() Xbasic function to create a UX component that define a component that contains an Absolute Layout container. This is made possible because the Absolute Layout's absolutePositions property allows you to specify the variablename of the control in the absolute layout rather than its idInternal property, which cannot be used because it is dynamically assigned when a5wcb_createDialogUsingXbasic() executes.</description>
+            <example code="xb"><![CDATA[dim wp as p
+DIM wp.page_fields[0] as P
+
+with wp.page_fields[]
+.controltype = "layout_directive_ContainerBegin"
+.v.container.subType = "AbsoluteLayout"
+.v.container.id = "ABS1"
+.v.container.absolutePositions = <<%str%
+[
+    {
+        variablename: 'c',
+        top: '7px',
+        left: '16px',
+        height: '28px',
+        width: '139px',
+        style: 'position: absolute; top: 7px; left: 16px; width: 139px; height: 28px; '
+    },
+    {
+        variablename: 'd',
+        top: '156px',
+        left: '141px',
+        height: '27px',
+        width: '132px',
+        style: 'position: absolute; top: 156px; left: 141px; width: 132px; height: 27px; '
+    }
+]
+
+%str%
+end with
+
+with wp.page_fields[]
+    .v.variableName = "c"
+    .v.breakType = "None"
+end with
+
+with wp.page_fields[]
+    .v.variableName = "d"
+    .v.label = "Field D"
+    .v.hasWaterMark = .t.
+    .v.waterMark.text = "Enter name"
+end with
+
+with wp.page_fields[]
+    .controltype = "layout_directive_Containerend"
+end with
+
+a5wcb_createDialogUsingXbasic(wp,"genByXbasic",.t.)]]></example>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Generate a component at run-time using Xbasic</title>
+                <description>
+                    <p>In most cases, the UX components that your application uses will be built at design-time. However, there may be use cases for UX components that are generated dynamically at run-time using Xbasic.</p>
+                    <p>The a5wcb_createDialogUsingXbasic() allows you to generate a UX component using Xbasic.</p>
+                    <p>In this video we show how a button on a UX makes an Ajax callback to generate a UX on the fly. Another button then opens this dynamically generated UX component.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/ad0e49bf</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/generate_a_ux_on_the_fly.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+</page>
