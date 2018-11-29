@@ -1,0 +1,204 @@
+<page>
+	<topic>Connecting to MySQL</topic>
+<description>Alpha Anywhere AlphaDAO includes a MySQL native driver built on the MySQL C library.  
+			Alpha Anywhere does not require any additional software or separate client side configuration to connect to a MySQL database. 
+			</description>
+	<sections>
+		<section>
+			<title>Using the MySQL Connection String Dialog</title>
+			<description>When you select MySQL as your connection type in the connection string dialog, the dialog below will be displayed.  
+						Enter your host and server name and provide any authentication information required to connect to your database. 
+						The values you select will be generated into the connection string at the top of the dialog for you as you make changes.
+            <note>
+              Before you begin, make sure you have installed and configured your MySQL server.  For more information on installing and configuring MySQL, see
+              *[extlink:https://MySQL.com/]*
+            </note>
+					</description>
+			<cases>
+				<case>
+				<description>The MySQL connection string dialog has tab pages for general properties, TLS/SSL, SSH tunneling, and advanced properties. 
+						 Each of the properties are described below.</description>
+				<figure><link>images/MySQLConnectionStringDialogGeneral.png</link></figure>
+				</case>
+				<case>
+				<description>The TLS/SSL tab is used to enable TLS (also called SSL) connections.
+                    These connections are encrypted between Alpha Anywhere and the database.
+                    The database presents a certificate to the client and the client verifies that it trusts the certificate.
+                    You will need to provide a certificate file with trusted certificates (and possibly the certificate being provided by the server).
+                    You can also require that the server certificate match a name, company and/or unit values that you provide.
+						</description>
+				<figure><link>images/MySQLConnectionStringDialogTLS.png</link></figure>
+				</case>
+				<case>
+				<description>The SSH tab is used to enable a connection to a database using an SSH2 tunnel.
+                    These connections are made from a local tunnel that is connected to a remote server and then finally to the actual database, 
+			typically behind a firewall.
+                    Alpha Anywhere will create and manage the tunnel for you based on the values you provide on this page.
+						</description>
+				<figure><link>images/MySQLConnectionStringDialogSSH.png</link></figure>
+				</case>
+
+				<case>
+				<description><p>The Advanced tab is used to set an initial command to be executed at connect time and to 
+					configure Connection Pooling for the connection.</p>
+				<p>To execute one or more commands immediately after connecting to the database, enter native MySQL commands separated
+					by a semi-colon.</p>
+				<p>Connection pooling is an automatically managed process designed to reduce the cost of constantly reconnecting to servers.  
+					This can save up to 50 to 100 milliseconds per open depending on the proximity and power of the database server.</p>
+				<p>When a connection is closed from XBasic, the driver checks to see if the connection is pooled.  
+					If it is, the connection is not actually closed, but is added to a pool of like connections.</p>  
+				<p>When a connection is opened from XBasic, the driver first checks to see if the connection is pooled and a matching connection 
+					is available in the pool.  
+					If this is the case, it simply takes an already open connection out of the pool and returns it to the caller.</p>
+				</description>
+				</case>
+
+				<case>
+				<description>
+				<p><strong>Considerations</strong></p>
+					
+				<p>A separate pool of connections is created for each driver, server, username and password, database, port and login and connection timeout combination.  
+					Other connection string differences are currently ignored as of this writing. </p>
+				<p>If the current database, or schema, or other session specific settings are altered during the connection lifetime, the connection may be in an incorrect state when returned to the pool and then reused.  
+					If you expect to change connection settings in this way, pooling will be unreliable.</p>
+				<p>When pooling connections, consideration needs to be paid to the number of application servers and the number processes running per server; as this can increase the load on the database  server.</p>  
+				<p>If SSH tunneling is used (see separate discussion) then pooled connections will force a tunnel connection; which can reduce availability of the tunnel across connection pools.</p>
+
+				</description>
+				<figure><link>images/MySQLConnectionStringDialogAdvanced.png</link></figure>
+				</case>
+
+			</cases>
+		</section>
+		<section>
+			<title>MySQL Connection String Properties</title>
+			<list>
+				<item>
+					<name-title>Connection Property</name-title>
+					<description-title>Description</description-title>
+				</item>
+
+				<item>
+					<name>A5API</name>
+					<description>Setting the connection property A5API to 'MySQL' will load the MySQL driver when you open a connection.</description>
+				</item>
+				<item>
+					<name>A5DBVersion</name>
+					<description>The version number of MySQL your server is running. 
+						This will assure that your client connects using the driver best matched to your MySQL server.
+						</description>
+				</item>
+				<item>
+					<name>Server</name>
+					<description>Enter the DNS name or IP address of your server.</description>
+				</item>
+				<item>
+					<name>Port</name>
+					<description>MySQL defaults to an IP address of 2638.
+            					It is a good practice to set the server port to a different value so that it is not as obvious that MySQL 
+						is being served.
+						This is not a substitute for using secure connections.
+						</description>
+				</item>
+				<item>
+					<name>UserName</name>
+					<description>Set this value to the user name you wish to connect to the database with.  
+					This is only needed if trusted_connection is not set to 'yes'</description>
+				</item>
+				<item>
+					<name>Password</name>
+					<description>Set this value to the password value you wish to connect to the database with.  
+                This is only needed if trusted_connection is not set to 'yes'
+                <note>Using the connection string dialog will obscure the password within the connection string.
+                Publish functions encrypt the connection string.</note>
+              </description>
+				</item>
+				<item>
+					<name>Database</name>
+					<description>Enter or select the name of the database you are targeting.</description>
+				</item>
+				<item>
+					<name>A5LoginTimeout</name>
+					<description>Set this value to control the timeout for new connections in seconds.
+              Omit this setting to use the MySQL ODBC driver default value.</description>
+				</item>
+				<item>
+					<name>A5ConnectionTimeOut</name>
+					<description>Set this value to control the timeout for the lifetime of a connection in seconds.
+              Omit this setting to use the MySQL ODBC driver default value.</description>
+				</item>
+				<item>
+					<name>A5TraceSQL</name>
+					<description>Set this value to Y to trace SQL statements.
+            Within Alpha Anywhere messages are written to the trace pane.
+            For Application Servers the output is written to a file.  The actual location varies by server.
+						</description>
+				</item>
+				<item>
+					<name>A5SSL</name>
+					<description>Setting this value to Y requests that connections made to MySQL be done using TLS (Transport Level Security).
+            The predecessor to TLS is SSL (Secure Sockets Level) and is no longer the current protocol, 
+            but you will often see SSL in documentation and common usage.
+					<p>The conection string properties for TLS connections are discussed separately in	
+						<a href="Connecting Securely with TLS and SSL.html">Connecting Securely with TLS and SSL</a>
+						</p>
+					</description>
+
+				</item>
+
+				<item>
+					<name>A5SSHTunnel</name>
+					<description>Setting this value to Y requests that a tunnel be created to connect to the target database.
+					<p>The conection string properties for SSH connections are discussed separately in
+						<a href="Connecting Securely with SSH.html">Connecting Securely with SSH</a>
+ 						</p>
+					</description>
+				</item>
+
+				<item>   
+					<name>A5InitialCommand</name>
+					<description>Set this value to the semi-colon delimited list of commands you want to execute after a connection is opened.</description>
+				</item>
+				<item>   
+					<name>A5Pool</name>
+					<description>Set this value to 'Y' to enable pooling for the connection. The default value is 'N'.</description>
+				</item>
+				<item>
+					<name>A5PoolSize</name>
+					<description>Set the maximum number of connections that will be kept in the pool for this connection string.
+						The number of connections that remain open can affect the server as it must retain open connections even if they are in the pool.
+						The default pool size is 5.</description>
+				</item>
+				<item>
+					<name>A5Pooltimeout</name>
+					<description>The number of seconds a connection should remain in the pool.
+						This setting is used to avoid keeping stale connections in the connection pool as well as keeping connections in the pool from  losing connectivity with the server because the server closes the connection.
+						The default timeout is 300 seconds (5 minutes).  This value is reasonable on small/single application server environments.  It may be too long for active servers.
+						</description>
+					<note>Setting the connection  timeout to a smaller value than that of A5PoolSize could result in a connection in the pool being disconnected while still in the pool.  
+					As a result, when pooling is enabled, the maximum value of connection timeout and pool timeout is used when connecting to the database.</note>
+				</item>
+
+			</list>
+			
+		</section>
+		<section>
+			<title>Using Portable SQL with MySQL</title>
+			<cases>
+				<case>
+				<description>A MySQL connection automatically selects MySQL as it's syntax.  
+						The MySQL syntax handler reads table information, and generates DDL (Data Definition Language) such as CREATE TABLE, DROP TABLE and DML (Data Manipulation Language) such as SELECT, INSERT, UPDATE, DELETE.
+						It is also responsible for translating AlphaDAO Portable SQL functions into native implementations.   
+					</description>
+				</case>
+				<case>
+				<note>The MySQL syntax handler may be used with the ODBC and ADO.Net drivers as well.
+						</note>
+				</case>
+			</cases>
+		</section>
+</sections>
+	
+</page>
+
+
