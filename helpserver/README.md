@@ -1,5 +1,14 @@
 # Running Helpserver On a Development Machine
 
+## Prerequisites
+
+The following will need to be installed or downloaded locally:
+
+ - npm
+ - a clone of this repository
+
+## Install node modules
+
 After pulling down the AlphaHelp repository to a development machine, you can run the documentation 
 server locally.  You will need to have node installed on your system, as well as getting the node_modules.
 In the ./AlphaHelp/helpserver folder run
@@ -8,11 +17,16 @@ In the ./AlphaHelp/helpserver folder run
 npm update
 ```
 
+
+## Install xsltproc
+
 You will need to install xsltproc as well:
 
 ```
 npm install xsltproc
 ```
+
+## Running the helpserver
 
 If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpfiles/xsltproc_win directory into AlphaHelp/helpfiles. These files are not tracked under git and will be ignored when copied into the helpserver folder.
 
