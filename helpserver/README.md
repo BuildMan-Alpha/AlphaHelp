@@ -1,5 +1,14 @@
 # Running Helpserver On a Development Machine
 
+## Prerequisites
+
+The following will need to be installed or downloaded locally:
+
+ - npm
+ - a clone of this repository
+
+## Install node modules
+
 After pulling down the AlphaHelp repository to a development machine, you can run the documentation 
 server locally.  You will need to have node installed on your system, as well as getting the node_modules.
 In the ./AlphaHelp/helpserver folder run
@@ -8,15 +17,31 @@ In the ./AlphaHelp/helpserver folder run
 npm update
 ```
 
+
+## Install xsltproc
+
 You will need to install xsltproc as well:
 
 ```
 npm install xsltproc
 ```
 
-If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpfiles/xsltproc_win directory into AlphaHelp/helpfiles. These files are not tracked under git and will be ignored when copied into the helpserver folder.
+## Running the helpserver
 
-For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter. You will need to create a directory called "generated" in the project root before you can run helpserver.js. After this directory has been created, you can run the following command from within AlphaHelp/helpserver to run the helserver without search:
+### Copy xsltproc_win Files to helpfiles
+
+If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver. These files are not tracked under git and will be ignored when copied into the helpserver folder.
+
+### Create the Folder Structure
+
+Add the following directories:
+
+- AlphaHelp/generated
+- AlphaHelp/generated/topics
+
+### Running the helpserver
+
+For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter. You can run the following command from within AlphaHelp/helpserver to run the helserver without search:
 
 ```
 node helpserver.js -nosearch
@@ -36,6 +61,16 @@ elasticsearch service on your system.
 ```
 node helpserver.js -local
 ```
+
+## Troubleshooting
+
+### Error: ENOENT: no such file or directory, open 'C:\GitHub\AlphaHelp\generated\topics\_guides_index.xml_html_all'
+
+You did not create the generated and/or generated/topics folders.
+
+### Error: not found: xsltproc
+
+You did not install xsltproc and/or did not copy the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver.
 
 ## Maintaining the links.json file
 
