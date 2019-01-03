@@ -30,7 +30,7 @@ npm install xsltproc
 
 ### Copy xsltproc_win Files to helpfiles
 
-If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpfiles/xsltproc_win directory into AlphaHelp/helpserver. These files are not tracked under git and will be ignored when copied into the helpserver folder.
+If you are running helpserver.js on a Windows system, copy all of the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver. These files are not tracked under git and will be ignored when copied into the helpserver folder.
 
 ### Create the Folder Structure
 
@@ -70,7 +70,7 @@ You did not create the generated and/or generated/topics folders.
 
 ### Error: not found: xsltproc
 
-You did not install xsltproc and/or did not copy the files from the AlphaHelp/helpfiles/xsltproc_win directory into AlphaHelp/helpfiles.
+You did not install xsltproc and/or did not copy the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver.
 
 ## Maintaining the links.json file
 
