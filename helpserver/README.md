@@ -148,11 +148,10 @@ node genKnownIssuesExtRef.js > known_issues.json
 Note: The help server does not automate generating this list of issues, so this script must be run periodically to remove resolved issues and add new issues.
 
 ### Required Packages
-genKnownIssuesExtRef.js requires the 'htmlparser2' and 'string' packages. These packages can be installed from nmp:
+genKnownIssuesExtRef.js requires the 'htmlparser2' package. This package can be installed from nmp:
 
 ```
 npm install htmlparser2
-npm install string
 ```
 
 ### Checklist If the Helpserver stops Updating 
