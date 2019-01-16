@@ -24,47 +24,152 @@
             </videos>
         </section>
         <section>
-            <note>
-                Xbasic Modules are very similar to the concept of Node modules.
-                An Xbasic Module must end with an exports command that defines which functions the Module 'exports' (makes available to the calling code).
-            </note>
+            <note>Xbasic Modules are very similar to the concept of Node modules. Xbasic Modules must end with one or more *[xb:exports]* commands defining the functions to make publicly available.</note>
         </section>
         <section>
             <description>
-                <p>To use an Xbasic Module in your Xbasic code you use the [require() function] to 'register' the Module.</p>
-                <p>The require() function can take an optional CRLF delimited string of search paths. By default the require() function will look in the Web Root (if you are running live) and in the Web Project Folder (if you are in Working Preview). If the file is not found there, it will search for the module in the \Xbasic_modules folder. If you pass in a CRLF delimited string of folder names as the second parameter to the require() function, these folders will also be searched for the module.</p>
-                <p>For example, assume you had defined the following Xbasic Module called MyXBModule.a5xbm.</p>
-                <p>The module file was defined as follows:</p>
-            </description>
-            <example>
-                <![CDATA[function greeting as c (name as c )
- greeting = "Hello " + ut(name) + " the time is now: " + currentDate()
+                <p>Xbasic Modules can contain one or more functions. For example, consider the following Xbasic Module called MyXBModule.a5xbm:</p>
+                <p>
+                    <example code="xb"><![CDATA[function greeting as c (name as c )
+    greeting = "Hello " + ut(name) + " the time is now: " + currentDate()
 end function 
+
+function sayGoodbye as c (name as c)
+    sayGoodbye = "Goodbye " + name + "."
+end function
 
 function currentDate as c ()
- currentDate = date()
+    currentDate = date()
 end function 
 
-exports.sayHello = greeting]]>
-            </example>
-        </section>
-        <section>
-            <description>
-                <p>Notice that the module defines two functions, but only the greeting() function is 'exported' (i.e. made public). Also notice that the greetings() function was exported as sayHello. This means that to the calling code the function sayHello() can be called (but not the internal greetings() function).</p>
-                <p>Now assume you had define an .a5w page with this code:</p>
+' Export the greeting and sayGoodbye functions:
+exports.sayHello = greeting
+exports.sayGoodbye = sayGoodbye]]></example>
+                </p>
+                <p>The MyXBModule.a5xbm defines three functions, two of which have been exported. Let's take a look at how functions are exported in more depth.</p>
             </description>
-            <example>
-                <![CDATA[<%a5
- dim pxb as p
- pxb = require("myxbmodule")
- ? pxb.sayHello("jim")
- %>]]>
-            </example>
+        </section>
+        <section>
+            <title>Exposing Functions With "exports"</title>
+            <description>
+                <p>The *[xb:exports]* object is a dot variable that contains one or more functions to make public. Exported functions can use the same name as the function being exported or be renamed to something else. Only functions that have been exported will be publicly available outside of the Xbasic Module.</p>
+                <p>In MyXBModule.a5xbm, two functions were exported:</p>
+                <p>
+                    <example code="xb"><![CDATA[exports.sayHello = greeting
+exports.sayGoodbye = sayGoodbye]]></example>
+                </p>
+                <p>The greeting() and sayGoodbye() are exported as "sayHello()" and "sayGoodbye()". </p>
+                <p>The currentDate() function was not exported and therefore cannot be called.</p>
+                <p>Also notice that the greetings() function was exported as sayHello. This means that to the calling code the function sayHello() can be called (but not the internal greetings() function).</p>
+            </description>
         </section>
         <section>
             <description>
-                <p>The Xbasic code in the .A5w page uses the require() function to register the 'myxbmodule' Xbasic Module and assigns the function to a namespace called pxb. Then, to call any of the exported functions, you must use the pxb prefix.</p>
-                <p>Modules can be loaded recursively. For example, in the definition of a module can reference another module.</p>
+                <p>An external Xbasic script or function can call these functions to invoke the greeting() and sayGoodbye() functions in the MyXBModule.a5xbm Xbasic Module by including it using the require() function. For example, the following Xbasic Script includes the module and calls the two functions, displaying the results using the showvar() function:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim pxb as p
+' Include the Xbasic Module
+pxb = require("MyXBModule")
+
+dim greeting as c 
+greeting = pxb.sayHello("Jim")
+
+dim parting as c
+parting = pxb.sayGoodbye("Sue")
+
+' Show variable results:
+' (showvar can only be used running in the Developer IDE or desktop application)
+showvar(greeting)
+showvar(parting)]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>All functions exported from an Xbasic Module *[must be listed at the end of the file]*. You cannot mix *[xb:exports]* with other functions. E.g. in the following example, the greeting() function is *[not]* exported because it is mixed in with the functions in the Xbasic Module. </p>
+                <p>
+                    <example code="xb" caption="Only the functions exported at the end of the Xbasic Module will be publicly available."><![CDATA[function greeting as c (name as c )
+    greeting = "Hello " + ut(name) + " the time is now: " + currentDate()
+end function 
+
+' Export the greeting function:
+' !!!ERROR: sayHello will NOT be created!!!
+exports.sayHello = greeting
+
+function sayGoodbye as c (name as c)
+    sayGoodbye = "Goodbye " + name + "."
+end function
+
+function currentDate as c ()
+    currentDate = date()
+end function 
+
+' Export the sayGoodbye function:
+exports.sayGoodbye = sayGoodbye]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <figure>
+                <title>sayHello() is not available because it was not exported at the end of the Xbasic Module!</title>
+                <link>images/badExport.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Using the require() Function</title>
+            <description>
+                <p>To use an Xbasic Module in your Xbasic code, the module needs to be 'registered' using the [require() function]. For example, consider the following .A5W page:</p>
+                <p>
+                    <example code="xb"><![CDATA[<%a5
+dim pxb as p
+' Include the Xbasic Module
+pxb = require("MyXBModule")
+
+' Output sayHello() to Page:
+? pxb.sayHello("Jim")
+
+' Output sayGoodbye() to Page:
+? pxb.sayGoodbye("Sue")
+%>]]></example>
+                </p>
+                <p>The Xbasic code in the .A5W page uses the require() function to register the 'MyXBModule' Xbasic Module and assigns the function to a namespace called *[xb:pxb]*. To call any of the exported functions, the *[xb:pxb]* prefix must be used.</p>
+                <p>The require() function can take an optional CRLF delimited string of search paths. In a published application, the require() function will look in the webroot for the Xbasic Module. When running in Working Preview or from an Xbasic Script running in the Developer environment, the require() function looks for the module in the Web Project Folder. If the file is not found there, it will search for the module in the "\Xbasic_modules" folder. If you pass in a CRLF delimited string of folder names as the second parameter to the require() function, these folders will also be searched for the module.</p>
+                <p>For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim pxb as p
+dim searchIn as C =<<%str%
+\myModules
+\thirdPartyModules
+%str%
+
+' Include the Xbasic Module
+pxb = require("MyXBModule", searchIn)
+]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Including Other Modules in an Xbasic Module</title>
+            <description>
+                <p>Modules can also reference other modules. Modules are referenced using the require() function. For example, we could rewrite the MyXBModule.a5xbm to extract the currentDate() function into a new module called DateModule.a5xbm. The MyXBModule.a5xbm could be rewritten as follows:</p>
+                <p>
+                    <example code="xb"><![CDATA[function greeting as c (name as c )
+    ' Include date methods from custom Xbasic DateModule
+    ' DateModule.a5xbm contains the implementation for currentDate()
+    dim dateModule as p
+    dateModule = require("DateModule")
+
+    greeting = "Hello " + ut(name) + " the time is now: " + dateModule.currentDate()
+end function 
+
+function sayGoodbye as c (name as c)
+    sayGoodbye = "Goodbye " + name + "."
+end function
+
+' Export the greeting and sayGoodbye functions:
+exports.sayHello = greeting
+exports.sayGoodbye = sayGoodbye]]></example>
+                </p>
             </description>
         </section>
         <section>
@@ -77,7 +182,7 @@ exports.sayHello = greeting]]>
         </section>
         <section>
             <title>Exporting Classes</title>
-            <description>Xbasic classes cannot be defined in nor exported from an Xbasic module. Instead, classes can be saved in a separate file with the .a5xbclass extension. See [Creating and Loading External Xbasic Class Files] for more information.</description>
+            <description>Xbasic classes cannot be defined in nor exported from an Xbasic Module. Instead, classes can be saved in a separate file with the .a5xbclass extension. See [Creating and Loading External Xbasic Class Files] for more information.</description>
         </section>
     </sections>
     <links>
