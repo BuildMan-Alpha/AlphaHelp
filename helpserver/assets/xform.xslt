@@ -143,12 +143,10 @@
 			</xsl:when>
 			<xsl:when test="discussion">
 				<p class="A5">Discussion</p>
-				<p>
                 <xsl:for-each select="discussion">
                     <xsl:call-template name="text-content"/>
                 </xsl:for-each>
-                </p>
-			</xsl:when>
+ 			</xsl:when>
 		</xsl:choose>
         <xsl:if test="list">
             <xsl:call-template name="list"/>
@@ -327,48 +325,44 @@
 			<xsl:for-each select="list/item">
 				<xsl:choose>
 					<xsl:when test="name-title">
-						<div>
-							<div style="white-space: nowrap; text-align: left;padding-right:8pt;">
-								<xsl:value-of select="name-title" />
-							</div>
-							<div style="white-space: nowrap; text-align: left;">
-								<xsl:choose>
-									<xsl:when test="description-title">
-										<xsl:value-of select="description-title" /></xsl:when>
-									<xsl:otherwise>Description</xsl:otherwise>
-								</xsl:choose>
-							</div>
-						</div>
+                        <dt class="definitionTableHead">
+                            <xsl:value-of select="name-title" />
+                        </dt>
+                        <dd class="definitionTableHead">
+                            <xsl:choose>
+                                <xsl:when test="description-title">
+                                    <xsl:value-of select="description-title" /></xsl:when>
+                                <xsl:otherwise>Description</xsl:otherwise>
+                            </xsl:choose>
+                        </dd>
 					</xsl:when>
 					<xsl:otherwise>
-						<div>
-                            <xsl:choose>
-                                <xsl:when test="name/@href">
-                                    <dt class="definitionNameTD" >
-                                       <a href="{name/@href}"><xsl:value-of select="name" /></a>
-                                    </dt>
-                                </xsl:when>
-                                <xsl:when test="name/@code">
-                                    <dt class="definitionNameTDCode" >
-                                       <xsl:value-of select="name" />
-                                    </dt>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <dt class="definitionNameTD" >
-                                        <xsl:value-of select="name" />
-                                    </dt>
-                                </xsl:otherwise>
-                            </xsl:choose>
-							<dd class="definitionDescriptionTD">
-                                <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
-                                <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each>
-								<xsl:if test="list">
-								    <xsl:call-template name="list"/>
-								</xsl:if>
-                                <xsl:call-template name="callouts-before"/>
-                                <xsl:call-template name="callouts-after"/>
-							</dd>
-						</div>
+                        <xsl:choose>
+                            <xsl:when test="name/@href">
+                                <dt class="definitionNameDT" >
+                                    <a href="{name/@href}"><xsl:value-of select="name" /></a>
+                                </dt>
+                            </xsl:when>
+                            <xsl:when test="name/@code">
+                                <dt class="definitionNameDTCode" >
+                                    <xsl:value-of select="name" />
+                                </dt>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <dt class="definitionNameDT" >
+                                    <xsl:value-of select="name" />
+                                </dt>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <dd class="definitionDescriptionDT">
+                            <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
+                            <xsl:for-each select="description"> <xsl:call-template name="text-content"/> </xsl:for-each>
+                            <xsl:if test="list">
+                                <xsl:call-template name="list"/>
+                            </xsl:if>
+                            <xsl:call-template name="callouts-before"/>
+                            <xsl:call-template name="callouts-after"/>
+                        </dd>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
@@ -389,18 +383,14 @@
                 </p>
             </xsl:when>
             <xsl:when test="discussion">
-                <p>
-                    <xsl:for-each select="discussion">
-                        <xsl:call-template name="text-content"/>
-                    </xsl:for-each>
-                </p>
+                <xsl:for-each select="discussion">
+                    <xsl:call-template name="text-content"/>
+                </xsl:for-each>
             </xsl:when>
             <xsl:when test="description">
-                <p>
-                    <xsl:for-each select="description">
-                    <xsl:call-template name="text-content"/>
-                    </xsl:for-each>
-                </p>
+                <xsl:for-each select="description">
+                <xsl:call-template name="text-content"/>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise></xsl:otherwise>
         </xsl:choose>
