@@ -7,12 +7,30 @@
         <return>
             <name>errorObj</name>
             <type>JSON Array</type>
-            <description>A JSON array containing the errors that occurred when synchronizing a List Control. If no errors occurred, the array will be empty. Each object in the JSON array has the following properties:</description>
+            <description>Returns an array of objects containing all errors that occurred when synchronizing the List. One object is created for each error. If no errors occurred, the array will be empty. Each object in the array has the following properties:</description>
             <properties>
                 <property>
                     <name>errorType</name>
                     <type>String</type>
                     <description>The type of error. Can be 'writeConflict', 'serverSide', or 'globalError'.</description>
+                    <list>
+                        <item>
+                            <name-title>Error Type</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>writeConflict</name>
+                            <description>A write conflict error. Write conflicts occur when a record has been modified on the user's device and on the server.</description>
+                        </item>
+                        <item>
+                            <name>serverSide</name>
+                            <description>A server-side error. Server-side errors is a validation error that the Alpha Server detected (before passing the query to the database server).</description>
+                        </item>
+                        <item>
+                            <name>globalError</name>
+                            <description>A global error is an error returned by the database server. Note that 'serverSide' and 'writeConflict' errors are associated with specific fields in the List, whereas 'globalErrors' are not associated with any individual field - they apply to the record as a whole.</description>
+                        </item>
+                    </list>
                 </property>
                 <property>
                     <name>path</name>
@@ -27,13 +45,78 @@
             </properties>
         </return>
     </returns>
-    <discussion>Only applies to Lists that have a Detail View. Returns an array of objects containing all errors that occurred when synchronizing the List. One object is created for each error.</discussion>
+    <discussion>
+        <p>When you synchronize a List, the List and all of it children are synchronized (you can't synchronize a child List independently of its parent). Errors could have occurred in the parent List, or in any of the parent List's child Lists. The *[js:getAllErrors()]* method can be called to get a list of all the errors that occured during synchronization.</p>
+        <p>This method an be called after a List has been synchronized to get an array of all of the errors that occurred (which would have prevented a record from being synchronized). *[Only applies to Lists that have a Detail View.]*</p>
+    </discussion>
     <sections>
         <section>
             <example code="js"><![CDATA[var listObj = {dialog.object}.getControl('list1');
 var err = listObj.getAllErrors();
 alert(JSON.stringify(err));]]></example>
         </section>
+        <section>
+            <title>Understanding the Path Property </title>
+            <description>
+                <p>The Path property is an array object that contains information on how to navigate to the row in the List that has the error. If the error occurred in the parent record, then the Path array has a single entry - the row (zero based) number of the record with error. For example, the Path property might be *[js:[3]]*, indicating that the error occurred on the 4th row in the List.</p>
+                <p>If the error occurred on a child List, then the Path array tells you how to find the row with the error. For example, say that the parent List has a child List called *[ui:Orders]*, which in turn has a child List called *[ui:OrderItems]*. If an error occurred on the 3rd *[ui:OrderItems]* record for the 2nd *[ui:Orders]* record for the 3 parent record, the Path array will look like this:</p>
+            </description>
+            <example><![CDATA[[2,'__LIST__ORDERS',1,'__LIST__ORDERITEMS',2]]]></example>
+        </section>
+        <section>
+            <title nested="3">The Error Object</title>
+            <description>
+                <p>In the case of a 'writeConflict' error, the error object will contain an array of objects, with items in the array for each write conflict error that was detected.</p>
+                <p>Each object in the array will have these properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Property</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>varName</name>
+                    <description>The name of the control in the List's detail view where the user made the edit.</description>
+                </item>
+                <item>
+                    <name>fieldName</name>
+                    <description>The field name in the List that has the error.</description>
+                </item>
+                <item>
+                    <name>oldValue</name>
+                    <description>The value that was in this field when the List was originally populated.</description>
+                </item>
+                <item>
+                    <name>oldValueCurrent</name>
+                    <description>The value that is currently in this field on the database (it is because this value no longer matches oldValue that a write conflict is being reported).</description>
+                </item>
+                <item>
+                    <name>newValue</name>
+                    <description>The value that the user entered for this field (this is the value that was attempted to be written to the databse)</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>In the case of a 'serverSide' error, the error, the error object is an array of objects. Each object contains a validation error. The array can have multiple entries because there could be multiple validation errors for a field.</p>
+                <p>Each item in the array has these properties:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Property</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>errorText</name>
+                    <description>The error message returned by the validation rule.</description>
+                </item>
+                <item>
+                    <name>varName</name>
+                    <description>The error message returned by the validation rule</description>
+                </item>
+            </list>
+        </section>
     </sections>
+    <limitations>List Control with a Detail View Only</limitations>
     <terms>offline,write conflict,synchronization errors,list errors</terms>
 </page>
