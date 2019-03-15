@@ -1,0 +1,878 @@
+<page>
+    <shortlink>alphadao custom connection</shortlink>
+    <topic>Creating Custom Connection Strings</topic>
+    <description>Custom drivers can be created using Xbasic, enabling you to create a connection to anything.</description>
+    <groups>
+        <group>
+            <title>Overview</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>The Connection type defines what type of data source an AlphaDAO connection is communicating with. Alpha Anywhere ships with a variety of pre-built connections to popular database systems as well as non-database systems, such as MongoDB, Google Sheets, Sharepoint, and others. (See [Connecting to SQL Databases] to learn more about pre-built connections supported in Alpha Anywhere.)</p>
+                        <p>The *[ui:Custom]* Connection type can be used to build an Xbasic drive to connect to anything. This connection type has been introduced to enable you to create your own custom connections that can not only connect to data systems that Alpha Anywhere may not have a pre-built connection type, but to also extend an AlphaDAO connection to perform tasks, such as [Auditing CRUD activity] or building [Multi-tenant applications].</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Defining a Driver</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>A custom driver is defined as an Xbasic class that implements the following methods:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Method</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>get_metadata as c()</name>
+                                    <description>Defines any properties available for configuring the connection. Properties are shown in the SQL connection string dialog.</description>
+                                </item>
+                                <item>
+                                    <name>open as L(cn as SQL::Connection)</name>
+                                    <description>Called when the connection string is opened (i.e. [SQL::Connection Open])</description>
+                                </item>
+                                <item>
+                                    <name>query as L(statement as c, args as SQL::Arguments, er as TableQuery::ExecuteResult)</name>
+                                    <description>Called whenever a query is executed on the connection.</description>
+                                </item>
+                                <item>
+                                    <name>ListTables as C(includeTypes as L)</name>
+                                    <description>Returns a list of tables for the connection.</description>
+                                </item>
+                                <item>
+                                    <name>GetTableInfo as P(tn as SQL::TableName)</name>
+                                    <description>Returns table information for the specified table.</description>
+                                </item>
+                                <item>
+                                    <name>GetLastError as C()</name>
+                                    <description>Returns the last error.</description>
+                                </item>
+                                <item>
+                                    <name>Close as V(cn as SQL::Connection)</name>
+                                    <description>Called when the connection is closed (i.e. [SQL::Connection Close])</description>
+                                </item>
+                                <item>
+                                    <name>ValidateQuery as L(statement as C, er as TableQuery::ExecuteResult)</name>
+                                    <description>(Optional) Returns whether or not the query submitted to the connection is valid.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Each method is described in more detail below.</p>
+                    </description>
+                </section>
+                <section>
+                    <cases>
+                        <case>
+                            <title nested="3">get_metadata()</title>
+                            <description>
+                                <p>The *[xb:get_metadata()]* method is required and is called when the SQL connection string dialog for the connection is opened. It returns a JSON object of properties that can be used to configure the custom connection. The JSON object uses the following structure:</p>
+                                <p>
+                                    <example code="json"><![CDATA[{
+    "properties" : {
+        "property_name1" : { 
+            "description" : "A description of property 1, which is read only",
+            "label" : "Property 1"
+            "readonly" : true 
+        },
+        "property_name2" : {
+            "description" : "A description of property 2, which is not read only"
+            "label" : "Property 2"
+        }
+    }
+}]]></example>
+                                </p>
+                                <p>Each entry in the JSON properties object can define the following properties:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Property</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>description</name>
+                                            <description>The help text shown when the property is selected. It is strongly recommended to define this property.</description>
+                                        </item>
+                                        <item>
+                                            <name>label</name>
+                                            <description>The property name. If not specified, the name of the object is used.</description>
+                                        </item>
+                                        <item>
+                                            <name>readonly</name>
+                                            <description>
+                                                <p>Makes the property "read only" in the property grid.</p>
+                                                <p>A property is commonly set to "read only" if a dialog (either a built-in Alpha Anywhere dialog or one created using Xdialog) is used to configure it. For example, the *[ui:Connection string]* property for the [Audit-trail Driver] is populated by clicking the [...] smart field button to select a connection string from a dialog.</p>
+                                                <p>An [onpopup] method must be defined for a property that is set with a dialog.</p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>The example below is the *[xb:get_metadata]* method from the custom Multi-tenant Driver, which defines several properties that use the .</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function get_metadata as C ()
+    get_metadata = <<%json%
+{
+    "properties" : {
+        "ConnectionString" : {
+            "description" : "Specify the connection string that points to your database.",
+            "label" : "Connection string",
+            "readonly" : true
+        },
+        "TenantIDFieldName" : {
+            "description" : "Specify the fieldname of the field that contains the tenant Id. All of the tables in your database that are multi-tenant should include this field.",
+            "label" : "Tenant ID field name"
+        },
+        
+        "TenantIDFieldType" : {
+            "description" : "Specify the field type for the tenant ID field. The field can be character or numeric.",
+            "label" : "Tenant ID field type",
+            "readonly" : true
+        },
+        "SessionVariableName" : {
+            "description": "Specify the name of the session variable where the current tenant ID value is stored.",
+            "label" : "Session variable name"
+        }
+    }
+}
+%json%
+end function]]></example>
+                                </p>
+                            </description>
+                            <figure>
+                                <link>images/customConnectionProperties.png</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If your custom connection has no properties, return an empty JSON object:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function get_metadata as C ()
+    get_metadata = "{}"
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <cases>
+                                <case>
+                                    <title nested="4">The onpopup Method</title>
+                                    <description>
+                                        <p>For more complex settings (or settings that require validation), you can define an *[xb:onpopup]* method that is called to set the value for the property. The *[xb:onpopup]* method is defined as follows:</p>
+                                        <p>
+                                            <example code="xb"><![CDATA[property_onpopup as C (value as C)]]></example>
+                                        </p>
+                                        <p>Where "property" is the name assigned to the JSON object that contains the property definition for the property. For example, consider the following get_metadata() method:</p>
+                                        <p>
+                                            <example code="xb"><![CDATA[function get_metadata as C ()
+    get_metadata = <<%json%
+{
+    "properties" : {
+        "*[highlighter:ConnectionString]*" : {
+            "description" : "Specify the connection string that points to your database.",
+            "label" : "Connection string",
+            "readonly" : true
+        }
+}
+%json%
+end function]]></example>
+                                        </p>
+                                        <p>The corresponding *[xb:onpopup]* that defines the dialog ot display to set the "ConnectionString" property is shown below:</p>
+                                        <p>
+                                            <example code="xb"><![CDATA[function *[highlighter:ConnectionString]*_onpopup as C (value as C)
+    dim p as p 
+    p = a5_DefineConnectionString(value,"alphadao",.f.)
+    if p.lastbutton = "OK" then 
+        connectionstring_onpopup = p.connstring 
+    else
+        connectionstring_onpopup = value
+    end if 
+end function]]></example>
+                                        </p>
+                                        <p>The *[xb:onpopup]* method must return the value for the property.</p>
+                                        <p>If an *[xb:onpopup]* method has been defined for a property, a [...] smart field button will be shown in the SQL connection string dialog. Clicking the [...] smart field button calls the *[xb:onpopup]* method.</p>
+                                    </description>
+                                    <figure>
+                                        <link>images/customConnectionOnpopup.png</link>
+                                    </figure>
+                                </case>
+                                <case>
+                                    <description>
+                                        <p>The *[xb:onpopup]* method only needs to be defined for properties that are complex and require a dialog to set them.</p>
+                                    </description>
+                                </case>
+                            </cases>
+                        </case>
+                        <case>
+                            <title nested="3">open()</title>
+                            <description>
+                                <p>The *[xb:open]* method is required and is called when the connection is opened. The following parameters are passed to the method:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameter</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:_cn as SQL::Connection]*</name>
+                                            <description>
+                                                <p>A SQL::Connection object used to return an error in the event the open method fails.</p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>The method should return a *[xb:.t.]* or *[xb:.f.]* value. Returning *[xb:.t.]* indicates that the connection was successfully opened. Returning *[xb:.f.]* indicates an error occurred.</p>
+                                <p>If an error occurs, you can provide additional details about the error using the [FromText()] method for the SQL::Connection's CallResult object.</p>
+                                <p>For example:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function open as L (_cn as SQL::Connection)
+    if connectionString = "" then
+        _cn.callresult.FromText("No audited Connection specified")
+        open = .f.
+        exit function
+    end if
+
+    ' cn is a private SQL::Connection property for the custom Audit class
+    open = cn.open(connectionString)
+
+    if (open == .f.) then
+        _cn.callresult.FromText("Could not open connection to database: " + cn.callResult.text)
+        exit function
+    end if
+
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">query()</title>
+                            <description>
+                                <p>The *[xb:query]* method is required and is called when a query is made against the SQL connection. E.g. the [SQL::Connection execute()] method is called. The following parameters are passed to the method:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameter</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:statement as c]*</name>
+                                            <description>
+                                                <p>The SQL query.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:args as SQL::Arguments]*</name>
+                                            <description>
+                                                <p>A SQL::Arguments object that contains any arguments used in the *[xb:statement]*.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:er as TableQuery::ExecuteResult]*</name>
+                                            <description>A TableQuery::ExecuteResult object used to return the results of the query. This includes any SQL::ResultSets, error messages, and last inserted identity information.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>The method should return a *[xb:.t.]* or *[xb:.f.]* value. Returning *[xb:.t.]* indicates the query was successful. Returning *[xb:.f.]* indicates an error occurred.</p>
+                                <p>If an error occurs, you need to generate a SQL::CallResult object that contains information about the error. This object can be built manually or created using a variety of methods depending on how your query operation works. For example, the Mock Driver creates and uses a [helper::JSONsql::Process] object to perform queries on the People and Places table, which are stored internally as JSON objects. The [GenerateError] method can be used on the helper::JSONsql::Process object to create the SQL::CallResult and pass it back through the TableQuery::ExecuteResult object passed to the query method.</p>
+                                <p>
+                                    <example code="xb"><![CDATA['...
+   dim jsp as helper::JSONsql::Process
+    if jsp.ParseStatement(statement,args,self.schema) then
+        if jsp.action = "select" then
+            dim json as c
+            if jsp.tablename = "People"
+                json = self.People_json
+            else if jsp.tablename = "places"
+                json = self.places_json
+            else
+                *[highlighter:er.callresult = jsp.GenerateError("Table not found")]*
+                exit function
+            end if
+'...]]></example>
+                                </p>
+                                <p>The *[xb:query]* method handles CRUD actions against the custom data source. The *[xb:statement]* passed to the method will contain the action, which can be one of the following:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Action</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>select</name>
+                                            <description>
+                                                <p>Fetch one or more records from your custom data source that match a selection criteria. At a minimum, your query method should support the select action.</p>
+                                                <p>You must set the *[xb:resultset]* or *[xb:callresult]* of the TableQuery::ExecuteResult object for the *[xb:query]* method.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>insert</name>
+                                            <description>
+                                                <p>Add a record to your custom data source.</p>
+                                                <p>You should set the *[xb:hasLastInsertedIdentity]* and *[xb:LastInsertedIdentity]* property of the TableQuery::ExecuteResult object if the insert succeeds. Otherwise, set *[xb:callresult]* for the TableQuery::ExecuteResult object if the insert fails.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>update</name>
+                                            <description>
+                                                <p>Update a record in your custom data source with matching primary key.</p>
+                                                <p>Set *[xb:callresult]* for the TableQuery::ExecuteResult object if the update fails.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>delete</name>
+                                            <description>
+                                                <p>Delete a record from your custom data source with matching primary key.</p>
+                                                <p>Set *[xb:callresult]* for the TableQuery::ExecuteResult object if the delete fails.</p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>See [Portable SQL] to learn more about Portable SQL.</p>
+                                <p>The example below demonstrates a custom driver that implements select, insert, update, and delete against a JSON data source. This example is part of the [Mock Driver] example.</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function query as L (statement as C, args as SQL::Arguments, er as TableQuery::ExecuteResult)
+    dim jsp as helper::JSONsql::Process
+    query = .f. ' default return value to false, indicating failure
+
+    if jsp.ParseStatement(statement,args,self.schema) then
+
+        if jsp.action = "select" then
+
+            dim json as c
+            if jsp.tablename = "People"
+                json = self.People_json
+            else if jsp.tablename = "places"
+                json = self.places_json
+            else
+                ' Error; Generate an error
+                er.callresult = jsp.GenerateError("Table not found")
+                exit function
+            end if
+            dim rs as sql::ResultSet
+            if jsp.JsonToResultSet(rs,json) then
+                ' Success; return the query results as a SQL::ResultSet
+                er.resultset = rs
+                query = .t.
+            else
+                ' Error; return the callResult
+                er.callresult = jsp.callresult
+            end if
+
+        else if jsp.action = "insert"  then
+
+            if jsp.tablename = "People"
+                dim name as c = jsp.GetColumn("name","")
+                if name <> "" then
+                    People = People+","+name
+                    People_json = extension::json::JsonFromCSV("name"+crlf()+comma_to_crlf(People))
+
+                    ' Success; return the last inserted identity for people
+                    query = .t.
+                    er.hasLastInsertedIdentity = .t.
+                    er.LastInsertedIdentity = name
+                else
+                    ' Error; Generate an error
+                    er.callresult = jsp.GenerateError("Name cannot be blank")
+                    exit function
+                end if
+            else if jsp.tablename = "places"
+                dim city as c = jsp.GetColumn("city","")
+                dim state as c = jsp.GetColumn("state","")
+                if (city+state) <> "" then
+                    places = places+","+city+";"+state
+                    places_json = extension::json::JsonFromCSV("city,state"+crlf()+strtran(comma_to_crlf(places),";",","))
+
+
+                    ' Success; return the last inserted identity for places
+                    query = .t.
+                    er.hasLastInsertedIdentity = city+";"+state
+                    er.LastInsertedIdentity = name
+                else
+                    ' Error; Generate an error
+                    er.callresult = jsp.GenerateError("City and State are empty")
+                    exit function
+                end if
+            else
+                ' Error; Generate an error
+                er.callresult = jsp.GenerateError("Table not found")
+                exit function
+            end if
+
+        else if jsp.action = "update"  then
+
+            if jsp.tablename = "People"
+                dim name as c = jsp.GetColumnExact("name","")
+                dim newname as c = jsp.GetColumn("name","")
+                if newname = "" then
+                    er.callresult = jsp.GenerateError("Name cannot be blank")
+                else if (","+name+",") $ (","+People+",") then
+                    People = rtrim(ltrim(strtran((","+People+","),(","+name+","),(","+newname+",")),","),",")
+                    People_json = extension::json::JsonFromCSV("name"+crlf()+comma_to_crlf(People))
+
+                    ' Success!
+                    query = .t.
+                else
+                    ' Error; Generate an error
+                    er.callresult = jsp.GenerateError("Name not found")
+                    exit function
+                end if
+            else if jsp.tablename = "places"
+                dim city as c = jsp.GetColumnExact("city","")
+                dim state as c = jsp.GetColumnExact("state","")
+                dim newcity as c = jsp.GetColumn("city",city)
+                dim newstate as c = jsp.GetColumn("state",state)
+                if (newcity+newstate) <> "" then
+                    if (","+city+";"+state+",") $ (","+places+",") then
+                        places = rtrim(ltrim(strtran((","+places+","),(","++city+";"+state+","),(","+newcity+";"+newstate+",")),","),",")
+                        places_json = extension::json::JsonFromCSV("city,state"+crlf()+strtran(comma_to_crlf(places),";",","))
+
+                        ' Success!
+                        query = .t.
+                    else
+                        ' Error; Generate an error
+                        er.callresult = jsp.GenerateError("City and State not found")
+                        exit function
+                    end if
+                else
+                    ' Error; Generate an error
+                    er.callresult = jsp.GenerateError("City and State are empty")
+                    exit function
+                end if
+            else
+                ' Error; Generate an error
+                er.callresult = jsp.GenerateError("Table not found")
+                exit function
+            end if
+
+        else if jsp.action = "delete"  then
+
+            if jsp.tablename = "People"
+                dim name as c = jsp.GetColumnExact("name","")
+                if (","+name+",") $ (","+People+",") then
+                    People = rtrim(ltrim(strtran((","+People+","),(","+name+","),","),","),",")
+                    People_json = extension::json::JsonFromCSV("name"+crlf()+comma_to_crlf(People))
+
+                    ' Success!
+                    query = .t.
+                else
+                    ' Nothing to delete
+                    exit function
+                end if
+            else if jsp.tablename = "places"
+                dim city as c = jsp.GetColumnExact("city","")
+                dim state as c = jsp.GetColumnExact("state","")
+                   if (","+city+";"+state+",") $ (","+places+",") then
+                    places = rtrim(ltrim(strtran((","+places+","),(","+city+";"+state+","),","),","),",")
+                        places_json = extension::json::JsonFromCSV("city,state"+crlf()+strtran(comma_to_crlf(places),";",","))
+
+                        ' Success!
+                        query = .t.
+                   else
+                        ' Nothing to delete
+                        exit function
+                   end if
+            else
+                ' Error; Generate an error
+                er.callresult = jsp.GenerateError("Table not found")
+                exit function
+            end if
+
+        else
+
+            ' Error; Generate an error
+            er.callresult = jsp.GenerateError("Only SELECT is support for this datasource")
+
+        end if
+
+    else
+
+        ' Error; return the callresult
+        er.callresult = jsp.callresult
+
+    end if
+
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">ListTables()</title>
+                            <description>
+                                <p>The *[xb:ListTables]* method is required and returns a list of tables for the custom driver. The method is called when the SQL::Connection [ListTables()] or [ListTablesWithTypes()] methods are called. The following parameters are passed to *[xb:ListTables]*:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameter</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:includeTypes as L]*</name>
+                                            <description>A *[xb:.T.]* or *[xb:.F.]* value. If *[xb:.T.]*, *[xb:ListTables()]* should return the list of tables suffixed with (&lt;type&gt;). Otherwise, *[xb:ListTables]* should return a list of tables.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>
+                                    <example code="xb"><![CDATA[function ListTables as C (includeTypes as L)
+    if (includeTypes) then
+        ListTables = <<%str%
+People(Table)
+Places(Table)
+%str%
+    else
+        ListTables = <<%str%
+People
+Places
+%str%
+    end if
+
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">GetTableInfo()</title>
+                            <description>
+                                <p>The *[xb:GetTableInfo]* method is required and returns information about a specific table. The following parameters are passed to *[xb:GetTableInfo]*:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameter</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:tn as SQL::TableName]*</name>
+                                            <description>
+                                                <p>A SQL::TableName object that specifies the table to return information for.</p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>The *[xb:GetTableInfo]* method should return a [SQL::TableInfo] object for the specified table.</p>
+                                <p></p>
+                                <p>
+                                    <example code="xb"><![CDATA[function GetTableInfo as P (tn as SQL::TableName)
+    ' Look up the table info index for the table name, tn.name:
+    dim index as n = schema.TableNumber(tn.name)
+
+    ' If the table exists, return the TableInfo object:
+    if index > 0
+        GetTableInfo = schema.table[index]
+    end if
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">GetLastError()</title>
+                            <description>
+                                <p>The *[xb:GetLastError]* method is required and returns the error message for the last error encountered using your custom connection.</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function GetLastError as C ()
+    ' Return the last error for the audited table (Audit Trail Driver)
+    GetLastError = cn.CallResult.text
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">Close()</title>
+                            <description>
+                                <p>The *[xb:Close]* method is required and is called when the connection is being closed. The following parameters are passed to the *[xb:Close]* method:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameters</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:_cn as SQL::Connection]*</name>
+                                            <description>
+                                                <p>A SQL::Connection object.</p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>If your custom connection has variables or resources that need to be cleaned up or released when the connection is closed, you can do so in the *[xb:Close]* method. For example, the custom Audit Trail driver has a private SQL::Connection object that is a connection for the audited database. When the the Audit Trail connection is closed, the connection to the audited database must also be closed:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function Close as v(_cn as sql::Connection)
+    ' Close the connection to the audited database
+    cn.close()
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">ValidateQuery()</title>
+                            <description>
+                                <p>The *[xb:ValidateQuery]* method is an optional method used to validate a SQL statement before it is executed. The following parameters are passed to the method:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Parameters</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:statement as C]*</name>
+                                            <description>The SQL statement to validate.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:er as TableQuery::ExecuteResult]*</name>
+                                            <description>A TableQuery::ExecuteResult object that contains the result of the validation.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>The following example demonstrates the ValidateQuery method for the [Multi-tenant Driver] example:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[function ValidateQuery as L (statement as C, er as TableQuery::ExecuteResult)
+    dim qs as sql::Query
+    dim flag as l = qs.Parse(statement)
+    if flag then
+        cn.PortableSQLEnabled = .t.
+        ValidateQuery = qs.Validate(cn)
+        if ValidateQuery then
+            er.resultset = qs.ResultSet
+        end if	
+    end if
+end function]]></example>
+                                </p>
+                            </description>
+                        </case>
+                    </cases>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Sample Drivers</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>
+                            <list bullet="true">
+                                <item>
+                                    <name>Simple Mock Driver</name>
+                                </item>
+                                <item>
+                                    <name>Multi Tenant Driver</name>
+                                </item>
+                                <item>
+                                    <name>Audit Trail Driver</name>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Each of these example drivers are described below.</p>
+                    </description>
+                </section>
+                <section>
+                    <title nested="2">Simple Mock Driver</title>
+                    <description>
+                        <p>The "Simple Mock Driver" is an example driver. It's purpose is to provide a framework from which you can build your own custom driver.</p>
+                        <p>The Simple Mock Driver is an Xbasic class that demonstrates two tables: "People" and "Places". The tables are populated in the settings for the driver.</p>
+                    </description>
+                    <figure>
+                        <link>images/customMockDriver.png</link>
+                    </figure>
+                    <important>You *[MUST]* define the *[ui:People]* and *[ui:Places]* settings in order to build any applications against the tables. If no values are defined, the tables will not be listed in the SQL Query Builder.</important>
+                </section>
+                <section>
+                    <description>
+                        <p>The properties for the Simple Mock Driver are described below:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>People</name>
+                                    <description>A comma delimited list of names. This list of names will be used to populate the "People" table. E.g. *[ui:Ada,Ruth,Susan]*</description>
+                                </item>
+                                <item>
+                                    <name>Places</name>
+                                    <description>A comma delimited list of City-State pairs. The City name is separated from the State name using a semicolon ";". E.g. *[ui:Billings;MT,Sioux City;IA,Cheyenne;WY]*</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </section>
+                <section>
+                    <title nested="2">Multi-tenant Driver</title>
+                    <figure>
+                        <link>images/multitenant4.jpg</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>The Multi-tenant driver can be used to create SaaS applications. The driver works by applying a tenant filter to all queries made to the data source. This ensures that data is always filtered on the tenant when performing CRUD operations on a data source.</p>
+                        <p>To use the *[ui:Sample Multi-tenant Driver]* as-is, your database tables must include the tenant id field in every table. The driver assumes this field uses the same name across the database.</p>
+                        <p>The advantage of using the *[ui:Sample Multi-tenant Driver]* over the [MultiTenant Connection Type] is that the sample driver is fully customizable and can be adapted to the needs of your SaaS application.</p>
+                        <p>When you create a multi-tenant connection using the multi-tenant driver, you must specify the following properties in the connection string definition dialog:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>Connection string</name>
+                                    <description>This is the connection string that points to your database.</description>
+                                </item>
+                                <item>
+                                    <name>Tenant ID field name</name>
+                                    <description>The name of the tenant ID field in each of the multi-tenant tables in your database (e.g. tenantid)</description>
+                                </item>
+                                <item>
+                                    <name>Session variable name</name>
+                                    <description>The name of the session variable that will contain the current tenant ID value (this value will typically be set at the time the tenant logs into the application). For example: session.tenantid. *[IMPORTANT:]* Session variables are deleted when a session expires. Therefore you should ensure that the user's login also expires when the session expires.</description>
+                                </item>
+                                <item>
+                                    <name>Tenant ID field type</name>
+                                    <description>The data type of the tenant ID field - can either be character or numeric.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </section>
+                <section>
+                    <note>You can also create a Multi-tenant connection string using the [MultiTenant Connection Type].</note>
+                </section>
+                <section>
+                    <title nested="3">Multi-tenant Videos</title>
+                    <videos>
+                        <title>How to Create a Multi-tenant Connection String</title>
+                        <description>
+                            <p>When you build multi-tenant SaaS applications that use a shared database, each table in the database must  have a tenant id field and all of your SQL queries must include the tenant Id. When you use a multi-tenant connection string, the tenant id is automatically injected into all SQL statements before the statement is sent to the database. This makes it easier to build multi-tenant SaaS applications, or to convert an existing application to a multi-tenant application because you do not have to manually adjust all of your SQL statements.</p>
+                            <p>In this video we show how a multi-tenant connection string is defined and then we show the results when a SQL SELECT and INSERT statement are executed.</p>
+                        </description>
+                        <date>2018-10-21</date>
+                        <video>
+                            <name>Watch Video - Part 1</name>
+                            <link>http://www.viddler.com/v/3342531</link>
+                        </video>
+                        <video>
+                            <name>Watch Video - Part 2</name>
+                            <link>http://www.viddler.com/v/c916ec42</link>
+                        </video>
+                        <video>
+                            <name>Watch Video - Behind the scenes</name>
+                            <link>http://www.viddler.com/v/3342531</link>
+                        </video>
+                    </videos>
+                </section>
+                <section>
+                    <title nested="2">Audit Trail Driver</title>
+                    <description>The Audit Trail Driver automatically updates an audit table when CRUD operations are executed against a data source.</description>
+                    <note>
+                        <p>Contrast the Audit-trail driver with the built-in Audit Trail feature which is turned on by going to the Web Project Settings dialog. The built-in feature does not require a special connection string, can automatically create the audit-trail table and is therefore easier to set up. See [Audit table (for SQL tables)] for more information.</p>
+                    </note>
+                    <figure>
+                        <link>images/customAuditDriver.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>A sample Xbasic class that implements an audit-trail driver can be selected when you define a Custom connection string.</p>
+                        <p>The Audit driver is a "pass-through" driver (i.e. SQL commands are passed through to the base SQL connection) but a new record is added to the audit table for each successfully executed CRUD statement.</p>
+                        <p>When you create an audit driver you must specify these properties in the connection string definition dialog:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>ConnectionString</name>
+                                    <description>The connection string to the database that contains the data that will be queried (read or updated.)</description>
+                                </item>
+                                <item>
+                                    <name>AuditTableConnectionString</name>
+                                    <description>The connection string to the database where the audit table is defined. This can either be the same connection string as the *[ui:ConnectionString]* or a separate database.</description>
+                                </item>
+                                <item>
+                                    <name>AuditTableName</name>
+                                    <description>The name of the audit table. See [Audit Table Structure] below for the audit table structure.</description>
+                                </item>
+                                <item>
+                                    <name>OperationTypeFieldName</name>
+                                    <description>The name of the field in the audit table where the CRUD type is stored. The CRUD type is one of the following: CREATE, UPDATE, INSERT, or DELETE.</description>
+                                </item>
+                                <item>
+                                    <name>UserIdFieldName</name>
+                                    <description>The name of the field in the audit table where the user id of the user making the edit is stored.</description>
+                                </item>
+                                <item>
+                                    <name>DateTimeFieldName</name>
+                                    <description>The name of the field in the audit table where the date/time for the time when the edit was made is stored.</description>
+                                </item>
+                                <item>
+                                    <name>TableFieldName</name>
+                                    <description>The name of the field in the audit table where the name of the table that was updated is stored.</description>
+                                </item>
+                                <item>
+                                    <name>DataFieldName</name>
+                                    <description>The name of the field in the audit table where the data for the CRUD operation is stored.</description>
+                                </item>
+                                <item>
+                                    <name>OldDataFieldName</name>
+                                    <description>The name of the field in the audit table where the original data (for UPDATE and DELETE operations) is stored.</description>
+                                </item>
+                                <item>
+                                    <name>whereclausefieldname</name>
+                                    <description>The name of the field in the audit table where the WHERE clause for the CRUD statement (UPDATE and DELETE) is stored.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </section>
+                <section>
+                    <title nested="3">Audit Table Structure</title>
+                    <description>
+                        <p>The audit table must have this structure (the actual field names can be different as the connection string builder allows you to map the actual field names):</p>
+                    </description>
+                    <example code="sql"><![CDATA[operation char(20)
+userId char(100)
+dateStamp datetime
+databaseTableName char(100)
+data longtext
+olddata longtext
+whereclause longtext]]></example>
+                </section>
+                <section>
+                    <title nested="3">Audit-trail Videos</title>
+                    <videos>
+                        <title>Audit-trail Driver</title>
+                        <description>This video shows how you can create a custom AlphaDAO connection string to create an audit trail every time a CRUD operation is performed.</description>
+                        <date>2018-10-28</date>
+                        <video>
+                            <name>Watch Video</name>
+                            <link>http://www.viddler.com/v/c6b38297</link>
+                        </video>
+                    </videos>
+                </section>
+            </sections>
+        </group>
+    </groups>
+    <links>
+        <link href="/images/tools/ellipsesButton.png">...</link>
+        <link href="#section3_Audit Table Structure">Audit Table Structure</link>
+        <link href="#section2_Simple Mock Driver">Mock Driver</link>
+        <link href="#section2_Audit Trail Driver">Audit-trail Driver</link>
+        <link href="#section2_Multi-tenant Driver">Multi-tenant Driver</link>
+        <link link="alphadao multitenant connection">MultiTenant Connection Type</link>
+        <link link="server ref web project settings#section1_Audit table (for SQL tables)">Audit table (for SQL tables)</link>
+        <link link="api sql namespace connection class open function">SQL::Connection Open</link>
+        <link link="api sql namespace connection class close function">SQL::Connection Close</link>
+        <link link="api sql callresult fromtext method">FromText()</link>
+        <link href="#section4_The onpopup Method">onpopup</link>
+        <link link="server ref sql portable sql">Portable SQL</link>
+        <link link="databases conecting to databases">Connecting to SQL Databases</link>
+        <link link="server ref web project settings#section1_Audit table (for SQL tables)">Auditing CRUD activity</link>
+        <link link="alphadao multitenant connection">Multi-tenant applications</link>
+        <link link="api sql namespace connection class execute function">SQL::Connection execute()</link>
+        <link link="api helper jsonsql process class method">helper::JSONsql::Process</link>
+        <link link="api helper jsonsql process generateerror method">GenerateError</link>
+        <link link="api sql namespace connection class list tables function">ListTables()</link>
+        <link link="api sql namespace connection class list tables with types function">ListTablesWithTypes()</link>
+        <link link="api sql namespace table info class">SQL::TableInfo</link>
+    </links>
+</page>
