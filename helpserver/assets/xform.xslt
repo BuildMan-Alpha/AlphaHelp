@@ -183,7 +183,7 @@
 			<h2 ><a name="group_properties">Properties</a></h2>
             <dl class="propertiesDL" >
                 <xsl:for-each select="properties/property">
-                <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>                
+                <xsl:call-template name="properties-content"><xsl:with-param name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:with-param></xsl:call-template>
                 </xsl:for-each>
             </dl>
 		</xsl:if>
@@ -197,7 +197,7 @@
                     <xsl:when test="./@static">
                         <dt class="methodStatic"><xsl:value-of select="syntax" /></dt>
                     </xsl:when>
-                    <xsl:otherwise>                        
+                    <xsl:otherwise>
                         <dt><xsl:value-of select="syntax" /></dt>
                     </xsl:otherwise>
                    </xsl:choose>
@@ -648,7 +648,7 @@
                 <xsl:choose>
                     <xsl:when test="./@readonly">
                         <dt class="propertyReadonly" >
-                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <span id="section{$depth}_{name}" name="section{$depth}_{name}"><xsl:value-of select="name" /></span>
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -665,7 +665,7 @@
                     </xsl:when> 
                     <xsl:when test="./@writeonly">
                         <dt class="propertyWriteonly" >
-                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <span id="section{$depth}_{name}" name="section{$depth}_{name}"><xsl:value-of select="name" /></span>
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -682,7 +682,7 @@
                     </xsl:when> 
                     <xsl:when test="./@pseudo">
                         <dt class="propertyPseudo" >
-                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <span id="section{$depth}_{name}" name="section{$depth}_{name}"><xsl:value-of select="name" /></span>
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -699,7 +699,7 @@
                     </xsl:when> 
                     <xsl:when test="./@optional">
                         <dt class="propertyOptional" >
-                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <span id="section{$depth}_{name}" name="section{$depth}_{name}"><xsl:value-of select="name" /></span>
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -716,7 +716,7 @@
                     </xsl:when> 
                     <xsl:otherwise>
                         <dt class="propertyReadwrite" >
-                            <a name="section{$depth}_{name}" ><xsl:value-of select="name" /></a>
+                            <span id="section{$depth}_{name}" name="section{$depth}_{name}"><xsl:value-of select="name" /></span>
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -731,13 +731,13 @@
                             </xsl:if>
                         </dt>
                     </xsl:otherwise>
-                </xsl:choose>        
+                </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:choose>
                     <xsl:when test="./@readonly">
                         <dt class="propertyReadonly" >
-                            <a><xsl:value-of select="name" /></a>
+                            <xsl:value-of select="name" />
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -754,7 +754,7 @@
                     </xsl:when> 
                     <xsl:when test="./@writeonly">
                         <dt class="propertyWriteonly" >
-                            <a><xsl:value-of select="name" /></a>
+                            <xsl:value-of select="name" />
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -771,7 +771,7 @@
                     </xsl:when> 
                     <xsl:when test="./@pseudo">
                         <dt class="propertyPseudo" >
-                            <a><xsl:value-of select="name" /></a>
+                            <xsl:value-of select="name" />
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -788,7 +788,7 @@
                     </xsl:when> 
                     <xsl:when test="./@optional">
                         <dt class="propertyOptional" >
-                            <a><xsl:value-of select="name" /></a>
+                            <xsl:value-of select="name" />
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -805,7 +805,7 @@
                     </xsl:when> 
                     <xsl:otherwise>
                         <dt class="propertyReadwrite" >
-                            <a><xsl:value-of select="name" /></a>
+                            <xsl:value-of select="name" />
                             <xsl:if test="types/type">
                                 <span class="propertyTypes">
                                     <xsl:for-each select="types/type">
@@ -820,10 +820,10 @@
                             </xsl:if>
                         </dt>
                     </xsl:otherwise>
-                </xsl:choose>        
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
-        <dd>               
+        <dd>
             <xsl:call-template name="callouts-before"/>            
             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
