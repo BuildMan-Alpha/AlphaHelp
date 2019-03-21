@@ -824,7 +824,8 @@
             </xsl:otherwise>
         </xsl:choose>
         <dd>
-            <xsl:call-template name="callouts-before"/>            
+            <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
+            <xsl:call-template name="callouts-before"/>
             <xsl:for-each select="description"><xsl:call-template name="text-content"/></xsl:for-each>
             <xsl:if test="example">
                 <xsl:call-template name="example-template"><xsl:with-param name="default_title">Example</xsl:with-param></xsl:call-template>
