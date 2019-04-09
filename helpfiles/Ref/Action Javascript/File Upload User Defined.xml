@@ -3,7 +3,7 @@
     <topic>File Upload - User Defined</topic>
     <description>Upload one or more files to the server. A server-side event then gets called to allow you to process the uploaded files.</description>
     <discussion>
-        <p>This action allows you to upload multiple files at once. Once the files have been uploaded, an Xbasic event handler that you define can process the uploaded data.</p>
+        <p>This action allows you to upload multiple files at once. Once the files have been uploaded, an Xbasic event handler that you define is called to processes the uploaded files.</p>
         <p>*[TIP:]* To see what information is available to you in the 'e' object that is passed into your Xbasic event handler, put a debug statement in your function:</p>
         <p>
             <example code="xb"><![CDATA[debug(1)]]></example>
@@ -247,7 +247,56 @@
             <cases>
                 <case>
                     <title nested="2">After upload</title>
-                    <description>Specify the name of the Xbasic function to call after the file(s) have been uploaded. This Xbasic function can be defined in the 'Xbasic function declarations' section.</description>
+                    <description>
+                        <p>Specify the name of the Xbasic function to call after the file(s) have been uploaded. This Xbasic function can be defined in the 'Xbasic function declarations' section. The function is called after the file(s) selected in the Upload Files dialog have been uploaded to the server. The Xbasic function is responsible for processing each file that has been uploaded to the server.</p>
+                        <p>The following properties are available to you in the 'e' object:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.fileCount]*</name>
+                                    <description>The number of files that were uploaded.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.fileArray]*</name>
+                                    <description>A property array with one entry for each uploaded file. See [Xbasic function arguments array mode] below for more information.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.uploadProperties]*</name>
+                                    <description>Contains multiple sub-properties for all of the properties set for the *[ui:File Upload - User Defined]* action.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>A pointer to the component definition</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.rtc]*</name>
+                                    <description>A pointer variable that contains run-time calculations</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.__si]*</name>
+                                    <description>Component state information</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>If you want to send any JavaScript back to the browser to execute after this event has completed, you can set the *[xb:e.javascript]* property. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[e.javascript = "alert('File upload complete.');"]]></example>
+                        </p>
+                        <p>*[EXTREMELY IMPORTANT]* The JavaScript that is sent back to the browser is executed in the context of the IFrame that contains the File Select window. Therefore, in order for the Javascript you send back to invoke methods of the UX component, you must prefix all methods with *[js:window.parent]*.</p>
+                        <p>
+                            <example code="xb"><![CDATA[window.parent.{dialog.object}.setValue('CONTROL1','VALUE1');]]></example>
+                        </p>
+                        <p>The file upload can also be aborted by setting the *[xb:e.abort]* property to *[xb:.t.]* and returning an error message to the user:</p>
+                        <p>
+                            <example code="xb"><![CDATA[e.abort = .t.
+e.errorText = "File upload aborted. You selected a file with no data."]]></example>
+                        </p>
+                        <p></p>
+                    </description>
                 </case>
                 <case>
                     <title nested="2">Xbasic function arguments array mode</title>
@@ -289,8 +338,17 @@ e.fileArray[2].file.dataType = Either 'text' or 'binary']]></example>
                         <p>Note that the array has a .data property that contains the data that was uploaded.</p>
                         <p>If *[ui:Xbasic function arguments array mode]* is set to 'Filename', however, the array will not contain the .data and file.dataType properties. Instead, it will contain a property called 'tempFileUploadedData', which contains the location on the server where the file was saved. So, in the case where the user uploaded two files, the e object will contain:</p>
                         <p>
-                            <example code="xb"><![CDATA[ e.fileArray[1].tempFileUploadedData
-e.fileArray[2].tempFileUploadedData ]]></example>
+                            <example code="xb"><![CDATA[e.fileArray[1].file.characterSet
+e.fileArray[1].file.contentType
+e.fileArray[1].fileName
+e.fileArray[1].encoding
+e.fileArray[1].tempFileUploadedData - The temporary file location on the server
+
+e.fileArray[2].file.characterSet
+e.fileArray[2].file.contentType
+e.fileArray[2].fileName
+e.fileArray[2].encoding
+e.fileArray[2].tempFileUploadedData - The temporary file location on the server]]></example>
                         </p>
                         <p>It is recommended to always use 'Filename' mode. If you are modifying any existing actions, this will require that you also change your Xbasic function that processes the uploaded data because the array passed to your function will no longer have the .data property.</p>
                         <p>The benefit of the 'Filename' option over the 'Data' option is that uploaded data is never loaded into memory. If you use the 'Data' option, the uploaded data is read into memory. This consumes virtual memory on your server and may result in server errors if you have a large number of users uploading files (or just one user uploading a huge file).</p>
@@ -315,6 +373,7 @@ e.fileArray[2].tempFileUploadedData ]]></example>
     </sections>
     <links>
         <link href="#section1_Setting%20the%20'Prompt'%20and%20'Watermark'%20Text%20Properties%20Using%20Language%20Tags">Setting the 'Prompt' and 'Watermark' Text Properties Using Language Tags</link>
+        <link href="#section2_Xbasic%20function%20arguments%20array%20mode">Xbasic function arguments array mode</link>
     </links>
     <see>
         <ref link="action javascript for the ux">Action Javascript for the UX</ref>
