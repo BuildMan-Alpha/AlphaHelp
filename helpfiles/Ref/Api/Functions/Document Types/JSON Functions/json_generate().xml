@@ -1,92 +1,170 @@
 <page api="xb">
-	<shortlink>json_generate Function</shortlink>
-	<topic>json_generate Function</topic>
-	<description>Generate takes a variable, an Xbasic dot variable, and returns JSON.</description>
-	<prototype>C jsonText = json_generate(var as P [, flagSpecialFlags as L [, flagCondense as L [,indent as C [,flagHonorNulls as L]]]])</prototype>
-	<arguments>
-		<argument>
-			<name>var</name>
-			<type>P</type>
-			<description>An Xbasic dot variable you want to convert to JSON.</description>	
-		</argument>
-		<argument optional="true">
-			<name>flagSpecialFlags</name>
-			<type>L</type>
-			<description>Use if you want to generate a JavaScript object literal rather than a JSON object.</description>
-		</argument>
-		<argument optional="true">
-			<name>flagCondense</name>
-			<type>L</type>
-			<description>Specify whether or not the JSON should be generated on a single line. If .f., the JSON will be nicely formatted with tabs and new lines.</description>
-		</argument>
-		<argument optional="true">
-			<name>indent</name>
-			<type>C</type>
-			<description>Only applies if *[xb:flagCondense]* is .f.. Specifies the character prefix to use on all indented lines. Typically used to include &amp;nbsp; character to make the JSON string look nice in an HTML document.</description>
-		</argument>
-		<argument optional="true">
-			<name>flagHonorNulls</name>
-			<type>L</type>
-			<description>Default value is .f.. If *[xb:flagHonorNulls]* is .t., a null value is emitted for variables that are blank strings.</description>
-		</argument>
-	</arguments>
-	<discussion>This function should be used in place of varToJSON() which will be deprecated. The json_generate() function is identical to varToJSON() in all respects, except that the attribute name and string values are quoted using double quotes in accordance with the official JSON specification. </discussion>
-	<sections>
-		<section>
-			<note>The JSON spec does not escape single quotes. </note>
-		</section>
-		<section>
-			<title>Example</title>
-			<example><![CDATA[dim pj as p
+    <shortlink>json_generate Function</shortlink>
+    <topic>json_generate Function</topic>
+    <description>Generate takes a variable, an Xbasic dot variable, and returns "JSON" string.</description>
+    <prototype>C jsonText = json_generate(var as P [, flagSpecialFlags as L [, flagCondense as L [,indent as C [,flagHonorNulls as L]]]])</prototype>
+    <arguments>
+        <argument>
+            <name>var</name>
+            <type>P</type>
+            <description>An Xbasic dot variable you want to convert to JSON.</description>	
+        </argument>
+        <argument optional="true">
+            <name>flagSpecialFlags</name>
+            <type>L</type>
+            <description>Specify whether or not any JavaScript functions defined in the dot variable should be generated as functions or a string. JavaScript functions are specified as strings with the prefix "{javascript}". See example below.</description>
+        </argument>
+        <argument optional="true">
+            <name>flagCondense</name>
+            <type>L</type>
+            <description>Specify whether or not the JSON should be generated on a single line. If .f., the JSON will be nicely formatted with tabs and new lines.</description>
+        </argument>
+        <argument optional="true">
+            <name>indent</name>
+            <type>C</type>
+            <description>Only applies if *[xb:flagCondense]* is .f.. Specifies the character prefix to use on all indented lines. Typically used to include &amp;nbsp; character to make the JSON string look nice in an HTML document.</description>
+        </argument>
+        <argument optional="true">
+            <name>flagHonorNulls</name>
+            <type>L</type>
+            <description>Default value is .f.. If *[xb:flagHonorNulls]* is .t., a null value is emitted for variables that are blank strings.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>jsonText</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>
+                <p>Returns the dot variable as a string containing a JavaScript object literal.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The json_generate() function takes an xbasic dot variable and generates a string containing a JavaScript object literal. While it may appear to be "JSON", the JavaScript object json_generate() generates may actually not be valid JSON. The following example explains:</p>
+        <p>
+            <example code="xb"><![CDATA[dim p as p
+p.name = "Fred"
+p.city = "Boston"
+?json_generate(p)
+= {
+    "name": "Fred",
+    "city": "Boston"
+}]]></example>
+        </p>
+        <p>In this case, the JSON string that is generated is indeed valid JSON.</p>
+        <p>However, consider this case</p>
+        <p>
+            <example code="xb"><![CDATA[dim p as p
+p.name = "Fred"
+p.city = "Boston"
+p.date = date()
+?json_generate(p)
+= {
+    "name": "Fred",
+    "city": "Boston",
+    "date": Date('2019/04/11')
+}]]></example>
+        </p>
+        <p>In this case, the generated JSON string is actually not valid JSON. However, it is a valid Javascript object literal and a typical use case for this is when you want to send a Javascript response from an Ajax callback where the response should be a Javascript object. For example consider this Xbasic function which handles an Ajax callback:</p>
+        <p>
+            <example code="xb"><![CDATA[function xb as c (e as p)
+dim p as p
+p.name = "Fred"
+p.city = "Boston"
+p.date = date()
+dim jsstring as c 
+jsstring = json_generate(p)
+dim js as c 
+js = "var myvar = " + jsstring
+xb = js 
+end function ]]></example>
+        </p>
+        <p>The json_generate() function is capable of generating more complex JavaScript object literals. For example:</p>
+        <p>
+            <example code="xb"><![CDATA[dim p as p
+p.name = "Fred"
+p.sayHello = "{javascript}function(name) {alert('Hello: ' + name);}"
+
+?json_generate(p,.t.) 'note the second argument to json_generate() is .t.. The default value is .f.
+= {
+    "name": "Fred",
+    "sayHello": function(name) {alert('Hello: ' + name);}
+}]]></example>
+        </p>
+        <p>json_generate() is designed so that you can do a full "round trip" (i.e. json_generate(), followed by json_parse() of the string produced by json_generate()) without losing any information. This is not the case with property_to_json().</p>
+        <p>If you want a true JSON object, then use property_to_json(). For example:</p>
+        <p>
+            <example code="xb"><![CDATA[delete p 
+dim p as p
+p.name = "Fred"
+p.city = "Boston"
+p.date = date()
+?json_reformat(property_to_json(p))
+= {
+    "name": "Fred",
+    "city": "Boston",
+    "date": "2019-04-11"
+}]]></example>
+        </p>
+        <p>The above string is a valid JSON string, but notice that we have lost information about the original type of type of the "date" property.</p>
+        <p>This function should be used in place of varToJSON() which has been deprecated. The json_generate() function is identical to varToJSON() in all respects, except that the attribute name and string values are quoted using double quotes in accordance with the official JSON specification.</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>The JSON spec does not escape single quotes. </note>
+        </section>
+        <section>
+            <example><![CDATA[dim pj as p
 pj.text = "some text with ' single quote"
 ?json_generate(pj)
 = {
     "text": "some text with ' single quote"
 }]]></example>
-		</section>
-		<section>
-			<title>Using flagSpecialFlags</title>
-			<description>
-				<p>flagSpecialFlags is used when you are trying to generate a Javascript object literal (rather than a JSON string).</p>
-				<p>For example:</p>
-			</description>
-			<example><![CDATA[dim p as p
+        </section>
+        <section>
+            <title>Example: Using flagSpecialFlags</title>
+            <description>
+                <p>flagSpecialFlags is used when you are trying to generate a Javascript object literal that contains functions (rather than a JSON string).</p>
+                <p>For example:</p>
+            </description>
+            <example><![CDATA[dim p as p
 p.name = "foo"
 p.function = "{javascript}function() { alert('hello') }"
 
 ?json_generate(p,.t.)
 
 = {
-	"name": "foo",
-	"function": function() { alert('hello') }
+    "name": "foo",
+    "function": function() { alert('hello') }
 }]]></example>
-		</section>
-		<section>
-			<description>Without flagSpecialFlags set to .t., the property values would be strings, converting *[xb:function]*'s value to a string rather than adding it as a function. EG:</description>
-			<example><![CDATA[{
-	"name": "foo",
-	"function": "{javascript}function() { alert('hello') }"
+        </section>
+        <section>
+            <description>Without flagSpecialFlags set to .t., the property values would be strings, converting *[xb:function]*'s value to a string rather than adding it as a function. EG:</description>
+            <example><![CDATA[{
+    "name": "foo",
+    "function": "{javascript}function() { alert('hello') }"
 }]]></example>
-		</section>
-		<section>
-			<title>Using flagHonorNulls</title>
-			<description></description>
-			<example><![CDATA[dim p as p
+        </section>
+        <section>
+            <title>Example: Using flagHonorNulls</title>
+            <example><![CDATA[dim p as p
 p.name = "joe"
 p.age = null_value()
 p.function = "{javascript}null"
 
 ? json_generate(p,.t.,.f.,"",.t.)
 = {
-	"name": "joe",
-	"age": null,
-	"function": null
+    "name": "joe",
+    "age": null,
+    "function": null
 }]]></example>
-		</section>
-	</sections>
-	<see>
-		<ref link="json_parse Function">json_parse()</ref>
-		<ref link="JSON Data">JSON Data</ref>
-	</see>
-	<terms>JSON,function,string,text,Xbasic</terms>
+        </section>
+    </sections>
+    <see>
+        <ref link="json_parse Function">json_parse()</ref>
+        <ref link="JSON Data">JSON Data</ref>
+    </see>
+    <terms>JSON,function,string,text,Xbasic</terms>
 </page>
