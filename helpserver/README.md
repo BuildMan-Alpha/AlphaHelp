@@ -89,13 +89,13 @@ A robust link can contain the following characters:
 The the -f (or -file) can be used to specify where to read the input link list from --- found in the "generated" directory for the helpserver. EG:
 
 ```
-node repopulateLinks.js -f ../transform/generated/links.json
+node repopulateLinks.js -f ../transform/generated/list.json
 ```
 
 You can also specify the output location of the links.json and aliases.json files using the -o or -output argument. The location must end in a "/":
 
 ```
-node repopulateLinks.js -f ../transform/generated/links.json -o ../transform/
+node repopulateLinks.js -f ../transform/generated/list.json -o ../transform/
 ```
 
 ### Finding Bad or Missing Robust Links
