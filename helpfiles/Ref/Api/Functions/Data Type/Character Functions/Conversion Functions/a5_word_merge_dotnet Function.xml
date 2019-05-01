@@ -1,0 +1,120 @@
+<page api="xb" build="0">
+    <shortlink>a5_word_merge_dotnet function</shortlink>
+    <topic>a5_word_merge_dotnet Function</topic>
+    <description>
+        <p>Merges data into an MS Word Template document. Requires Visual Studio Tools for Office.</p>
+    </description>
+    <prototypes>
+        <prototype>a5_word_merge_dotNet as p (folder as c, template as c, connectionString as c, sql as c, args as sql::arguments, flagPortableSQL = .t., outputFilename = "")</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>folder</name>
+            <type>C</type>
+            <description>
+                <p>The location where the word template file is stored.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>template</name>
+            <type>C</type>
+            <description>
+                <p>The filename for the word template to use.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>connectionString</name>
+            <type>C</type>
+            <description>
+                <p>A named SQL connection. E.G. *[xb:"AADemo-Northwind"]*.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>sql</name>
+            <type>C</type>
+            <description>
+                <p>The SQL query to execute.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>args</name>
+            <type>SQL::Arguments</type>
+            <description>
+                <p>A SQL::Arguments object containing any arguments used in the SQL query.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>flagPortableSQL</name>
+            <type>L</type>
+            <description>
+                <p>Default = *[xb:.t.]*. Specifies whether or not the SQL query uses portable SQL (*[xb:.t.]*) or native syntax (*[xb:.f.]*).</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>outputFilename</name>
+            <type>C</type>
+            <description>
+                <p>Default = "". The name of the word document generated for each record. If blank, a filename will be generated using the format "MergeResult_*[em:rownumber]*" where rownumber is replaced by the record's row number in the result set. The filename can include placeholders for fields in the SQL records. For example:</p>
+                <p><example code="xb"><![CDATA[dim outputFilename = "invoice for {CustomerId}"]]></example></p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>P</type>
+            </types>
+            <description>
+                <p>Returns a dot variable with the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>A *[xb:.t.]* or *[xb:.f.]* value. If *[xb:.t.]*, an error occurred and additional information can be found in the *[xb:errorText]* property. If *[xb:.f.]*, the operation was successful.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>This property only exists if *[xb:error]* is *[xb:.t.]*. Contains information about the error.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5_word_merge_dotNet()]* function does a SQL query against a named SQL connection and merges the resulting records into a Microsoft Word Template. The placeholders are mapped to the columns in the SQL result based on the column name. If the column name matches the placeholder in the Word template, the data for the record is merged into the template.</p>
+        <p></p>
+    </discussion>
+    <sections>
+        <section>
+            <important>*[The Visual Studio Tools for Office is required to use this function.]* Download and install the *[extlink:Microsoft Office 2010: Primary Interop Assemblies Redistributable@https://www.microsoft.com/en-us/download/details.aspx?id=3508]* on the machine that will run this function.</important>
+        </section>
+        <section>
+            <description>
+                <p>One Word file is created for each record in the SQL query. The optional *[xb:outputFilename]* parameter can be used to define the filename used for the merged Word documents. The filename can include placeholders for fields in the SQL results. If no output filename is specified, Alpha Anywhere automatically generates the filename as "MergeResult_*[em:rownumber]*" where rownumber is replaced with the record's row number in the SQL query result.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim folder as c = "c:\wordTemplates"
+dim template as c = "Template.docx"
+dim conn as C = "::Name::Northwind"
+dim sql as c = "SELECT customerid, contactname, address, city, region, country, postalcode, contactname AS salutation FROM customers WHERE country = :whatcountry"
+dim args as sql::arguments
+args.add("whatcountry","uk")
+dim outputfilename as c
+outputFilename = "{customerid}_invoice"
+
+dim result as p
+result = a5_word_merge_dotNet(folder,template,conn,sql,args,.t.,outputFilename)
+
+if (result.error) then
+    ' an error occurred
+    showvar(result.errorText)
+end if]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <see>
+        <ref link="api a5 word merge function">A5_WORD_MERGE()</ref>
+    </see>
+</page>
