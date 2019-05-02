@@ -461,9 +461,14 @@
                 <xsl:choose>
                     <xsl:when test="./@href">
                         <li>
-                            <a xsl:use-attribute-sets="ref-href-link">
-                                <xsl:value-of select="." />
-                            </a>
+                            <xsl:choose>
+                                <xsl:when test="./@target">
+                                    <a xsl:use-attribute-sets="ref-href-link" target="./@target"><xsl:value-of select="."/></a>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <a xsl:use-attribute-sets="ref-href-link"><xsl:value-of select="." /></a>
+                                </xsl:otherwise>
+                           </xsl:choose>
                         </li>
                     </xsl:when>
                     <xsl:when test="./@link">
