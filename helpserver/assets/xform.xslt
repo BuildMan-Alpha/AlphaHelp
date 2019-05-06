@@ -30,7 +30,7 @@
                         <xsl:when test="./@href">
                             <xsl:choose>
                                 <xsl:when test="./@target">
-                                    <a href="{./@href}"><xsl:value-of select="." target="./@target"/></a>
+                                    <a href="{./@href}" target="{./@target}"><xsl:value-of select="." /></a>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <a href="{./@href}"><xsl:value-of select="." /></a>
@@ -40,7 +40,7 @@
                         <xsl:when test="./@link">
                             <xsl:choose>
                                 <xsl:when test="./@target">
-                                    <a href="((A5_BASE_PATH))index?search={normalize-space(./@link)}"><xsl:value-of select="." target="./@target"/></a>
+                                    <a href="((A5_BASE_PATH))index?search={normalize-space(./@link)}" target="{./@target}"><xsl:value-of select="." /></a>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <a href="((A5_BASE_PATH))index?search={normalize-space(./@link)}"><xsl:value-of select="." /></a>
@@ -48,7 +48,7 @@
                            </xsl:choose>
                         </xsl:when>
                         <xsl:when test="./@target">
-                            <a><xsl:value-of select="." target="./@target"/></a>
+                            <a target="{./@target}"><xsl:value-of select="." /></a>
                         </xsl:when>
                         <xsl:otherwise>
                             <a><xsl:value-of select="." /></a>
@@ -463,7 +463,7 @@
                         <li>
                             <xsl:choose>
                                 <xsl:when test="./@target">
-                                    <a xsl:use-attribute-sets="ref-href-link" target="./@target"><xsl:value-of select="."/></a>
+                                    <a xsl:use-attribute-sets="ref-href-link" target="{./@target}"><xsl:value-of select="."/></a>
                                 </xsl:when>
                                 <xsl:otherwise>
                                     <a xsl:use-attribute-sets="ref-href-link"><xsl:value-of select="." /></a>
