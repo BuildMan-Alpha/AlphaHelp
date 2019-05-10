@@ -2,6 +2,7 @@ var noSearchFlag = false;
 var searchLocalFlag = false;
 var runHelpServer = false;
 var settingsOverride = null;
+var help = null;
 
 var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag) {
     var linksFileName = "/home/AlphaHelp/links.json";
@@ -1494,7 +1495,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         //--------------------------------------------------------------------------------------------
         var express = require('express');
         var app = express();
-        var help = Help(options);
+        help = Help(options);
         if (help.getAbsolutePath) {
             absolutePath = help.getAbsolutePath();
             //            console.log(absolutePath);
