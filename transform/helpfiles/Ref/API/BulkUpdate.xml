@@ -1,46 +1,199 @@
 <page api="transform" build=" 4872">
-<shortlink>transform BulkUpdate method</shortlink>
-<topic>BulkUpdate API Method</topic>
-<description>Perform multiple actions.</description>
-<arguments>
-    <argument>
-        <name>formdatajson</name>
-        <type>C</type>
-        <description>JSON definition of updates to perform.</description>
-    </argument>
-</arguments>
-<returns>
-    <return>
-        <name>result</name>
-        <type>JSON Object</type>
-        <description>Returns an object with these properties:</description>
-        <properties>
-            <property>
-                <name>error</name>
-                <type>boolean</type>
-                <description>*[js:true]* if there was an error</description>
-            </property>
-            <property>
-                <name>result</name>
-                <type>object</type>
-            </property>
-        </properties>
-    </return>
-</returns>
-<sections>
-    <section>
-        <title>CURL</title>
-        <example><![CDATA[CURL --insecure -H "apikey:Your_api_key" -H "content-type: application/json" -H "accept: application/json" -d "{"""formdatajson""":{}}" "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/BulkUpdate"]]></example>
-    </section>
-    <section>
-        <title>Node</title>
-        <example code="js"><![CDATA[var request = require('request')
+    <shortlink>transform BulkUpdate method</shortlink>
+    <topic method="POST" scope="ALL">/BulkUpdate</topic>
+    <description>Perform multiple actions.</description>
+    <arguments>
+        <argument header="true">
+            <name>apikey</name>
+            <type>string</type>
+            <description>
+                <p>Your TransForm API key.</p>
+            </description>
+        </argument>
+        <argument header="true">
+            <name>formdatajson</name>
+            <type>C</type>
+            <description>
+                <p>JSON definition of updates to perform. The *[js:formdatajson]* is an array of objects of actions to execute. Each action must have a *[js:command]*. Some actions also require *[js:formdata]* and *[js:metadata]*.</p>
+                <p><example code="json" title="Example formdatajson object"><![CDATA[[
+  {
+    "commands": {
+      "action": "delete",
+      "forminstanceid": "jseouymq_vgnob9dt"
+    }
+  },
+  {
+    "formdata": {
+      "field1": "Fred",
+      "field2": "Smith"
+    },
+    "metadata": {
+      "person": "user1@mycompany.com",
+      "status": "closed"
+    },
+    "commands": {
+      "action": "update",
+      "forminstanceId": "jseovih2_zy02059b"
+    }
+  },
+  {
+    "formdata": {
+      "field1": "John",
+      "field2": "Jones"
+    },
+    "metadata": {
+      "person": "user1@mycompany.com",
+      "status": "open"
+    },
+    "commands": {
+      "action": "insert",
+      "formid": "form1"
+      
+    }
+  }
+]]]></example></p>
+                <p>The JSON format for formdatajson is described below:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>commands</name>
+                    <type>object</type>
+                    <description>
+                        <p>The the command to execute.</p>
+                    </description>
+                    <properties>
+                        <property>
+                            <name>action</name>
+                            <type>string enum</type>
+                            <description>
+                                <p>Action to perform. Can be "insert", "update", or "delete".</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Action</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>insert</name>
+                                            <description>Create a new instance of a form type.</description>
+                                        </item>
+                                        <item>
+                                            <name>update</name>
+                                            <description>Update the data in a form instance.</description>
+                                        </item>
+                                        <item>
+                                            <name>delete</name>
+                                            <description>Delete a form instance.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                        </property>
+                        <property>
+                            <name>forminstanceid</name>
+                            <type>string</type>
+                            <description>
+                                <p>The form instance id. Required if action is "delete" or "update".</p>
+                            </description>
+
+                        </property>
+                        <property>
+                            <name>formid</name>
+                            <type>string</type>
+                            <description>The form id. Required if action is "insert".</description>
+                        </property>
+                    </properties>
+                </property>
+                <property>
+                    <name>formdata</name>
+                    <type>object</type>
+                    <description>
+                        <p>The form data to set in the form instance. Required if action is "insert" or "update".</p>
+                    </description>
+                    <properties>
+                        <property>
+                            <name>*[em:form_field]*</name>
+                            <type>string</type>
+                            <description>
+                                <p>The data to insert or update in *[em:form_field]*, where *[em:form_field]* is the field name in the form instance. EG:</p>
+                                <p>
+                                    <example code="json"><![CDATA["formdata": {
+    "firstname":"Jane",
+    "lastname":"Doe",
+    "address":"123 Main St."
+}]]></example>
+                                </p>
+                            </description>
+                        </property>
+                    </properties>
+                </property>
+                <property>
+                    <name>metadata</name>
+                    <type>object</type>
+                    <description>
+                        <p>Additional form meta data.</p>
+                        <p>Required if action is "insert".</p>
+                        <p>Optional if action is "update".</p>
+                    </description>
+                    <properties>
+                        <property>
+                            <name>person</name>
+                            <type>string</type>
+                            <description>The user to assign the form instance. Must be a valid user in your TransForm account.</description>
+                        </property>
+                        <property>
+                            <name>status</name>
+                            <type>string</type>
+                            <description>The status to assign the form instance. Must be one of the allowed status for your form type. See [Statuses] for more information.</description>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>JSON Object</type>
+            <description>Returns an object with these properties:</description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>boolean</type>
+                    <description>*[js:true]* if there was an error</description>
+                </property>
+                <property>
+                    <name>result</name>
+                    <type>object array</type>
+                    <description>
+                        <p>An array of objects. Number if items in the array match the number of CRUD operations defined in input JSON data.</p>
+                    </description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <sections>
+        <section>
+            <title>Examples</title>
+        </section>
+        <section>
+            <title nested="2">CURL</title>
+            <example><![CDATA[CURL --insecure --request POST "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/BulkUpdate" \
+-header "apikey:Your_api_key" \
+-header "content-type: application/json" \
+-header "accept: application/json" \
+-data "{"""formdatajson""":{}}" 
+]]></example>
+        </section>
+        <section>
+            <title nested="2">Node</title>
+            <example code="js"><![CDATA[var request = require('request')
 var path = 'https://transform.alphasoftware.com/transformAPIVersion1.a5svc/BulkUpdate';
 var data = {"formdatajson": "{}"};
 var dataJSON = JSON.stringify(data)
 request.post(
 	{
-		headers: {apikey: "Your_api_key"},   
+		headers: {apikey: "Your_api_key"},
 		url: path, 
 		form: dataJSON}, 
 		function(err,httpResponse,body){
@@ -48,11 +201,11 @@ request.post(
 			console.log(body)
 	}
 )
-]]></example>
-    </section>
-    <section>
-        <title>Xbasic</title>
-        <example code="xb"><![CDATA[dim apikey as c = "Your_api_key"
+]]>            </example>
+        </section>
+        <section>
+            <title nested="2">Xbasic</title>
+            <example code="xb"><![CDATA[dim apikey as c = "Your_api_key"
 dim postdata as c
 postdata = <<%txt%
 {
@@ -71,8 +224,11 @@ else
 	dim errorText as c 
 	errorText = pr.errorText
 end if 
-]]></example>
-    </section>
-</sections>
-<annotations>/TransForm/BulkUpdate.xml</annotations>
+]]>            </example>
+        </section>
+    </sections>
+    <links>
+        <link link="transform central permissions status">Statuses</link>
+    </links>
+    <annotations>/TransForm/BulkUpdate.xml</annotations>
 </page>
