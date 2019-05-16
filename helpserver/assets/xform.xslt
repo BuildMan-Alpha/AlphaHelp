@@ -57,13 +57,16 @@
                 </xsl:for-each>
             </script>
         </xsl:if>
-        <xsl:choose>
+        <xsl:choose> 
            <xsl:when test="./@depth">
                 <xsl:if test="topic"><h1><a name="section{(./@depth)-1}_{topic}" ><xsl:value-of select="topic" /></a></h1></xsl:if>
                 <xsl:if test="name"> <h1><a name="section{(./@depth)-1}_{name}" ><xsl:value-of select="name" /></a></h1></xsl:if>
            </xsl:when>
            <xsl:when test="topic/@parent">
                 <h1><span class="topicContext_{topic/@parentType}" ><xsl:value-of select="topic/@parent"/></span><span class="topicElement"><xsl:value-of select="topic/@elementName" /></span></h1>
+           </xsl:when>
+           <xsl:when test="topic/@method">
+                <h1 class="apiEndpoint"><span class="method_{topic/@method}"><xsl:value-of select="topic/@method" /></span><xsl:if test="topic/@scope"><span class="scopes"><xsl:value-of select="topic/@scope" /></span></xsl:if><xsl:value-of select="topic" /></h1>
            </xsl:when>
            <xsl:otherwise>
                 <xsl:if test="topic"><h1><xsl:value-of select="topic" /></h1></xsl:if>
