@@ -5,18 +5,20 @@
 <arguments>
     <argument>
         <name>userid</name>
-        <type>C</type>
-        
+        <type>string</type>
+        <description>
+            <p>The user id.</p>
+        </description>
     </argument>
     <argument>
         <name>password</name>
-        <type>C</type>
-        <description>password</description>
+        <type>string</type>
+        <description>The user's password</description>
     </argument>
     <argument>
         <name>accountName</name>
-        <type>C</type>
-        <description>name of account to login to (applies if user is a member of more than one account)</description>
+        <type>string</type>
+        <description>The name of account to login to. Only applies if user is a member of more than one account.</description>
     </argument>
 </arguments>
 <returns>
@@ -33,22 +35,39 @@
             <property>
                 <name>result</name>
                 <type>object</type>
+                <description>An object that contains the following information:</description>
                 <properties>
                     <property>
                         <name>loginOK</name>
-                        <type>true if credentials are OK, otherwise false</type>
+                        <type>boolean</type>
+                        <description>true if credentials are OK, otherwise false</description>
                     </property>
                     <property>
-                        <name>signinComplete</name>
-                        <type>true if credentials are OK and a valid account name was specified, or if user only member of one account</type>
+                        <name>signincomplete</name>
+                        <type>boolean</type>
+                        <description>Will be true if credentials are OK and a valid account name is specified, or if user is only a member of one account. Will be false if the credentials are OK but an invalid account name is specified -- or is missing.</description>
                     </property>
                     <property>
                         <name>accounts</name>
-                        <type>array of accounts for user. only returned if signinComplete is false</type>
+                        <type>object array</type>
+                        <description>An array of accounts for user. Only returned if *[js:signincomplete]* is false. Each entry in the array will contain the following properties:</description>
+                        <properties>
+                            <property>
+                                <name>accountDisplayName</name>
+                                <type>string</type>
+                                <description>The display name for the account.</description>
+                            </property>
+                            <property>
+                                <name>accountName</name>
+                                <type>string</type>
+                                <description>The account name. This is the account name you must specify in the *[js:accountName]* parameter when calling the /Login method.</description>
+                            </property>
+                        </properties>
                     </property>
                     <property>
                         <name>JWT</name>
-                        <type>only returned if signinComplete is true&lt;/li</type>
+                        <type>string</type>
+                        <description>For use by Super User Only.</description>
                     </property>
                 </properties>
             </property>
@@ -57,11 +76,36 @@
 </returns>
 <sections>
     <section>
-        <title>CURL</title>
+        <description>
+            <p>If the user is a member of multiple accounts, you must specify the user account. If you do not specify a valid user account, you will be given a list of accounts for the user. For example:</p>
+        </description>
+        <example code="json" caption="JSON returned when an invalid user account is specified"><![CDATA[{
+    "error": false,
+    "result": {
+        "loginOK": true,
+        "signincomplete": false,
+        "accounts": [
+        {
+            "accountDisplayName": "My Account",
+            "accountName": "Account1"
+        },
+        {
+            "accountDisplayName": "WorkPlace.Org",
+            "accountName": "Account2"
+        }]
+    },
+    "errorText": ""
+}]]></example>
+    </section>
+    <section>
+        <title>Examples</title>
+    </section>
+    <section>
+        <title nested="2">CURL</title>
         <example><![CDATA[CURL --insecure -H "apikey:Your_api_key" -H "accept: application/json"  "https://transform.alphasoftware.com/transformAPIVersion1.a5svc/Login?username=value_of_username&password=value_of_password&accountName=value_of_accountName"]]></example>
     </section>
     <section>
-        <title>Node</title>
+        <title nested="2">Node</title>
         <example code="js"><![CDATA[var https = require('https');
 var options = {
   protocol: "https:",
@@ -78,7 +122,7 @@ https.get(options, (resp) => {
 ]]></example>
     </section>
     <section>
-        <title>Xbasic</title>
+        <title nested="2">Xbasic</title>
         <example code="xb"><![CDATA[dim apikey as c = "Your_api_key"
 dim postdata as c 
 dim url as c = "/Login?username=value%5fof%5fusername&password=value%5fof%5fpassword&accountName=value%5fof%5faccountName"
