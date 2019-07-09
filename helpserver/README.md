@@ -72,7 +72,7 @@ You did not create the generated and/or generated/topics folders.
 
 You did not install xsltproc and/or did not copy the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver.
 
-## Maintaining the links.json file
+## Maintaining the Links list.json file
 
 The helpserver has a links.json file that it uses to resolve 'robust' links.  If files are moved, these robust links
 can be fixed up by running this code:
