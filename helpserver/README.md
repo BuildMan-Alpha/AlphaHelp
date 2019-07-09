@@ -72,7 +72,7 @@ You did not create the generated and/or generated/topics folders.
 
 You did not install xsltproc and/or did not copy the files from the AlphaHelp/helpserver/xsltproc_win directory into AlphaHelp/helpserver.
 
-## Maintaining the Links list.json file
+## Maintaining the links.json file
 
 The helpserver has a links.json file that it uses to resolve 'robust' links.  If files are moved, these robust links
 can be fixed up by running this code:
@@ -97,6 +97,8 @@ You can also specify the output location of the links.json and aliases.json file
 ```
 node repopulateLinks.js -f ../transform/generated/list.json -o ../transform/
 ```
+
+Repopulating links requires that refresh has been run locally, which is done by navigating to the refresh page locally on the help server and clicking the refresh button. If you're running the help server on port 3002, the refresh page would be found at localhost:3002/refresh
 
 ### Finding Bad or Missing Robust Links
 
