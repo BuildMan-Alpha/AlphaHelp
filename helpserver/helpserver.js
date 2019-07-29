@@ -1264,7 +1264,6 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 if (isPrerelease) {
                     data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="versionTagPrerelease"');
                     isPrerelease = false;
-                    break;
                 }
             }
         }
