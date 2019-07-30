@@ -1,182 +1,353 @@
 <page>
     <shortlink>File Upload Amazon S3 Storage or Alpha Anywhere Server</shortlink>
-   <topic>File Upload - Amazon S3 Storage or Alpha Anywhere Server</topic>
-   <description>Upload one or more files to Amazon S3 or to the Alpha Anywhere server.</description>
-   
-   <sections>
-           <section>
-            <description>Used with the UX component.</description>
-       </section>
-       
-       <section>
+    <topic>File Upload - Amazon S3 Storage or Alpha Anywhere Server</topic>
+    <description>Upload one or more files to Amazon S3 or to the Alpha Anywhere server.</description>
+    <discussion>
+        <p>The *[ui:File Upload - Amazon S3 Storage or Alpha Anywhere Server]* action can be used to upload one or more files to either Amazon S3 or the Alpha Anywhere server.</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>
+                <p>If you are uploading files in a data bound UX Component, the [File Upload] action is more appropriate.</p>
+                <p>If you are uploading files in a PhoneGap mobile application, see [PhoneGap - File Upload].</p>
+            </note>
+        </section>
+        <section>
             <title>Target Server Properties</title>
-            <list>
-                <item>
-                    <name>Upload target</name>
-                    <description>Specify the target server to which files should be uploaded. You can upload to Amazon S3, or the Alpha Anywhere server. Choices include *[ui:S3]*, *[ui:AlphaAnywhere]*.</description>
-                </item>
-                <item>
-                    <name>Xbasic function</name>
-                    <description>Specify the name of the Xbasic function to call once each file has been uploaded.</description>
-                </item>
-                <item>
-                    <name>Additional info to submit - Javascript</name>
-                    <description>Specify the Javascript to execute to collect any information from the client-side that you want to make availalbe to the Xbasic function. Your code should return a string (which could be the stringified version of a Javascript object). The data returned by this function will be available in the Xbasic function in a property called 'e.__additionalInfo'.</description>
-                </item>
-            </list>
+            <cases>
+                <case>
+                    <title nested="2">Upload target</title>
+                    <description>
+                        <p>Specify the target server to which files should be uploaded. You can upload to Amazon S3, or the Alpha Anywhere server.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Target</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>S3</name>
+                                    <description>Images will be uploaded to Amazon S3. Specific information about the destination S3 bucket is specified in the [Amazon S3 File Upload Properties].</description>
+                                </item>
+                                <item>
+                                    <name>AlphaAnywhere</name>
+                                    <description>Files will be uploaded to the Alpha Anywhere Server. You must define an [Xbasic function] to handle the files after they have been uploaded.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <figure>
+                        <title>Options available for the 'S3' Upload target.</title>
+                        <link>images/fileUploadS3_S3.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <figure>
+                        <title>Options available for the 'AlphaAnywhere' Upload target.</title>
+                        <link>images/fileUploadS3_AlphaAnywhere.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <title nested="2">Xbasic function</title>
+                    <description>
+                        <p>The Xbasic function to call when a file is uploaded to the Alpha Anywhere server. The *[ui:Xbasic function]* will be called once for each file uploaded to the Alpha Anywhere server. Your code can process the file in any way that you want. For example, you might want to store the file in permanent storage on disk or in a database.</p>
+                        <p>The Xbasic function will be passed an 'e' object that contains information about the uploaded file as well as the component definition.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>The component definition.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.sourceFileName]*</name>
+                                    <description>The source filename on the client-side (this is the name of the file that was uploaded).</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.contentType]*</name>
+                                    <description>The content type of the uploaded file.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.characterSet]*</name>
+                                    <description>The character set of the upload file.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.encoding]*</name>
+                                    <description>The encoding of the uploaded file.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.size]*</name>
+                                    <description>The size of the uploaded file.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.localFileName]*</name>
+                                    <description>A temporary file on the server where the uploaded file has been stored. This is the file that your code must process in some way.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>If you define any additional info to submit, the 'e' object will also contain the *[xb:e.__additionalInfo]* property. (See [Additional info to submit - Javascript] for more information.)</p>
+                        <p>
+                            <example code="xb"><![CDATA[function afterUpload as v (e as p)
+
+    'Example:
+    'Store the uploaded file permanently in the 'myuploads' folder relative to the Webroot folder
+
+    'get the webroot folder
+    dim webroot as c
+    webroot = a5_default_path
+
+    dim targetFolder as c ="myuploads"
+
+    dim targetFolderFullyQualified as c
+    targetFolderFullyQualified = a5_removetrailingbackslash(webroot) + chr(92) + targetFolder
+
+    'make sure that the target folder exists
+    dir_create_recurse(targetFolderFullyQualified)
+
+    dim targetFilename as c
+    targetFilename = targetFolderFullyQualified + chr(92) + e.sourceFileName
+
+    'copy the temporary file to the permanent location
+    file.copy2(e.localFilename,targetFilename)
+
+end function]]></example>
+                        </p>
+                        <p>The *[ui:Xbasic function]* property is only available if *[ui:Upload target]* is set to 'AlphaAnywhere'.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Additional info to submit - Javascript</title>
+                    <description>
+                        <p>Specify the Javascript to execute to collect any information from the client-side that you want to make available to the Xbasic function. Your code should return a string. The data returned by this function will be available in the Xbasic function in a property called *[xb:e.__additionalInfo]*.</p>
+                        <p>Your JavaScript can return a single value to pass to the Xbasic function (e.g. *[js:'12']*) or multiple values as name-value pairs using JSON notation (e.g. *[js:'{"folder": "myfolder", "type": "type"}']*. For example:</p>
+                        <p>
+                            <example code="js"><![CDATA[function additionalInfo() {
+    var info = {}
+    info.folder = {dialog.object}.getValue('TargetFolder');
+    info.type = {dialog.object}.getValue('UploadType');
+
+    return JSON.stringify(info);
+}]]></example>
+                        </p>
+                        <p>To read the variables passed in the JSON string, you will need to parse the *[xb:e.__additionalInfo]* object to convert the string to Xbasic variables. This is done using the [json_parse()] Xbasic function:</p>
+                        <p>
+                            <example code="xb"><![CDATA[dim additionalInfo as c = ""
+if variable_exists("e.__additionalInfo") then
+    ' assign e.__additional info to the local additionalInfo variable
+    additionalInfo = e.__additionalInfo
+end if
+dim pi as p
+if additionalInfo <> "" then
+    ' Parse the JSON in additionalInfo
+    pi = json_parse(additionalInfo)
+end if
+
+'define pi.folder and pi.type in case they not defined in the e.__additionalInfo JSON string.
+dim pi.folder as c = default ""
+dim pi.type as c = default ""]]></example>
+                        </p>
+                        <p>The *[ui:Additional info to submit - Javascript]* property is only available if *[ui:Upload target]* is set to 'AlphaAnywhere'.</p>
+                    </description>
+                </case>
+            </cases>
         </section>
         <section>
             <title>File Selection Properties</title>
-            <list>
-                <item>
-                    <name>Method for selecting files</name>
+            <cases>
+                <case>
+                    <title nested="2">Method for selecting files</title>
                     <description>Specify if the user can select the file(s) to be uploaded, or if the data for the file to be uploaded will be supplied (in the form of a base64 encoded string  -- that is formatted as a 'data URI' e.g. data:image/jpeg;base64,/sjsakjjs....). Choices include *[ui:User selects file(s)]*, *[ui:Base64Data]*.</description>
-                </item>
-                <item>
-                    <name>Javascript function to get base64 encoded data</name>
+                </case>
+                <case>
+                    <title nested="2">Javascript function to get base64 encoded data</title>
                     <description>Specify the name of the Javascript function that will return the base64 encoded data to be uploaded. Returned base64 data is expected to be in data URI format. e.g. data:image/jpeg;base64,/skaakjfhaksdfh......</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Amazon S3 File Upload Properties Properties</title>
-            <list>
-                <item>
-                    <name>Method for specifying Amazon S3 credentials and bucket</name>
-                    <description>Should the Amazon S3 credentials and bucket be read from a named storage connection string, or do you want to specify explicit values for the access key, secret and bucket. Choices include *[ui:Named Storage Connection String]*, *[ui:Explicit]*.</description>
-                </item>
-                <item>
-                    <name>Storage connection string</name>
-                    <description>Specify the named storage connection string. IMPORTANT: The storage connection string MUST NOT BE ENCRYPTED. TIP: To define a storage connection string, go to the Tools menu in the Web Projects Control Panel.</description>
-                </item>
-                <item>
-                    <name>Access key</name>
-                    <description>Specify the access key.</description>
-                </item>
-                <item>
-                    <name>Secret</name>
-                    <description>Specify the secret.</description>
-                </item>
-                <item>
-                    <name>Bucket</name>
-                    <description>Specify the bucket.</description>
-                </item>
-                <item>
-                    <name>Authenticated read</name>
-                    <description>Specify if authentication is required to read the object once it has been uploaded to S3</description>
-                </item>
-                <item>
-                    <name>S3 Timeout</name>
+            <description>
+                <p>These properties are only available if the *[ui:Upload target]* has been set to 'S3'.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Method for specifying Amazon S3 credentials and bucket</title>
+                    <description>Should the Amazon S3 credentials and bucket be read from a named storage connection string, or do you want to specify explicit values for the access key, secret and bucket. Choices include *[ui:Named Storage Connection String]* and *[ui:Explicit]*.</description>
+                </case>
+                <case>
+                    <title nested="2">Storage connection string</title>
+                    <description>Specify the named storage connection string. This property is only available if *[ui:Method for specifying Amazon S3 credentials and bucket]* has been set to 'Named Storage Connection String'.</description>
+                    <important>
+                        <p>The storage connection string *[MUST NOT BE ENCRYPTED]*.</p>
+                    </important>
+                    <tip>
+                        <p>To define a storage connection string, go to the Tools menu in the Web Projects Control Panel.</p>
+                    </tip>
+                </case>
+                <case>
+                    <title nested="2">Access key</title>
+                    <description>Specify the access key. This property is only available if *[ui:Method for specifying Amazon S3 credentials and bucket]* has been set to 'Named Storage Connection String'.</description>
+                </case>
+                <case>
+                    <title nested="2">Secret</title>
+                    <description>Specify the secret. This property is only available if *[ui:Method for specifying Amazon S3 credentials and bucket]* has been set to 'Named Storage Connection String'.</description>
+                </case>
+                <case>
+                    <title nested="2">Bucket</title>
+                    <description>
+                        <p>Specify the bucket where files should be uploaded on Amazon S3. This property is only available if *[ui:Method for specifying Amazon S3 credentials and bucket]* has been set to 'Named Storage Connection String'.</p>
+                        <p>In order to upload files directly from the browser to Amazon S3, you must set the CORS configuration on your Amazon S3 bucket.</p>
+                        <p>To set the CORS configuration on a bucket, open the Amazon Web Services Management console, select the bucket, then click the *[ui:Properties]* button. Open the *[ui:permissions]* section and then click the *[ui:Edit CORS Configuration]* button.</p>
+                        <p>Below is a sample configuration definition that you can paste into the dialog that Amazon displays:</p>
+                        <p>
+                            <example><![CDATA[<CORSConfiguration>
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>PUT</AllowedMethod>
+        <MaxAgeSeconds>3000</MaxAgeSeconds>
+        <AllowedHeader>Content-Type</AllowedHeader>
+        <AllowedHeader>x-amz-acl</AllowedHeader>
+        <AllowedHeader>origin</AllowedHeader>
+    </CORSRule>
+</CORSConfiguration>
+]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Authenticated read</title>
+                    <description>Specify if authentication is required to read the object once it has been uploaded to S3.</description>
+                </case>
+                <case>
+                    <title nested="2">S3 Timeout</title>
                     <description>Specify the S3 timeout in milliseconds. This is the amount of time allowed before authorization to upload files to S3 will expire. If you have a lot of files to upload, you may want to increase this value. Suggested value is *[ui:600]*.</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Validation Properties</title>
-            <list>
-                <item>
-                    <name>Allow mutiple files</name>
+            <cases>
+                <case>
+                    <title nested="2">Allow multiple files</title>
                     <description>Specify if the user can upload multiple files at once, or just a single file.</description>
-                </item>
-                <item>
-                    <name>Maximum file size</name>
+                </case>
+                <case>
+                    <title nested="2">Maximum file size</title>
                     <description>Specify the maximum size file that the user can select. Set to -1 for no maximum.</description>
-                </item>
-                <item>
-                    <name>Max file size exceeded error message</name>
-                    <description>Specify message to show if user selects a file that is too big. You can use language or text dictionary tags. Your message can include these placeholders: [filename], [filesize], [maxfilesize]. Leave blank if you have defined a custom Javascript onValidate event handler.</description>
-                </item>
-                <item>
-                    <name>Max total file size</name>
-                    <description>Specify the maximum total size of all selected files. Set to -1 for no maximum.</description>
-                </item>
-                <item>
-                    <name>Max total file size exceeded error message</name>
-                    <description>Specify message to show if all files selected exceed the max allowed. You can use language or text dictionary tags. Your message can include these placeholders: [filecount], [totalfilesize] and [maxtotalfilesize]. Leave blank if you have defined a custom Javascript onValidate event handler.</description>
-                </item>
-                <item>
-                    <name>Allowed file types</name>
-                    <description>Enter a comma delimited list of allowed file extensions. Leave blank to allow all file extentions.</description>
-                </item>
-                <item>
-                    <name>Invalid file type error message</name>
-                    <description>Specify message to show if all files selected exceed the max allowed. You can use language or text dictionary tags. Your message can include these placeholders: [filename], [filetype]. Leave blank if you have defined a custom Javascript onValidate event handler.</description>
-                </item>
-                <item>
-                    <name>Display progress during file upload</name>
+                </case>
+                <case>
+                    <title nested="2">Max file size exceeded error message</title>
+                    <description>
+                        <p>Specify message to show if user selects a file that is too big. You can use language or text dictionary tags. Your message can include these placeholders: [filename], [filesize], [maxfilesize]. Leave blank if you have defined a custom Javascript onValidate event handler.</p>
+                        <p>This property is only available if *[ui:Maximum file size]* is not -1.</p>
+                    </description>
+                    <example><![CDATA[Selected file [filename] (size [filesize]) exceeds the maximum allowed file size of [maxfilesize].]]></example>
+                </case>
+                <case>
+                    <title nested="2">Max total file size</title>
+                    <description>Specify the maximum total size of all selected files. Set to -1 for no maximum. This property is only available if *[ui:Allow multiple files]* has been enabled.</description>
+                </case>
+                <case>
+                    <title nested="2">Max total file size exceeded error message</title>
+                    <description>
+                        <p>Specify message to show if all files selected exceed the max allowed. You can use language or text dictionary tags. Your message can include these placeholders: [filecount], [totalfilesize] and [maxtotalfilesize]. Leave blank if you have defined a custom Javascript onValidate event handler.</p>
+                        <p>This property is only available if *[ui:Max total file size]* is not -1.</p>
+                    </description>
+                    <example><![CDATA[Selected files ([filecount] files, total size [totalfilesize]) exceed the maximum allowed total file size of [maxtotalfilesize].]]></example>
+                </case>
+                <case>
+                    <title nested="2">Allowed file types</title>
+                    <description>Enter a comma delimited list of allowed file extensions. Leave blank to allow all file extensions.</description>
+                </case>
+                <case>
+                    <title nested="2">Invalid file type error message</title>
+                    <description>
+                        <p>Specify message to show if all files selected exceed the max allowed. You can use language or text dictionary tags. Your message can include these placeholders: [filename], [filetype]. Leave blank if you have defined a custom Javascript onValidate event handler.</p>
+                        <p>This property is only available if *[ui:Allowed file types]* is not blank.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Display progress during file upload</title>
                     <description>Specify if progress should be shown while file(s) are being uploaded.</description>
-                </item>
-                <item>
-                    <name>Allow cancel</name>
-                    <description>Specify if the user can cancel an upload while the file is being uploaded.</description>
-                </item>
-                <item>
-                    <name>Progress indicator type</name>
-                    <description>Specify the progress indicator style. 'Text' - display the percentage as text, 'Bar' - display a progress bar. Choices include *[ui:Text]*, *[ui:Bar]*.</description>
-                </item>
-                <item>
-                    <name>Progress bar color</name>
-                    <description>Specify the progress bar color.</description>
-                </item>
-                <item>
-                    <name>Progress bar width</name>
-                    <description>Specify the progress bar width. Use CSS units.</description>
-                </item>
-                <item>
-                    <name>Placeholder for progress indicator</name>
-                    <description>Specify the name of a Placeholder control where the progress indicator should be shown.</description>
-                </item>
-            </list>
+                </case>
+                <case>
+                    <title nested="2">Allow cancel</title>
+                    <description>Specify if the user can cancel an upload while the file is being uploaded. This property is only available if *[ui:Display progress during file upload]* is enabled.</description>
+                </case>
+                <case>
+                    <title nested="2">Progress indicator type</title>
+                    <description>Specify the progress indicator style. 'Text' - display the percentage as text, 'Bar' - display a progress bar. Choices include *[ui:Text]*, *[ui:Bar]*. This property is only available if *[ui:Display progress during file upload]* is enabled.</description>
+                </case>
+                <case>
+                    <title nested="2">Progress bar color</title>
+                    <description>Specify the progress bar color. This property is only available if *[ui:Progress indicator type]* is set to 'Bar' and *[ui:Display progress during file upload]* is enabled.</description>
+                </case>
+                <case>
+                    <title nested="2">Progress bar width</title>
+                    <description>Specify the progress bar width. Use CSS units. This property is only available if *[ui:Progress indicator type]* is set to 'Bar' and *[ui:Display progress during file upload]* is enabled.</description>
+                </case>
+                <case>
+                    <title nested="2">Placeholder for progress indicator</title>
+                    <description>Specify the name of a Placeholder control where the progress indicator should be shown. This property is only available if *[ui:Display progress during file upload]* is enabled.</description>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Javascript Properties</title>
-            <list>
-                <item>
-                    <name>Target object name on Amazon S3</name>
+            <cases>
+                <case>
+                    <title nested="2">Target object name on Amazon S3</title>
                     <description>You can define a function that returns the name of the object in Amazon S3. By default, the filename of the file on the client will be used. Your code can reference e.name, e.size and e.type (the client-side name, size and mime-type of the selected file). Your function must return the name to use. The name can include a folder. For example: return 'myfolder1/' + e.name. This will use the same name as the client-side file but the object will be stored in a folder called 'myfolder1'. NOTE: The target name on Amazon will be available to other Javascript functions in the e.targetName property.</description>
-                </item>
-                <item>
-                    <name>Before file select</name>
+                </case>
+                <case>
+                    <title nested="2">Before file select</title>
                     <description>Fires before the user selects file(s). If the Javascript contains 'return false;', the file upload is aborted.</description>
-                </item>
-                <item>
-                    <name>After file select</name>
+                </case>
+                <case>
+                    <title nested="2">After file select</title>
                     <description>Fires after file(s) have been selected, but before any files have been uploaded. If your code includes 'return false' the upload is aborted. You code can reference 'e' - an array of objects with information about each file selected. Each item in the array contains these properties: name, size, type.</description>
-                </item>
-                <item>
-                    <name>On Progress</name>
+                </case>
+                <case>
+                    <title nested="2">On Progress</title>
                     <description>Fires when another 'chunk' of the file being uploaded has been sent. This event allows you to write custom progress displays. Your code can reference these variables: e.percent - percentage complete, e.message - message describing the current state of the upload operation, e.name - name of the file being uploaded, e.number - if more than one file was selected, the number of file, e.size - the file size and e.type - the mime-type of the file,  e.targetName - the name to use on Amazon to store the file (usually the same as e.name unless your 'Target name on Amazon S3' function returned a different name or specified a folder)</description>
-                </item>
-                <item>
-                    <name>On Error</name>
-                    <description>Fires if there is any type of error. Your Javascript can reference e.errorText,  e.errorCode - the XHR error code and e.fileObject - an object with properties (such as name, size, type) for the file on which the error occured.</description>
-                </item>
-                <item>
-                    <name>On Upload Complete - Individual File</name>
+                </case>
+                <case>
+                    <title nested="2">On Error</title>
+                    <description>Fires if there is any type of error. Your Javascript can reference e.errorText,  e.errorCode - the XHR error code and e.fileObject - an object with properties (such as name, size, type) for the file on which the error occurred.</description>
+                </case>
+                <case>
+                    <title nested="2">On Upload Complete - Individual File</title>
                     <description>Fires after a file upload has been completed. This event will fire for each individual file this is uploaded and the 'On Upload Complete - All Files' event will fire after all files have been uploaded. Your code can reference this variables: e.name - name of the file just uploaded, e.type - mime-type, e.aborted - true if the user cancelled, e.size - file size, e.number - if more than one file was uploaded, the number of the file and and e.targetName - the name to use on Amazon to store the file (usually the same as e.name unless your 'Target name on Amazon S3' function returned a different name or specified a folder).</description>
-                </item>
-                <item>
-                    <name>On Upload Complete - All Files</name>
+                </case>
+                <case>
+                    <title nested="2">On Upload Complete - All Files</title>
                     <description>Fires after all selected files have been uploaded. You code can reference e.fileArray - an array of objects containing information about each file that was uploaded. Each item in the array has these properties, name, size, type,aborted, targetName (name used on Amazon - same as name unless you specified a different name).</description>
-                </item>
-                <item>
-                    <name>On Upload Complete</name>
+                </case>
+                <case>
+                    <title nested="2">On Upload Complete</title>
                     <description>Fires after the selected file has been uploaded. Your code can reference this variables: e.name - name of the file just uploaded,e.aborted - did the user abort the upload, e.type - mime-type, e.size - file size, e.targetName - name used on Amazon.</description>
-                </item>
-                <item>
-                    <name>On validate error</name>
+                </case>
+                <case>
+                    <title nested="2">On validate error</title>
                     <description>Fires if any of the selected files violate a validation rule. Your Javascript can refer to e.violationType ( can be 'size', 'totalSize' or 'type'), e.name, e.size and e.type.</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
-       
-   </sections>
-   
+    </sections>
+    <links>
+        <link href="#section1_Amazon S3 File Upload Properties">Amazon S3 File Upload Properties</link>
+        <link href="#section2_Xbasic function">Xbasic function</link>
+        <link href="#section2_Additional info to submit - Javascript">Additional info to submit - Javascript</link>
+        <link link="json_parse%20function">json_parse()</link>
+        <link link="File Upload">File Upload</link>
+        <link link="phonegap%20-%20file%20upload">PhoneGap - File Upload</link>
+    </links>
     <see>
-   
-       <ref link="action javascript for the ux">Action Javascript for the UX</ref>
-
-   </see>
-   
-   
+        <ref link="action javascript for the ux">Action Javascript for the UX</ref>
+    </see>
 </page>
