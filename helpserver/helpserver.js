@@ -179,6 +179,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         if (!topic.indexOf) {
             topic = topic["_"];
+            if (!topic) {
+                topic = "Unknown";
+            }
         }
         if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
             topic = "<![CDATA[" + topic + "]]>";
