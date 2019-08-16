@@ -1,0 +1,35 @@
+<page build="5982">
+    <shortlink>ux list csevent beforecrudexecute</shortlink>
+    <topic>beforeCRUDExecute</topic>
+    <description>Fires before a SQL statement that is part of a List sync operation is executed.</description>
+    <arguments>
+        <argument>
+            <name>list</name>
+            <type>string</type>
+            <description>
+                <p>The ID of the list for which a CRUD (Create, Read, Update, Delete) operation is being executed.</p>
+            </description>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>When the edits in a List with Detail View are synchronized, multiple SQL CRUD statements may be executed. The *[js:beforeCRUDExecute]* event is triggered each time a SQL statement is executed for a List. In the case of a hierarchy of Lists, the *[js:beforeCRUDExecute]* event only fires for the top-most List in the hierarchy -- this is because the top-most list is responsible for synchronizing all data.</p>
+        <p>This event can be used to handle the following scenario:</p>
+        <p>Say you have made many edits to the List and you then execute a synchronization operation. Because there are a large number of edits, it may take a significant amount of time on the server to complete all of the operations. However, if the server does not send a response back to the client before the synchronization callback times out, the client will stop listening. When the server finally completes the work and sends a response to the client, the client will not get the response (because it has stopped listening). As a result, all of the rows in the List that were dirty will remain dirty (even though on the server, all of the operations may have been completed).</p>
+        <p>If you send a response to the client before each SQL operation takes place, you can ensure that the client will still be listening when the server sends its final response back to the client indicating which rows in the List should be marked as clean.</p>
+        <p>In order to use this new event, you must turn on *[ui:chunked]* responses. This is done by passing a parameter to the *[js:.saveListEdits()]* method. For example:</p>
+        <p>
+            <example code="js"><![CDATA[{dialog.object}.saveListEdits('LIST1',{rows: 'allRows', chunked: {allow: true} });]]></example>
+        </p>
+        <p>To define the *[js:beforeCRUDExecute]* event, edit the top-most List and open the List Events dialog and then select the Detail View Events category:</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/beforecrudexecute.jpg</link>
+            </figure>
+        </section>
+    </sections>
+    <see>
+        <ref link="ux%20component%20savelistedits%20method">saveListEdits() Method</ref>
+    </see>
+</page>

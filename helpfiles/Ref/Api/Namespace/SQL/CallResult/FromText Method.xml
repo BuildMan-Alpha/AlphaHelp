@@ -1,0 +1,78 @@
+<page api="xb">
+    <shortlink>api sql callresult fromtext method</shortlink>
+    <topic>SQL::CallResult FromText Method</topic>
+    <description>Set the error value from the supplied message.</description>
+    <prototypes>
+        <prototype>N errorCode = FromText(message as C)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>message</name>
+            <type>C</type>
+            <description>The error message.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>ErrorCode</name>
+            <types>
+                <type>N</type>
+            </types>
+            <description>Returns the corresponding code for the message. If the message does not match any existing error codes, 201 will be returned.</description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:Text]* property of the SQL::CallResult object is used to communicate detailed information about any error that occurs when working with a SQL::Connection (or other object in the SQL namespace). The *[xb:Text]* property for the SQL::CallResult object cannot be set directly. Any attempt to directly assign a value will result in an error:</p>
+        <p>
+            <example code="xb"><![CDATA[dim cr as SQL::CallResult
+
+cr.Text = "An Error Has Occurred"
+ERROR: Cannot assign:Left-side value can't be constant 
+cr.Text subproperty cannot be assigned to]]></example>
+        </p>
+        <p>The value of *[xb:Text]* can be set by calling the *[xb:FromText()]* method. For example, the Xbasic below is the open method for an Xbasic class that implements a [custom AlphaDAO connection]:</p>
+        <p>
+            <example code="xb"><![CDATA[function open as L (_cn as SQL::Connection)
+    if connectionString = "" then
+        _cn.CallResult.FromText("No audited Connection specified")
+        open = .f.
+        exit function
+    end if
+
+    open = cn.open(connectionString)
+
+    if open = .f. then
+        _cn.CallResult.FromText("Could not open connection to database: " + cn.CallResult.text)
+        exit function
+    end if
+end function]]></example>
+        </p>
+        <p>Observe that the *[xb:FromText()]* method is used to set error information in the SQL::CallResult object for the *[xb:_cn]* parameter passed into the function.</p>
+        <p>If the error message corresponds to one of the built-in Alpha Anywhere SQL error codes, the *[xb:FromText()]* method will return the error code. Otherwise, it returns "201", indicating that the error message does not match any known Alpha Anywhere SQL error code.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>About SQL::CallResult Error Codes</title>
+            <description>
+                <p>The SQL::CallResult *[xb:Code]* property is a number that is assigned an Alpha Anywhere SQL error code. The number corresponds to one of a set of pre-defined error messages in Alpha Anywhere. You cannot modify the set of error codes to include your own. For a list of error messages and and their corresponding codes, run the following Xbasic in the interactive window:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim lst as c = ""
+
+for i = 1 to 1000
+    delete cr
+    dim cr as sql::CallResult
+    cr.code = i
+    if cr.text <> "Unexpected error"
+       lst = lst + cr.code + "="+ cr.Text + crlf()
+    end if
+next
+
+showvar(lst)]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link link="alphadao custom connection">custom AlphaDAO connection</link>
+    </links>
+</page>

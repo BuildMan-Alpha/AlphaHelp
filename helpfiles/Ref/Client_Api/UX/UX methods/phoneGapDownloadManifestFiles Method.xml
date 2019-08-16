@@ -1,0 +1,107 @@
+<page api="js" build="5221">
+    <shortlink>ux component phonegapdownloadmanifestfiles method</shortlink>
+    <topic parent="{dialog.object}" parentType="object" elementName="phoneGapDownloadManifestFiles Method">{dialog.object}.phoneGapDownloadManifestFiles Method</topic>
+    <prototypes>
+        <prototype>{dialog.object}.phoneGapDownloadManifestFiles(manifest,folder,cbAllDone [,optionsIn [,fileSystemPart]])</prototype>
+    </prototypes>
+    <description>Download files to a device.</description>
+    <arguments>
+        <argument>
+            <name>manifest</name>
+            <types>
+                <type>Object Array</type>
+                <type>String</type>
+                <type>Function</type>
+            </types>
+            <description>Either an array of objects listing the files to be downloaded, a URL that points to a file that contains the JSON data for the manifest, or a Javascript function that returns the manifest. Each item in the manifest can have an optional 'version' property (a number). Items in the manifest will not be downloaded again if they have been previously downloaded and the version number is not higher than the previous version number. See example below.</description>
+        </argument>
+        <argument>
+            <name>folder</name>
+            <type>String</type>
+            <description>
+                <p>The subfolder where the files will be downloaded.</p>
+                <p>In the case of files or folders, all of the files will be downloaded into a sub-folder within the specified folder.  For example, if your manifest specifies a targetFolder of 'myfolder' for a particular file and the folder parameter is set to 'myfiles', the actual folder where the files are installed will be myfolder/myfiles (relative to the fileSystemPart that was specified).</p>
+                <p>In the case of SQLite databases, the database file will be downloaded into the special location where SQLite database files must be installed, but the database name will be prefixed with '&lt;folderName>___' (three under bar characters). So, for example, if you download a SQLite database called 'mySQLiteDB.db' and you specify a folder name of 'myFolder' the actual database name that you will use in your SQLite commands to access the database will be myFolder___mySQLiteDB.db.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>cbAllDone</name>
+            <type>Function</type>
+            <description>The Javascript callback function that is called when all files have been downloaded and unzipped, or if there was an error. The callback function takes an object with these properties: error, errorText (if error is true) and array (an array with information about each file in the manifest).</description>
+            <note>The error property will be false even if all (or some) of the files referenced in the manifest were not downloaded. The only condition under which the error property will be true is if the manifest URL could not be fetched, or if the entire process to download the manifest files failed. If the manifest is processed and no files are actually downloaded (because the URL for every file in the manifest is wrong, for example), then the error property will still be false. However, you can reference the array property for information about each file in the manifest. The array property is an array of objects. Each object in the array has a property called downloaded which indicates if the file was actually downloaded.</note>
+        </argument>
+        <argument optional="true">
+            <name>optionsIn</name>
+            <type>JSON</type>
+            <description>An optional argument for defining if progress should be shown while files are being downloaded and unzipped. See below for example format of this argument</description>
+        </argument>
+        <argument optional="true">
+            <name>fileSystemPart</name>
+            <type>String</type>
+            <description>Can be  temp, private, saved, public, persistent. If you do not specify this parameter the 'saved' file system part is used. You can also specify an explicit base path using the syntax *[xb:explicit:specify_the_explicit_base_URI]*</description>
+        </argument>
+    </arguments>
+    <discussion>
+        <p>The *[js:phoneGapDownloadManifestFiles()]* method can be used to define an arbitrary list of files to install on a device.</p>
+        <p>The method takes a manifest that defines the files to install on the device. The manifest can either be a JSON string that specifies an array of objects (described below), or the URL of remote JSON file that specifies the manifest.</p>
+    </discussion>
+    <sections>
+        <section>
+            <description>For example:</description>
+            <example code="js"><![CDATA[var cb = function(arr) { alert('File have been installed - ' + arr.length);};
+
+//the manifest is an array of objects
+//each object must have a 'url' - the url of the file
+//each object must have a 'type'. types are: 'sqlite', 'folder' or 'file'.
+//for 'folder' the entire folder must be zipped into a single zip file. The 'targetFolder' specifies the sub-folder
+//within the target folder where the folder (containing all of the unzipped files) will be located
+//for 'file', the file must not be zipped.
+//for 'sqlite', the file can be zipped, or unzipped. (zipped is recommended)
+
+
+array  = [
+        {
+            url: 'http://alphamediacapture.s3.amazonaws.com/transform/SQLiteNorthwind.zip',
+            type: 'sqlite',
+            version: 1
+        },
+        {
+            url: 'http://alphamediacapture.s3.amazonaws.com/transform/sqlite3.db',
+            type: 'sqlite',
+            version: 1
+        },
+        {
+            url: 'http://alphamediacapture.s3.amazonaws.com/transform/allimages.zip',
+            type: 'folder',
+            targetFolder: 'images',
+            version: 1
+        },
+        {
+            url: 'http://alphamediacapture.s3.amazonaws.com/transform/customer.zip',
+            type: 'file',
+            targetFolder: 'files',
+            version: 1
+        }
+    ]
+
+var url = 'http://alphamediacapture.s3.amazonaws.com/transform/transformManifest.json';
+
+//can either specify a url that points to a manifest or the JSON manifest itself
+
+url = array;
+{dialog.object}.phoneGapDownloadManifestFiles(url,'account1',cb,opsIn);]]></example>
+        </section>
+        <section>
+            <title>Using the optionsIn argument</title>
+            <description>Syntax for the optional optionsIn argument is shown below:</description>
+            <example code="js"><![CDATA[{
+    showProgress: true,
+    progress: {
+        color: 'green',
+        width: '600px',
+        progressElement: '{dialog.componentname}.V.R1.PLACEHOLDER_1'
+}]]></example>
+        </section>
+    </sections>
+    <terms>phonegap manifest</terms>
+</page>

@@ -2,6 +2,7 @@ var noSearchFlag = false;
 var searchLocalFlag = false;
 var runHelpServer = false;
 var settingsOverride = null;
+var help = null;
 
 var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag) {
     var linksFileName = "/home/AlphaHelp/links.json";
@@ -178,6 +179,9 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         if (!topic.indexOf) {
             topic = topic["_"];
+            if (!topic) {
+                topic = "Unknown";
+            }
         }
         if (topic.indexOf('<') >= 0 || topic.indexOf('>') >= 0 || topic.indexOf('&') >= 0) {
             topic = "<![CDATA[" + topic + "]]>";
@@ -1263,7 +1267,6 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 if (isPrerelease) {
                     data = data.split('class="buildBadge" data-build="' + buildNumber + '"').join('class="versionTagPrerelease"');
                     isPrerelease = false;
-                    break;
                 }
             }
         }
@@ -1494,7 +1497,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         //--------------------------------------------------------------------------------------------
         var express = require('express');
         var app = express();
-        var help = Help(options);
+        help = Help(options);
         if (help.getAbsolutePath) {
             absolutePath = help.getAbsolutePath();
             //            console.log(absolutePath);

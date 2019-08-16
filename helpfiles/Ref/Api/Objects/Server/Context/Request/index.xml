@@ -341,6 +341,58 @@
             <description>Context.Request.TemporaryDirectory is the path to a temporary directory that is a unique for the request and is valid for the duration of a request. When the request is finished the directory is deleted. The directory path will always end with a back-slash ("\"). Read Only.</description>
         </property>
 
+		<property readonly="false" build="5722">
+            <name>TimeoutBehavior</name>
+            <type>A5INETServerIntegration::RequestTimeoutBehavior</type>
+            <description>Context.Request.TimeoutBehavior is the setting for how a request timeout is determined. This setting allows a 
+			specific request to timeout differently than the system defined (default) timeout behavior. Use this setting if a request needs
+			continue processing beyond a cancelled or dropped network connection or if the request process could take longer than 2 minutes.
+			Typically requests should be processed as quickly as possible so that web server threads can be used to process other requests. Long
+			running processing or processing that needs to be deterministic and have recoverability (restart if a resource like network, disk, or 
+			database is unavailable during processing) should be done through a workflow or other task processing subsystem.
+			
+			This setting is active only for the current request from the point the value is set until the value is reset or the request ends.The value may be
+			a combination of the following values: </description>
+			<section>
+                <list>
+                    <item>
+                        <name>Default</name>
+						<description>The Default option uses the system defined behavior which is to cancel request processing if 
+						the connection to the client is closed and to terminate a request after 2 minutes of processing.</description>
+                    </item>
+					<item>
+						<name>ClientNoLongerConnected</name>
+						<description>The ClientNoLongerConnected option tracks whether the the connection to the client is closed and if
+						it is closed the request processing is terminated.</description>
+						</item>
+                    <item>
+                        <name>Duration</name>
+						<description>The Duration option tracks the duration of the request process. Once the duration defined by TimeoutDurationSeconds
+						is exceeded the request	processing is terminated. Use this option without the ClientNoLongerConnected option to let 
+						request processing continue even if the connection to the client is closed.</description>
+					</item>
+                </list>
+            </section>
+            <section>
+                <description>The following code is an example of how to set a request to terminate only after a 5 minute duration:</description>
+                <example><![CDATA[Context.Request.TimeoutBehavior = A5AS::A5INETServerIntegration::RequestTimeoutBehavior::Duration
+Context.Request.TimeoutDurationSeconds = 300]]></example>
+            </section>
+            <section>
+                <description>The following code is an example of how to set a request to terminate after a 3 minute duration or a closed client connection:</description>
+                <example><![CDATA[Context.Request.TimeoutBehavior = A5AS::A5INETServerIntegration::RequestTimeoutBehavior::Duration .and. A5AS::A5INETServerIntegration::RequestTimeoutBehavior::ClientNoLongerConnected
+Context.Request.TimeoutDurationSeconds = 180]]></example>
+            </section>			
+        </property>
+		
+        <property readonly="false" build="5722">
+            <name>TimeoutDurationSeconds</name>
+            <type>N</type>
+            <description>Context.Request.TimeoutDurationSeconds is the amount of time in seconds that a request is allowed to run before it is terminated. 
+			This is used in conjunction when Context.Request.TimeoutBehavior includes the A5AS::A5INETServerIntegration::RequestTimeoutBehavior::Duration option.
+            </description>
+        </property>
+		
         <property readonly="true">
             <name>UserAgent</name>
             <type>C</type>

@@ -437,7 +437,7 @@ janice.reed@company.com]]>
                         <case>
                             <title nested="3">onSubmit Event Definition Syntax</title>
                             <description>
-                                <p>The event is specified using JSON. The JSON string is an array of actions that should be performed after that data has been submitted. Each action has a number of properties (defined as a JSON object). Two actions are supported: *[js:SentEmail]* (sends an e-mail message with the form data that was submitted) and *[js:PostData]* (posts the form data that was submitted to a URL).</p>
+                                <p>The event is specified using JSON. The JSON string is an array of actions that should be performed after that data has been submitted. Each action has a number of properties (defined as a JSON object). Two actions are supported: *[js:SendEmail]* (sends an e-mail message with the form data that was submitted) and *[js:PostData]* (posts the form data that was submitted to a URL).</p>
                             </description>
                         </case>
                         <case>
@@ -454,6 +454,9 @@ janice.reed@company.com]]>
                                 <item>
                                     <name>*[js:sendFormat]* - options are *[js:json]*, *[js:html]*, or *[js:excel]*.</name>
                                 </item>
+                                <item>
+                                    <name>*[js:formIds]* - (optional) a comma delimited list of form Ids for which the action should be executed. Use *[js:"*"]*, *[js:""]* (a blank list of formIds) or omit the property to execute the action for all forms.</name>
+                                </item>
                             </list>
                         </case>
                         <case>
@@ -465,7 +468,13 @@ janice.reed@company.com]]>
                                     <name>*[js:url]* - the URL to which the data should be posted.</name>
                                 </item>
                                 <item>
-                                    <name>*[js:variablName]* - the variable name for the data that is posted. If not specified, the variable name defaults to *[js:data]*. The data (form data and meta data) are posted as a JSON string.</name>
+                                    <name>*[js:variableName]* - the variable name for the data that is posted. If not specified, the variable name defaults to *[js:data]*. The data (form data and meta data) are posted as a JSON string.</name>
+                                </item>
+                                <item>
+                                    <name>*[js:formIds]* - (optional) a comma delimited list of form Ids for which the action should be executed. Use *[js:"*"]*, *[js:""]* (a blank list of formIds) or omit the property to execute the action for all forms.</name>
+                                </item>
+                                <item>
+                                    <name>*[js:headers]* - (optional) a comma delimited list of headers in the format *[js:headername: headervalue]* to add to the REST call. For example: *[js:header1: value of header1,header2: value of header2,header3: value of header3]*</name>
                                 </item>
                             </list>
                         </case>
@@ -480,13 +489,15 @@ janice.reed@company.com]]>
         "action":"SendEmail",
         "sendTo":"fred.smith@company1.com,john.jones@company1.com",
         "subject":"TransForm Data",
-        "sendFormat": "html"
+        "sendFormat": "html",
+        "formIds" : "*"
     },
 
     {
         "action" : "PostData",
         "url" : "http://www.company1.com/transformwebhook",
-        "variableName" : "postBody"
+        "variableName" : "postBody",
+        "formIds" : "form1,form2,form3"
     }
 
 ]]]>
@@ -500,6 +511,7 @@ janice.reed@company.com]]>
                         <p>On Device Assets are files (e.g. images, videos, PDFs, etc.) and SQLite databases that should be loaded onto the device.</p>
                         <p>These assets can be used when filling in a form to lookup data, etc.</p>
                         <p>You specify the assets to load on the device by specifying either a JSON string that defines a manifest, or by providing a URL from where the manifest file can be downloaded.</p>
+                        <p>On Device Assets are defined at the TransForm account level. That means that all of the forms you define for a particular account can access the same On Device Assets.</p>
                     </description>
                     <figure>
                         <link>/images/onDeviceAssets.png</link>
@@ -508,62 +520,67 @@ janice.reed@company.com]]>
                 <section>
                     <cases>
                         <case>
-                            <title nested="3">Manfest Syntax</title>
+                            <title nested="3">Manifest Syntax</title>
                             <description>
                                 <p>The manifest is defined by a JSON string that specifies an array of objects where each object in the array defines a particular file that should be downloaded and stored on a device.</p>
                                 <p>The example below defines a manifest with three assets:</p>
                                 <p>
                                     <example><![CDATA[[
     { 
-        url: 'http://alphamediacapture.s3.amazonaws.com/transform/SQLiteNorthwind.zip',
-        type: 'sqlite',
-        version: 1
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/SQLiteNorthwind.zip",
+        "type": "sqlite",
+        "version": 1
     },
     {
-        url: 'http://alphamediacapture.s3.amazonaws.com/transform/allimages.zip',
-        type: 'folder',
-        targetFolder: 'images',
-        version: 1
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/allimages.zip",
+        "type": "folder",
+        "targetFolder": "images",
+        "version": 1
     },
     {
-        url: 'http://alphamediacapture.s3.amazonaws.com/transform/snow.JPG',
-        type: 'file',
-        targetFolder: 'images',
-        version: 1
+        "url": "http://alphamediacapture.s3.amazonaws.com/transform/snow.JPG",
+        "type": "file",
+        "targetFolder": "images",
+        "version": 1
     }
 ]]]></example>
                                 </p>
-                                <p>The 'type' property in each object defines the type of the asset. The available options for 'type' are:</p>
+                                <p>The "type" property in each object defines the type of the asset. The available options for "type" are:</p>
                                 <p>
                                     <list>
                                         <item>
-                                            <name>'sqlite'</name>
+                                            <name>"sqlite"</name>
                                             <description>A SQLite database - can either be compressed into a .zip file, or uncompressed - recommend that you zip the file to reduce download time.</description>
                                         </item>
                                         <item>
-                                            <name>'folder'</name>
+                                            <name>"folder"</name>
                                             <description>A folder that contains one or more files. The folder must be compressed into a single .zip file.</description>
                                         </item>
                                         <item>
-                                            <name>'file'</name>
-                                            <description>An individual file. The file must NOT be compressed into .zip file. *[TIP:]* If you want to compress the file, use the 'folder' option.</description>
+                                            <name>"file"</name>
+                                            <description>An individual file. The file must NOT be compressed into .zip file. *[TIP:]* If you want to compress the file, use the "folder" option.</description>
                                         </item>
                                     </list>
                                 </p>
                             </description>
                         </case>
                         <case>
-                            <title nested="3">Notes</title>
+                            <title nested="3">Target Folders</title>
                             <description>
-                                <p>Each item has an (optional) 'version' property. If the 'version' property is not defined, then the asset is always downloaded, regardless of whether it has been previously downloaded. If the 'version' is defined, the asset is only downloaded if the 'version' number is higher than the previously downloaded version.</p>
-                                <p>For each 'folder' or 'file' type you can also specify an optional 'targetFolder' property. This defines the folder on the device where the files will be loaded. If you do not define the 'targetFolder' the files are loaded into the root folder for your TransForm account.</p>
-                                <p>Multiple 'folder' assets can specify the same 'targetFolder' property.</p>
-                                <p>On Device Assets are defined at the TransForm account level. That means that all of the forms you define for a particular account can access the same On Device Assets.</p>
+                                <p>For each "folder" or "file" type you can also specify an optional "targetFolder" property. This defines the folder on the device where the files will be loaded. If you do not define the "targetFolder", the files are loaded into the root folder for your TransForm account.</p>
+                                <p>Multiple "folder" assets can specify the same "targetFolder" property.</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="3">Versions</title>
+                            <description>
+                                <p>Each item has an (optional) "version" property. If the "version" property is not defined, then the asset is always downloaded, regardless of whether it has been previously downloaded. If the "version" is defined, the asset is only downloaded if the "version" number in the manifest is higher than the version of the downloaded asset.</p>
                             </description>
                         </case>
                     </cases>
                 </section>
                 <section>
+                    <title nested="3">Manifest URL</title>
                     <description>
                         <p>Instead of defining the manifest as a JSON string, you can specify the URL of a file that contains the manifest definition. For example</p>
                         <p>
@@ -574,14 +591,24 @@ janice.reed@company.com]]>
                 </section>
             </sections>
         </group>
+        <group>
+            <title>Integrations</title>
+            <sections>
+                <section>
+                    <title>Zapier</title>
+                    <description>
+                        <p>Alpha TransForm integrates directly with Zapier. The *[ui:Zapier]* section lists a set of common integrations using Alpha TransForm with Zapier. See [Getting Started with Zapier] to learn more about Zapier integration.</p>
+                    </description>
+                </section>
+            </sections>
+        </group>
     </groups>
     <links>
         <link link="transform api reference">TransForm API documentation</link>
         <link link="transform central permissions">Permissions</link>
         <link href="#section1_Manage User Roles">Manage User Roles</link>
-    </links>
-    <links>
         <link href="mailto:sales@alphasoftware.com">Contact the Alpha Software sales team</link>
+        <link href="https://www.alphasoftware.com/using-transform-with-zapier">Getting Started with Zapier</link>
     </links>
     <see>
         <ref href="https://www.alphasoftware.com/transform-tutorial-part1" target="_blank">Getting Started with TransForm</ref>

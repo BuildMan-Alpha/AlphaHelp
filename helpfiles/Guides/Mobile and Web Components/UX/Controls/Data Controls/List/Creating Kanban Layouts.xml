@@ -145,6 +145,115 @@ if(data.Category == 'Lost') return 'Red';]]></example>
             </figure>
         </section>
         <section>
+            <title>Collapsible Categories</title>
+            <description>
+                <p>When defining a Kanban layout, you can specify that a category should be collapsible. When a category is collapsed, the records for the category are hidden and only the category header is shown. As a result, the category consumes less space, allowing you to display more categories on screen than would otherwise be shown.</p>
+                <p>To add collapsible categories to a Kanban layout, enable the *[ui:Can collapse categories]* property in the Kanban Settings. Once enabled, you can define the behavior for collapsing and expanding categories. This includes the mode (clicking a title, icon, or programmatically), customizing icons, and setting initial open and closed state. You can also add JavaScript to execute when a category is collapsed or expanded in two JavaScript Events: *[ui:onCollapse]* and *[ui:onExpand]*.</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Property</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Can collapse categories</name>
+                            <description>Enables collapsible categories. If checked, exposes the properties listed below.</description>
+                        </item>
+                        <item>
+                            <name>Collapse mode</name>
+                            <description>Defines how a category is expanded or collapsed: when the 'Title' is clicked, when the 'Indicator' icon is clicked, or 'Programmatically' by calling the [setGroupCollapse()] JavaScript method.</description>
+                        </item>
+                        <item>
+                            <name>Collapse icon</name>
+                            <description>The icon shown in the category title bar to indicate that a category is collapsed.</description>
+                        </item>
+                        <item>
+                            <name>Expand icon</name>
+                            <description>The icon shown in the category title bar to indicate that a category is expanded.</description>
+                        </item>
+                        <item>
+                            <name>onCollapse function</name>
+                            <description>A JavaScript function that is called when any category is collapsed.</description>
+                        </item>
+                        <item>
+                            <name>onExpand function</name>
+                            <description>A JavaScript function that is called when any category is expanded.</description>
+                        </item>
+                        <item>
+                            <name>Initial display - collapse all</name>
+                            <description>If checked, all categories will be collapsed when the Kanban layout is initially rendered.</description>
+                        </item>
+                        <item>
+                            <name>Exceptions - Initially collapsed groups</name>
+                            <description>A list of categories that should be collapsed when the Kanban layout is first rendered.</description>
+                        </item>
+                        <item>
+                            <name>Exceptions - Initially expanded groups</name>
+                            <description>A list of categories that should be expanded when the Kanban layout is first rendered. This option is only shown if all categories are configured to be collapsed when the List is initially shown.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+            <figure>
+                <title>Kanban Layout with the 'Argentian' category collapsed.</title>
+                <link>images/kanbancollapse.gif</link>
+            </figure>
+            <note>
+                <p>For more information about these properties, see [Kanban settings].</p>
+            </note>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <title nested="2">Expanding/Collapsing a Category</title>
+                    <description>
+                        <p>If a Kanban layout has been configured to have collapsible categories, you can expand and collapse categories programmatically using the List object's [setGroupCollapse()] method. This method can expand or collapse any group in the List:</p>
+                        <p>
+                            <example code="js"><![CDATA[var lObj = {dialog.object}.getControl('name_of_list_control');
+var groupName = 'Argentina';
+var mode = false; //false == expand, true == collapse, '' == toggle
+var showAnimation = true;
+lObj.setGroupCollapse(groupName,mode,showAnimation);]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case build="5487">
+                    <title nested="2">Expanding/Collapsing Multiple Categories</title>
+                    <description>
+                        <p>Multiple categories in a Kanban layout can be collapsed or expanded by specifying a group selection object instead of the category name. For example:</p>
+                        <p>
+                            <example code="js"><![CDATA[var lObj = {dialog.object}.getControl('list1')
+lObj.setGroupCollapse({groups: 'all'},true,false); // collapse all groups without animation]]></example>
+                        </p>
+                        <p>To expand/collapse specific categories, a match function can be used which computes whether or not a category's collapsed state should change:</p>
+                        <p>
+                            <example code="js"><![CDATA[lObj.setGroupCollapse({groups: 'match', match:
+    function(groupName,groupData){
+        if(groupName.match(/^[A-z]/)) return true; // match any group with a name starting with a character
+        return false;
+    }},true); // collapse all groups that the passed in function returns true for]]></example>
+                        </p>
+                        <p>See [setGroupCollapse()] for more information.</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Dynamically Adding Categories at Run-time</title>
+            <description>
+                <p>JavaScript can be used to modify the categories in a Kanban layout. This is done by adding the category to the groups array in the List's JavaScript object:</p>
+                <p>
+                    <example code="js"><![CDATA[var layoutName = 'Default'; //name of the Kanban layout
+var newCategory = 'New Category';
+var lObj = {dialog.object}.getControl('name_of_list_control');
+lObj.layouts[layoutName].group.auto[0].groups.push(newCategory);
+
+lObj.refresh();]]></example>
+                </p>
+                <p>If the List only has one layout, the *[js:layoutName]* is 'Default'.</p>
+            </description>
+        </section>
+        <section>
             <title>Videos</title>
         </section>
         <section>
@@ -200,7 +309,7 @@ if(data.Category == 'Lost') return 'Red';]]></example>
         </section>
         <section>
             <videos>
-                <title>Persisting Edit in a Kanban List to a SQL Database</title>
+                <title>Persisting Edits in a Kanban List to a SQL Database</title>
                 <description>In this video we show how a Kanban List can be based on a SQL database and how edits to the List can be saved in the database.</description>
                 <date>2018-10-03</date>
                 <video>
@@ -218,5 +327,6 @@ if(data.Category == 'Lost') return 'Red';]]></example>
     <links>
         <link link="ux list builder layoutprop properties#section1_Layout type">Layout type</link>
         <link link="ux list builder layoutprop properties#section1_Kanban settings">Kanban settings</link>
+        <link link="list object setgroupcollapse method">setGroupCollapse()</link>
     </links>
 </page>

@@ -1,0 +1,205 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Secure Shell (SSH) Connections" />
+<meta name="shortlink" content="Alpha Anywhere SSH Database Connections" />
+<title>Alpha DAO - Secure Shell (SSH) Connections</title>
+</head>
+<body>
+
+<h1>AlphaDAO - Secure Shell Connections</h1>
+
+<br/>
+<a href="#SSH">SSH (Secure Shell)</a><br/>
+<a href="#ConnectionString">Connection String Parameters</a><br/>
+
+
+<h2><a id="SSH">SSH (Secure Shell)</a></h2>
+
+	<p>In simple environments, an application server is typically installed behind a firewalled (protected) load balancer and connects over 
+		a separate and secure network to a database server.  With the advent of distributed and cloud based computing environments, 
+		it is not uncommon to have a database in a separate data center from the application server (or other database clients).  
+		Connecting to a database over the internet introduces a number of variables affecting security.  
+		We want to make sure that any application you deploy with Alpha Anywhere can establish secure connections with your database; 
+		no matter where that database is.
+		</p>
+
+	<p><strong>Note: </strong>SSH is often used to refer to Secure Shell in general.  
+		There is an old SSH protocol that has been replaced by a newer SSH2 protocol.
+		Alpha Anywhere makes use of the SSH2 protocol, so SSH is used in this documentation to refer to SSH using the SSH2 protocol.
+		</p>
+
+	<p>In order to connect securely to a  database that is accessed over the internet, it is often necessary to create a secure pipe to connect to the database.
+		This pipe, (referred to as a tunnel) may route database requests across multiple servers to gain access to a database server behind a firewall.  
+		SSH (Secure Shell) is a protocol for creating a secure connection (called a channel) over an unsecured network between a client machine and a server
+		machine using the TCP/IP protocol (typically over port 22).
+		</p>
+
+	<p>To connect via an existing tunnel, you would simply connect to an existing open tunnel on the local machine using the designated port 
+		(for example localhost:33061) that was set up when the SSH tunnel was established.
+		</p>
+
+	<p>Alpha Anywhere makes it possible to create a channel specifically for a connection automatically.  
+		Database connection strings can specify the parameters required to establish a channel over an SSH tunnel as part of the database open.  
+		The SQL::Connection object manages a process level cache of tunnels.  Using connection pooling, an application server can achieve good performance; 
+		even over an SSH tunnel.
+		</p>
+
+	<p>For each SQL::Connection::Open() call, Alpha Anywhere makes sure a tunnel is started and retrieves the local port number of the tunnel assigned to the 
+		connection string.  
+		The connection is then automatically rerouted to the local port in order to establish a connection to the actual server.  
+		Internally, the host and port number you specified on the general tab are used to establish a tunnel.  
+		Actual database connections are then made through the tunnel by connecting to the local host and the tunnel port as if the database was local.
+		</p>
+
+	<p>When SQL::Connection::Close() is called explicitly or because a connection goes out of scope, the tunnel is left open and cached based on the connection string.
+		The tunnel will remain open as long as the process is running.
+		Leaving a tunnel open improves the performance of your application because establishing a connection to SSH is a very expensive operation.
+		If you want to close the tunnel when you close the connection, pass the value .t., for example "cn.Close(.t.)".
+		</p>
+
+	<p><strong>Notes: </strong><br/> 
+		<ol>
+		<li>In order to make use of SSH tunneling you must install and configure an SSH server accessible from your database client to provide 
+			access to your database.  
+			We will not discuss installing configuring and making an SSH server available here.  
+			Consult the documentation for your SSH server.
+			</li>
+		<li>SSH is different than TLS/SSL database connections; which are established to a database server directly via TCP/IP.  
+			TLS verifies the identity of the server using X509 certificates and then encrypts all communication between the client and the server.  
+			If you wanted to, you could connect to a database server using TLS over an open SSH channel.  
+			The performance would, of course, suffer, because SSH and TLs would each be encrypting the requests at their respective levels of the 
+			protocols involved, and introducing additional overhead.
+			</li>
+		</ol>
+		</p>
+
+
+
+<h2><a id="ConnectionString">Connection String Parameters</a></h2>
+
+<p>In order to create an SSH tunnel we must identify the server and port to connect to that is running an SSH server and provide authentication information.  
+Authentication can be done using a password or an SSH public/private key pair.  
+Both are supported here.
+</p>  
+
+<p>You can also support a limited number of open channels to keep the load on the server from becoming excessive.  
+Note that the number of threads ultimately limits the number of open connections through the tunnel for each process.  
+</p>
+
+<ul>
+	<li><p><strong>A5SSHTunnel</strong> - can be 'Y' or 'N'.<br/><br/>
+			The default value is 'N'.<br/><br/>
+			This parameter enables or disables SSH. If A5SSHTunnel is set to 'Y', and 
+			the connection cannot be established through the tunnel, an error is returned.
+			</p></li>
+
+
+	<li><p><strong> A5SSHHost</strong> - The name of the TCP/IP host where the SSH server is running.<br/><br/>
+                         There is no default for this value.  You must provide a valid DNS name or TCP/IP address.
+			</p></li>
+
+
+	<li><p><strong>A5SSHPort</strong> - This is the TCP/IP port to use in connecting to the SSH server named in A5SSHHost (above).<br/><br/>
+                        The default vale is 22.
+			</p></li>
+
+	<li><p><strong>A5SSHPreferredLocalPort</strong> - This is the TCP/IP port to prefer for local connections to the SSH tunnel when it is opened.<br/><br/>
+			The default value is 0, meaning any available port may be used.<br/><br/>
+			If the preferred port is already in use, another available port is used.<br/><br/>
+			<strong>Note: </strong>If you set this value, be sure to check the actual port assigned after connecting by calling 
+					SSHTunnelStatus() on the open connection and checking the NativeCode field of the CallResult property
+					for the port number instead of relying on the port number you requested.
+			</p></li>
+
+	<li><p><strong>A5SSHUser</strong> - The user at the SSH server that you want to connect as.<br/><br/>
+                         This user must be recognized by the SSH server and be authorized to connect via SSH.<br/><br/>
+                         There is no default for this value.
+			</p>
+			</li>
+
+	<li><p><strong>A5SSHAuthenticationMethod</strong> - This parameter can have one of three values:<br/>
+		<p><dl><dt><strong>Password</strong></dt><dd>You must provide a valid password in the A5SSHPassword Parameter (discussed below).</dd>
+		<dl><dt><strong>KeyInMemory</strong></dt><dd>You must provide actual values for the parameters A5SSHPublicKey and A5SSHPrivatekey (discussed below).</dd>
+		<dl><dt><strong>KeyInFile</strong></dt><dd>You must provide a complete path to the files containing the public and private keys in the parameters 
+			A5SSHPublicKey and A5SSHPrivatekey (discussed below).<br/><br/>
+                        <strong>Note: </strong>When deployed on an application server, the file must be visible to the running server 
+			and access to the file for read must be allowed.
+			<br/><br/>
+                        The default value for A5SSHAuthenticationMethod is "Password".
+			</p>
+			</p></li>
+
+	<li><p><strong>A5SSHPassword</strong> - If A5SSHAuthenticationMethod contains the value "Password", this parameter must contain a string 
+			or Base64 encoded value (prefixed with ":A5:B64:") 
+			containing the password to use in establishing a connection with the SSH server.
+			</p></li>
+
+
+	<li><p><strong>A5SSHPrivateKey</strong> - If A5SSHAuthenticationMethod contains the value "KeyInMemory" then you will need to set this parameter to 
+			the full contents of the private key file required to authenticate your user on the SSH server.
+			<br/><br/>
+			If A5SSHAuthenticationMethod contains the value "KeyInFile" then you must provide the full path to the file containing the private 
+			key required to authenticate your user on the SSH server.
+			<br/><br/>
+			This parameter is not used if A5SSHAuthenticationMethod is set to "Password".
+			<br/><br/>
+
+			<strong>Note: </strong>The private key is a PEM format file.  It will begin with a header like the following 
+			"-----BEGIN RSA PRIVATE KEY-----".
+			</p></li>
+
+	<li><p><strong>A5SSHPublicKey</strong> - If A5SSHAuthenticationmethod Contains the value "KeyInMemory" then you will need to set this parameter to 
+			the full contents of the public key file required to authenticate your user on the SSH server.
+			<br/><br/>
+			If A5SSHAuthenticationmethod Contains the value "KeyInFile" then you must provide the full path to the file containing the 
+			public key required to authenticate your user on the SSH server.
+			<br/><br/>
+			This parameter is not used if A5SSHAuthenticationMethod is set to "Password".
+			<br/><br/>
+                        <strong>Note: </strong>The public key will have a format something like "ssh-rsa XXXXXXXXXXXXX username".  
+			This is an SSH key.  
+			If your public key is generated in PEM format, you may need to use a tool such as PuttyGen on Windows to convert the format.
+			</p></li>
+
+	<li><p><strong>A5SSHWorkerThreadCount</strong> - Worker thread count determines the number of worker threads created for the tunnel.
+			<br/><br/> 
+			Set this value to limit the number of possible concurrent connections across all connection pools that share a server 
+			and the same target database server and port.
+			<br/><br/>
+			The worker thread count is specific to a process.  Each process can have that many worker threads active.
+			<br/><br/>
+                        The default value for worker thread count is 10.
+			<br/><br/>
+			A tunnel is created when the first connection is opened to the database for a connection string.  
+			The number of worker threads will be adjusted as needed until the maximum number of worker threads is created.  
+			Each open or pooled connection consumes one worker thread, so it is important that you understand the settings for 
+			connection pooling as well.
+			</p></li>
+
+	<li><p><strong>A5SSHTrace</strong> - When set to 'Y', this turns on tracing for SSH tunnels.
+			<br/><br/>
+			This is an advanced level feature currently being used by Alpha Software development team.
+			<br/><br/>
+			As the feature matures, we will try to make tracing more readable for general usage in debugging tunnels in deployed applications.
+			<br/><br/>
+			The default value for A5SSHTrace is 'N'.
+			</p></li>
+
+	<li><p><strong>A5SSHTraceName</strong> - The key to be used for tracing.  
+			<br/><br/>
+			This value affects the formatted file name for all trace messages generated by SSH tunnels.
+			<br/><br/>
+			There is no default for this parameter.
+			</p></li>
+	</ul>
+
+</p>
+
+
+
+</body>
+</html>
+

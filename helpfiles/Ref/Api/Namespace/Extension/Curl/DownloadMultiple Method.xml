@@ -1,0 +1,75 @@
+<page api="xb" build="5761">
+	<shortlink>api extension namespace curl downloadmultiple method</shortlink>
+	<topic>Extension::Curl DownloadMultiple Method</topic>
+    <description>
+        <p>Download multiple files.</p>
+    </description>
+    <prototype static="true">.DownloadMultiple as C (files as C)</prototype>
+    <arguments>
+        <argument>
+            <name>files</name>
+            <type>C</type>
+            <description>
+                <p>A CR-LF delimited list of files to download in the form "&lt;local_filename&gt;|&lt;remote_url&gt;".</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>
+                <p>Returns an error message for any files that could not be downloaded. If all downloads succeed, *[xb:DownloadMultiple()]* returns an empty string.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:DownloadMultiple()]* function downloads a one or more remote files. Files to download are specified as a CR-LF delimited list of file names and URLs.</p>
+        <p>For example, the following script from an .A5W page downloads 3 zip files to the session folder and displays the local URLs as a comma-delimited list.</p>
+        <p>
+            <example code="xb"><![CDATA[<%a
+' Generate temporary download filenames:
+dim f1 as c = context.request.getRequestTempFileName(".zip")
+dim f2 as c = context.request.getRequestTempFileName(".zip")
+dim f3 as c = context.request.getRequestTempFileName(".zip")
+
+' Build files list:
+dim files as c = ""
+files = files + f1 + "|http://peopleplacesthings.com/people.zip" + crlf()
+files = files + f2 + "|http://peopleplacesthings.com/places.zip" + crlf()
+files = files + f3 + "|http://peopleplacesthings.com/things.zip"
+
+' Do the download:
+result = extension::curl::DownloadMultiple(files)
+
+' Check for errors/post process
+dim fileURLs[0] as c
+if (result <> "" ) then
+    ' An error occurred...
+    ' Output error and terminate script:
+    ? result
+    exit
+else
+    ' success!
+    ' Copy to session folder:
+    context.session.SaveFileToSessionFile(f1,"people.zip")
+    context.session.SaveFileToSessionFile(f2,"places.zip")
+    context.session.SaveFileToSessionFile(f3,"things.zip")
+
+    ' Get session folder URL and add to fileURLs array:
+    fileURLs.push(context.session.formatFileDataURL("people.zip"))
+    fileURLs.push(context.session.formatFileDataURL("places.zip"))
+    fileURLs.push(context.session.formatFileDataURL("things.zip"))
+end if
+
+' Dump CR-LF list of file URLs:
+result = fileURLs.dump()
+
+' Output file URLs as comma delimited list:
+? crlf_to_comma(result)
+%>]]></example>
+        </p>
+    </discussion>
+</page>

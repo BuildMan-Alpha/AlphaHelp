@@ -3,248 +3,400 @@
     <topic>File Upload - User Defined</topic>
     <description>Upload one or more files to the server. A server-side event then gets called to allow you to process the uploaded files.</description>
     <discussion>
-        <p>This action allows you to upload multiple files at once. Once the files have been uploaded, an Xbasic event handler that you define can process the uploaded data.</p>
+        <p>This action allows you to upload multiple files at once. Once the files have been uploaded, an Xbasic event handler that you define is called to processes the uploaded files. The function to call is defined by the *[ui:After upload]* property. Your Xbasic function will be passed an object called 'e'. 'e' will contain information about the uploaded files as well as the settings defined in the *[ui:File Upload - User Defined]* action and other information about the component. See [After upload] below for more information.</p>
+        <p>The *[ui:File Upload - User Defined]* action is used in cases where you wish to upload multiple files to the server at once, want to apply custom processing to the uploaded files, or are uploading files in an unbound UX Component.</p>
     </discussion>
     <sections>
         <section>
-            <description>Used with the Grid and UX components</description>
+            <note>
+                <p>If you are uploading files in a data bound UX Component, the [File Upload] action is more appropriate.</p>
+                <p>If you wish to upload files to Amazon S3, see [File Upload - Amazon S3 Storage or Alpha Anywhere server].</p>
+                <p>If you are uploading files in a PhoneGap mobile application, see [PhoneGap - File Upload].</p>
+            </note>
+        </section>
+        <section>
+            <title>Tutorial - Uploading Files using the File Upload - User Defined Action</title>
+            <videos>
+                <description>
+                    <p>There are two different actions in Action Javascript for uploading files from a UX component. If the UX component has been 'data bound' then the [File Upload] action is appropriate. But if the UX component is not data bound, or if you want to write your own handler for processing the files uploaded to the server, the *[ui:File Upload - User Defined]* action should be used.</p>
+                    <p>When you use the *[ui:File Upload - User Defined]* action, an Xbasic function that you define is called after the file (or multiple files if you choose to allow multiple files to be uploaded) are uploaded. Your Xbasic function is free to process the uploaded files in any way.</p>
+                    <p> In this video we show how the *[ui:File Upload - User Defined]* action can be used to save the uploaded data to a file on the server.</p>
+                </description>
+                <date>2014-10-02</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/416ed91c</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://www.ajaxvideotutorials.com/V12Videos/file_upload_unbound.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <title>Customizing the File Upload Window Text</title>
+            <description>
+                <p>When you upload a file or image, a window is displayed where you can select the file or image to upload.</p>
+                <p>You can customize several aspects of this window, including:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Window title</name>
+                        </item>
+                        <item>
+                            <name>The prompt above the 'file select' textbox</name>
+                        </item>
+                        <item>
+                            <name>The watermark text shown in the 'file select' textbox when no selection has been made</name>
+                        </item>
+                        <item>
+                            <name>Upload and Cancel button text</name>
+                        </item>
+                    </list>
+                </p>
+                <p>A common pattern for specifying the text to show in the Window is to use Language Tags when you define the strings for the customizable parts of the window. For example, you might set the window title to:</p>
+                <p>
+                    <example code="xb"><![CDATA[<a5:r>UploadWindowTitle</a5:r>]]></example>
+                </p>
+            </description>
+            <note>
+                <p>If you want to use International Characters when customizing the text in the Window, you *[must]* use Language Tags.</p>
+            </note>
         </section>
         <section>
             <description>
-                <p>*[TIP]*: To see what information is available to you in the 'e' object that is passed into your Xbasic event handler, put a debug statement in your function:</p>
-            </description>
-            <example><![CDATA[debug(1)]]></example>
-        </section>
-        <section>
-            <description>
-                <p>When the component is run in Live Preview, the Xbasic debugger will open when the debug statement is encountered, allowing you to inspect the 'e' object to see what information is available.</p>
+                <p>Language Tags are defined in the 'Language Definition' for the component. To edit the Language Definition, click the smart field button for the 'Language Definition' property.</p>
             </description>
         </section>
         <section>
-            <title>File Upload in a UX Component</title>
+            <title>Setting the 'Prompt' and 'Watermark' Text Properties Using Language Tags</title>
             <description>
-                <p>In order to add an event handler that performs a file upload action, you must add a special [File Upload/Download] control to the UX component.</p>
-                <p>The [File Upload/Download] control is in the Other Controls section of the Toolbox.</p>
+                <p>When you set the 'Prompt' and 'Watermark' text properties using Language Tags you need to make sure that the Language Tags return *[urlencoded values]*.</p>
+                <p>If you simply type a text string into the 'Prompt' or 'Watermark' property, the builder will automatically urlencode the string. But if you use a Language Tag, then the builder cannot do automatic url encoding for you, and *[it is necessary to embed an instruction into the Language Definition to URL encode the value]*.</p>
+                <p>For example, say you set the 'Prompt' property in the builder to: </p>
+                <p>
+                    <example code=""><![CDATA[<a5:r>FileUploadPrompt</a5:r>]]></example>
+                </p>
+                <p>When you define the 'FileUploadPrompt' tag in the Language Definition, you will need to use the special tag (*[xb:urlencode{{...}}]*) to ensure that the Language Definition returns a URL encoded value for this language tag. For example, here is how the 'FileUploadPrompt' tag might be defined in the Language Definition:</p>
+                <p>
+                    <example code="xb"><![CDATA[FileUploadPrompt=urlencode{{HTML encoded text goes here}}]]></example>
+                </p>
             </description>
-            <figure>
-                <link>images/fileuploaddownload.jpg</link>
-            </figure>
+            <tip>
+                <p>To get the HTML encoded version of a text string that contains International Characters, you can select the 'Open text encoder window' menu command from the 'Tools' menu when the Web Control Panel has focus.</p>
+            </tip>
+        </section>
+        <section>
+            <title>Contrast File Upload Actions</title>
+            <description>
+                <p>Action Scripting offers two different File Upload actions for uploading multiple files to the Alpha Anywhere Server. These are:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>File Upload - User Defined</name>
+                        </item>
+                        <item>
+                            <name>File Upload - Amazon S3 Storage or Alpha Anywhere Server</name>
+                        </item>
+                    </list>
+                </p>
+                <p>The actions are similar in that they both allow you to select one or more files to upload to the Alpha Anywhere Server and then call an Xbasic function to process the uploaded files.</p>
+                <p>The main difference between the two actions is apparent when you configure the actions to allow the user to select multiple files to be uploaded to the Alpha Anywhere Server.</p>
+            </description>
+            <note>
+                <p>If the *[ui:File Upload - Amazon S3 Storage or Alpha Anywhere Server]* action uploads files to S3, no Xbasic function is called to process the files after they have been uploaded.</p>
+            </note>
         </section>
         <section>
             <description>
-                <p>Once you have added the [File Upload/Download] control, you can then use Action Javascript to define a File Upload User Defined action.</p>
+                <p>In the case of the *[ui:File Upload - User Defined]* action, the user must select one file at a time from the File Select window that opens when they click a button to select files. The selected files do *[not]* all have to be in the same directory. Once the upload starts, a *[single]* progress bar is displayed to show the progress of the entire upload job and the Xbasic function that is specified to process the uploaded files is called *[once]* when all of the selected files have been uploaded. The user can cancel the upload before the job is completed, but the entire job is cancelled - the user cannot cancel individual files.</p>
+                <p>On the other hand, the *[ui:File Upload - Amazon S3 Storage or Alpha Anywhere Server]* action allows the user to select multiple files at once. However, *[all]* of the selected files *[must]* come from the *[same directory]*. Once the upload starts, a separate progress bar is shown for *[each]* selected file, allowing the user to cancel the upload of individual files. The Xbasic function that is specified to process the uploaded files is called for *[each]* uploaded file after *[each]* file has been uploaded to the Alpha Anywhere Server.</p>
+                <p>The *[ui:File Upload - Amazon S3 Storage or Alpha Anywhere Server]* action is also newer and has more configuration options.</p>
             </description>
+            <note>
+                <p>To upload files from a PhoneGap application, use the [PhoneGap - File Upload] action.</p>
+            </note>
         </section>
-        
- <section>
+        <section>
             <title>File Upload Properties</title>
-            <list>
-                <item>
-                    <name>Allow multiple file upload</name>
-                    <description>Can the user upload multiple files at once?</description>
-                </item>
-                <item>
-                    <name>Allowed file extensions</name>
-                    <description>Specify a comma delimited list of allowed filename extensions. If the user uploads a file that does not match an allowed extension, the operation is aborted. If you leave this blank then any filetype can be uploaded as long as it is not on the disallowed list of file types.</description>
-                </item>
-                <item>
-                    <name>Disallowed file extensions</name>
-                    <description>Specify a comma delimited list of disallowed filename extensions. The user will not be able to upload a file with one of these extensions. You can only specify disallowed file types if the Allowed file types property is blank.</description>
-                </item>
-                <item>
-                    <name>Invalid extension error message</name>
-                    <description>Invalid extension error message property.</description>
-                </item>
-                <item>
-                    <name>Maximum file size</name>
-                    <description>Specify the maximum file size that can be uploaded. Specify value in bytes. Specify 0 if you do not want to restrict the size of the file that can be uploaded. IMPORTANT: Regardless of this settings, the server also specifies a maximum POST body size. The lower of this setting and your setting for this property will apply.</description>
-                </item>
-                <item>
-                    <name>Maximum file size exceeded message</name>
+            <cases>
+                <case>
+                    <title nested="2">Allow multiple file upload</title>
+                    <description>If enabled, allows the user to upload multiple files at once.</description>
+                </case>
+                <case>
+                    <title nested="2">Allowed file extensions</title>
+                    <description>Specify a comma delimited cases of allowed filename extensions. If the user uploads a file that does not match an allowed extension, the operation is aborted. If you leave this blank then any filetype can be uploaded as long as it is not on the disallowed cases of file types.</description>
+                </case>
+                <case>
+                    <title nested="2">Disallowed file extensions</title>
+                    <description>Specify a comma delimited cases of disallowed filename extensions. The user will not be able to upload a file with one of these extensions. You can only specify disallowed file types if the Allowed file types property is blank.</description>
+                </case>
+                <case>
+                    <title nested="2">Invalid extension error message</title>
+                    <description>The message shown when the user tries to upload a file with an extension that is not allowed.</description>
+                </case>
+                <case>
+                    <title nested="2">Maximum file size</title>
+                    <description>Specify the maximum file size that can be uploaded. Specify value in bytes. Specify 0 if you do not want to restrict the size of the file that can be uploaded.</description>
+                    <important>
+                        <p>Regardless of this settings, the server also specifies a maximum POST body size. The lower of this setting and your setting for this property will apply.</p>
+                    </important>
+                </case>
+                <case>
+                    <title nested="2">Maximum file size exceeded message</title>
                     <description>Specify the message to display to the user if the uploaded file exceeds the maximum allowed file size.</description>
-                </item>
-                <item>
-                    <name>Show progress/allow cancel</name>
+                </case>
+                <case>
+                    <title nested="2">Show progress/allow cancel</title>
                     <description>On certain browsers it is possible to show progress while files are being uploaded and to allow the user to cancel the operation. IE9 and earlier does not support this feature.</description>
-                </item>
-                <item>
-                    <name>Abort upload button label</name>
+                </case>
+                <case>
+                    <title nested="2">Abort upload button label</title>
                     <description>Specify the text for the Abort button. This button allows a user to stop an upload before it has completed.</description>
-                </item>
-                <item>
-                    <name>Abort upload message</name>
+                </case>
+                <case>
+                    <title nested="2">Abort upload message</title>
                     <description>Specify the message to show if the user aborts an upload.</description>
-                </item>
-                <item>
-                    <name>Progress bar type</name>
-                    <description>Specify the type of progress bar. The 'A5' bar uses a specially styled progress bar that blends well with the selected component style. If you are using certain styles (e.g. GrBlue, GrOlive, etc.) you way want to switch to the 'Basic' style. Choices include *[ui:A5]*, *[ui:Basic]*.</description>
-                </item>
-                <item>
-                    <name>Maximum combined size of all selected files</name>
-                    <description>Specify the max combined filesize of all selectd files. IMPORTANT: Regardless of this settings, the server also specifies a maximum POST body size. The lower of this setting and your setting for this property will apply.</description>
-                </item>
-                <item>
-                    <name>Max combined file size exceeded message</name>
-                    <description>Specify the error message to show if user selects file with a combined size that exceeds the maximum allowed.</description>
-                </item>
-            </list>
+                </case>
+                <case>
+                    <title nested="2">Progress bar type</title>
+                    <description>
+                        <p>Specify the type of progress bar. The 'A5' bar uses a specially styled progress bar that blends well with the selected component style. If you are using certain styles (e.g. GrBlue, GrOlive, etc.) you way want to switch to the 'Basic' style.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Type</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>A5</name>
+                                    <description>Use a specially styled progress bar that blends well with the selected component style.</description>
+                                </item>
+                                <item>
+                                    <name>Basic</name>
+                                    <description>Use a progress bar that works best with older Alpha Anywhere web themes (e.g. 'GrBlue', 'GrOlive', etc.)</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Maximum combined size of all selected files</title>
+                    <description>
+                        <p>Specify the max combined file size of all selected files that can be uploaded.</p>
+                    </description>
+                    <important>
+                        <p>Regardless of this settings, the server also specifies a maximum POST body size. The lower of the maximum POST body size and the max combined file size of all selected files will apply.</p>
+                    </important>
+                </case>
+                <case>
+                    <title nested="2">Max combined file size exceeded message</title>
+                    <description>Specify the error message to show if the selected file(s) to upload exceed the allowed maximum combined file size.</description>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Customization - File Select Window Properties</title>
-            <list>
-                <item>
-                    <name>Window title</name>
+            <cases>
+                <case>
+                    <title nested="2">Window title</title>
                     <description>Specify the title of the File Select dialog window.</description>
-                </item>
-                <item>
-                    <name>Window position</name>
-                    <description>Specify where the window will be shown.</description>
-                </item>
-                <item>
-                    <name>Auto upload</name>
+                </case>
+                <case>
+                    <title nested="2">Window position</title>
+                    <description>Specify where the File Select window will be shown.</description>
+                </case>
+                <case>
+                    <title nested="2">Auto upload</title>
                     <description>Specify if the file should be uploaded as soon as the user has selected the file to upload. Alternatively, the upload will only start once the user has clicked on the 'Upload' button.</description>
-                </item>
-                <item>
-                    <name>Working message</name>
+                </case>
+                <case>
+                    <title nested="2">Working message</title>
                     <description>Specify the working message to display while the file is being uploaded to the server</description>
-                </item>
-                <item>
-                    <name>Upload button</name>
+                </case>
+                <case>
+                    <title nested="2">Upload button</title>
                     <description>Specify the button text for the 'Upload' button.</description>
-                </item>
-                <item>
-                    <name>Watermark</name>
-                    <description>Specify the watermark text that appears in the file box.  If you use a langauge tag for the text, be sure that the language definition returns a URL encoded value. See hyperlink below for more help.</description>
-                </item>
-                <item>
-                    <name>File select button image</name>
+                </case>
+                <case>
+                    <title nested="2">Watermark</title>
+                    <description>Specify the watermark text that appears in the file box.  If you use a language tag for the text, be sure that the language definition returns a URL encoded value. See [Setting the 'Prompt' and 'Watermark' Text Properties Using Language Tags] above for more information.</description>
+                </case>
+                <case>
+                    <title nested="2">File select button image</title>
                     <description>Select the image that appears on the button to open the file select window.</description>
-                </item>
-                <item>
-                    <name>Prompt</name>
-                    <description>Specify the text for the prompt that appears above the file box.  If you use a langauge tag for the text, be sure that the language definition returns a URL encoded value. See hyperlink below for more help.</description>
-                </item>
-                <item>
-                    <name>Prompt</name>
-                    <description>Specify the prompt that is shown on the File Select dialog box.</description>
-                </item>
-                <item>
-                    <name>Remove file label</name>
+                </case>
+                <case>
+                    <title nested="2">Prompt</title>
+                    <description>Specify the text for the prompt that is shown in the File Select window.  If you use a language tag for the text, be sure that the language definition returns a URL encoded value. See [Setting the 'Prompt' and 'Watermark' Text Properties Using Language Tags] above for more information.</description>
+                </case>
+                <case>
+                    <title nested="2">Remove file label</title>
                     <description>Specify the label for the button that allows a user to de-select a file so that it is not uploaded.</description>
-                </item>
-                <item>
-                    <name>Window height</name>
+                </case>
+                <case>
+                    <title nested="2">Window height</title>
                     <description>Specify the height for the pop-up File Select window.</description>
-                </item>
-                <item>
-                    <name>Window width</name>
+                </case>
+                <case>
+                    <title nested="2">Window width</title>
                     <description>Specify the width for the pop-up File Select window.</description>
-                </item>
-                <item>
-                    <name>Cancel button label</name>
+                </case>
+                <case>
+                    <title nested="2">Cancel button label</title>
                     <description>Specify the label for the Cancel button. Before the image is uploaded, this button closes the dialog. If a confirmation dialog is show after the image is uploaded, this button aborts the action and does not save the uploaded image to the database.</description>
-                </item>
-            </list>
-        </section>
-        <section>
-            <title>Import properties Properties</title>
-            <list>
-                <item>
-                    <name>Target</name>
-                    <description>Specify if the data in the uploaded file should be imported into the table for the current Grid, or some external table. Choices include *[ui:<![CDATA[<CurrentGrid>]]>]*, *[ui:<![CDATA[<External>]]>]*.</description>
-                </item>
-                <item>
-                    <name>External type</name>
-                    <description>Specify if the external table is a SQL table or a .DBF table Choices include *[ui:SQL]*, *[ui:DBF]*.</description>
-                </item>
-                <item>
-                    <name>External connection string</name>
-                    <description>Specify the connection string for the external database where the external table is stored.</description>
-                </item>
-                <item>
-                    <name>External table name</name>
-                    <description>Specify the name of the external table into which you want to import records.</description>
-                </item>
-                <item>
-                    <name>External table name</name>
-                    <description>Specify the name of the external table into which you want to import records.</description>
-                </item>
-                <item>
-                    <name>Honor Grid rules and events</name>
-                    <description>Specify if each record from the uploaded file should be validated using the Grid's validation rules, and if the Grid's CanInsertRecord event should fire before each row of data in the uploaded file is imported. 
-
-NOTE:Importing records will be SUBSTANTIALLY slower if this property is checked.</description>
-                </item>
-                <item>
-                    <name>Maximum records to process</name>
-                    <description>Specify the maximum number of records in the uploaded file to process. Importing records can tie up your server so you might want to limit the number of records that can be processed. Set to 0 for no limit.</description>
-                </item>
-                <item>
-                    <name>Maximum records exceeded error message</name>
-                    <description><![CDATA[Specify the message to show if the user tries to import to many records at once. You can use language tags in the message. e.g. <a5:r>message</a5:r>]]></description>
-                </item>
-                <item>
-                    <name>Success message</name>
-                    <description><![CDATA[Specify the message to show if the import operation is successful. You can use language tags in the message. e.g. <a5:r>message</a5:r>]]></description>
-                </item>
-                <item>
-                    <name>Partial success message</name>
-                    <description>Specify the message to show if some records were rejected because they did not satisfy Grid validation rules.</description>
-                </item>
-                <item>
-                    <name>Import results window title</name>
-                    <description>Specify the caption for the title of the confirmation window after records are imported.</description>
-                </item>
-                <item>
-                    <name>Import results window close button</name>
-                    <description>Specify the caption for the button to close the confirmation window after records are imported.</description>
-                </item>
-                <item>
-                    <name>Pre-process uploaded file Xbasic function</name>
-                    <description>This function is called AFTER the file is uploaded, but BEFORE the raw file has been imported. It is ONLY called if the uploaded file contains ascii data.	For example, say you know that the user will upload a file that does not have titles in the first row. This function will allow you to manipulate the uploaded file and add titles to the first row.  Click the hyperlink below to get a sample prototype for your function.</description>
-                </item>
-                <item>
-                    <name>Data validation Xbasic function</name>
-                    <description>After the data has been uploaded (and imported into a temporary table on the server), you can specify the name of an Xbasic function to call to validate the data. The data from the uploaded file will be imported into a temporary .dbf table and your Xbasic function can process this table before it is imported into the target table. Click the hyperlink below to get a sample prototype for your validation function.</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Server-side Events Properties</title>
-            <list>
-                <item>
-                    <name>After upload</name>
-                    <description>Specify the name of the Xbasic function to call after the file(s) have been uploaded. This Xbasic function can be defined in the 'Xbasic function declarations' section.</description>
-                </item>
-                <item>
-                    <name>Xbasic function arguments array mode</name>
-                    <description>Specify if the array containing information about the uploaded files that is passed into the Xbasic 'After upload' function should contain the actual uploaded data, or a temporary filename for the file in which the uploaded data has been saved.</description>
-                </item>
-            </list>
+            <cases>
+                <case>
+                    <title nested="2">After upload</title>
+                    <description>
+                        <p>Specify the name of the Xbasic function to call after the file(s) have been uploaded. This Xbasic function can be defined in the 'Xbasic function declarations' section. The function is called after the file(s) selected in the Upload Files dialog have been uploaded to the server. The Xbasic function is responsible for processing each file that has been uploaded to the server.</p>
+                        <p>The following properties are available to you in the 'e' object:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.fileCount]*</name>
+                                    <description>The number of files that were uploaded.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.fileArray]*</name>
+                                    <description>A property array with one entry for each uploaded file. See [Xbasic function arguments array mode] below for more information.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.uploadProperties]*</name>
+                                    <description>Contains multiple sub-properties for all of the properties set for the *[ui:File Upload - User Defined]* action.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>A pointer to the component definition</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.rtc]*</name>
+                                    <description>A pointer variable that contains run-time calculations</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.__si]*</name>
+                                    <description>Component state information</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>If you want to send any JavaScript back to the browser to execute after this event has completed, you can set the *[xb:e.javascript]* property. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[e.javascript = "alert('File upload complete.');"]]></example>
+                        </p>
+                        <p>*[EXTREMELY IMPORTANT]* The JavaScript that is sent back to the browser is executed in the context of the IFrame that contains the File Select window. Therefore, in order for the Javascript you send back to invoke methods of the UX component, you must prefix all methods with *[js:window.parent]*.</p>
+                        <p>
+                            <example code="xb"><![CDATA[window.parent.{dialog.object}.setValue('CONTROL1','VALUE1');]]></example>
+                        </p>
+                        <p>The file upload can also be aborted by setting the *[xb:e.abort]* property to *[xb:.t.]* and returning an error message to the user:</p>
+                        <p>
+                            <example code="xb"><![CDATA[e.abort = .t.
+e.errorText = "File upload aborted. You selected a file with no data."]]></example>
+                        </p>
+                    </description>
+                    <tip>
+                        <p>To see what information is available to you in the 'e' object that is passed into your Xbasic event handler, put a debug statement in your function:</p>
+                        <p>
+                            <example code="xb"><![CDATA[debug(1)]]></example>
+                        </p>
+                        <p>When the component is run in Live Preview, the Xbasic debugger will open when the debug statement is encountered, allowing you to inspect the 'e' object to see what information is available.</p>
+                    </tip>
+                </case>
+                <case>
+                    <title nested="2">Xbasic function arguments array mode</title>
+                    <description>
+                        <p>Specify if the array containing information about the uploaded files that is passed into the Xbasic 'After upload' function should contain the actual uploaded data, or a temporary filename for the file in which the uploaded data has been saved. The *[ui:Xbasic function arguments array mode]* property can be set to either 'Filename' or 'Data'. For new actions, this property is set to 'Filename'.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Mode</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>Filename</name>
+                                    <description>The default for all new actions. Files are uploaded and stored in temporary file. The 'After upload' function will be given the temporary filename for each uploaded file.</description>
+                                </item>
+                                <item>
+                                    <name>Data</name>
+                                    <description>Files are uploaded into server memory and passed to the 'After upload' function. If a large number of files are uploaded, this can lead to server errors if the server does not have enough memory to handle large files or multiple users uploading files concurrently.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>When the upload is complete, the 'After upload' Xbasic function is called. This function is passed an 'e' object that contains an array with information about each uploaded file.</p>
+                        <p>For example, assume the user has uploaded two files. If the 'Data' option is selected, the e object passed to the 'After upload' function will contain these properties:</p>
+                        <p>
+                            <example code="xb"><![CDATA[ e.fileArray[1].file.characterSet - character set of the uploaded file
+e.fileArray[1].file.contentType - MIME type (e.g. 'application/octet-stream')
+e.fileArray[1].fileName - filename of the file on the client machine
+e.fileArray[1].encoding - For text files, specifies the encoding type
+e.fileArray[1].data - data that was uploaded.
+e.fileArray[1].file.dataType = Either 'text' or 'binary'
+
+e.fileArray[2].file.characterSet - character set of the uploaded file
+e.fileArray[2].file.contentType - MIME type (e.g. 'application/octet-stream')
+e.fileArray[2].fileName - filename of the file on the client machine
+e.fileArray[2].encoding - For text files, specifies the encoding type
+e.fileArray[2].data - data that was uploaded.
+e.fileArray[2].file.dataType = Either 'text' or 'binary']]></example>
+                            </p>
+                        <p>Note that the array has a .data property that contains the data that was uploaded.</p>
+                        <p>If *[ui:Xbasic function arguments array mode]* is set to 'Filename', however, the array will not contain the .data and file.dataType properties. Instead, it will contain a property called 'tempFileUploadedData', which contains the location on the server where the file was saved. So, in the case where the user uploaded two files, the e object will contain:</p>
+                        <p>
+                            <example code="xb"><![CDATA[e.fileArray[1].file.characterSet
+e.fileArray[1].file.contentType
+e.fileArray[1].fileName
+e.fileArray[1].encoding
+e.fileArray[1].tempFileUploadedData - The temporary file location on the server
+
+e.fileArray[2].file.characterSet
+e.fileArray[2].file.contentType
+e.fileArray[2].fileName
+e.fileArray[2].encoding
+e.fileArray[2].tempFileUploadedData - The temporary file location on the server]]></example>
+                        </p>
+                        <p>It is recommended to always use 'Filename' mode. If you are modifying any existing actions, this will require that you also change your Xbasic function that processes the uploaded data because the array passed to your function will no longer have the .data property.</p>
+                        <p>The benefit of the 'Filename' option over the 'Data' option is that uploaded data is never loaded into memory. If you use the 'Data' option, the uploaded data is read into memory. This consumes virtual memory on your server and may result in server errors if you have a large number of users uploading files (or just one user uploading a huge file).</p>
+                        <p> With the 'Filename' option, your application will be able to handle larger file uploads, or more users concurrently uploading files.</p>
+                    </description>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Client-side Events Properties</title>
-            <list>
-                <item>
-                    <name>Before upload</name>
+            <cases>
+                <case>
+                    <title nested="2">Before upload</title>
                     <description>Specify the name of the Javascript function to call before the file upload window is shown. If this function returns false, the upload is aborted.</description>
-                </item>
-                <item>
-                    <name>After upload</name>
-                    <description>Specify the name of the Javascript function to call after the file has been sucessfully uploaded.</description>
-                </item>
-            </list>
+                </case>
+                <case>
+                    <title nested="2">After upload</title>
+                    <description>Specify the name of the Javascript function to call after the file has been successfully uploaded.</description>
+                </case>
+            </cases>
         </section>
-        
-        
-        
     </sections>
-    
-     <see>
-   
-       <ref link="action javascript for the ux">Action Javascript for the UX</ref>
-  
-   </see>
-   
-   
+    <links>
+        <link href="#section1_Setting%20the%20'Prompt'%20and%20'Watermark'%20Text%20Properties%20Using%20Language%20Tags">Setting the 'Prompt' and 'Watermark' Text Properties Using Language Tags</link>
+        <link href="#section2_Xbasic%20function%20arguments%20array%20mode">Xbasic function arguments array mode</link>
+        <link link="File Upload">File Upload</link>
+        <link link="File Upload Amazon S3 Storage or Alpha Anywhere Server">File Upload - Amazon S3 Storage or Alpha Anywhere Server</link>
+        <link link="File Upload Amazon S3 Storage or Alpha Anywhere Server">File Upload - Amazon S3 Storage or Alpha Anywhere server</link>
+        <link link="PhoneGap - File Upload">PhoneGap - File Upload</link>
+        <link href="#section2_After upload">After upload</link>
+    </links>
+    <see>
+        <ref link="File Upload">File Upload</ref> 
+        <ref link="File Upload Amazon S3 Storage or Alpha Anywhere Server">File Upload - Amazon S3 Storage or Alpha Anywhere Server</ref>
+        <ref link="PhoneGap - File Upload">PhoneGap - File Upload</ref>
+    </see>
 </page>

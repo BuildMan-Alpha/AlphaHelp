@@ -1,110 +1,106 @@
 <page api="xb">
     <shortlink>api sql namespace result set object to xml function</shortlink>
-   <topic>SQL::ResultSet::ToXML Method</topic>
-     <description>Convert ResultSet an XML formatted string.</description>
-   <prototype>XML_String as C = ToXML([ RowsToCopy = -1 as N [, StartRow = -1 as N [, Documentname as C [, RowName as C [, Header as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]])</prototype>
-   <arguments>
-    <argument>
-         <name>XML_String
-</name>
-         <description>
- 
-The XML formatted data returned by the query.
- </description>
-     </argument>
-      <argument>
-         <name>SQL::ResultSet</name>
-         <description>
+    <topic>SQL::ResultSet::ToXML Method</topic>
+    <description>Convert ResultSet an XML formatted string.</description>
+    <prototype>XML_String as C = ToXML([ RowsToCopy = -1 as N [, StartRow = -1 as N [, DocumentName as C [, RowName as C [, Header as C [, ReferenceColumns as SQL::TableInfo [, UserContext as P]]]]]]])</prototype>
+    <arguments>
+        <argument optional="true">
+            <name>RowsToCopy</name>
+            <type>N</type>
+            <description>Default = -1. The number of rows to copy.</description>
+        </argument>
+        <argument optional="true">
+            <name>StartRow</name>
+            <type>N</type>
+            <description>Default = 1. The first row to copy.</description>
+        </argument>
+        <argument optional="true">
+            <name>DocumentName</name>
+            <type>N</type>
+            <description>The tag for the document element. See example.</description>
+        </argument>
+        <argument optional="true">
+            <name>RowName</name>
+            <type>N</type>
+            <description>The tag for the row element. See example.</description>
+        </argument>
+        <argument optional="true">
+            <name>Header</name>
+            <type>N</type>
+            <description>The tag for the header element. See example.</description>
+        </argument>
+        <argument optional="true">
+            <name>ReferenceColumns</name>
+            <type>SQL::TableInfo</type>
+            <description>When data is formatted for a column in the result set: (1) if ReferenceColumns has a column with a matching name, that object will be used to format the data; (2) otherwise the ColumnInfo property of the result set is used to format the data.</description>
+        </argument>
+        <argument optional="true">
+            <name>UserContext</name>
+            <type>P</type>
+            <description>The user context is passed into the evaluation of the expression when data is formatted.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>XML_String</name>
+            <type>C</type>
+            <description>Returns the XML formatted data returned by the query.</description>
+            </description>
+        </return>
+    </returns>
+    <discussion>The ToXML() method converts a SQL::ResultSet object to a XML formatted string.</discussion>
+    <example code="xb"><![CDATA[dim sql as C
+sql = "select * from customers where country = :country"
 
- 
-A SQL::ResultSet object created with a DIM statement.
- </description>
-     </argument>
-     
-     
-     
-     <argument>
-         <name> RowsToCopy</name>
-         <description>Optional. Default = -1. The number of rows to copy.
-</description>
-     </argument>
-     <argument>
-         <name> StartRow</name>
-         <description>Optional. Default = 1. The first row to copy.
-</description>
-     </argument>
-     <argument>
-         <name> Documentname</name>
-         <description>
- 
-Optional. The tag for the document element. See example.
- </description>
-     </argument>
-     <argument>
-         <name> RowName</name>
-         <description>Optional. The tag for the row element. See example.
-</description>
-     </argument>
-     <argument>
-         <name> Header</name>
-         <description>Optional. The tag for the header element. See example.
-</description>
-     </argument>
-     <argument>
-         <name> ReferenceColumns</name>
-         <description>Optional. A SQL::TableInfo object. When data is formatted for a column in the result set: (1) if ReferenceColumns has a column with a matching name, that object will be used to format the data; (2) otherwise the ColumnInfo property of the result set is used to format the data.
-</description>
-     </argument>
-     <argument>
-         <name> UserContext</name>
-         <description>Optional. The user context is passed into the evaluation of the expression when data is formatted.
-</description>
-     </argument>
-   </arguments>
- 
-   <discussion>
-The ToXML() method converts a SQL::ResultSet object to a XML formatted string.
-   </discussion>
-   <example><![CDATA[
+dim args as SQL::Arguments
+args.set("country","Poland")
+
 dim conn as SQL::Connection
-dim rs as SQL::ResultSet
-dim connString as C
-dim select_exp as C
-dim ti as SQL::TableInfo
-connString = "{A5API='Access', FileName='c:\program files\a5v8\mdbfiles\alphasports.mdb'}"
-select_exp = "select * from customer where bill_state_region = 'ny'"
-if .not. conn.open(connString)
+if .not. conn.open("::Name::AADemo-Northwind")
     ui_msg_box("Error", conn.CallResult.text)
     end
 end if
-if .not. conn.execute(select_exp)
+
+if .not. conn.execute(sql, args)
     ui_msg_box("Error", conn.CallResult.text)
     conn.close()
     end
 end if
-rs = conn.ResultSet
-ti = rs.ToTableInfo()
-ui_msg_box("XML Data", rs.toxml(-1, -1, "DocName", "RowName", "HeaderName"))
+
+dim ti as SQL::TableInfo
+ti = conn.ResultSet.ToTableInfo()
+
+dim xml as c
+xml = conn.ResultSet.toxml(-1, -1, "DocName", "RowName", "HeaderName")
 conn.close()
-]]></example>
-   <sections>
-       <section>
+
+ui_msg_box("XML Data", xml)]]></example>
+    <sections>
+        <section>
             <description>The XML data looks like this:</description>
-            <example><![CDATA[
-HeaderName
-        Michael
-        Graham
-        
-        Sally
-        Peabody
-    
-...
-]]></example>
-       </section>
-   </sections>
-   <see>
-      <ref link="SQL::ResultSet Object">SQL::ResultSet Object</ref>
-     
-   </see>
-  <terms>sql,column,defaults,expressions,function,header,number,object,users,xml</terms>
+            <example><![CDATA[HeaderName
+<DocName>
+<RowName>
+<CustomerID>WOLZA</CustomerID>
+<CompanyName>Wolski  Zajazd</CompanyName>
+<ContactName>Zbyszek Piestrzeniewicz</ContactName>
+<ContactTitle>Owner</ContactTitle>
+<Address>ul. Filtrowa 68</Address>
+<City>Warszawa</City>
+<Region></Region>
+<PostalCode>01-012</PostalCode>
+<Country>Poland</Country>
+<Phone>(26) 642-7012</Phone>
+<Fax>(26) 642-7012</Fax>
+<Image></Image>
+<ImageThumbnail></ImageThumbnail>
+</RowName>
+</DocName>]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="SQL::ResultSet Object">SQL::ResultSet Object</ref>
+
+    </see>
+    <terms>sql,column,defaults,expressions,function,header,number,object,users,xml</terms>
 </page>

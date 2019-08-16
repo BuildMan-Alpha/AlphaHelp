@@ -1,0 +1,701 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="Managing Test Databases on Alpha Cloud." />
+<meta name="shortlink" content="Alpha Cloud Alpha Anywhere Developers Guide Managing Test Databases" />
+<title>Alpha Cloud Alpha Anywhere Developers Guide Managing Test Databases</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="TestDatabases">Managing Test Databases</a></h2>
+<br/>
+
+<p>
+<a href="#AboutTestDatabases">About Test Databases</a><br/>
+<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a><br/>
+<br/>
+<a href="#CreateServer">Creating a Test Database Server</a><br/>
+<a href="#DeleteServer">Deleting a Test Database Server</a><br/>
+<br/>
+<a href="#CreateDatabase">Creating a Test Database</a><br/>
+<a href="#DeleteDatabase">Deleting a Test Database</a><br/>
+<a href="#InstallSample">Installing the Northwind Sample Database</a><br/>
+<a href="#BackUpDatabase">Backing Up a Test Database</a><br/>
+<a href="#RestoreDatabase">Restoring a Test Database</a><br/>
+<br/>
+<a href="#ConnectionString">Getting Database Connection Strings</a><br/>
+<br/>
+<a href="#SSHTunnels">Accessing Your Test Database from Third Party Tools</a><br/>
+<ul>
+	<li><a href="#OpenSSHTunnel">Opening an SSH2 Tunnel To Your Database</a></li>
+	<li><a href="#CloseSSHTunnel">Closing an SSH2 Tunnel To Your Database</a></li>
+	<li><a href="#SSHTunnelDetails">Getting SSH2 Tunnel Information for Third Party Tools</a></li>
+</ul>
+
+</p>
+
+<h3><a id="AboutTestDatabases">About Test Databases</a></h3>
+
+<p>Your Alpha Cloud subscription includes one or more test database servers.
+As of this writing, you can create one server of each of the following databases:
+<ul>
+<li>MariaDB</li>
+<li>PostgreSQL</li>
+<li>SQL Server</li>
+</ul>
+<br/>
+</p>
+<p>
+You can create multiple databases on each database server.
+Space is limited, and the databases are for use in testing only.
+</p>
+<br/>
+
+<p>
+As test servers and databases, the following restrictions apply:
+<br/>
+<ul>
+<li>Space is limited. Currently each server is provisioned with 1GB of space for databases.</li>
+<li>Server performance is limited and does not scale.</li>
+<li>You can make your own backups and restore data using the Alpha Cloud dialogs, but there is no automated backup or recovery.</li>
+<li>There is reasonable, but minimal security. Data is not encrypted either in transit or at rest.<br/><br/>
+<strong>Note: </strong> Storing confidential data on these servers may be a violation of local law.</li>
+</ul>
+</p>
+<br/>
+
+<p><strong>Important: </strong>To manage your test databases you must have Subscription level permissions. 
+Connecting to your database requires only a username and password with appropriate access permission.
+</p>
+<br/>
+
+<h4><a id="TestDatabaseImplementation">Test Servers and Databases - Implementation Details</a></h4>
+<p>As of this writing Alpha Cloud Test Database Servers are run on a Kubernetes cluster on the Google Cloud.
+Each server is run as a separate Docker container instance with fixed memory and CPU constraints.
+We have found Kubernetes to be a very responsive orchestration environment for small servers.
+We chose the Google (GKE) cluster because it had a very well thought out management interface, 
+and because Google is the original developer of Kubernetes.</p>
+<br/>
+<br/>
+
+<p>Access to your test database is provided through an SSH2 tunnel. 
+We chose this approach because it greatly simplifies management of public IP addresses and DNS names and limits direct connections from unsecured clients. 
+You can access your test databases using the SSH connection feature that is built into Alpha Anywhere Data Access Objects.
+Connections to your test databases can be established from your development environment, from Alpha Cloud, and using third-party tools, as discussed below.
+</p>
+<br/>
+<br/>
+
+
+<h3><a id="ManagingTestDatabases">Managing Test Servers and Databases</a></h3>
+<p>
+Using the Alpha Cloud dialogs, you can manage database servers and databases.
+</p>
+
+<p>To manage test servers and databases:<br/>
+
+<ol>
+	<li>Click on the Alpha Cloud toolbar icon in the web control panel and select "Advanced" and 
+		then "Subscription Test Databases" from the drop down menu as shown below.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesMenu.jpg"><br/><br/>
+		</li>
+	<li>The "Manage Test Databases dialog will display.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesMainDialog.jpg"><br/><br/>
+		</li>
+	<li>Click on the button to the right labeled "Actions..." to display a menu of actions.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesMainDialogWithMenu.jpg"><br/><br/>
+		The items on the menu that are enabled will vary depending on how many database servers you have created 
+		and selected
+		and whether or not you have active SSH tunnels.
+		</li>
+	<li>If you have one or more databases already created, you can select them individually
+		by clicking the checkbox to the left of each database, 
+		or select them all by clicking the checkbox at the top of the first column on the left.
+		</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+
+<h3><a id="CreateServer">Creating a Test Database Server</a></h3>
+<p>
+Using the Alpha Cloud dialogs, you can create one database server of each type supported.
+</p>
+<br/>
+
+<p>To create one or more test database servers:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>If there is a server type that you have not created yet, the Create Server option will be enabled.</li>
+	<li>Select Create Server Server from the menu.</li>
+	<li>The Create Subscription Database Server dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesCreateServerDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the database type for the new server from the drop-down list box.</li>
+	<li>Click OK to create the server.</li>
+	<li>A dialog will display confirming that the server has been created.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesCreateServerSuccess.jpg"><br/><br/>
+		</li>
+	<li>When you click OK you will be returned to the Manage Subscription Database Servers dialog.
+		Your new server will be listed.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+<h3><a id="CreateDatabase">Creating a Test Database</a></h3>
+<p>
+Once you have created one or more servers, you can create databases on those servers.
+</p>
+<br/>
+
+<p>To create one or more test databases:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select Create Database from the menu.</li>
+	<li>The Create Subscription Database dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesCreateDatabaseDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the database server to create the database on from the list in the Server drop-down.<br/>
+		Note: Only the database servers you selected will be listed in the drop-down.</li>
+	<li>Enter a name for your new database in the text box labeled Database to Create.<br/>
+		  Database names should be alpha numeric characters starting with an alphabetic character.<br/>
+		Note: You can drop down the list of existing databases to see what you have already created.</li>
+	<li>Click the button labeled Create Database to create the new database.</li>
+	<li>You will be prompted for permission to create the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesCreateDatabaseConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to create the database.</li>
+	<li>A dialog will display confirming that the database has been created.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesCreateDatabaseSuccess.jpg"><br/><br/>
+		</li>
+	<li>Click OK to return to the Create Subscription Database dialog.</li>
+	<li>You can create multiple databases from the Create Subscription Databases dialog.</li>
+	<li>When you are done creating databases, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+<h3><a id="#InstallSample">Installing the Northwind Sample Database</a></h3>
+<p>
+Once you have created a server, you can install the Northwind sample database into a new or existing database on your server.
+Alpha Cloud will use the restore capability of the database type of your server to restore the sample database for you.
+</p>
+<br/>
+<p><strong>Important: </strong>All data on the target database will be deleted during the installation process.
+Existing data cannot be restored later.
+If you are installing the sample data to an existing database, be sure you have backed up any data you wish to keep.
+<p>
+<br/>
+
+<p>To install the Northwind sample database:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select Install Sample Database from the menu.</li>
+	<li>The Install Sample Data for Northwind dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesInstallSampleDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the database server you want to install sample data on from the list in the Server drop-down.<br/>
+		<strong>Note: </strong>
+			<ol>
+			<li>Only the database servers you selected will be listed in the drop-down.</li>
+			<li>If you have existing databases on the selected server, the Existing Databases drop-down 
+				will be populated with the list of databases.
+				</li>
+			</ol>
+		</li>
+	<li>If you want to install the samples into an existing database, select the database from the 
+		Existing Databases drop-down. The selected name will be copied into the Target Database text box.</li>
+	<li>You can create a new database by typing a new name you want into the Target Database text box.<br/>
+		  Database names should be alpha numeric characters starting with an alphabetic character.</li>
+	<li>Click the button labeled Install Sample Data to install Northwind into the new or selected database.</li>
+	<li>You will be prompted for permission to install the sample data into the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesInstallSampleConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to install the sample data.</li>
+	<li>A dialog will display confirming that the sample data has been installed in the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesInstallSampleSuccess.jpg"><br/><br/>
+		</li>
+	<li>Click OK to return to the Install Sample Data for Northwind dialog.</li>
+	<li>You can install the Northwind sample data into multiple databases from the Install Sample Data 
+		for Northwind dialog.</li>
+	<li>When you are done installing Northwind data, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+
+<h3><a id="#BackUpDatabase">Backing Up a Test Database</a></h3>
+<p>
+Any of your test databases can be backed up to a file on your development computer.
+Backups are done with the native backup facility of the database server.
+The format of the file will depend on the database type you are backing up.<br/><br/>
+<strong>Note: </strong>
+<ul>
+<li>MariaDB databases will be backed up to a SQL script in text format.</li>
+<li>PostgreSQL databases will be backed up in compressed format, making them quite compact.</li>
+<li>SQL Server databases will be backed up in a BAK file format. SQL Server Express is used for test databases and does not support compression.</li>
+</ul>
+</p>
+<br/>
+<p><strong>Important: </strong>All data in the local file your select will be replaced during the backup process.
+</p>
+<br/>
+
+<p>To back up a test database:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select Back Up Database from the menu.</li>
+	<li>The Back Up Subscription Database dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesBackUpDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the database server with the database you want to back up from the list in the Server drop-down.<br/>
+		<strong>Note: </strong>
+			<ol>
+			<li>Only the database servers you selected will be listed in the drop-down.</li>
+			<li>The Database drop-down will be populated with the list of databases on that server.</li>
+			</ol>
+		</li><br/>
+	<li>Select the database to back up from the Database drop-down. 
+		The server name and database will be formatted into a suggested file name and set into the 
+			Local File text box.</li>
+	<li>Enter the name of the local target file that you want to write the backed up database contents to in the 
+		Local File text box.<br/><br/>
+		You can type the value, or click on the Browse button to navigate to the file location and select it.
+		</li><br/>
+	<li>Click the button labeled Back Up to back up the database.</li>
+	<li>You will be prompted for permission to back up the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesBackUpConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to create the backup file.<br/><br/>
+		<strong>Note: </strong>For most files, there will be a slight delay during which the backup is done. 
+		If the file is fairly large, you will see the transfer progress displayed on the main dialog.
+		</li><br/>
+
+	<li>A dialog will display confirming that the backup file has been created.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesBackUpSuccess.jpg"><br/><br/>
+		</li>
+	<li>Click OK to return to the Back Up Subscription Database dialog.</li>
+	<li>You can back up multiple databases from the Back Up Subscription Database dialog.</li>
+	<li>When you are done backing up databases, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+
+<h3><a id="DeleteDatabase">Deleting a Test Database</a></h3>
+<p>
+You can delete any database from your test database server from the Alpha Cloud Manage Test Databases dialog.
+</p>
+<br/>
+<p><strong>Important: </strong>Once a database is deleted, it cannot be recovered.  
+Be sure you back up any database you want to keep the data for.
+<p>
+<br/>
+
+<p>To delete a database:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select Delete Database from the menu.</li>
+	<li>The Delete Subscription Database dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesDeleteDatabaseDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the database server the database is on from the list in the Server drop-down.<br/>
+		Note: Only the database servers you selected will be listed in the drop-down.</li>
+	<li>Select the database you wish to delete from the list of databases in the Database drop-down.</li>
+	<li>Click the button labeled Delete Database to delete the selected database.</li>
+	<li>You will be prompted for permission to delete the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesDeleteDatabaseConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to delete the database.</li>
+	<li>A dialog will display confirming that the database has been deleted.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesDeleteDatabaseSuccess.jpg"><br/><br/>
+		</li>
+	<li>Click OK to return to the Delete Subscription Database dialog.</li>
+	<li>You can delete multiple databases from the Delete Subscription Databases dialog.</li>
+	<li>When you are done deleting databases, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+<h3><a id="#RestoreDatabase">Restoring To a Test Database</a></h3>
+<p>
+Any of your test databases can be restored from a file on your development computer.
+Backups must have been created using the native backup facility of the database server you are restoring data from.
+The format of the file will depend on the database type you are backing up and must be something the native restore command recognizes.<br/><br/>
+<strong>Note: </strong>
+<ul>
+<li><strong>MariaDB </strong>databases can be backed up to a SQL script in text format using MySQLDump or another tool.</li>
+<li><strong>PostgreSQL </strong>databases can be backed up in compressed format, making them quite compact, using the pg_dump utility or an interactive tool.</li>
+<li><strong>SQL Server </strong>databases should be backed up in a BAK file format. SQL Server Express is used for test databases and does not support compression, but the restore can read such a file. You can use the sqlcmd utility or the management user interface.<br/><br/>
+	<strong>Important: </strong>SQL Server data is stored in named logical files.  For your data to restore properly you need to back it up from a database that has a single data file and a log file.  
+Alpha Cloud will restore and rename the logical files to match the target database so that future backups and restores work properly.
+If you have additional logical files in your backup, they will not be remapped and your database may not behave properly initially or after a backup and restore.</li>
+</ul>
+</p>
+<br/>
+<p><strong>Important: </strong>All data on the target database will be deleted during the restore process.
+Existing data cannot be restored later.
+If you are restoring to an existing database, be sure you have backed up any data you wish to keep.
+</p>
+<br/>
+
+<p>To restore data to a new or existing database:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select Restore Database from the menu.</li>
+	<li>The Restore Database To Subscription Server dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesRestoreDialog.jpg"><br/><br/>
+		</li>
+	<li>Select the server you want to restore a database to from the list in the Server drop-down.<br/><br/>
+		<strong>Note: </strong>
+			<ol>
+			<li>Only the database servers you selected will be listed in the drop-down.</li>
+			<li>If you have existing databases on the selected server, the Existing Databases drop-down 
+				will be populated with the list of databases.
+				</li>
+			</ol><br/>
+		</li>
+	<li>If you want to restore into an existing database, select the database from the 
+		Existing Databases drop-down. The selected name will be copied into the Target Database text box.</li>
+	<li>You can create a new database by typing a new name into the Target Database text box.<br/><br/>
+		  <strong>Note: </strong>Database names should be alpha numeric characters starting 
+			with an alphabetic character.</li><br/>
+	<li><strong>For SQL Server Only: </strong>If your are restoring from a database with a different name, be sure
+			to provide the name of that database in the Source Database text box.  
+		This information is used to remap the logical files for the data and the log during the 
+			restore process.<br/><br/>
+		As discussed above, backups with additional or custom logical files require additional logic to remap.  
+		To restore these databases as test databases you must use the SQL Server commands or tools to convert
+			the logical files to the default data and log only.  See the SQL Server documentation for 
+			more information.
+		</li><br/>
+	<li>Enter the name of the source file that contains the backup file that you want to restore from into 
+		the Local File text box.<br/><br/>
+		You can type the value, or click on the Browse button to navigate to the file and select it.
+		</li><br/>
+
+	<li>Click the button labeled Restore to restore your data into the new or selected database.</li>
+	<li>You will be prompted for permission to restore the data into the database.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesRestoreConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to restore the database.<br/><br/>
+		<strong>Note: </strong>For most files, there will be a slight delay during which the restore is done. 
+		If the file is fairly large, you will see the transfer progress displayed on the main dialog.</li><br/>
+	<li>A dialog will display confirming that the restore has completed successfully.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesRestoreSuccess.jpg"><br/><br/>
+		</li>
+	<li>Click OK to return to the Restore Database To Subscription Server dialog.</li>
+	<li>You can restore multiple databases from the Restore Database to Subscription Server dialog.</li>
+	<li>When you are done restoring databases, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+<br/>
+
+
+<h3><a id="DeleteServer">Deleting a Test Database Server</a></h3>
+<p>
+Using the Alpha Cloud dialogs, you can delete a database server at any time.
+</p>
+<p><strong>Important: </strong>Once a server is deleted, all databases on it are permanently removed and cannot be restored!</p>
+<br/>
+
+<p>To delete one or more test database servers:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select "Delete Server(s)" from the menu.</li>
+	<li>You will be prompted for permission to delete the server or servers.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesDeleteServerConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to delete the server(s).</li>
+	<li>A dialog will display confirming that the servers have been deleted.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesDeleteServerSuccess.jpg"><br/><br/>
+		</li>
+</ol>
+</p>
+<br/>
+
+<h3><a id="ConnectionString">Getting Database Connection Strings</a></h3>
+<p>
+Using the Alpha Cloud dialogs, you can view connection information and create named database connection strings.
+</p>
+<br/>
+
+<p>To manage database connection strings for test database servers:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select "Get Connection String" from the menu.</li>
+	<li>The Subscription Server Database Connection Strings dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesConnectionStringDialog.jpg"><br/><br/>
+		</li>
+	<li>The base connection string will be displayed for each server you selected.<br/><br/>
+		The connection string will be quite long because it contains all of the information 
+		required to tunnel through to the database using SSH2.<br/><br/>
+
+		You can copy the connection string to the clipboard and paste it into a script by clicking the 
+		Copy to Clipboard button to the right of a connection string.<br/><br/>
+
+		A more useful thing to do is to create a named connection string.<br/><br/>
+		To create a named connection, click on the 
+		Save as Named Connection button to the right of the connection string.<br/><br/>
+		<ol>
+		<li>The Save Subscription Server Connection String as Named Connection dialog will be displayed.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesConnectionStringNamedDialog.jpg"><br/><br/>
+			</li>
+		<li>The Server Database drop down is initially set to "--none--".  
+			If you create a named connection with this value set, no database will be selected.
+			This can be useful for connections to the server itself, but in general you will
+			want to select a database from the drop-down.<br/><br/>
+			If you select a database name, a suggested connection name will be formatted and set into the
+				Connection Name text box.</li><br/>
+		<li>You can accept the formatted name or enter a name for your connection into the Connection Name 
+				text box.<br/><br/>
+			The drop-down to the right titled "Existing Named Connections" has a list of named connections found
+			in your current web project.  
+			If you select an existing name, it will be copied into the Connection Name text box.</li><br/>
+		<li>Click the Save button to save your named connection.</li>
+		<li>A dialog will be displayed confirming that your named connection has been added to your 
+			web project.<br/><br/>
+			    <img border="0" src="ScreenShots/TestDatabasesConnectionStringNamedSuccess.jpg"><br/><br/>
+			</li><br/><br/>
+		<li>You can add named connections for multiple databases without leaving the 
+			Save Subscription Server Connection String as Named Connection dialog.</li>
+		<li>When you are done adding named connections, click the Close button to return to the 
+			Subscription Server Database Connection Strings dialog.
+		</ol>
+	<li>When you are done working with connection strings, click Close to return to the Manage Subscription 
+		Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+
+<h3><a id="SSHTunnels">Accessing Your Test Database from Third Party Tools</a></h3>
+<p>
+All connections to test databases are made using an SSH2 tunnel.  A tunnel provides a network path to a resource inside of another computing environment without exposing the resource to the internet directly.  As discussed above, Alpha Cloud Test Databases use SSH2 tunnels to make management of clustered servers simpler.  Although tunneling may seem intimidating at first, Alpha Anywhere manages the complexity for you where possible.
+</p>
+<p>
+Once you have created connection strings to access your test database, Alpha Anywhere and your web project 
+can connect to the database using those connection strings and will automatically open a tunnel as needed.
+Because opening a tunnel is an expensive operation time-wise, the tunnel is held open as long as the development environment or a application server is running.
+</p>
+</p>
+<p>You can make your database available to third party tools on the developer machine by opening an SSH2 tunnel from within Alpha Anywhere and providing the appropriate credentials to that tool.  A tunnel makes your database appear to be local to the development machine.  You will connect to "localhost" using a port that Alpha Anywhere assigns.  This section will discuss how to open a tunnel for a database and how to provide a tool access to your database.
+</p>
+<p><strong>Important: </strong>Alpha Anywhere must be running to keep a tunnel open for other programs. Once you close Alpha Anywhere, the tunnel is closed automatically.  To minimize the need to keep updating the connection configuration in your other tool, Alpha Anywhere remembers the most recent port used and attempts to open it each time you open a tunnel to your database.
+</p>
+<br/>
+
+<h4><a id="OpenSSHTunnel">Opening an SSH2 Tunnel To Your Database</a></h4>
+<p>
+Before a third party tool can access your database, you must open a tunnel.  
+If you connect to your database using an AlphaDAO connection string, a tunnel is automatically opened and will stay             
+open until Alpha Anyhere is closed.
+</p>
+<p>
+You can explicitly open a tunnel using the Alpha Cloud dialogs to manage your test databases.
+</p>
+<br/><br/>
+<p>To open an SSH tunnel to your database server:<br/><br/>
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select "Open SSH Tunnel" from the menu.</li>
+	<li>A tunnel will be opened for each server you have selected if the tunnel is not already open.<br/><br/>
+		Once the tunnels have been opened you will see a dialog confirming that the open was successful.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesSSHOpenSuccess.jpg"><br/><br/>
+		As noted before, opening a tunnel is an expensive operation.  
+		This may take several seconds for each tunnel you open.<br/><br/>
+		If you get an error indicating that there was a timeout, wait a few seconds and try again.
+		This can happen if you have just created your server as it can take a few seconds to spin up an 				instance.  SQL Server tends to take longer to start than some others.</br></br>
+		If you continue to get a timeout error please contact support at alphacloudbugs@alphasoftware.com
+		so we can work with you to diagnose and correct any issue with your server.
+		</li><br/><br/>
+	<li>Once a tunnel is open, you will see the Tunnel Status column of the server change to Active and 
+		the Local Port column will contain the port in use for the tunnel.<br/><br/>
+		In the section <a href="#SSHTunnelDetails">Getting SSH2 Tunnel Information for Third Party Tools</a>
+		we will discuss how you can collect and provide the tunnel details to 
+		a third party tool for accessing your database.
+		</li>
+</ol>
+</p> 
+<br/>
+<br/>
+	
+<h4><a id="CloseSSHTunnel">Closing an SSH2 Tunnel To Your Database</a></h4>
+<p>
+If you exit Alpha Anywhere, all SSH2 tunnels managed by Alpha Anywhere will be closed.  
+You can also close tunnels from the Alpha Cloud dialogs.
+</p>
+<br/>
+<p>To manually close an SSH tunnel to your database server:<br/>
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select "Close SSH Tunnel" from the menu.</li>
+	<li>You will be prompted for permission to close any open tunnel on the selected servers.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesSSHCloseConfirmationDialog.jpg"><br/><br/>
+		</li>
+	<li>Click Yes to close any open tunnels to the selected servers.<br/><br/>
+	<li>Once the tunnels have been closed you will see a dialog confirming that the close was successful.<br/><br/>
+		    <img border="0" src="ScreenShots/TestDatabasesSSHCloseSuccess.jpg"><br/><br/>
+	<li>Once a tunnel is closed, you will see the Tunnel Status column of the server change to Inactive and 
+		the Local Port column will be cleared.
+		</li>
+</ol>
+<br/>
+<br/>
+
+<h4><a id="SSHTunnelDetails">Getting SSH2 Tunnel Information for Third Party Tools</a></h4>
+<p>
+Using the Alpha Cloud dialogs, you can view and copy details that will help you set up a connection
+to your test database from tools such as MySQL Workbench, PGAdmin4, and SQL Server Management Studio.
+</p>
+<br/>
+<p>
+From the perspective of these tools, the database is local to the current machine.
+Instead of the ports MariaDB, PostgreSQL and SQL server typically use (3306, 5432 and 1433), 
+you will connect to an open tunnel on created on the local machine using a local port defined by Alpha Anywhere.
+The tunnel will take care of connecting to the right port on the database server within the test database cluster.
+</p>
+<br/>
+<p>
+Third party development tools will always connect to your database using "localhost" and the port Alpha Anywhere
+assigns to the tunnel.
+<br/>
+
+<p>To retrieve information to be used in setting up a connection to your database from third party tools:<br/>
+
+<ol>
+	<li>Open the Managing Test Databases dialog as shown in 
+		<a href="#ManagingTestDatabases">Managing Test Servers and Databases</a>
+		</li>
+	<li>Select one or more database servers by clicking the checkbox to the left of each server, or select all of them
+		by clicking on the checkbox above the left-most column.
+		</li><br/>
+	<li>Open the menu by clicking on the "Actions..." button to the right.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesMainDialogMenu.jpg"><br/><br/>
+		</li>
+	<li>Select "SSH Tunnel Details" from the menu.</li>
+	<li>The Get Subscription Database Server SSH Tunnel Access Information dialog will be displayed.<br/><br/>
+	    <img border="0" src="ScreenShots/TestDatabasesSSHDetailsDialog.jpg"><br/><br/>
+		</li>
+	<li>For each server, the host name (always localhost) and port to use in connecting to the database 
+		is provided.<br/><br/>
+		The user name and password provided are for the administrative user.
+		You will most likely want to create additional users and grant them limited permissions for testing.  		You can substitute one of those users and passwords as well.<br/><br/>
+		</li><br/><br/>
+	<li>You can copy the access details to the clipboard to save the information elsewhere.<br/><br/>
+		To copy access information to the clipboard, click
+			Copy to Clipboard button to the right of a connection string.<br/><br/>
+		The access information is formatted as you see it on the screen with an additional entry 
+			for the name of the server.</li><br/><br/>
+	<li>When you are done working with access information for your third party tools, 
+		click Close to return to the Manage Subscription Database Servers dialog.</li>
+</ol>
+</p>
+<br/>
+
+
+</body>
+
+</html>
