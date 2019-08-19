@@ -66,6 +66,7 @@ function localExpand(e, expand) {
 function loaded() {
     getGitTimestamp();
     betaSoftware();
+    desktopPageTag();
     showAnnouncement();
 }
 
@@ -188,9 +189,25 @@ function betaSoftware() {
         if (content) {
             var classes = content.getAttribute("class");
             if (classes !== null) {
-                classes = classes = " betaSoftware";
+                classes = classes + " betaSoftware";
             } else {
                 classes = "betaSoftware";
+            }
+            content.setAttribute("class", classes);
+        }
+    }
+}
+
+function desktopPageTag() {
+    var url = window.location.href;
+    if (decodeURI(url).search(/Guides\/Desktop/i) !== -1) {
+        var content = document.getElementById("doc");
+        if (content) {
+            var classes = content.getAttribute("class");
+            if (classes !== null) {
+                classes = classes + " desktop";
+            } else {
+                classes = "desktop";
             }
             content.setAttribute("class", classes);
         }
