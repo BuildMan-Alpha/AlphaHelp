@@ -179,7 +179,80 @@
                 </item>
                 <item>
                     <name>Marker icon</name>
-                    <description>If you leave this blank a default icon will be used for all markers. You can customize the icon used for each marker on the map. For example, you can dynamically set the icon based on an expression, an Xbasic function, or an 'icon sequence'.</description>
+                    <description>
+                        <p>If you leave this blank a default icon will be used for all markers. You can customize the icon used for each marker on the map. For example, you can dynamically set the icon based on an expression or an 'icon sequence'.</p>
+                        <p>You can also create a function to set the icon. The function will be passed the data in the current row in the data set and the row number. You can reference this data in your code to determine what image to use. The function must the name of the marker image to use.</p>
+                        <p>The function will either be an Xbasic or JavaScript function based on the *[ui:Data type]* setting.</p>
+                        <p>If *[ui:Data type]* is set to *[ServerSide]*, the function will be an Xbasic function. The marker data and row number are passed in the e argument to the function:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Variable</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tbl]*</name>
+                                    <description>A pointer to the Data Series value for the current row in the Data Series. To get the value of a specific field in the data, use the *[xb:data()]* method. See example below.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.rowNumber]*</name>
+                                    <description>The current row in the Data Series.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>For example, the function below computes the image to return based on the value of "quantity":</p>
+                        <p>
+                            <example code="xb"><![CDATA[function getMarkerIcon as c (e as p)
+    dim imageName as c
+
+    if (val(e.tbl.data("quantity")) < 100) then
+        imageName = "image1.jpg"
+    else if (val(e.tbl.data("quantity")) >= 100 .and. val(e.tbl.data("quantity"))) < 200 then
+        imageName = "image2.jpg"
+    else
+        imageName = "image3.jpg"
+    end if
+
+    getMarkerIcon = imageName
+
+end function
+]]></example>
+                        </p>
+                        <p>If *[ui:Data type]* is set to *[ClientSide]*, the function will be a JavaScript function. The marker data and row number are passed as arguments to the function:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Variable</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[js:markerData]*</name>
+                                    <description>An object that contains the data for the current row.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:rowNumber]*</name>
+                                    <description>The current row number.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>The JavaScript function must return a value that will contain the name of the image to use for the map marker for the current row of data object.</p>
+                        <p>For example:</p>
+                        <p>
+                            <example code="js"><![CDATA[function getMarkerIcon(markerData,rowNumber) {
+    var imageName = ""
+
+    if (markerData.quantity < 100) {
+        imageName = "image1.jpg"
+    } else if (markerData.quantity >= 100 && markerData.quantity < 200) {
+        imageName = "image2.jpg"
+    } else {
+        imageName = "image3.jpg"
+    }
+
+    return imageName;
+}]]></example>
+                        </p>
+                    </description>
                 </item>
                 <item>
                     <name>Marker title</name>
@@ -200,6 +273,7 @@
                     <name>Marker detail</name>
                     <description>
                         <p>Specify the HTML for the marker detail. If you want to include data from the Data Series in the detail, use a template. Click the [...] smart field button to define the template.</p>
+                        <p>The marker detail is only shown if *[ui:Has marker detail]* is set to *[&lt;true&gt;]*</p>
                         <p>If the *[ui:Data Type]* is set to *[ServerSideData]*, the template can contain static text and Xbasic expressions, which are enclosed in curly braces. Xbasic expressions can include Xbasic functions.</p>
                         <p>
                             <example caption="A simple template with no expressions."><![CDATA[GroupName]]></example>
