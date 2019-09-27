@@ -2,54 +2,101 @@
     <shortlink>ux component getControl Method</shortlink>
     <topic parent="{dialog.object}" parentType="object" elementName="getControl Method">{dialog.object}.getControl Method</topic>
     <description>Get a pointer to a control to call methods of an object, or set properties of an object. </description>
-    <prototype>{dialog.Object}.getControl(variableName);</prototype>
+    <prototype>{dialog.object}.getControl(variableName);</prototype>
     <arguments>
         <argument>
             <name>variableName</name>
-            <description>The name of the control in the UX Component</description>  
+            <type>string</type>
+            <description>The name of the control in the UX Component</description>
         </argument>
-    </arguments> 
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>object</type>
+                <type>boolean</type>
+            </types>
+            <description>
+                <p>Returns the JavaScript object for the requested control. If there is no JavaScript object for the requested control, *[js:getControl()]* returns *[js:false]*.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>Get a pointer to a control, such as a slider, date picker, List, ControlBars map, etc. so that you can call methods of the object, or set properties of the object.</p>
+        <p>Only controls that are implemented as JavaScript objects are returned.</p>
+        <p>For example, a slider control is implemented as a JavaScript object with methods that can be used manipulate the control at runtime, such as [setting the slider's minimum and maximum values].</p>
+        <p>A standard HTML Textbox control on the other hand is not implemented as a JavaScript object -- it is just a standard HTML &lt;input&gt; control. If you call the .getControl() method on a Textbox control, the method will return false. However, if you set certain properties on the Textbox control (such as watermark, client-side formatting, mask, etc) then a special 'helper' object is created for the Textbox control, and the getControl() method will return a pointer to this helper Textbox object.</p>
+    </discussion>
     <sections>
         <section>
-            <title>Discussion</title>
-            <description>Get a pointer to a control, such as a slider, date picker, map, etc. so that you can call methods of the object, or set properties of the object. </description> 
-            <note>Only controls that are implemented as Javascript objects are returned.</note>
-        </section>
-        <section>
-            <description>For example, a slider control is implemented as a Javascript object. A standard HTML text box control, on the other hand is not implemented as a Javascript object -- it is just a standard HTML <![CDATA[<input>]]> control. If you call the .getControl() method on a textbox control, the method will return false. However, if you set certain properties on the textbox control (such as watermark, client-side formatting, mask etc) then a special 'helper' object is created for the textbox control and then the getControl() method will return a pointer to this helper object.</description>
+            <important>
+                <p>To get a pointer to a Panel or Window, you must use the [{dialog.object}.getPanelObject()] or [{dialog.object}.getWindow()] respectively. Special functions also exist for getting pointers to child and parent components. See the *[See Also]* section below.</p>
+            </important>
         </section>
         <section>
             <description>
-                <p>The {dialog.object}.getControl() method can used to get a pointer to a button object. Once you have a pointer to the object, you can call the .setDisabled() method.</p>
+                <p>The {dialog.object}.getControl() method returns a pointer to the JavaScript object for the control. Once you have a pointer to the object, you can call methods on the object.</p>
                 <p>For example:</p>
             </description>
-            <example><![CDATA[var bObj = {dialog.object}.getControl('BUTTON_1');
-//set the button disabled
-bObj.setDisabled(true);
-//now enable the button
-bObj.setDiabled(false);
-]]></example>
-            <note>As a result of this change, if you have a client-side enable expression for a button in a Repeating Section, you will need to edit the enable expression and resave it in order to re-generate the Javascript code.</note>
+            <example code="js"><![CDATA[//Get BUTTON_1's JavaScript object
+var bObj = {dialog.object}.getControl('BUTTON_1');
+
+if (bObj) {
+    //Disable the button:
+    bObj.setDisabled(true);
+
+    //Enable the button:
+    bObj.setDisabled(false);
+}]]></example>
+        </section>
+        <section>
+            <important>
+                <p>If the JavaScript object doesn't exist for the requested control, getControl() will return *[js:false]*. You should *[always]* check the returned value of the getControl() method before using the object. This can be done by wrapping your code in an if block as shown in the example.</p>
+            </important>
         </section>
         <section>
             <title>Calling setDisabled on a Button in a Repeating Section</title>
             <description>
-                <p>If you have a button in a Repeating Section, the .getControl() method will point to ALL of button instances (i.e. the button in row1, row2, etc.). If you then call the .setDisabled() method, you will be set the state on the button in each row.</p>
-                <p>If you want to call the .setDisabled() method for a specific button instance (say the button in row 3), then you can pass in an optional parameter to the .setDisabled() method. For example:</p>
+                <p>If you have a button in a Repeating Section, the .getControl() method will point to all instances of the button (i.e. the button in row1, row2, etc.). If you call the button's .setDisabled() method, you will change the disabled state on the button in every row.</p>
+                <p>
+                    <example code="js"><![CDATA[//disables all 'BUTTON_2' buttons in the Repeating Section:
+var bObj = {dialog.object}.getControl('BUTTON_2');
+
+if (bObj) {
+    bObj.setDisabled(true);
+}]]></example>
+                </p>
+                <p>If you want to call the .setDisabled() method for a specific button instance (e.g. the button in row 3), you can pass a pointer to the HTML element of the button instance as the second parameter of the button's .setDisabled() method. For example:</p>
             </description>
-            <example><![CDATA[//get the instance number for row 3:
+            <example code="js"><![CDATA[//Get the instance number for row 3:
 var row = {dialog.object}._repeatingSectionLogicalToPhysicalRow('SECTION_1',3);
 
-//get a pointer the button element in row 3:
+//Get a pointer the button element in row 3:
 var eles = ${dialog.object}.getPointer('BUTTON_2_A5INSTANCE'+row);
 
-//pass in eles as an optional argument to the .setDisabled() method
-{dialog.object}.getControl('BUTTON_2').setDisabled(true,eles);
-]]></example>
+var bObj = {dialog.object}.getControl('BUTTON_2');
+
+if (eles && bObj) {
+    //pass in eles as an optional argument to the .setDisabled() method
+    bObj.setDisabled(true,eles);
+}]]></example>
         </section>
     </sections>
+    <links>
+        <link link="setting%20the%20default%20value%20for%20a%20two%20value%20slider%20control">setting the slider's minimum and maximum values</link>
+        <link link="ux%20component%20getpanelobject%20method">{dialog.object}.getPanelObject()</link>
+        <link link="ux%20component%20getwindow%20method">{dialog.object}.getWindow()</link>
+    </links>
     <see>
-        <ref link="ux component methods">{dialog.object}</ref>
+        <ref link="ux%20component%20getpointer%20method">{dialog.object}.getPointer()</ref>
+        <ref link="ux%20component%20getpanelobject%20method">{dialog.object}.getPanelObject()</ref>
+        <ref link="ux%20component%20getwindow%20method">{dialog.object}.getWindow()</ref>
+        <ref link="ux%20component%20getchildobject%20method">{dialog.object}.getChildObject()</ref>
+        <ref link="ux%20component%20getparentobject%20method">{dialog.object}.getParentObject()</ref>
+        <ref link="ux%20component%20gettopparentobject%20method">{dialog.object}.getTopParentObject()</ref>
+        <ref link="api%20client%20api%20a5%20button%20class">Button Control Methods</ref>
+        <ref link="ux%20component%20_repeatingsectionlogicaltophysicalrow%20method">{dialog.object}._repeatingSectionLogicalToPhysicalRow()</ref>
     </see>
     <terms>ux component,control,pointer,set,set properties,javascript functions</terms>
 </page> 
