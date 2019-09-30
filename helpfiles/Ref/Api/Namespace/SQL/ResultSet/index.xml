@@ -2,26 +2,19 @@
     <shortlink>api sql namespace result set object</shortlink>
     <topic>SQL::ResultSet Object</topic>
     <description>SQL::ResultSet Object properties and methods.</description>
+    <discussion>
+        <p>When a SQL query returns one or more rows of data, you can use the ResultSet object to get the description of the result set and to navigate within the rows of the results to retrieve the data.</p>
+    </discussion>
     <properties>
-        <property readonly="true">
-            <name>RowCount</name>
-            <type>N</type>
-            <description>Default = 0. The number of rows in the result set. -1 If not known. Do not rely on this value, as not all drivers support it. Walk the ResultSet with .NextRow() instead.</description>
+        <property>
+            <name>ActiveLinkDBFRowSyntax</name>
+            <type>C</type>
+            <description>ActiveLinkDBFRowSyntax property</description>
         </property>
         <property readonly="true">
-            <name>CurrentRowIndex</name>
-            <type>N</type>
-            <description>Default = 0. The number of the current row.</description>
-        </property>
-        <property readonly="true">
-            <name>CurrentRow</name>
-            <type>SQL::Row</type>
-            <description>Returns the current row as an object.</description>
-        </property>
-        <property readonly="true">
-            <name>ColumnInfo</name>
-            <type>SQL::DataTypeInfo[]</type>
-            <description>An array of SQL::DataTypeInfo column descriptions. </description>
+            <name>CallResult</name>
+            <type>SQL::CallResult</type>
+            <description>Detailed status of the result of the call. </description>
         </property>
         <property readonly="true">
             <name>ColumnCount</name>
@@ -29,9 +22,51 @@
             <description>Default = 0. The number of columns in the result set.</description>
         </property>
         <property readonly="true">
-            <name>CallResult</name>
-            <type>SQL::CallResult</type>
-            <description>Detailed status of the result of the call. </description>
+            <name>ColumnInfo</name>
+            <type>SQL::DataTypeInfo[]</type>
+            <description>An array of SQL::DataTypeInfo column descriptions. </description>
+        </property>
+        <property readonly="true">
+            <name>CurrentRow</name>
+            <type>SQL::Row</type>
+            <description>Returns the current row as an object.</description>
+        </property>
+        <property readonly="true">
+            <name>CurrentRowIndex</name>
+            <type>N</type>
+            <description>Default = 0. The number of the current row.</description>
+        </property>
+        <property readonly="true">
+            <name>DBFRowSyntax</name>
+            <type>C</type>
+            <description>Default = "". The syntax required to create an Alpha Anywhere .DBF table with the same columns.</description>
+        </property>
+        <property readonly="true">
+            <name>RowCount</name>
+            <type>N</type>
+            <description>Default = 0. The number of rows in the result set. -1 If not known. Do not rely on this value, as not all drivers support it. Walk the ResultSet with .NextRow() instead.</description>
+        </property>
+        <property>
+            <name>SizeToFit</name>
+            <type>L</type>
+            <description>
+                <p>When set to true, DBFRowSyntax will return lengths adjusted based on the actual data.</p>
+                <p>Notes:</p>
+                <p>1. Call UpdateStatistics before getting the DBFRowSyntax.</p>
+                <p>2. If the longest column is zero length, the default length is 15.</p>
+                <p>Size to fit will limit the size of inserted or updated fields on imported or linked tables to the maximum size of the previous values.</p>
+            </description>
+        </property>
+        <property>
+            <name>StreamingMode</name>
+            <type>L</type>
+            <description>
+                <p>When set to true, fetches will NOT populate internal data values.</p>
+                <p>Notes:</p>
+                <p>1. This is an advanced feature and should be used only in combination with streaming functions such as ToString and ToOpenTable to turn off autofetching of values.</p>
+                <p>2. Many of the streaming functions will reset the value of this property to false after completion.  Set this property before calling any function that requires it to be set to .t.</p>
+                <p>See "Using the StreamingMode property" for more information.</p>
+            </description>
         </property>
         <property readonly="true">
             <name>TableInfo</name>
@@ -43,21 +78,6 @@
             <type>N</type>
             <description>The number of elements in .TableInfo.</description>
         </property>
-        <property readonly="true">
-            <name>DBFRowSyntax</name>
-            <type>C</type>
-            <description>Default = "". The syntax required to create an Alpha Anywhere .DBF table with the same columns.</description>
-        </property>
-        <property>
-            <name>SizeToFit</name>
-            <type>L</type>
-            <description>SizeToFit property</description>
-        </property>
-        <property>
-            <name>ActiveLinkDBFRowSyntax</name>
-            <type>C</type>
-            <description>ActiveLinkDBFRowSyntax property</description>
-        </property>
         <property>
             <name>QuerySource</name>
             <type>C</type>
@@ -68,14 +88,69 @@
             <type>C</type>
             <description>QueryArguments property</description>
         </property>
-        <property>
-            <name>StreamingMode</name>
-            <type>L</type>
-            <description>StreamingMode property</description>
-        </property>
     </properties>
     <!--list:*index.xml-->
     <!--list:* Method-->
+    <sections>
+        <section>
+            <title>Using the StreamingMode property</title>
+            <description>
+                <p>In this example, we are using the NextRow() function to test for the existence of data.  Normally, we would not want to do this as it would read the data values of the first row and not include them in the output string.  Setting StreamingMode to .t. turns off the data fetch so the row data is still available.</p>
+                <p>The script below shows what happens when you reposition the result set prior to calling a streaming mode function (such as ToString(), ToOpenTable()). Note that when in non-streaming mode, the data for the row positioned to is loaded into memory. This can cause the first row to be omitted when a streaming function is called. To avoid this, if you call positioning functions such as NextRow() or GoToRow(), you will want to set the StreamingMode property to true.</p>
+                <p>If you actually retrieve data using the Data() or DataIsNull() function, you must re-execute the query before calling a streaming function.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim cn as sql::Connection
+?cn.open("::Name::AADemo-Northwind")
+= .T.
+
+?cn.execute("select * from categories")
+= .T.
+
+'nextrow() moves you to row 1 AND fetches the data into local buffers so row 1 is excluded
+?cn.resultset.nextrow()
+= .T.
+
+?cn.resultset.tostring()
+=
+2	Condiments	Sweet and savory sauces, relishes, spreads, and seasonings	<Binary Data>
+3	Confections	Desserts, candies, and sweet breads	<Binary Data>
+4	Dairy Products	Cheeses	<Binary Data>
+5	Grains/Cereals	Breads, crackers, pasta, and cereal	<Binary Data>
+6	Meat/Poultry	Prepared meats	<Binary Data>
+7	Produce	Dried fruit and bean curd	<Binary Data>
+8	Seafood	Seaweed and fish	<Binary Data>
+
+?cn.execute("select * from categories")
+= .T.
+
+'Setting StreamingMode to .t. causes the NextRow() call to skip reading the data.
+cn.ResultSet.StreamingMode = .t.
+?cn.resultset.nextrow()
+= .T.
+
+
+?cn.resultset.tostring()
+= 1	Beverages	Soft drinks, coffees, teas, beers, and ales	<Binary Data>
+2	Condiments	Sweet and savory sauces, relishes, spreads, and seasonings	<Binary Data>
+3	Confections	Desserts, candies, and sweet breads	<Binary Data>
+4	Dairy Products	Cheeses	<Binary Data>
+5	Grains/Cereals	Breads, crackers, pasta, and cereal	<Binary Data>
+6	Meat/Poultry	Prepared meats	<Binary Data>
+7	Produce	Dried fruit and bean curd	<Binary Data>
+8	Seafood	Seaweed and fish	<Binary Data>
+
+?cn.execute("select * from categories where true = false")
+= .T.
+
+?cn.resultset.nextrow()
+= .F.
+
+?cn.resultset.tostring()
+= ""]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
     <see>
         <ref link="SQL Namepsace">SQL</ref>
         <ref link="rsToJSON Function">rsToJSON Function</ref>
