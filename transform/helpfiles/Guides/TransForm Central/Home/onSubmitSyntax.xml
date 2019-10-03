@@ -1,0 +1,330 @@
+<page build="">
+    <shortlink></shortlink>
+    <topic>JSON Syntax for OnSubmit</topic>
+    <description>The onSubmit event for Alpha TransForm can be used to trigger a variety of actions. The actions are defined using JSON. This article documents the JSON syntax for onSubmit actions.</description>
+    <discussion>
+        <p>Actions for the onSubmit event are defined using the JSON document format.</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>
+                <p>You must escape double quotes (") in the onSubmit definition. This is done by including a leading backslash: *[js:\"]*.</p>
+            </note>
+        </section>
+        <section>
+            <title>Event Types</title>
+            <description>
+                <p>The following actions are available:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Action</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Send Email</name>
+                            <description>Send an email containing the submitted form data.</description>
+                        </item>
+                        <item>
+                            <name>Report</name>
+                            <description>Generate a report for the submitted form.</description>
+                        </item>
+                        <item>
+                            <name>Call webhook</name>
+                            <description>Submit the form data to another application or web service.</description>
+                        </item>
+                        <item>
+                            <name>Send to SQL database</name>
+                            <description>Save the form data to a SQL database.</description>
+                        </item>
+                        <item>
+                            <name>Merge data into a PDF form</name>
+                            <description>Merge the form data into a fillable PDF.</description>
+                        </item>
+                        <item>
+                            <name>Dispatch/Route a form</name>
+                            <description>Create a new form and assign it to the user who submitted the form, or assign the submitted form to another user.</description>
+                        </item>
+                    </list>
+                </p>
+                <p></p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Send an Email</title>
+                    <description>
+                        <p>The Send an Email action sends an email containing the submitted form data. The form data can be sent as either JSON, HTML, or an Excel file. If sent as JSON or HTML, the form data is included in the body of the email message.</p>
+                        <p>
+                            <example code="js"><![CDATA[[
+{
+    "action": "SendEmail",
+    "sendto": "hq@example.com",
+    "subject": "TransForm Data",
+    "sendFormat": "JSON",
+}]]]></example>
+                        </p>
+                        <p>If no conditional filter is defined for the action, the Send an Email action will send an email for every form instance submitted to TransForm Central. The *[tpl:formIds]* property defines which forms types to email.</p>
+                        <p>
+                            <example code="js"><![CDATA[[
+{
+    "action": "SendEmail",
+    "sendto": "hq@example.com",
+    "subject": "TransForm Data",
+    "sendFormat": "JSON",
+    "formIds": "Form2,equipment_inspection,Form2-1,InspectEquipment"
+}]]]></example>
+                        </p>
+                        <p>You can also define a *[tpl:condition]* condition expression to filter the forms that are emailed. For example:</p>
+                        <p>
+                            <example code="js"><![CDATA[]]></example>
+                        </p>
+                        <p></p>
+                    </description>
+                    <cases>
+                        <case>
+                            <title nested="3">Send an Email Properties</title>
+                            <list>
+                                <item>
+                                    <name>sendto</name>
+                                    <description>The email address to send the email. Specify mulitple email addresses as a comma-delimited list. E.g. "julie@example.com,joe@example.com,smith@example.com"</description>
+                                </item>
+                                <item>
+                                    <name>subject</name>
+                                    <description>The email subject.</description>
+                                </item>
+                                <item>
+                                    <name>sendFormat</name>
+                                    <description>The format to send the form data. Can be one of the following:</description>
+                                    <list>
+                                        <item>
+                                            <name-title>sendFormat</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>JSON</name>
+                                            <description>Form data is embedded in the email body in JSON format.</description>
+                                        </item>
+                                        <item>
+                                            <name>HTML</name>
+                                            <description>Form data is embedded in the email body in HTML format.</description>
+                                        </item>
+                                        <item>
+                                            <name>EXCEL</name>
+                                            <description>Form data is attached to the email as an Excel file.</description>
+                                        </item>
+                                    </list>
+                                </item>
+                                <item>
+                                    <name>formIds</name>
+                                    <description>An optional comma-delimited list of form types. If not specified or set to "*", an email will be sent for every form submitted. Otherwise, only forms that are submitted that are of one of the types listed will be emailed.</description>
+                                </item>
+                                <item>
+                                    <name>condition</name>
+                                    <description>An optional condition expression that controls whether or not the email action should be executed. If the condition evaluates to true, the form data will be emailed. Otherwise, the form data will not be emailed. See [Condition] below for more information.</description>
+                                </item>
+                            </list>
+                        </case>
+                        <case>
+                            <title nested="3">Condition</title>
+                            <description>
+                                <p>The JSON definition for a Send an Email event can include an optional *[tpl:condition]* property. The *[tpl:condition]* property is a logical expression that controls whether or not the email should be sent.</p>
+                                <p>The *[tpl:condition]* expression can reference both *[form]* data fields and *[meta]* data fields.</p>
+                                <p>The expression must prefix form data fields with "*[tpl:formdata]*" and meta data fields with "*[tpl:metadata]*". Example syntax is shown below:</p>
+                                <p>
+                                    <example caption="Test to see if the formdata &quot;passed&quot; field is set to &quot;N&quot;"><![CDATA[formdata.passed = "N"]]></example>
+                                </p>
+                                <p>
+                                    <example caption="Test to see if the metadata &quot;status&quot; field is set to &quot;closed&quot; and the formdata passed &quot;passed&quot; field is set to &quot;N&quot;"><![CDATA[formdata.passed = "N" .and. metadata.status = "closed"]]></example>
+                                </p>
+                                <p>
+                                    <example caption="Checks to see if the number of items in the &quot;photos&quot; Data Group is greater than 0 or metadata &quot;status&quot; field is set to &quot;closed&quot; and the formdata passed &quot;passed&quot; field is set to &quot;N&quot;"><![CDATA[(formdata.passed = "N" .and. metadata.status = "closed") .or. (formdata.photos.size() > 0)]]></example>
+                                </p>
+                                <p>The following operators are allowed in the "condition" expression:</p>
+                                <p>
+                                    <example><![CDATA[=, <>, >, >=, <=]]></example>
+                                </p>
+                                <p>Parenthesis can be used in the expression.</p>
+                                <p>The logical operators are:</p>
+                                <p>
+                                    <example><![CDATA[.and., .or., .not.]]></example>
+                                </p>
+                                <p>The following functions are allowed in the Send an Email *[tpl:condition]* expression:</p>
+                                <p>
+                                    <list bullet="true">
+                                        <item>
+                                            <name>*[tpl:lower()]* - converts to lower case</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:ut()]* - converts to upper case and trims any trailing or leading spaces</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:upper()]* - converts to upper case</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:convert_type()]* - converts data to a specific type. Types are N, D, T, or L - (Numeric, Date, Date/time, Logical). It may be necessary to convert data for certain types of comparisons. e.g. *[tpl:convert_type(metadata.completed,"D:) = date()]* -- test to see if form was completed on today"s date.</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:size()]* - a method on a DataGroup to return the number of rows of data in the Data Group</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:day()]* - returns the day (as a number) of the month from a date value. e.g.*[tpl: day( convert_type(metadata.completed,"D"))]*</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:year()]* - returns the year (as a number) from a date value</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:month()]* - returns the month (as a number) from a date value</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:substr()]* - returns a portion of a text value. e.g.*[tpl: substr(formdata.name,1,3)]* - start at position 1 and return 3 characters</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:atc()]* - returns the position in a string where text is found - *[tpl:atc("p","alpha") = 3]*</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:at()]* - case sensitive version of *[tpl:atc()]*</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:occurs()]* - returns the number of occurrences of one string in another - occurs("a","alpha")</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:occursi()]* - case-insensitive version of *[tpl:occurs()]*</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:word()]* - returns the nth word in a string using the specified word delimiter. *[tpl:word("a,b,c",2,",") = "b"]* (using comma as the "word" delimiter)</name>
+                                        </item>
+                                        <item>
+                                            <name>*[tpl:wordi()]* - case insensitive version of *[tpl:word()]*</name>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>Here is an example of a onSubmit event definition that will fire when "form1" is submitted if the "firstime" field in the form contains "Y":</p>
+                                <p>
+                                    <example><![CDATA[[
+    {
+        "action": "sendEmail",
+        "sendTo": "fred@alphasoftware.com",
+        "sendFormat": "json",
+        "condition": "formdata.firsttime = \"Y\" .and. metadata.formid = \"form1\""
+    }
+]]]></example>
+                                </p>
+                            </description>
+                        </case>
+                    </cases>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Accessing Form Metadata</title>
+            <description>
+                <p>In addition to the form data, you can also use metadata fields in conditional statements. The available meta data fields include:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>accountid</name>
+                            <description>
+                                <p>The TransForm Account ID associated with the form instance. E.g. "Account001"</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>created</name>
+                            <description>
+                                <p>The date/time when the form was created.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>comments</name>
+                            <description>
+                                <p>JSON representing the comments associated with the form instance. The value of comments is a string. For example:</p>
+                                <p>
+                                    <example><![CDATA["[{\"timestamp\":\"2019-06-10T19:36:38.102Z\",\"person\":\"Tanya\",\"text\":\"Please double-check occupancy count. 10 seems a bit high.\"},{\"timestamp\":\"2019-06-11T19:36:22.775Z\",\"person\":\"Leif\",\"text\":\"Count is correct. 10 cats on premise.\"}]"]]></example>
+                                </p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>completed</name>
+                            <description>
+                                <p>The date/time when the form status was last changed.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>duedate</name>
+                            <description>
+                                <p>The due date for the form instance. This value is used by the Form Filler Filtering functionality. It should either be blank or a date in the form of "yyyy-mm-dd", such as "2019-04-19".</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>formid</name>
+                            <description>
+                                <p>The form type id. This is the id given when the form type was designed.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>forminstanceid</name>
+                            <description>
+                                <p>The form instance id. This is a unique value assigned by Alpha TransForm.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>formversion</name>
+                            <description>
+                                <p>The form version. This is currently unused.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>haserrors</name>
+                            <description>
+                                <p>Whether or not the form contains errors. This is "Y" if true, "" if false.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>missingrequired</name>
+                            <description>
+                                <p>Whether or not the form is missing required data. This is "Y" if true, "" if false.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>nofiller</name>
+                            <description>
+                                <p>Whether or not the form should be removed from the TransForm Filler App. This is "Y" if true, "N" or "" if false.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>person</name>
+                            <description>
+                                <p>The user ID of the person who is assigned the form instance.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>status</name>
+                            <description>
+                                <p>The current status of the form instance. E.g. "submitted" or "closed".</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>timestamp</name>
+                            <description>
+                                <p>The date/time when the form instance was last updated (inserted or modified) in the TransForm Central database.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>user1, user2, user3, user4, user5</name>
+                            <description>
+                                <p>User-defined fields. The data in these fields is set by the TransForm account administrator.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>userlabel1, userlabel2, userlabel3, userlabel4, userlabel5</name>
+                            <description>
+                                <p>Labels for use-defined fields user1-user5. The data in these fields is set by the TransForm account administrator.</p>
+                            </description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+    </sections>
+</page>
+
+
