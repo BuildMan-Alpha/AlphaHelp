@@ -2,102 +2,92 @@
     <shortlink>ux ssevents onDialogInitialize</shortlink>
     <topic>onDialogInitialize</topic>
     <description>Fires the first time the UX Component is run.</description>
- 
-    
+    <discussion>
+        <p>The onDialogInitialize event executes the first time a UX Component is run. This event is used to set initial values as well as Xbasic variables that contain data used to populate dropdowns, checkboxes, and radio button controls. JavaScript can be returned from this event by setting the *[xb:e.javascript]* variable.</p>
+        <p>If the UX component is opened using Action Javascript, the onDialogInitialize event will not fire every time the component is opened if the action has been configured to cache the UX. The [onSynchronize] event can be used in this case to perform calculations on subsequent displays of the UX--including setting the initial values of controls.</p>
+    </discussion>
+    <arguments>
+        <argument>
+            <name>Request</name>
+            <type>P</type>
+            <description>
+                <p>The Request object. Includes Request.Variables, which should be used instead of the older e.rv construct.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>Session</name>
+            <type>P</type>
+            <description>
+                <p>The Session object. Should be used instead of the older e.session construct.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>e</name>
+            <type>P</type>
+            <description>
+                <p>An object that contains the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>tmpl</name>
+                    <type>P</type>
+                    <description>Component definition</description>
+                </property>
+                <property>
+                    <name>rtc</name>
+                    <type>P</type>
+                    <description>Runtime calculations. You can use this to store data to be passed to other server side events.</description>
+                    <note>The 'rtc' object cannot be used to persist state information - i.e. you can't set a value in rtc and then read that value in a subsequent callback. To persist state info see e._state</note>
+                </property>
+                <property>
+                    <name>arguments</name>
+                    <type>SQL::Arguments</type>
+                    <description>SQL::Arguments object with values for each of the arguments defined in this component.  To read a value from arguments: *[xb:e.arguments.find("argumentName").data]*</description>
+                    <note>You can also set the value of an argument. For example: *[xb:e.arguments[e.arguments.ArgumentNumber("country")].data = "portugal"]*</note>
+                </property>
+                <property>
+                    <name>javascript</name>
+                    <type>C</type>
+                    <description>JavaScript to execute. The *[xb:e.javascript]* property can be used to return JavaScript to the client for execution. The property will not exist until you assign a value to it. The JavaScript must be specified as a character string. See "Using JavaScript to set the Initial Value for a Large Number of Controls" and "Converting Dot Variables to JSON" below for examples.</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
     <sections>
         <section>
-          <description>The onDialogInitialize event is used in [this guide] to creating 'Variable Choices' in a UX Textbox control.</description>
-            
-        </section>
-
-
-<section>
-    <title>Request</title>
-    <description>The Request object. Includes Request.Variables, which should be used instead of the older e.rv construct</description>
-</section>
-<section>
-    <title>Session</title>
-    <description>The Session object. Should be used instead of the older e.session construct</description>
-</section>
-
-<section>
-    <title>Inside e:</title>
-    <list>
-        <item>
-            <name>e.tmpl</name>
-            <description>Component definition</description>
-        </item>
-        <item>
-            <name>e.rtc</name>
-            <description>Runtime calculations - you can use this to store data to be passed to other server side events (Note: the 'rtc' object cannot be used to persist state information - i.e. you can't set a value in rtc and then read that value in a subsequent callback. To persist state info see e._state).
-</description>
-        </item>
-        <item>
-            <name>e.arguments</name>
-            <description>SQL::Arguments object with values for each of the arguments defined in this component.  To read a value from arguments: e.arguments.find("argumentName").data
-</description>
-        </item>
-        
-        
-    </list>
-    
-    <note>You can also set the value of an argument. For example: *[xb:e.arguments[e.arguments.ArgumentNumber("country")].data = "portugal"]*
-</note>
-</section>
-
-
-
-
-
-<section>
-    <description><![CDATA[You can set the initial value of any field by setting the property (see comment at end for Javascript technique to use when setting values for a large number of controls)
-e.control.<fieldname>
-For example:]]></description>
-    <example><![CDATA[e.control.firstname = "Fred"
+            <title>Setting Initial Values</title>
+            <description>You can set the initial value of any field by setting the property. For example:</description>
+            <example><![CDATA[e.control.firstname = "Fred"
 e.control.lastname = "Jones"]]></example>
-    
-</section>
-<section>
-    <description>For multi-valued controls (such as checkbox, List control configured as multi-select, etc.) you can set the value to a cr-lf list of values or use the special array() syntax.
-Either of the following two methods will work</description>
-    <example><![CDATA[e.control.colors = "array(red,green)"
+        </section>
+        <section>
+            <description>For multi-valued controls (such as checkbox, List control configured as multi-select, etc.) you can set the value to a cr-lf list of values or use the special array() syntax. Either of the following two methods will work</description>
+            <example><![CDATA[e.control.colors = "array(red,green)"
 e.control.colors = comma_to_crlf("red,green")]]></example>
-    
-</section>
-
-<section>
-    <description>To set the value of a field in a repeating section, you must use "_A5INSTANCE" and the instance number as a suffix on the fieldname.
-For example, the following code sets the value in the 2nd row of the repeating section.</description>
-    <example><![CDATA[e.control.firstname_A5INSTANCE2 = "Bob"]]></example>
-</section>
-<section>
-    <description>To specify any javascript that you want to execute set the  e.javascript property. For example:
-</description>
-    <example><![CDATA[e.javascript = "alert('hello');"]]></example>
-</section>
-
-<section>
-    <description>You can set 'state' variables in this event. The value of any state variables will be available in all subsequent ajax callbacks.
-To set a state variable:</description>
-    <example><![CDATA[e._state.myvar1 = "value1"
+        </section>
+        <section>
+            <description>To set the value of a field in a repeating section, you must use "_A5INSTANCE" and the instance number as a suffix on the field name. For example, the following code sets the value of the firstname field in the 2nd row of the repeating section.</description>
+            <example><![CDATA[e.control.firstname_A5INSTANCE2 = "Bob"]]></example>
+        </section>
+        <section>
+            <title>Returning JavaScript</title>
+            <description>To specify any javascript that you want to execute set the e.javascript property. For example:
+            </description>
+            <example><![CDATA[e.javascript = "alert('hello');"]]></example>
+        </section>
+        <section>
+            <title>Setting State Variables</title>
+            <description>You can set 'state' variables in this event. The value of any state variables will be available in all subsequent ajax callbacks. To set a state variable:</description>
+            <example><![CDATA[e._state.myvar1 = "value1"
 e._state.myvar2 = "value2"]]></example>
-</section>
-
-<section>
-    <description>Using Javascript to Set Control Values and the Row Count in a Repeating Section -- Recommended For Maximum Efficiency (Advanced users)
-</description>
-    
-</section>
-<section>
-    <description>When setting the value of a large number of controls, you will improve performance if you generate the Javascript directly,
-rather than setting properties in the e.control object (as described above) and then having Alpha Five generate the Javascript from this object.
-The following example shows Javascript code that sets the number of rows in a Repeating Section and sets the value of various control
-in the top section and Repeating Section of the Dialog:</description>
-</section>
-
-<section>
-    <description>Generate the Javascript to emit</description>
-<example><![CDATA[dim js as c
+        </section>
+        <section>
+            <title>Using JavaScript to set the Initial Value for a Large Number of Controls</title>
+            <description>
+                <p>*[This approach is recommended For Maximum Efficiency.]*</p>
+                <p>When setting the value of a large number of controls, you will improve performance if you generate the Javascript directly, rather than setting properties in the e.control object (as described above) and then having Alpha Anywhere generate the JavaScript from this object. The following example shows JavaScript code that sets the number of rows in a Repeating Section and sets the value of various control in the top section and Repeating Section of the UX:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim js as c
 js = <<%txt%
 var rows = 7;
 var setFocusToFirst = true;
@@ -116,27 +106,22 @@ _d['G:6'] = ['Red','Green']; //set the value of a checkbox called 'G' in the 6th
 {dialog.object}.populate(_d);
 {dialog.object}.refreshClientSideComputations();
 
-%txt%]]></example>
-    
-</section>
+%txt%
 
-<section>
-    <description>Now, emit the Javascript...</description>
-    <example><![CDATA[e.javascript = js]]></example>
-    
-</section>
-
-<section>
-    <description>In the above example, if the ._setRepeating() method is called in the 'onDialogInitialize' event, you are responsible for setting
-values in ALL of the controls in the component. For example, if you have defined default values for some controls, and then set the values
-of other controls using the .populate() method, only the values set in the _d object will be set. (The default values will NOT be set).
-You can, however, put the default values into the _d object using this code:</description>
-    <example><![CDATA[$u.o.assign(_d,{dialog.object}.originalValues[0]);]]></example>
-    
-</section>
-<section>
-    <description>You can use the Xbasic varToJSON() function to help generate the Javascript object passed to the .populate() method. For example:</description>
-    <example><![CDATA[dim j as p
+e.javascript = js]]></example>
+                </p>
+                <p>If the *[js:{dialog.object}._setRepeatingSectionRowCount()]* method is called in the onDialogInitialize event, you are responsible for setting values in ALL of the controls in the component. For example, if you have defined default values for some controls, and then set the values of other controls using the *[js:{dialog.object}.populate()]* method, only the values set in the *[js:_d]* object will be set. (The default values will NOT be set). You can, however, put the default values into the *[js:_d]* object using this code:</p>
+                <p>
+                    <example code="js"><![CDATA[$u.o.assign(_d,{dialog.object}.originalValues[0]);]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Converting Dot Variables to JSON</title>
+            <description>
+                <p>You can use the Xbasic varToJSON() function to help generate the Javascript object passed to the .populate() method. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim j as p
 j.firstname = "John"
 j.lastname = "Smith"
 j.quantity_a5instance1 = "2"
@@ -146,19 +131,25 @@ j.colorchoices_a5instance2[2] = "Blue"
 dim jsTxt as c
 jsTxt = varToJSON(j)
 js = "{dialog.object}.populate(" + jsTxt + "); {dialog.object}.prepare();"]]></example>
-    
-</section>
-<section>
-    <description>To simulate session variables when running in Working Preview you can use this code:</description>
-    <example><![CDATA[if eval_valid("request.SERVER_PROTOCOL") then 
-	if request.SERVER_PROTOCOL = "A5RES" then 
-		'running in working preview
-		session.var1 = "simulated value for var1"
-	end if 
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Simulating Session Variables</title>
+            <description>To simulate session variables when running in Working Preview you can use this code:</description>
+            <example><![CDATA[if eval_valid("request.SERVER_PROTOCOL") then 
+    if request.SERVER_PROTOCOL = "A5RES" then 
+        'running in working preview
+        session.var1 = "simulated value for var1"
+    end if
 end if ]]></example>
-</section>
+        </section>
     </sections>
     <links>
-        <link link="ux control properties checkbox choices properties">this guide</link>
+        <link link="ux ssevents onSynchronize">onSynchronize</link>
     </links>
+    <see>
+        <ref link="ux ssevents onSynchronize">onSynchronize Event</ref>
+        <ref link="ux control properties checkbox choices properties#section1_Variable Choices">Defining Variable Choices for a Control</ref>
+    </see>
 </page>
