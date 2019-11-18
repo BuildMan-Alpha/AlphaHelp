@@ -2,9 +2,11 @@
     <topic>Supported Portable SQL Syntax</topic>
     <description>Overview of supported SQL syntax in portable SQL queries.</description>
     <discussion>
-        <p>The SQL syntax that the Alpha Anywhere supports is first constrained by the SQL syntax supported by the target database. The Application Server has additional requirements.</p>
-        <p>The following is a simplified SQL grammar syntax as supported by the Alpha Anywhere Portable SQL parser. Support for these constructs depends on the target database and its implementation of SQL.</p>
-        <p>The grammar that follows shows the components of the grammar in the general format:</p>
+        <!--
+        SQL92 Grammar subset to support as many db as possible.
+        -->
+        <p>Although there are standards for SQL, each database vendor introduces slight variations to the language that make it challenging to write a single statement that executes on an arbitrary database. Alpha Anywhere Alpha DAO makes it possible to write SQL statements that are portable across many databases. The Portable SQL parser creates an intermediate data structure that Alpha DAO syntax handlers use to generate native syntax for any database that Alpha Anywhere has a handler. In cases where your database vendor selection does not determine the syntax  (such as ODBC or ADO.NET drivers), you specify the target syntax you want to generate in connection string dialogs or a manually constructed connection string. In many cases, you can select the ODBC or Generic (based on ANSI SQL-92) syntax handler if a separate handler doesn't exist for your database.</p>
+        <p>The following is a simplified SQL grammar of the SQL dialect supported by the Alpha Anywhere Portable SQL parser:</p>
         <p>
             <list>
                 <item>
@@ -30,16 +32,13 @@
                     <description>Words beginning with lower case are rules.</description>
                 </step>
                 <step>
-                    <description>Words in all capital letters are literals or key words and appear as typed. The actual select statement is item insensitive.</description>
+                    <description>Words in all capital letters are literals or key words and appear as typed. The actual SELECT statement is item insensitive.</description>
                 </step>
                 <step>
                     <description>The vertical bar ( | ) indicates that any of the alternatives are valid. Commas are part of the input stream.</description>
                 </step>
                 <step>
                     <description>Items in square brackets [] are optional.</description>
-                </step>
-                <step>
-                    <description>With some exceptions, parentheses shown are a required part of the input stream.</description>
                 </step>
                 <step>
                     <description>The FROM clause of a SELECT statement contains both TableName and AliasName, as in the following statement:</description>
@@ -51,19 +50,18 @@
             </steps>
         </section>
         <section>
-            <title>Select Statement</title>
-            <description>Select Statement Components and Syntax</description>
-            <example><![CDATA[SELECT [ DISTINCT | ALL ROWS ] | FIRST integer ] *[em:Column_Item]* [, *[em:Column_Item]* ... ]
+            <title>Select_Statement</title>
+            <!-- Things to explain/callout: SQL Keyword; When does something need to be explained again (column item); Literal values - integer -->
+            <description>Select_Statement Components and Syntax</description>
+            <example><![CDATA[SELECT [ DISTINCT | ALL [ROWS] | FIRST integer ] *[em:Column_Item]* [, *[em:Column_Item]* ... ]
 FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
 [ WHERE *[em:Logical_Expression]* ]
 [ GROUP BY *[em:Value_Expr]* [, *[em:Value_Expr]* ... ] [ HAVING *[em:Logical_Expression]* ] ]
-[ ORDER BY *[em:Column_Item]* [  ASC | DESC] [, *[em:Column_Item]* [ ASC | DESC ]  ... ] ]
-[ UNION *[em:Select_Statement]* [ UNION *[em:Select_Statement]* ... ] ]
-[ ORDER BY *[em:Column_Item]* [  ASC | DESC ] [, *[em:Column_Item]* [ ASC | DESC ]  ... ] ]
- ]]>            </example>
+[ UNION [ALL] *[em:Select_Statement]* [ UNION [ALL] *[em:Select_Statement]* ... ] ]
+[ ORDER BY *[em:Column_Item]* [ ASC | DESC ] [, *[em:Column_Item]* [ ASC | DESC ]  ... ]]]]></example>
         </section>
         <section>
-            <topic>Select Statement Arguments</topic>
+            <topic>Select_Statement Arguments</topic>
             <list>
                 <item>
                     <name-title>Argument</name-title>
@@ -107,9 +105,6 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                                 <item>
                                     <name>Specify *[xb:AS Identifier]* to define a table alias. E.g. *[xb:tableb AS b]*</name>
                                 </item>
-                                <item>
-                                    <name>See [More about JOINs] below for more information about JOINs.</name>
-                                </item>
                             </list>
                         </p>
                     </description>
@@ -118,65 +113,56 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                     <name>Logical_Expression</name>
                     <description>
                         <p>
-                            <example><![CDATA[*[em:AND_Expression]* [ OR *[em:AND_Expression]* ... ]]]></example>
+                            <example><![CDATA[*[em:Value_Expr]* [ AND|OR *[em:Value_Expr]* ... ]]]></example>
                         </p>
                     </description>
                 </item>
                 <item>
-                    <name>AND_Expression</name>
+                    <name>Value_Expr</name>
                     <description>
                         <p>
-                            <example><![CDATA[NOT *[em:Logical_Expression]* [ AND *[em:Logical_Expression]* ... ] |
-EXISTS  *[em:Select_Statement]* |
-*[em:Value_Expr]* *[em:Comparison_Operator]* [ ALL | SOME | ANY ]
-( *[em:Select_Statement]* )
+                            <example><![CDATA[[NOT] *[em:Logical_Expression]* [ AND|OR *[em:Logical_Expression]* ... ] |
+[EXISTS]  *[em:Select_Statement]* |
+*[em:Value_Expr]* *[em:Comparison_Operator]* [ ALL | SOME | ANY ] ( *[em:Select_Statement]* )
 *[em:Value_Expr]* *[em:Comparison_Operator]* *[em:Value_Expr]*
-*[em:Value_Expr]* IS NOT NULL
-*[em:Value_Expr]* CONTAINS ( *[em:Column_Reference]*, String_Literal]* )
-*[em:Value_Expr]* NOT LIKE *[em:Value_Expr]*
-*[em:Value_Expr]* NOT BETWEEN *[em:Value_Expr]* AND *[em:Value_Expr]* |
-*[em:Value_Expr]* NOT IN *[em:Select_Statement]* |
-*[em:Value_Expr]* NOT IN ( *[em:Value_Expr]* [ *[em:Value_Expr]* ... ] )]]></example>
+*[em:Value_Expr]* IS [NOT] NULL
+*[em:Value_Expr]* CONTAINS ( *[em:Column_Reference]*, *[em:String]* )
+*[em:Value_Expr]* [NOT] LIKE *[em:Value_Expr]*
+*[em:Value_Expr]* [NOT] BETWEEN *[em:Value_Expr]* AND *[em:Value_Expr]* |
+*[em:Value_Expr]* [NOT] IN (*[em:Select_Statement]* | *[em:Value_Expr_List]*)
+*[em:Constant]* [ *[em:Operator]* *[em:Value_Expr]* ]
+*[em:Value_Expr]* [ *[em:Operator]* *[em:Value_Expr]* ]
+[*[em:Unary_Operator]* ] *[em:Sub_Expression]*]]></example>
+<!--LIKE - show one or two examples using %
+See Also FullTextColumnContains() function
+() are required for IN
+Add a note about IN with Integers-->
+                        </p>
+                        <p>For Example:</p>
+                        <p>
+                            <example code="sql"><![CDATA[ShipDate IS NULL
+OrderDate IS NOT NULL
+StartDate BETWEEN {1995-01-01} AND {2005-12-31}
+Address LIKE '123 Main%'
+Customer LIKE '%Co%'
+FirstName IN ('Jane','Steve','Fred')
+FullTextColumnContains(LastName,'Marie')]]></example>
                         </p>
                     </description>
                 </item>
                 <item>
-                    <name>Value_Expr</name>
+                    <name>Sub_Expression</name>
                     <description>
                         <p>
-                            <example><![CDATA[*[em:Constant]* [ *[em:Operator]* *[em:Value_Expr]* ]]]></example>
+                            <example><![CDATA[*[em:Function]* | *[em:Constant]* | NULL | *[em:Column_Reference]* | (  *[em:Select_Statement]* ) | *[em:CASE]* | *[em:CAST]*]]></example>
                         </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Value_Expr</name>
-                    <description>
                         <p>
-                            <example><![CDATA[*[em:Multi_Expr]* [ *[em:Additive_Operator]* *[em:Value_Expr]* ... ]]]></example>
-                        </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Multi_Expr</name>
-                    <description>
-                        <p>
-                            <example><![CDATA[*[em:Unary_Expression]* [ *[em:Multi_Operator]* *[em:Multi_Expr]* ... ]]]></example>
-                        </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Unary_Expression</name>
-                    <description>
-                        <p>
-                            <example><![CDATA[[ *[em:Unary_Operator]* ] *[em:Sub_Expression2]*]]></example>
-                        </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Sub_Expression2</name>
-                    <description>
-                        <p>
-                            <example><![CDATA[*[em:Function]* | *[em:Constant]* | NULL | *[em:Column_Reference]* | (  *[em:Select_Statement]* ) | *[em:Case]* | *[em:Cast]*]]></example>
+                            <list bullet="true">
+                                <item>
+                                    <name>CAST - type is DB dependent; if you use a type name that is not supported on the target SQL database, it will fail.</name> 
+                                    <!--Currency is not portable-->
+                                </item>
+                            </list>
                         </p>
                     </description>
                 </item>
@@ -191,10 +177,14 @@ EXISTS  *[em:Select_Statement]* |
                     </description>
                 </item>
                 <item>
-                    <name>String_Literal</name>
+                    <name>CASE</name>
                     <description>
                         <p>
-                            <example><![CDATA[*[em:Unicode_String_Literal]* | *[em:ASCII_String_Literal]*]]></example>
+                            <example><![CDATA[CASE *[em:Value_Expr]*
+    WHEN *[em:Value_Expr]* THEN *[em:Value_Expr]*
+    [...]
+    [ ELSE *[em:Value_Expr]*]
+    END]]></example>
                         </p>
                     </description>
                 </item>
@@ -209,33 +199,115 @@ EXISTS  *[em:Select_Statement]* |
                 <item>
                     <name>Constant</name>
                     <description>
+                        <p> <!--Number: 0.0, 0, -0, 0x0, 0.0e0; Date: {yyyy-mm-dd}; Currency: $0.00; String: "asdf"; Logical: .t., .f.;  -->
+                        <!--ODBC format and Access format supported for specifying date/times-->
+                            <example><![CDATA[*[em:Number]*, *[em:Logical]*, *[em:String]*, *[em:Currency]*,
+*[em:Date_Time]*]]></example>
+                        </p>
                         <p>
-                            <example><![CDATA[*[em:Integer]*, *[em:Real]*, *[em:String_Literal]*, *[em:Hex_Literal]*, *[em:Currency]*,
-*[em:ODBC_Date_Time]*, *[em:Access_Date_Time]*]]></example>
+                            <list>
+                                <item>
+                                    <name-title>Constant</name-title>
+                                    <description-title>Example</description-title>
+                                </item>
+                                <item>
+                                    <name>*[em:Number]*</name>
+                                    <description>
+                                        <p>
+                                            <example><![CDATA[0.0
+0
+-0
+0x0
+0.0e0]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>*[em:Logical]*</name>
+                                    <description>
+                                        <p>
+                                            <example><![CDATA[.t.
+.f.
+true
+false]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>*[em:String]*</name>
+                                    <description>
+                                        <p>
+                                            <example><![CDATA["Spain"]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>*[em:Currency]*</name>
+                                    <description>
+                                        <p>
+                                            <example><![CDATA[$12.50]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>*[em:Date_Time]*</name>
+                                    <description>
+                                        <p>Date and Date Time values specified using the following format:</p>
+                                        <p>
+                                            <example><![CDATA[{yyyy-mm-dd [HH:MM:SS [.ffffff] [am|pm]]}
+{yyyy-mm-dd}
+{m[m]/d[d]/yy[yy]}
+{m[m]/d[d]/yy[yy] [HH:MM:SS[.ffffff] [am|pm]]}]]></example>
+                                        </p>
+                                        <p>Where:</p>
+                                        <p>
+                                            <list bullet="true">
+                                                <item>
+                                                    <name>*[xb:yyyy]* or *[xb:yy]* is the year.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:mm]* or *[xb:m]* is the month.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:dd]* or *[xb:d]* is the day.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:HH]* is the hour.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:MM]* is the minutes.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:SS]* is the seconds.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:.ffffff]* is fractions of a second -- you can specify up to six digits.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[xb:am|pm]* is the "am" or "pm" for 12 hour time format.</name>
+                                                </item>
+                                            </list>
+                                        </p>
+                                        <p>For example:</p>
+                                        <p>
+                                            <example><![CDATA[{2019-12-31 14:47:00}
+{2019-01-01}
+{12/31/2019}
+{1/1/2019 01:01:01.000000}
+{11:59:00 pm}]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                            </list>
                         </p>
                     </description>
                 </item>
                 <item>
-                    <name>Unary_Operator</name>
+                    <name>Mathematical_Operator</name>
                     <description>
                         <p>
-                            <example><![CDATA[+ | - | ~]]></example>
-                        </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Additive_Operator</name>
-                    <description>
-                        <p>
-                            <example><![CDATA[+ | - | &]]></example>
-                        </p>
-                    </description>
-                </item>
-                <item>
-                    <name>Multi_Operator</name>
-                    <description>
-                        <p>
-                            <example><![CDATA[* | / | MOD]]></example>
+                            <example><![CDATA[+ | - | &
+* | / | MOD]]></example>
                         </p>
                     </description>
                 </item>
@@ -247,20 +319,35 @@ EXISTS  *[em:Select_Statement]* |
                         </p>
                     </description>
                 </item>
-            </list>
-        </section>
-        <section>
-            <cases>
-                <case>
-                    <title nested="2">More about JOINs</title>
+                <item>
+                    <name>Unary_Operator</name>
                     <description>
-                        <p>JOINs can be tricky to get right in SQL. The image below describe seven of the most common JOINs performed on SQL tables.</p>
+                        <p>
+                            <example><![CDATA[+ | - | ~]]></example>
+                        </p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Unary_Operator</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>+</name>
+                                    <description>Positive. E.g., *[xb:+12]*</description>
+                                </item>
+                                <item>
+                                    <name>-</name>
+                                    <description>Negative. E.g., *[xb:-3]*</description>
+                                </item>
+                                <item>
+                                    <name>~</name>
+                                    <description>&#160;</description>
+                                </item>
+                            </list>
+                        </p>
                     </description>
-                    <figure>
-                        <link>images/UnderstandingJOINS.png</link>
-                    </figure>
-                </case>
-            </cases>
+                </item>
+            </list>
         </section>
         <section>
             <title>Delete Syntax</title>
