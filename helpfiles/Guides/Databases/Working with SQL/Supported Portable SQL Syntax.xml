@@ -16,17 +16,13 @@
                     <description>Words that are italicized are rules.</description>
                 </step>
                 <step>
-                    <description>Words in all capital letters are literals or key words and appear as typed. The actual SELECT statement is case insensitive.</description>
+                    <description>Words in all capital letters are literals or keywords and appear as typed. The actual SELECT statement is case insensitive.</description>
                 </step>
                 <step>
                     <description>The vertical bar ( | ) indicates that any of the alternatives are valid. Commas are part of the input stream.</description>
                 </step>
                 <step>
                     <description>Items in square brackets [] are optional.</description>
-                </step>
-                <step>
-                    <description>The FROM clause of a SELECT statement contains both TableName and AliasName, as in the following statement:</description>
-                    <example><![CDATA[SELECT Cust.CompanyName, Cust.ContactName, Cust.ContactTitle FROM Customers Cust]]></example>
                 </step>
                 <step>
                     <description>
@@ -57,7 +53,7 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                     <name>Column_Item</name>
                     <description>
                         <p>
-                            <example><![CDATA[*[em:Value_Expr]* [ AS *[em:Identifier]* ]
+                            <example><![CDATA[*[em:Value_Expr]* | *[em:Identifer]* [ AS *[em:Identifier]* ]
 *[em:Identifier]* = *[em:Value_Expr]*]]></example>
                         </p>
                     </description>
@@ -69,13 +65,16 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                             <example><![CDATA[[*[em:Identifier]*.]*[em:Identifier]*
 [*[em:Identifier]*.]*]]></example>
                         </p>
+                        <p>The table name is optional when specifying column names in a SELECT statement.</p>
                     </description>
                 </item>
                 <item>
                     <name>Select_Table_Reference</name>
                     <description>
                         <p>
-                            <example><![CDATA[[*[em:Identifier]*.]*[em:Identifier]* [[[ LEFT | FULL | RIGHT [OUTER]] | INNER ] JOIN *[em:Select_Table_Reference]* [ ON *[em:Logical_Expression]* ] ... ]] [ AS *[em:Identifier]* ]]]></example>
+                            <example><![CDATA[[*[em:Identifier]*.]*[em:Identifier]*
+[[[LEFT|FULL|RIGHT [OUTER]] | INNER] JOIN *[em:Select_Table_Reference]* [ ON *[em:Logical_Expression]* ]] ... ]
+[[AS] *[em:Identifier]* ] ]]></example>
                         </p>
                         <p>
                             <list bullet="true">
@@ -94,6 +93,7 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                             </list>
                         </p>
                     </description>
+                    <note>Defining a table alias is optional.</note>
                 </item>
                 <item>
                     <name>Logical_Expression</name>
@@ -109,16 +109,16 @@ FROM *[em:Select_Table_Reference]* [, *[em:Select_Table_Reference]* ... ]
                         <p>
                             <example><![CDATA[[NOT] *[em:Logical_Expression]* [ AND|OR *[em:Logical_Expression]* ... ] |
 [EXISTS]  *[em:Select_Statement]* |
-*[em:Value_Expr]* *[em:Comparison_Operator]* [ ALL | SOME | ANY ] ( *[em:Select_Statement]* )
-*[em:Value_Expr]* *[em:Comparison_Operator]* *[em:Value_Expr]*
-*[em:Value_Expr]* IS [NOT] NULL
-*[em:Value_Expr]* CONTAINS ( *[em:Column_Reference]*, *[em:String]* )
-*[em:Value_Expr]* [NOT] LIKE *[em:Value_Expr]*
+*[em:Value_Expr]* *[em:Comparison_Operator]* [ ALL | SOME | ANY ] ( *[em:Select_Statement]* ) |
+*[em:Value_Expr]* *[em:Comparison_Operator]* *[em:Value_Expr]* |
+*[em:Value_Expr]* IS [NOT] NULL |
+*[em:Value_Expr]* CONTAINS ( *[em:Column_Reference]*, *[em:String]* ) |
+*[em:Value_Expr]* [NOT] LIKE *[em:Value_Expr]* |
 *[em:Value_Expr]* [NOT] BETWEEN *[em:Value_Expr]* AND *[em:Value_Expr]* |
-*[em:Value_Expr]* [NOT] IN (*[em:Select_Statement]* | *[em:Value_Expr_List]*)
-*[em:Constant]* [ *[em:Operator]* *[em:Value_Expr]* ]
-*[em:Value_Expr]* [ *[em:Operator]* *[em:Value_Expr]* ]
-[*[em:Unary_Operator]* ] *[em:Sub_Expression]*]]></example>
+*[em:Value_Expr]* [NOT] IN (*[em:Select_Statement]* | *[em:Value_Expr_List]*) |
+*[em:Constant]* [ *[em:Operator]* *[em:Value_Expr]* ] |
+*[em:Value_Expr]* [ *[em:Operator]* *[em:Value_Expr]* ] |
+[*[em:Unary_Operator]*]*[em:Sub_Expression]*]]></example>
 <!--LIKE - show one or two examples using %
 See Also FullTextColumnContains() function
 () are required for IN
@@ -141,14 +141,6 @@ FullTextColumnContains(LastName,'Marie')]]></example>
                     <description>
                         <p>
                             <example><![CDATA[*[em:Function]* | *[em:Constant]* | NULL | *[em:Column_Reference]* | (  *[em:Select_Statement]* ) | *[em:CASE]* | *[em:CAST]*]]></example>
-                        </p>
-                        <p>
-                            <list bullet="true">
-                                <item>
-                                    <name>CAST - type is DB dependent; if you use a type name that is not supported on the target SQL database, it will fail.</name> 
-                                    <!--Currency is not portable-->
-                                </item>
-                            </list>
                         </p>
                     </description>
                 </item>
@@ -175,6 +167,18 @@ FullTextColumnContains(LastName,'Marie')]]></example>
                     </description>
                 </item>
                 <item>
+                    <name>CAST</name>
+                    <description>
+                        <p>
+                            <example><![CDATA[CAST (*[em:Value_Expr]* AS *[em:Type]*)]]></example>
+                        </p>
+                        <p>*[em:Type]* is the data type to cast the value, e.g. *[xb:INTEGER]* or *[xb:DATE]*. The type is database dependent. Consult your database documentation for a list of supported data types.</p>
+                    </description>
+                    <important>
+                        <p>If you use a type name that is not supported on the target SQL database, *[xb:CAST]* will fail.</p>
+                    </important>
+                </item>
+                <item>
                     <name>Identifier</name>
                     <description>
                         <p>
@@ -185,8 +189,8 @@ FullTextColumnContains(LastName,'Marie')]]></example>
                 <item>
                     <name>Constant</name>
                     <description>
-                        <p> <!--Number: 0.0, 0, -0, 0x0, 0.0e0; Date: {yyyy-mm-dd}; Currency: $0.00; String: "asdf"; Logical: .t., .f.;  -->
                         <!--ODBC format and Access format supported for specifying date/times-->
+                        <p>
                             <example><![CDATA[*[em:Number]* | *[em:Logical]* | *[em:String]* | *[em:Currency]* | *[em:Date_Time]*]]></example>
                         </p>
                         <p>
@@ -326,7 +330,7 @@ false]]></example>
                                 </item>
                                 <item>
                                     <name>~</name>
-                                    <description>&#160;</description>
+                                    <description>One's complement where supported. Check your database documentation to see if this operator is available.</description>
                                 </item>
                             </list>
                         </p>
@@ -339,7 +343,8 @@ false]]></example>
             <description>
                 <p>The Portable SQL DELETE statement deletes one or more records from the specified table.</p>
                 <p>
-                    <example><![CDATA[DELETE FROM *[em:Table_Name]* WHERE *[em:Column_Name]* = *[em:Value_Expression]*]]></example>
+                    <example><![CDATA[DELETE FROM *[em:Table_Name]*
+WHERE *[em:Column_Name]* = *[em:Value_Expression]*]]></example>
                 </p>
             </description>
             <note>
@@ -351,7 +356,9 @@ false]]></example>
             <description>
                 <p>The Portable SQL UPDATE statement modifies one or more records in the specified table.</p>
                 <p>
-                    <example><![CDATA[UPDATE *[em:Table_Name]* SET *[em:Column_Name]* = *[em:Value_Expression_1]* WHERE *[em:Column_Name]* = *[em:Value_Expression_2]*]]></example>
+                    <example><![CDATA[UPDATE *[em:Table_Name]*
+SET *[em:Column_Name]* = *[em:Value_Expression_1]*
+ WHERE *[em:Column_Name]* = *[em:Value_Expression_2]*]]></example>
                 </p>
             </description>
             <note>
@@ -363,7 +370,8 @@ false]]></example>
             <description>
                 <p>The Portable SQL INSERT statement adds a record to the specified table.</p>
                 <p>
-                    <example><![CDATA[INSERT INTO *[em:Table_Name]* ( *[em:Column_Name_1]*, *[em:Column_Name_2]*, ... , *[em:Column_Name_N]* ) VALUES ( *[em:Value_Expression_1]*, *[em:Value_Expression_2]*, ... *[em:Value_Expression_N]* )]]></example>
+                    <example><![CDATA[INSERT INTO *[em:Table_Name]* ( *[em:Column_Name_1]*, *[em:Column_Name_2]*, ... , *[em:Column_Name_N]* )
+VALUES ( *[em:Value_Expression_1]*, *[em:Value_Expression_2]*, ... *[em:Value_Expression_N]* )]]></example>
                 </p>
             </description>
             <note>
