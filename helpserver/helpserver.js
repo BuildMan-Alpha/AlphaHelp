@@ -1675,6 +1675,10 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     helpHandler.expressuse(req, res);
                 }
             }
+
+            if (req.path.toLowerCase().indexOf(".xml") !== -1 && noSearchFlag) {
+                helpHandler.refresh(function() {});
+            }
         });
         if (options.useSSL) {
             // HTTP redirects to HTTPS...
