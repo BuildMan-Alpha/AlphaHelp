@@ -564,88 +564,201 @@ ENDON
             </sections>
         </group>
         <group>
+            <title>Queues</title>
+            <sections>
+                <section>
+                    <description>
+                        <p>When a new form is added in the TransForm app, the form is automatically assigned to the user who created it. If a form is created using the Managment Console or TransForm API, however, the form can be assigned to a queue.</p>
+                        <p>Forms assigned to a queue are listed in the *[ui:Claim Forms]* section of the TransForm App.</p>
+                    </description>
+                    <figure>
+                        <title>Claim Forms screen in the TransForm Mobile App</title>
+                        <link>/images/claimForms_Default.png</link>
+                    </figure>
+                </section>
+                <section>
+                    <description>
+                        <p>Users can claim forms from a queue by tapping on the form, which assigns the form to the user.</p>
+                    </description>
+                    <important>
+                        <p>Users must be logged in and online to claim forms.</p>
+                    </important>
+                </section>
+                <section>
+                    <description>
+                        <p>Every TransForm account is configured with a basic "Unassigned Forms" queue. The default queue specification is shown below:</p>
+                        <p>
+                            <example><![CDATA["queues" : { 
+    "listOfQueues" : [
+        {
+            "queueID":"default",
+            "name":"Unassigned Forms",
+            "roles":"*",
+            "template":"",
+            "color":"#070"
+        }
+    ]
+}]]></example>
+                        </p>
+                        <p>The queue specification is an array of queues. Each queue has an id, name, the button color for the queue, a list of user roles that are allowed to access the queue, and optional form heading template. The default queue specification shown above defines one queue named "Unassigned Forms" with an id of "default", a button color of "#070" (green), and allows anyone to access to the queue (*[js:"roles":"*"]*).</p>
+                        <p>Access to a queue can be restricted by explicitly listing the user roles allowed to access the queue. For example:</p>
+                        <p>
+                            <example><![CDATA["queues" : { 
+    "listOfQueues" : [
+        {
+            "queueID":"default",
+            "name":"Unassigned Forms",
+            *[highlighter:"roles":"supervisor,AccountAdmin",]*
+            "template":"",
+            "color":"#070"
+        }
+    ]
+}]]></example>
+                        </p>
+                        <p>You can also define a form listing template. The template, if defined, overrides the default heading template defined for a form.</p>
+                    </description>
+                    <note>
+                        <p>The *[js:queue]* settings are defined in the On-device Assets Policy at the root level. In other words, *[js:queue]* is a sibiling to the *[js:policy]* settings:</p>
+                        <p>
+                            <example><![CDATA[{
+    "policy" : { /* policy settings */ },
+    "queue" : { /* queue settings */}
+}]]></example>
+                        </p>
+                    </note>
+                </section>
+                <section>
+                    <title>listOfQueues Settings Reference</title>
+                    <list>
+                        <item>
+                            <name>*[js:queueID]*</name>
+                            <description>
+                                <p>A unique string that identifies the queue. For example, "default" or "queue1".</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:name]*</name>
+                            <description>
+                                <p>The queue name. The name is the name shown in Claim Forms in the TransForm app.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:roles]*</name>
+                            <description>
+                                <p>A comma-delimited list of user role ids that have permission to access the queue. A value of *[js:*]* means all users have access. Role ids are listed on the Permissions tab in TransForm Central.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:template]*</name>
+                            <description>
+                                <p>An optional template used in the form listing. *[js:template]* overrides the heading template defined for a form. See [TPL Templating] for more information on how to define a template.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:color]*</name>
+                            <description>
+                                <p>The background color shown for the queue on the *[ui:Claim Forms]* screen.</p>
+                            </description>
+                        </item>
+                    </list>
+                    <note>
+                        <p>If you change the queue specification for your TransForm account, users may need to log out of the TransForm App to update the queues listed in *[ui:Claim Forms]*.</p>
+                    </note>
+                </section>
+            </sections>
+        </group>
+        <group>
             <title>Appendix</title>
             <sections>
                 <section>
                     <title nested="2">Sample Policy</title>
                     <description>
                         <p><example><![CDATA[{
-  "policy" : {
-    "download" : {
-      "onDemand": {"checkprompt":false,"confirmprompt":false,"successprompt":true},
-      "onLogin" : {"checkprompt":false,"confirmprompt":false,"successprompt":true}
+    "policy" : {
+        "download" : {
+            "onDemand": {"checkprompt":false,"confirmprompt":false,"successprompt":true},
+            "onLogin" : {"checkprompt":false,"confirmprompt":false,"successprompt":true}
+        },
+        "delete" : {
+            "onDemand" : true,
+            "onLogout" : false,
+            "onNewAccount" : true
+        },
+        "pathprefixes" : {
+            "media" : "http://alphamediacapture.s3.amazonaws.com/transform/",
+            "images" : "#images/"
+        },
+        "dataprefixes" : {
+            "datapng" : "data:image/png;base64,",
+            "datajpg" : "data:image/jpg;base64,"
+        },
+        "ajaxprefixes" : {
+            "*" : "*"
+        },
+        "searchspec" : [
+            { 
+                "field" : "*formname"
+            }
+        ],
+        "filterspec" : [
+            {
+                "id" : "unsavedonly",
+                "title" : "Unsaved forms",
+                "roles" : "user",
+                "type" : "hasValue",
+                "field" : "*unsaved",
+                "enabled" : false
+            },
+            {
+                "id" : "haserrors",
+                "title" : "Has errors",
+                "roles" : "user",
+                "type" : "hasValue",
+                "field" : "haserrors",
+                "enabled" : false
+            },
+            {
+                "id" : "missingrequired",
+                "title" : "Required fields are missing",
+                "roles" : "user",
+                "type" : "hasValue",
+                "field" : "missingrequired",
+                "enabled" : false
+            },
+            {
+                "id" : "formname",
+                "title" : "Form Type (current forms only)",
+                "roles" : "user",
+                "type" : "currentValues",
+                "field" : "*formname",
+                "enabled" : false,
+                "op" : "matchText"
+            }
+        ],
+        "filterdefsspec" : [
+            {
+                "id" : "formname",
+                "title" : "Form Types",
+                "roles" : "user",
+                "type" : "currentValues",
+                "field" : "*formname",
+                "enabled" : false,
+                "op" : "matchText"
+            }
+        ]
     },
-    "delete" : {
-      "onDemand" : true,
-      "onLogout" : false,
-      "onNewAccount" : true
-    },
-    "pathprefixes" : {
-      "media" : "http://alphamediacapture.s3.amazonaws.com/transform/",
-      "images" : "#images/"
-    },
-    "dataprefixes" : {
-      "datapng" : "data:image/png;base64,",
-      "datajpg" : "data:image/jpg;base64,"
-    },
-    "ajaxprefixes" : {
-      "*" : "*"
-    },
-    "searchspec" : [
-      { 
-        "field" : "*formname"
-      }
-    ],
-    "filterspec" : [
-      {
-        "id" : "unsavedonly",
-        "title" : "Unsaved forms",
-        "roles" : "user",
-        "type" : "hasValue",
-        "field" : "*unsaved",
-        "enabled" : false
-      },
-      {
-        "id" : "haserrors",
-        "title" : "Has errors",
-        "roles" : "user",
-        "type" : "hasValue",
-        "field" : "haserrors",
-        "enabled" : false
-      },
-      {
-        "id" : "missingrequired",
-        "title" : "Required fields are missing",
-        "roles" : "user",
-        "type" : "hasValue",
-        "field" : "missingrequired",
-        "enabled" : false
-      },
-      {
-        "id" : "formname",
-        "title" : "Form Type (current forms only)",
-        "roles" : "user",
-        "type" : "currentValues",
-        "field" : "*formname",
-        "enabled" : false,
-        "op" : "matchText"
-      }
-      ],
-      "filterdefsspec" : [
-        {
-          "id" : "formname",
-          "title" : "Form Types",
-          "roles" : "user",
-          "type" : "currentValues",
-          "field" : "*formname",
-          "enabled" : false,
-          "op" : "matchText"
-
-        }
-      ]
+    "queues" : { 
+        "listOfQueues" : [
+            {
+                "queueID":"default",
+                "name":"Unassigned Forms",
+                "roles":"*",
+                "template":"",
+                "color":"#070"
+            }
+        ]
     }
-}
-]]></example></p>
+}]]></example></p>
                     </description>
                 </section>
             </sections>
@@ -654,5 +767,6 @@ ENDON
     <links>
         <link href="#section3_Prompt%20Properties">Prompt Properties</link>
         <link href="#section3_filterdef%20and%20filterdefspec%20Settings%20Reference">filterspec and filterdefspec Settings Reference</link>
+        <link link="transform%20designer%20tpltemplating">TPL Templating</link>
     </links>
 </page>
