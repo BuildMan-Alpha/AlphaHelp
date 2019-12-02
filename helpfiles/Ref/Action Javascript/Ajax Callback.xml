@@ -183,7 +183,7 @@
                 </p>
                 <p>To send intermediate messages from your Ajax Callback function, use the *[xb:a5AjaxChunkedResponseWrite()]* function. The *[xb:a5AjaxChunkedResponseWrite()]* function takes one parameter -- a string that contains JavaScript to execute on the client. For example:</p>
                 <p>
-                    <example code="xb"><![CDATA[dim js as c
+                    <example code="xb"><![CDATA[DIM js AS C
 js = "$('div').innerHTML = 'Still working...';"
 a5AjaxChunkedResponseWrite(js)]]></example>
                 </p>
@@ -269,6 +269,198 @@ a5AjaxChunkedResponseWrite(js)]]></example>
             <description>It's best to use Action Javascript if it's available to add functionality to an application. If you would rather make a callback using Javascript, however, the *[js:.ajaxCallback()]* method for the Grid or UX Component is available. To learn more, visit the [Grid Component] or [UX Component] Client API documentation for the *[js:.ajaxCallback()]* method.</description>
         </section>
         <section>
+            <title>Variables Passed to the Xbasic Callback Function</title>
+            <description>
+                <p>The Xbasic function that handles the callback will be passed a dot variable called *[xb:e]* with the following properties:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>*[xb:tmpl]*</name>
+                            <description>The component definition.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:__si]*</name>
+                            <description>Component state information passed between the server and client.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:rtc]*</name>
+                            <description>Runtime calculations computed while the component is executing.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:dataSubmitted]*</name>
+                            <description>
+                                <p>A pointer variable that contains the data values submitted to the callback.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[xb:oldDataSubmitted]*</name>
+                            <description>
+                                <p>A pointer variable that contains the original values for controls in the UX.</p>
+                            </description>
+                        </item>
+                        <item build="6232">
+                            <name>*[xb:listInfoJSON]*</name>
+                            <description>
+                                <p>If the UX Component contains one or more List controls, contains an array of objects in JSON format with information about the list. Each entry in the array has the following format:</p>
+                                <p>
+                                    <example code="json"><![CDATA[{"list":"listId","checkedRows":"comma_delimited_list_of_checked_rows"}]]></example>
+                                </p>
+                                <p>*[xb:"list"]* contains the ID of the List control. If the List has a check-box select column, *[xb:"checkedRows"]* is a comma delimieted list of rows that have been checked.</p>
+                                <p>You can inspect the JSON to determine what rows are checked in a List with a [check-box select control]. For example:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[DIM listInfo AS P
+listInfo = json_parse(e.listInfoJSON)
+
+if (listInfo.size() > 0) then
+    if (variable_exists("listInfo[1].checkedRows")) then
+        DIM listId AS C
+        DIM rows AS C
+        listId = listInfo[1].list
+        rows = crlf_to_comma(listInfo[1].checkedRows.dump_properties(" value"))
+        ' Return JS alert displaying the list of checked rows for the first list in listInfo.
+        e.javascript = "alert('Checked rows for list \'"+listId+"\' : "+rows+"');"
+    end if
+end if]]></example>
+                                </p>
+                                <p>If a list has no checked rows, the *[js:checkedRows]* property will be blank.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[xb:repeatingSectionNames]*</name>
+                            <description>
+                                <p>If the UX contains one or more repeating sections, contains a comma delimited list of container IDs for each repeating section.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[xb:repeatingSectionNames]*</name>
+                            <description>
+                                <p>If the UX contains one or more repeating sections, contains a property array with one etry for each repeating section with the following properties:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name>*[xb:activeRow]*</name>
+                                            <description>The repeating section row that had focus with the callback was made.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:deletedRows]*</name>
+                                            <description>A CRLF delimimted list of delete rows in the repeating section.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:rowCount]*</name>
+                                            <description>The number of non-deleted rows in the repeating section.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:totalRowCount]*</name>
+                                            <description>The total number of rows in the repeating section -- includes deleted rows.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:fieldsInRepeating]*</name>
+                                            <description>A CRLF delimited list of feilds in the repeating section.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:dirtyRowsInSection]*</name>
+                                            <description>A CRLF delimited list of modified rows in the repeating section.</description>
+                                        </item>
+                                        <item>
+                                            <name>*[xb:dirtyFieldsInSection]*</name>
+                                            <description>
+                                                <p>A CRLF delimited list of modified fields in the repeating section. Each field uses the following format:</p>
+                                                <p>
+                                                    <example><![CDATA[*[em:fieldname]*_A5INSTANCE*[em:rownum]*]]></example>
+                                                </p>
+                                                <p>Where *[em:fieldname]* is the name of the field name and *[em:rownum]* is the row number in the repeating sectino. For example, if the 'PARTNO' field for row 3 in a repeating section has been modified, the following entry will be in the *[xb:dirtyFieldsInSection]* list:</p>
+                                                <p>
+                                                    <example><![CDATA[PARTNO_A5INSTANCE3]]></example>
+                                                </p>
+                                            </description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[xb:_set]*</name>
+                            <description>
+                                <p>An optional variable that can be used to set the value or select properties of a control on the client. Alpha Anywhere generates the requried JavaScript to send to the client to set the value or property. For example:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[' Set the value of 'Lastname'
+e._set.lastname.value = "Smith"
+
+'Set the value in 3rd Repeating Section row
+e._set.firstname_a5instance3.value = "Fred"
+
+' Set the style attribute for the 'Lastname' field
+e._set.lastname.style = "color: red;"
+
+' Set the class attribute for the 'Lastname' field
+e._set.lastname.className = "NewClassName"
+
+' Set the color and font size of the 'Firstname' field
+e._set.firstname.style.color = "red"
+e._set.firstname.style.fontSize = "20pt"
+
+' Set multiple values in a checkbox or dropdown:
+DIM choices AS P          ' declare a pointer variable
+DIM choices.value[3] AS C ' add a property called 'value'
+choices.value[1] = "alpha"
+choices.value[2] = "beta"
+choices.value[3] = "gamma"
+e._set.greekletters.value = choices]]></example>
+                                </p>
+                                <p>Setting style attirbutes preserves any existing styling. It is important to note that attribute names are case-sensistive.</p>
+                            </description>
+                            <warning>
+                                <p>Using *[xb:_set]* to return JavaScript can have a negative impact on performance. Prefer to return JavaScript directly from your Xbasic function. EG:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[DIM js AS C = ""
+js = js + "{dialog.object}.setValue('LASTNAME','Smith');"
+js = js + <<%js%
+var ele = {dialog.object}.getPointer('FIRSTNAME'); 
+if (ele) { 
+    ele.style.fontSize = '20pt'; 
+    ele.style.color = 'red';
+}
+%js%
+
+' Return JavaScript from the callback and terminate the function:
+return js]]></example>
+                                </p>
+                            </warning>
+                        </item>
+                        <item>
+                            <name>*[xb:_setElement]*</name>
+                            <description>
+                                <p>Similar to the *[xb:_set]* property, an optional variable that can be used to set the value or select properties of an element, such as DIV or SPAN.  Alpha Anywhere generates the requried JavaScript to send to the client to set the value or property. For example:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[' Set the innerHTML of DIV with the id of 'DIV1' 
+e._setElement.DIV1.value = "Some text"
+' Set style properties of a SPAN with id of 'SPN2'
+e._setElement.SPN2.style.color = "Red"]]></example>
+                                </p>
+                                <p>Setting style attirbutes preserves any existing styling. It is important to note that attribute names are case-sensistive.</p>
+                            </description>
+                            <warning>
+                                <p>Using *[xb:_setElement]* to return JavaScript can have a negative impact on performance. Prefer to return JavaScript directly from your Xbasic function. EG:</p>
+                                <p>
+                                    <example code="xb"><![CDATA[DIM js AS C = ""
+js = js + "$('DIV1').innerHTML = 'Some text';"
+js = js + <<%js%
+var ele = $('SPN2');
+if (ele) { 
+    ele.style.color = 'red';
+}
+%js%
+
+' Return JavaScript from the callback and terminate the function
+return js]]></example>
+                                </p>
+                            </warning>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
             <title>Videos</title>
             <videos>
                 <title>Chunked Responses - Sending Intermediate Responses to the Client</title>
@@ -295,6 +487,7 @@ a5AjaxChunkedResponseWrite(js)]]></example>
         <link link="javascript actions">Javascript Actions</link>
         <link link="grid component ajaxcallback method">Grid Component</link>
         <link link="ux component ajaxcallback method">UX Component</link>
+        <link link="uxlist%20has%20checkbox%20select%20col">check-box select control</link>
     </links>
     <see>
         <ref link="grid component ajaxcallback method">{grid.Object}.ajaxCallback Method</ref>

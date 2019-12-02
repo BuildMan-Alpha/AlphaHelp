@@ -1,225 +1,237 @@
 <page>
-   <shortlink>ux events afterdialogvalidate</shortlink>
+    <shortlink>ux events afterdialogvalidate</shortlink>
     <topic>afterDialogValidate</topic>
-    <description>Fires after the UX Component is successfully validated. Does not fire if the dialogValidate() 
-        event returns any errors.
-    </description>
- 
-    
+    <description>Fires after the UX Component is successfully validated. Does not fire if the dialogValidate event returns an error.</description>
     <sections>
         <section>
-          <list>
-              <item>
-                  <name>e.dataSubmitted</name>
-                  <description>Contains all values that were submitted by the component. </description>
-              </item>
-              <item>
-                  <name>e.oldDataSubmitted</name>
-                  <description>Contains the original values in the controls. </description>
-              </item>
-              
-          </list>
+            <list>
+                <item>
+                    <name>e.dataSubmitted</name>
+                    <description>Contains all values that were submitted by the component. </description>
+                </item>
+                <item>
+                    <name>e.oldDataSubmitted</name>
+                    <description>Contains the original values in the controls. </description>
+                </item>
+                <item build="6232">
+                    <name>e.listInfoJSON</name>
+                    <description>
+                        <p>If the UX Component contains a List with a [check-box select control], contains a array of objects in JSON format of the checked rows for each List in the UX. The array has the following format:</p>
+                        <p>
+                            <example code="json"><![CDATA[{"list":"listId","checkedRows":"comma_delimited_list_of_checked_rows"}]]></example>
+                        </p>
+                        <p>*[xb:"list"]* contains the ID of the List control. If the List has a check-box select column, *[xb:"checkedRows"]* is a comma delimieted list of rows that have been checked.</p>
+                        <p>You can inspect the JSON to determine what rows are checked in a List with a [check-box select control]. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM listInfo AS P
+listInfo = json_parse(e.listInfoJSON)
+
+if (listInfo.size() > 0) then
+    if (variable_exists("listInfo[1].checkedRows")) then
+        DIM listId AS C
+        DIM rows AS C
+        listId = listInfo[1].list
+        rows = crlf_to_comma(listInfo[1].checkedRows.dump_properties(" value"))
+        ' Return JS alert displaying the list of checked rows for the first list in listInfo.
+        e.javascript = "alert('Checked rows for list \'"+listId+"\' : "+rows+"');"
+    end if
+end if]]></example>
+                        </p>
+                        <p>If a list has no checked rows, the *[js:checkedRows]* property will be blank.</p>
+                    </description>
+                </item>
+            </list>
             <note>All values in e.dataSubmitted and e.oldDataSubmitted are character type. Use the convert_type() function to convert data to a different type.</note>
         </section>
-<section>
-    <description>The list of dirty submitted fields is in: e.dirtyColumns. This is a CRLF delimited string of dirty fields (i.e. fields
-edited by the user). For example:</description>
-    <example><![CDATA[FIRSTNAME
+        <section>
+            <description>The list of dirty submitted fields is in: e.dirtyColumns. This is a CRLF delimited string of dirty fields (i.e. fields edited by the user). For example:</description>
+            <example><![CDATA[FIRSTNAME
 QTY_A5INSTANCE3]]></example>
-</section>
-<section>
-    <title>Important</title>
-    <description>If your event handler modifies a value in the e.dataSubmitted object (and that field has NOT
-been edited by the user), you MUST explicitly add the field to the e.dirtyColumns value yourself.
-For example, assume that you want to set the Company field to 'Alpha' and the 'Qty' field in row 1 of a repeating section
-regardless of whether the user edited the value or not:</description>
-<example><![CDATA[e.dataSubmitted.COMPANY = "alpha"
+        </section>
+        <section>
+            <title>Important</title>
+            <description>
+                <p>If your event handler modifies a value in the e.dataSubmitted object (and that field has NOT been edited by the user), you MUST explicitly add the field to the e.dirtyColumns value yourself.</p>
+                <p>For example, assume that you want to set the Company field to 'Alpha' and the 'Qty' field in row 1 of a repeating section regardless of whether the user edited the value or not:</p>
+                <p>
+                    <example><![CDATA[e.dataSubmitted.COMPANY = "alpha"
 e.dataSubmitted.QTY_A5INSTANCE2 = "2"
 e.dirtyColumns = e.dirtyColumns + crlf()+ "COMPANY" + crlf() + "QTY_A5INSTANCE2"]]></example>
-    
-</section>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Repeating Sections</title>
+            <description>If your dialog contains repeating sections, data in the repeating sections will be in an array. For example, say that your dialog has a repeating section that includes a field called QTY:</description>
+            <list>
+                <item>
+                    <name>e.dataSubmitted.qty[1]</name>
+                    <description>Contains data from first repeating section row</description>
+                </item>
+                <item>
+                    <name>e.dataSubmitted.qty[2]</name>
+                    <description>Contains data from second repeating section row, etc</description>
+                </item>
+                <item>
+                    <name>e.dataSubmitted.favoriteColors[2][3]</name>
+                    <description>Contains data from the second row - 'favoriteColors' is a multi-select control - returns the 3rd choice the user made
+                    </description>
+                </item>
+                <item>
+                    <name>e.dataSubmitted.qty.size()</name>
+                    <description>Number of entries in the array.</description>
+                </item>
 
-<section>
-    <title>Repeating Sections</title>
-<description>If your dialog contains repeating sections, data in the repeating sections will be in an array.
-For example, say that your dialog has a repeating section that includes a field called QTY:</description>
-    
-<list>
-    <item>
-        <name>e.dataSubmitted.qty[1]</name>
-        <description>Contains data from first repeating section row</description>
-    </item>
-    <item>
-        <name>e.dataSubmitted.qty[2]</name>
-        <description>Contains data from second repeating section row, etc</description>
-    </item>
-    <item>
-        <name>e.dataSubmitted.favoriteColors[2][3]</name>
-        <description>Contains data from the second row - 'favoriteColors' is a multi-select control - returns the 3rd choice the user made
-</description>
-    </item>
-    <item>
-        <name>e.dataSubmitted.qty.size()</name>
-        <description>Number of entries in the array.</description>
-    </item>
-    
-    
-</list>
-    
-</section>
-<section>
-    <description>In addition, the e object will contain information about the repeating sections</description>
-    <list>
-        <item>
-            <name>e.repeatingSectionNames</name>
-            <description>A comma delimited list of the name (container ID) or each repeating section</description>
-        </item>
-        <item>
-            <name>e.repeatingSectionInfo</name>
-            <description>A property array with one entry for each repeating section.</description>
-        </item>
-        
-    </list>
-    
-</section>
-<section>
-    <description>The e.repeatingSectionInfo[] array will have these properties for each entry:</description>
-    
-    <list>
-        <item>
-            <name>.activeRow</name>
-            <description>The row in the repeating section that had focus when the Dialog was submitted</description>
-        </item>
-        <item>
-            <name>.deletedRows</name>
-            <description>A CRLF delimited list of rows that were deleted. e.g. 1 and 3</description>
-        </item>
-        <item>
-            <name>.rowCount</name>
-            <description>A count of the number of non-deleted rows</description>
-        </item>
-        <item>
-            <name>.totalRowCount</name>
-            <description>A count of all rows in the repeating section including rows that were deleted</description>
-        </item>
-        <item>
-            <name>.fieldsInRepeating section</name>
-            <description>A CRLF delimited list of fields in the repeating section</description>
-        </item>
-        <item>
-            <name>.dirtyRowsInSection</name>
-            <description>A CRLF delimited list of rows in the repeating section that were edited. (A row that was edited, then deleted will still appear in this list).
-</description>
-        </item>
-         <item>
-            <name>.dirtyFieldsInSection</name>
-            <description>A CRLF delimited list of fields in the repeating section that were edited. for example: PARTNO_A5INSTANCE3 is the 'PARTNO' field in row 3.
-</description>
-        </item>
-        
-        
-    </list>
-    
-</section>
-<section>
-    <title>Request</title>
-    <description>The Request object. Includes Request.Variables, which should be used instead of the older e.rv construct</description>
-</section>
- <section>
-    <title>Session</title>
-    <description>The Session object. Should be used instead of the older e.session construct</description>
-</section>
- <section>
-    <title>Also inside e:</title>
-    <list>
-        <item>
-            <name>e.tmpl</name>
-            <description>Component definition</description>
-        </item>
-        <item>
-            <name>e.rtc</name>
-            <description>Runtime calculations, you can use this to store data to be passed to other server side events (Note: the 'rtc' object cannot be used to persist state information - i.e. you can't set a value in rtc and then read that value in a subsequent callback. To persist state info see e._state).
-</description>
-        </item>
-        <item>
-            <name>e.arguments</name>
-            <description>SQL::Arguments object with values for each of the arguments defined in this component.  To read a value from arguments: e.arguments.find("argumentName").data
-</description>
-        </item>
-        
-        
-    </list>
-</section>
- <section>
-     <description>You can can set these properties:</description>
-       <list>
-        <item>
-            <name>e.url</name>
-            <description>if you want to redirect to another page, set this property</description>
-        </item>
-        <item>
-            <name>e.javascript</name>
-            <description>if you want to send some javascript back to the browser, set this property.</description>
-        </item>
-     
-        
-    </list>
- </section>
- <section>
-     <description>TIP: If you want to set the form back to a 'clean' state (which will cause the Submit/Reset buttons to go back to disabled) you should send the following 
+
+            </list>
+
+        </section>
+        <section>
+            <description>In addition, the e object will contain information about the repeating sections</description>
+            <list>
+                <item>
+                    <name>e.repeatingSectionNames</name>
+                    <description>A comma delimited list of the name (container ID) or each repeating section</description>
+                </item>
+                <item>
+                    <name>e.repeatingSectionInfo</name>
+                    <description>A property array with one entry for each repeating section.</description>
+                </item>
+
+            </list>
+
+        </section>
+        <section>
+            <description>The e.repeatingSectionInfo[] array will have these properties for each entry:</description>
+
+            <list>
+                <item>
+                    <name>.activeRow</name>
+                    <description>The row in the repeating section that had focus when the Dialog was submitted</description>
+                </item>
+                <item>
+                    <name>.deletedRows</name>
+                    <description>A CRLF delimited list of rows that were deleted. e.g. 1 and 3</description>
+                </item>
+                <item>
+                    <name>.rowCount</name>
+                    <description>A count of the number of non-deleted rows</description>
+                </item>
+                <item>
+                    <name>.totalRowCount</name>
+                    <description>A count of all rows in the repeating section including rows that were deleted</description>
+                </item>
+                <item>
+                    <name>.fieldsInRepeating section</name>
+                    <description>A CRLF delimited list of fields in the repeating section</description>
+                </item>
+                <item>
+                    <name>.dirtyRowsInSection</name>
+                    <description>A CRLF delimited list of rows in the repeating section that were edited. (A row that was edited, then deleted will still appear in this list).
+                    </description>
+                </item>
+                <item>
+                    <name>.dirtyFieldsInSection</name>
+                    <description>A CRLF delimited list of fields in the repeating section that were edited. for example: PARTNO_A5INSTANCE3 is the 'PARTNO' field in row 3.
+                    </description>
+                </item>
+
+
+            </list>
+
+        </section>
+        <section>
+            <title>Request</title>
+            <description>The Request object. Includes Request.Variables, which should be used instead of the older e.rv construct</description>
+        </section>
+        <section>
+            <title>Session</title>
+            <description>The Session object. Should be used instead of the older e.session construct</description>
+        </section>
+        <section>
+            <title>Also inside e:</title>
+            <list>
+                <item>
+                    <name>e.tmpl</name>
+                    <description>Component definition</description>
+                </item>
+                <item>
+                    <name>e.rtc</name>
+                    <description>Runtime calculations, you can use this to store data to be passed to other server side events (Note: the 'rtc' object cannot be used to persist state information - i.e. you can't set a value in rtc and then read that value in a subsequent callback. To persist state info see e._state).
+                    </description>
+                </item>
+                <item>
+                    <name>e.arguments</name>
+                    <description>SQL::Arguments object with values for each of the arguments defined in this component.  To read a value from arguments: e.arguments.find("argumentName").data
+                    </description>
+                </item>
+
+
+            </list>
+        </section>
+        <section>
+            <description>You can can set these properties:</description>
+            <list>
+                <item>
+                    <name>e.url</name>
+                    <description>if you want to redirect to another page, set this property</description>
+                </item>
+                <item>
+                    <name>e.javascript</name>
+                    <description>if you want to send some javascript back to the browser, set this property.</description>
+                </item>
+
+
+            </list>
+        </section>
+        <section>
+            <description>TIP: If you want to set the form back to a 'clean' state (which will cause the Submit/Reset buttons to go back to disabled) you should send the following 
 Javascript back to the browser:</description>
-     <example><![CDATA[e.javascript = "{dialog.object}.resetForm(false); //false suppresses the confirmation mesage"]]></example>
- </section>
- <section>
-     <description>You can set 'state' variables in this event. The value of any state variables will be available in all subsequent ajax callbacks.
+            <example><![CDATA[e.javascript = "{dialog.object}.resetForm(false); //false suppresses the confirmation mesage"]]></example>
+        </section>
+        <section>
+            <description>You can set 'state' variables in this event. The value of any state variables will be available in all subsequent ajax callbacks.
 To set a state variable:</description>
-     <example><![CDATA[e._state.myvar1 = "value1"
+            <example><![CDATA[e._state.myvar1 = "value1"
 e._state.myvar2 = "value2" ]]></example>
- </section>
-
-<section>
-    <description>To read the value of a 'state' variable that was previously set:</description>
-    <example><![CDATA[e._state.myvar1]]></example>
-</section>
-<section>
-   <title>Closing the Window in Which the UX Component is Hosted</title> 
-    <description>In certain cases the UX component will have been opened in a pop-up Ajax window and you will want code in this event handler to close the pop-up window.
+        </section>
+        <section>
+            <description>To read the value of a 'state' variable that was previously set:</description>
+            <example><![CDATA[e._state.myvar1]]></example>
+        </section>
+        <section>
+            <title>Closing the Window in Which the UX Component is Hosted</title>
+            <description>In certain cases the UX component will have been opened in a pop-up Ajax window and you will want code in this event handler to close the pop-up window.
 Here is how you can do this:</description>
-<cases>
-    <case>
-        <description>a) In the action that opens the UX in a window, set the Window title to something like this: MyWindowTitle<span id="mywindowid"></span>
-</description>
-    </case>
-    <case>
-        <description>b) In this event handler set e.javascript to: </description>
-        <example><![CDATA[var ele = $('mywindowid');
+            <cases>
+                <case>
+                    <description>a) In the action that opens the UX in a window, set the Window title to something like this: MyWindowTitle<span id="mywindowid"></span>
+                    </description>
+                </case>
+                <case>
+                    <description>b) In this event handler set e.javascript to: </description>
+                    <example><![CDATA[var ele = $('mywindowid');
 {dialog.object}.closeContainerWindow(ele);]]></example>
-    </case>
-    
-    
-</cases>
-
-</section>
-<section>
-    <description>If you have used Server-side Action Scripting in this event to save the submitted data to a table, then you might want to reference
+                </case>
+            </cases>
+        </section>
+        <section>
+            <description>If you have used Server-side Action Scripting in this event to save the submitted data to a table, then you might want to reference
 the rtc.flagRecordWasSaved variable (which is set by the Action Script) to decide if the window should be closed or not. In addition, since the
 Server-side Action will have already set the value of the e.javascript variable, you will want to append your code to e.javascript, as follows:</description>
-    <example><![CDATA[e.javascript = e.javascript + crlf() + var ele = $('mywindowid'); + crlf() + {dialog.object}.closeContainerWindow(ele);]]></example>
-</section>
-
-
+            <example><![CDATA[e.javascript = e.javascript + crlf() + var ele = $('mywindowid'); + crlf() + {dialog.object}.closeContainerWindow(ele);]]></example>
+        </section>
     </sections>
-    
-     <see>
-         <ref link="ux events dialogvalidate">dialogValidate</ref>
-       <ref link="ux properties validation and error reporting">Validation and Error Reporting</ref>
-         <ref link="UX Control Field Properties">Field Properties</ref>
-         <ref link="UX Control Field Properties Validation Xbasic">Validation Xbasic</ref>
-          <ref link="UX Control Field Properties Validation rules">Validation rules</ref>
-         <ref link="UX Control Field Properties Immediate validation">Immediate validation</ref>
-   
+    <see>
+        <ref link="ux events dialogvalidate">dialogValidate</ref>
+        <ref link="ux properties validation and error reporting">Validation and Error Reporting</ref>
+        <ref link="UX Control Field Properties">Field Properties</ref>
+        <ref link="UX Control Field Properties Validation Xbasic">Validation Xbasic</ref>
+        <ref link="UX Control Field Properties Validation rules">Validation rules</ref>
+        <ref link="UX Control Field Properties Immediate validation">Immediate validation</ref>
         <ref link="UX Control Field Properties Validation Javascript">Validation Javascript</ref>
     </see>
-    
-    
+    <links>
+        <link link="uxlist%20has%20checkbox%20select%20col">check-box select control</link>
+    </links>
 </page>
