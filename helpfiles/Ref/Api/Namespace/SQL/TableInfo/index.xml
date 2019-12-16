@@ -2,6 +2,23 @@
 	<shortlink>api sql namespace table info class</shortlink>
 	<topic>SQL::TableInfo Class</topic>
 	<description>Functions for inspecting information about tables.</description>
+	<discussion>
+		<p>The SQL::TableInfo object returns information about a database table. It can be useful when importing data from or exporting data to back-end tables. The easiest way to get a SQL::TableInfo object is to use the SQL::Connection::GetTableInfo() method. The following code was run in the Interactive window.</p>
+		<p>
+			<example code="xb"><![CDATA[dim conn as SQL::Connection
+dim ti as SQL::TableInfo
+
+' Define the connection string and open the connection.
+? conn.open("{A5API=Access,FileName='C:\Program Files\a5v8\MDBFiles\Alphasports.mdb',UserName='Admin'}")
+= .T.
+
+' Get the TableInfo
+? conn.GetTableInfo(ti, "customer")
+= .T.]]></example>
+		</p>
+		<p>Note that the SQL::TableInfo object is passed as an argument, along with the name of the table to investigate.</p>
+		<p>Properties and methods of the SQL::TableInfo object are listed below.</p>
+	</discussion>
 	<properties>
 		<property generated="true">
 			<name>XML</name>
@@ -16,7 +33,21 @@
 		<property generated="true" readonly="true">
 			<name>TableTypeName</name>
 			<type>C</type>
-			<description>The displayable name of the enumeration value in TypeName. </description>
+			<description>
+				<p>This is the displayable name of the enumeration value in TypeName.</p>
+				<p>
+					<example code="xb"><![CDATA[? tt.TableType 
+= -1
+? tt.TableTypeName 
+= "Invalid"
+tt.tabletype 
+= View
+? tt.TableType 
+= 1
+? tt.TableTypeName 
+= "View"]]></example>
+				</p>
+			</description>
 		</property>
 		<property generated="true" readonly="true">
 			<name>Catalog</name>
@@ -102,7 +133,39 @@
 		<property generated="true" readonly="true">
 			<name>DBFRowSyntax</name>
 			<type>C</type>
-			<description>The syntax required to create an Alpha Anywhere .DBF with the same columns. </description>
+			<description>
+				<p>The DBFRowSyntax property shows how to define a DBF table with the same columns and data as the source database.</p>
+				<p>
+					<example code="xb"><![CDATA[? ti.Name
+= "customer"
+? ti.Updateable
+= .T.
+? ti.NativeSyntax
+= "Access"
+? ti.DBFRowSyntax
+= CUSTOMER_ID,N,10,0
+FIRSTNAME,C,20,0
+LASTNAME,C,20,0
+COMPANY,C,32,0
+PHONE,C,20,0
+FAX,C,20,0
+BILL_ADDRESS1,C,40,0
+BILL_ADDRESS2,C,40,0
+BILL_CITY,C,20,0
+BILL_STATE_REGION,C,20,0
+BILL_POSTAL_CODE,C,10,0
+BILL_COUNTRY,C,20,0
+SHIP_ADDRESS1,C,40,0
+SHIP_ADDRESS2,C,40,0
+SHIP_CITY,C,20,0
+SHIP_STATE_REGION,C,20,0
+SHIP_POSTAL_CODE,C,10,0
+SHIP_COUNTRY,C,20,0
+SHIP_SAME,L,1,0
+EMAIL,C,60,0 ]]></example>
+				</p>
+
+			</description>
 		</property>
 		<property generated="true" readonly="true">
 			<name>PrimaryKeyExpression</name>
@@ -122,7 +185,22 @@
 		<property generated="true">
 			<name>QueryAlias</name>
 			<type>C</type>
-			<description>This is an advanced property used to get more information about a column. </description>
+			<description>
+				<p>This is an advanced property used to get more information about a column.</p>
+				<p>The QueryAlias property is only populated when a query object ( SQL::Query, SQL::Statement, etc.) is validated. After calling SQL::Query::Validate, the query object has a SQL::ResultSet object (no data, just definitions). The TableInfo property of the SQL::ResultSet is an array of SQL::TableInfo objects that describe the tables in the FROM clause (this is used by the query genie to map select list columns to the source table definition to get more information about the actual column.</p>
+				<p>
+					<example code="xb"><![CDATA[dim q as sql::query
+dim c as sql::connection
+?c.open("{a5api=access,filename=c:\northwind.mdb,user=admin}")
+= .T.
+?q.parse("select * from customers cust")
+= .T. 
+?q.validate(c) 
+= .T. 
+?q.resultset.tableinfo1.queryalias 
+= "cust"]]></example>
+				</p>
+			</description>
 		</property>
 		<property generated="true" readonly="true">
 			<name>Column</name>
@@ -146,38 +224,6 @@
 		</property>
 	</properties>
 	<!--list:.-->
-	<sections>
-		<section>
-			<title>QueryAlias Property</title>
-			<description>The QueryAlias property is only populated when a query object ( SQL::Query, SQL::Statement, etc.) is validated. After calling SQL::Query::Validate, the query object has a SQL::ResultSet object (no data, just definitions). The TableInfo property of the SQL::ResultSet is an array of SQL::TableInfo objects that describe the tables in the FROM clause (this is used by the query genie to map select list columns to the source table definition to get more information about the actual column.</description>
-			<example><![CDATA[dim q as sql::query
-dim c as sql::connection
-?c.open("{a5api=access,filename=c:\northwind.mdb,user=admin}")
-= .T.
-?q.parse("select * from customers cust")
-= .T. 
-?q.validate(c) 
-= .T. 
-?q.resultset.tableinfo1.queryalias 
-= "cust"]]></example>
-		</section>
-	</sections>
-	<sections>
-		<section>
-			<title>TableTypeName Property</title>
-			<description>This is the displayable name of the enumeration value in TypeName.</description>
-			<example><![CDATA[? tt.TableType 
-= -1
-? tt.TableTypeName 
-= "Invalid"
-tt.tabletype 
-= View
-? tt.TableType 
-= 1
-? tt.TableTypeName 
-= "View"]]></example>
-		</section>
-	</sections>
 	<see>
 		<ref link="SQL Namepsace">SQL</ref>
 	</see>
