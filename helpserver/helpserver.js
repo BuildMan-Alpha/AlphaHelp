@@ -100,8 +100,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     if (runHelpServer) {
         fs.readFile(errorLog, "utf8", function(err, contents) {
             if (!err && contents) {
-                fs.unlink(errorLog);
                 console.log("Last crash report:\n" + contents + "\n");
+                fs.unlink(errorLog, function(){});
             }
         });
 
