@@ -1,0 +1,164 @@
+<page api="xb">
+    <shortlink>api http post function</shortlink>
+    <topic>HTTP_POST Function</topic>
+    <description>Use the HTTP method POST to retrieve the specified URL</description>
+    <prototype>Result as P = http_post(url as C [,body as B [,cookie as C [,port as N [,timeout as N [,show_before_send as L [,validate_ssl_cert as L [,SSLCipherList as C]]]]]]])</prototype>
+    <arguments>
+        <argument>
+            <name>url</name>
+            <type>C</type>
+            <description>The address of the server that will receive your data. Character</description>
+        </argument>
+        <argument optional="true">
+            <name>body</name>
+            <type>B</type>
+            <description>The parameters you wish to send. The size of this field is unlimited.</description>
+        </argument>
+        <argument optional="true">
+            <name>cookie</name>
+            <type>C</type>
+            <description>Default = "". Cookie data.</description>
+        </argument>
+        <argument optional="true">
+            <name>port</name>
+            <type>N</type>
+            <description>Default = 80. The port to use.</description>
+        </argument>
+        <argument optional="true">
+            <name>timeout</name>
+            <type>N</type>
+            <description>Default = 8000 milliseconds. The number of milliseconds to wait before timing out.</description>
+        </argument>
+        <argument optional="true">
+            <name>show_before_send</name>
+            <type>L</type>
+            <description>Default = .F.. When .T., displays the request before being sent. Useful for debugging.</description>
+        </argument>
+        <argument optional="true">
+            <name>validate_ssl_cert</name>
+            <type>L</type>
+            <description>Default = .T.. If the specified URL starts  with "https://", this flag controls whether or not the certificate offered by the server will be validated. If set to .T., the request will always fail. If set to .F., the request may succeed, but the  server's identity is not guaranteed.</description>
+        </argument>
+        <argument optional="true">
+            <name>SSLCipherList</name>
+            <type>C</type>
+            <description>SSL Cipher List</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <type>P</type>
+            <description>A dot variable containing the server's response.</description>
+            <properties>
+                <property readonly="true">
+                    <name>error_text</name>
+                    <type>C</type>
+                    <description>The error message, if any. If no error occurs, error_text will be empty.</description>
+                </property>
+                <property readonly="true">
+                    <name>error_code</name>
+                    <type>N</type>
+                    <description>The error number, if any. If no error occurs, error_code will be 0.</description>
+                </property>
+                <property readonly="true">
+                    <name>headers</name>
+                    <type>C</type>
+                    <description>Response headers. If error_code is 0, the result will contain a dot variable, parsed_headers, with a property representing each response header.</description>
+                </property>
+                <property readonly="true">
+                    <name>body</name>
+                    <type>C</type>
+                    <description>Response body.</description>
+                </property>
+                <property readonly="true">
+                    <name>parsed_headers</name>
+                    <type>P</type>
+                    <description>Contains all the headers in the response split out into individual properties. If an error occurred when trying to communicate with the server, parsed_headers will be empty. parsed_headers will always contain the following properties in addition to the headers in the response:</description>
+                    <properties>
+                        <property readonly="true">
+                            <name>http_version</name>
+                            <type>C</type>
+                            <description>The HTTP version used.</description>
+                        </property>
+                        <property readonly="true">
+                            <name>reason_phrase</name>
+                            <type>C</type>
+                            <description>A description of the status code.</description>
+                        </property>
+                        <property readonly="true">
+                            <name>status_code</name>
+                            <type>N</type>
+                            <description>The response status code. See [Status Codes] for a list of status codes.</description>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>The HTTP_POST() function downloads from URL using HTTP/1.1 POST. The function returns a pointer with the parsed response from the server. If *[xb:error_code]* is "0", *[xb:parsed_response]* will contain the headers in the result:</discussion>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[? amazon_response.parsed_headers
+= Connection = "close"
+ContentType = "text/html;charset=UTF-8"
+Date = "Thu, 22 Dec 2016 22:55:14 GMT"
+http_version = "HTTP/1.1"
+reason_phrase = "OK"
+Server = "Server"
+SetCookie = "session-id-time=2113167314l; Domain=.amazon.com; Expires=Wed, 17-Dec-2036 22:55:14 GMT; Path=/"
+status_code = 200
+StrictTransportSecurity = "max-age=47474747; includeSubDomains; preload"
+Vary = "Accept-Encoding,User-Agent"
+xamzid1 = "AZ9PQH4SJQ41F075Z3SD"
+XFrameOptions = "SAMEORIGIN"
+xuacompatible = "IE=edge"]]></example>
+            <note>HTTP_POST sends using a content type of "Content-Type: application/x-www-form-urlencoded". To send a request using a different content type, use [HTTP_FETCH()].</note>
+        </section>
+        <section>
+            <description>Status code 200 indicates that the page exists. Status code 404 indicates that it does not. Other status codes you may encounter, along with the meanings of each, are documented in [Status Codes].</description>
+        </section>        
+        <section>
+            <title>Handling Redirects</title>
+            <description>When the server responds with a 30* code, HTTP_POST() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</description>
+        </section>
+        <section>
+            <title>HTTP POST vs HTTP GET</title>
+            <description>HTTP POST is different from HTTP GET in two significant ways. Some devices may restrict the total length of a URL to 128 characters, which may trim the arguments appended by a GET command. There is no such restriction with POST commands. You may save (bookmark) and refresh URLs formatted through HTTP GET. The arguments sent by HTTP POST are not saved in a bookmark.</description>
+        </section>
+    </sections>
+    <sections>
+        <section>
+            <title>Example</title>
+            <description>Search Amazon.com for a book.</description>
+            <example code="xb">
+                <![CDATA[dim bookname as C
+bookname = ui_get_text("book name", "What book are you looking for?")
+
+dim req_body as C
+req_body = "url=index%3Dstripbooks&field-keywords=" + urlencode(bookname) + "&go.x=1&go.y=1&go=Go"
+dim amazon_search as P
+amazon_search = http_post("https://www.amazon.com/exec/obidos/search-handle-form/103-9603918-793183", req_body)
+
+if (amazon_search.error_code = 0) then
+    if (amazon_search.parsed_headers.status_code = 200) then
+        a5_show_html(amazon_search.body)
+    else
+        ui_msg_box("An error occurred.","An error occurred. Status Code is " + amazon_search.parsed_headers.status_code + ". Reason: " + amazon_search.parsed_headers.reason_phrase)
+    end if
+else
+    ui_msg_box("An error occurred.","Unable to reach server."+crlf()+"Error Code: "+amazon_search.error_code+crlf()+"Error Message: " + amazon_search.error_text)
+end if]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="status codes">Status Codes</link>
+        <link link="HTTP_GET Function">HTTP_GET()</link>
+        <link link="api http fetch function">HTTP_FETCH()</link>
+    </links>
+    <see>
+        <ref link="How to pick an HTTP Function">How to pick an HTTP Function</ref>
+        <ref link="status codes">HTTP Status Codes</ref>
+    </see>
+    <terms>http,arguments,control,defaults,display,error,field,function,https,number,pointer,refresh,save,search,set,variable</terms>
+</page>

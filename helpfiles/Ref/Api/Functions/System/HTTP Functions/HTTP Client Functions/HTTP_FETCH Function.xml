@@ -1,0 +1,224 @@
+<page api="xb">
+    <shortlink>api http fetch function</shortlink>
+    <topic>HTTP_FETCH Function</topic>
+    <description>Sends an HTTP request to a server and retrieves the response</description>   
+    <prototype>Result as P = http_fetch(settings as P [,show_before_send as L [,SSLCipherList as C]])</prototype>
+    <arguments>
+        <argument>
+            <name>settings</name>
+            <type>P</type>
+            <description>A dot variable containing instructions for the command. Pointer</description>
+            <properties>
+                <property>
+                    <name>host</name>
+                    <type>C</type>
+                    <description>The host (server) from which to download.</description>
+                    <note>Do not include the protocol (HTTP:// or HTTPS://) in the value</note>
+                </property>
+                <property optional="true">
+                    <name>port</name>
+                    <type>N</type>
+                    <description>Default = 80 for HTTP (.ssl_on=.f.) and 443 for HTTPS (.ssl_on=.t.). The TCP/IP port on the server with which to communicate.</description>
+                </property>
+                <property optional="true">
+                    <name>page</name>
+                    <type>C</type>
+                    <description>Default = "/". The page to request from the server.</description>
+                </property>
+                <property optional="true">
+                    <name>query_string</name>
+                    <type>C</type>
+                    <description>The query string for the request.</description>
+                </property>
+                <property optional="true">
+                    <name>method</name>
+                    <type>C</type>
+                    <description>Default = "GET". The HTTP method to use when making the request (GET, POST, HEAD, OPTIONS, etc).
+                    </description>
+                </property>
+                <property optional="true">
+                    <name>protocol</name>
+                    <type>C</type>
+                    <description>Default = "HTTP/1.1". The protocol to use for the request.</description>
+                </property>
+                <property optional="true">
+                    <name>user_agent</name>
+                    <type>C</type>
+                    <description>Default = "". Sets the User-agent header in the request.</description>
+                </property>
+                <property optional="true">
+                    <name>cookie</name>
+                    <type>C</type>
+                    <description>Default = "". Sets the value of the Cookie header.</description>
+                </property>
+                <property optional="true">
+                    <name>body</name>
+                    <type>C</type>
+                    <description>Default = "". The contents of the HTTP request body.</description>
+                </property>
+                <property optional="true">
+                    <name>referer</name>
+                    <type>C</type>
+                    <description>Default = "". Sets the Referer header in the request.</description>
+                </property>
+                <property optional="true">
+                    <name>timeout</name>
+                    <type>N</type>
+                    <description>Default = 45000 (45 seconds). Sets the timeout value, in milliseconds, for the connection.</description>
+                </property>
+                <property optional="true">
+                    <name>header</name>
+                    <type>C</type>
+                    <description>Default = "". Allows setting of arbitrary headers. Would be used as:  settings.header = "X-Header: I like Alpha Software"</description>
+                </property>
+                <property optional="true">
+                    <name>SSL_ON</name>
+                    <type>L</type>
+                    <description>Default = .F. </description>
+                </property>
+                <property optional="true">
+                    <name>ssl_ValidateCert</name>
+                    <description>Default = .T.. If the specified URL starts with "https://", this flag controls whether or not the certificate offered by the server will be validated. If set to .T., the request will always fail if the certificate cannot be validated. If set to .F., the request may succeed, but the server's identity is not guaranteed.</description>
+                </property>
+            </properties>
+        </argument>
+        <argument optional="true">
+            <name>show_before_send</name>
+            <type>L</type>
+            <description>Default = .F.. When .T., displays the request before being sent. Useful for debugging. Show_Before_Send is ignored if http_fetch is run from an A5W page.</description>
+        </argument>
+        <argument optional="true">
+            <name>SSLCipherList</name>
+            <type>C</type>
+            <description>SSL Cipher List</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <type>P</type>
+            <description>A dot variable containing the server's response.</description>
+            <properties>
+                <property readonly="true">
+                    <name>error_text</name>
+                    <type>C</type>
+                    <description>The error message, if any. If no error occurs, error_text will be empty.</description>
+                </property>
+                <property readonly="true">
+                    <name>error_code</name>
+                    <type>N</type>
+                    <description>The error number, if any. If no error occurs, error_code will be 0.</description>
+                </property>
+                <property readonly="true">
+                    <name>headers</name>
+                    <type>C</type>
+                    <description>Response headers. If error_code is 0, the result will contain a dot variable, parsed_headers, with a property representing each response header.</description>
+                </property>
+                <property readonly="true">
+                    <name>body</name>
+                    <type>C</type>
+                    <description>Response body.</description>
+                </property>
+                <property readonly="true">
+                    <name>parsed_headers</name>
+                    <type>P</type>
+                    <description>Contains all the headers in the response split out into individual properties. If an error occurred when trying to communicate with the server, parsed_headers will be empty. parsed_headers will always contain the following properties in addition to the headers in the response:</description>
+                    <properties>
+                        <property readonly="true">
+                            <name>http_version</name>
+                            <type>C</type>
+                            <description>The HTTP version used.</description>
+                        </property>
+                        <property readonly="true">
+                            <name>reason_phrase</name>
+                            <type>C</type>
+                            <description>A description of the status code.</description>
+                        </property>
+                        <property readonly="true">
+                            <name>status_code</name>
+                            <type>N</type>
+                            <description>The response status code. See [Status Codes] for a list of status codes.</description>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The HTTP_FETCH() function sends an HTTP request to a server and receives the response. The function looks to see if a request body has been defined first. If one is found, and no .method has been specified, it uses POST, otherwise it uses GET. If a .method has been specified, that method will always be used, even if it is not a valid HTTP method. Similarly, if a .body is specified and the .method is not POST or PUT, the body is not sent.</p>
+    </discussion>
+    <sections>
+        <section>
+            <description>
+                <p>If *[xb:error_code]* is "0", *[xb:parsed_response]* will contain the headers in the result. The parsed headers will contain every header sent in the response, as well as the *[xb:status_code]*, *[xb:reason_phrase]*, and *[xb:http_version]*. The status_code should always be checked when the response is received. The example below shows what headers may be available in the result:</p>
+            </description>
+            <example code="xb"><![CDATA[dim settings as P
+
+dim settings.host as C = "www.alphasoftware.com"
+dim settings.page as C = "/"
+
+dim result as P
+result = http_fetch(settings)
+
+? result.error_code
+= 0
+
+? result.parsed_headers
+= AcceptRanges = "none"
+CacheControl = "private"
+Connection = "close"
+ContentLength = "47222"
+ContentType = "text/html"
+Date = "Thu, 22 Dec 2016 22:11:23 GMT"
+http_version = "HTTP/1.1"
+reason_phrase = "OK"
+Server = "Microsoft-IIS/8.5"
+SetCookie = "ASPSESSIONIDQSTBASCQ=KGOAFDNBPPOBEOIJOFEDADFA; path=/"
+status_code = 200
+XPoweredBy = "ASP.NET"]]></example>
+        </section>
+        <section>
+            <description>
+                Status code 200 indicates that the page exists. Status code 404 indicates that it does not. Other status codes you may encounter, along with the meanings of each, are documented in [Status Codes].
+            </description>
+        </section>
+        <section>
+            <title>Handling Redirects</title>
+            <description>When the server responds with a 30* code, HTTP_POST() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</description>
+        </section>
+        <section>
+            <title>Example: Page Availability</title>
+            <description>The following example tests for the availability of a page:</description>
+            <example code="xb"><![CDATA[dim settings as P
+dim result as P
+
+settings.host = "downloads.alphasoftware.com"
+settings.page = "/books/userguide.pdf"
+settings.method = "HEAD"
+result = http_fetch(settings)
+
+if (result.error_code <> 0) then
+    ui_msg_box("Error communicating with server. Error code " + result.error_code + ": " + result.error_text)
+else
+    if (result.parsed_headers.status_code = 200) then
+        a5_show_html(result.body)
+    else
+        ui_msg_box(result.parsed_headers.status_code + ": " + result.parsed_headers.reason_phrase)
+    end if
+end if]]></example>
+        </section>
+        <section>
+            <title>Validation</title>
+            <description>Validation is applied to the host specified for the HTTP request. If a full URL has been specified as the host name, the validation logic will extract the host name from the URL, allowing the HTTP request to be completed.</description>
+        </section>
+    </sections>
+    <links>
+        <link link="status codes">Status Codes</link>
+        <link link="HTTP_GET Function">HTTP_GET()</link>
+    </links>
+    <see>
+        <ref link="How to pick an HTTP Function">How to pick an HTTP Function</ref>
+        <ref link="status codes">HTTP Status Codes</ref>
+    </see>
+    <terms>http,a5w,arguments,contains,defaults,display,error,function,header,https,pages,pointer,query,set,string,variable</terms>
+</page>
