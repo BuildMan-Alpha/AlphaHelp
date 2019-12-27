@@ -17,7 +17,6 @@ In the ./AlphaHelp/helpserver folder run
 npm update
 ```
 
-
 ## Install xsltproc
 
 You will need to install xsltproc as well:
@@ -39,7 +38,18 @@ Add the following directories:
 - AlphaHelp/generated
 - AlphaHelp/generated/topics
 
-### Running the helpserver
+### Installing Elasticsearch on Windows
+
+Optional. Installing elasticsearch is only required if you want to run the helpserver locally with search.
+
+	1. Download .msi for Elasticsearch from https://www.elastic.co/guide/en/elasticsearch/reference/current/windows.html
+	2. Run installer with default configuration
+ 3. Add the following directories:
+     - AlphaHelp/generated/plaintext
+ 
+### Start the Helpserver
+
+#### Run without search
 
 For a lightweight version of the help server, run the helpserver.js script with the -nosearch parameter. You can run the following command from within AlphaHelp/helpserver to run the helserver without search:
 
@@ -47,20 +57,28 @@ For a lightweight version of the help server, run the helpserver.js script with 
 node helpserver.js -nosearch
 ```
 
-The first time in, there will be no generated table-of-contents so you will need to refresh this, otherwise
-none of the 'books' will have any child links - this can be done by opening a browser, navigating to 
-*127.0.0.1:3002/refresh* , and click on the refresh button, and wait for the page to refresh 
-(refresh count will increment).
+or
 
-After the refresh, navigate to the root URL  *127.0.0.1:3002/* , you should be able to navigate the 
-documentation site locally now.
+```
+node helpserver.js -ns
+```
 
-For a fully implementation (working search) run helpserver.js with the -local parameter. You will need to install and run the 
-elasticsearch service on your system.
+#### Run with search
+
+For a fully implementation (working search) run helpserver.js with the -local parameter. 
 
 ```
 node helpserver.js -local
 ```
+
+### Initialize the Helpserver TOC and Search Indicies
+
+The first time in, there will be no generated table of contents. If you are running the helpserver with elasticsearch, the search index for the help system will also not exist. Before you can start browsing and searching the help system, you must initilize the index and TOC. The system can be initilized by refreshing the help index:
+
+1. Open a browser and navigate to *127.0.0.1:3002/refresh*
+2. Click the refresh button, and wait for the page to refresh 
+
+After the refresh, navigate to the root URL  *127.0.0.1:3002/* and beging browing and/or searching the help.
 
 ## Troubleshooting
 
