@@ -108,7 +108,7 @@ Props:
 ```
 
 
-#Generating Help Pages From Javascript Source
+# Generating Help Pages From Javascript Source
 
 The build.json file in this folder contains the settings for reading comments out of source code.  
 The 'javascript' entry is an array of patterns to search, they can be specific filenames, or can 
