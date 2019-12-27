@@ -42,10 +42,10 @@ Add the following directories:
 
 Optional. Installing elasticsearch is only required if you want to run the helpserver locally with search.
 
-	1. Download .msi for Elasticsearch from https://www.elastic.co/guide/en/elasticsearch/reference/current/windows.html
-	2. Run installer with default configuration
- 3. Add the following directories:
-     - AlphaHelp/generated/plaintext
+1. Download .msi for Elasticsearch from https://www.elastic.co/guide/en/elasticsearch/reference/current/windows.html
+2. Run installer with default configuration
+3. Add the following directories:
+   - AlphaHelp/generated/plaintext
  
 ### Start the Helpserver
 
