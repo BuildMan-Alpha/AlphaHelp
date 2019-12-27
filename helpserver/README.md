@@ -65,7 +65,7 @@ node helpserver.js -ns
 
 #### Run with search
 
-For a fully implementation (working search) run helpserver.js with the -local parameter. 
+For a fully implementation (working search) run helpserver.js with the -local parameter. Elasticsearch must be installed and running in order to have search capabilities.
 
 ```
 node helpserver.js -local
