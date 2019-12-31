@@ -25,8 +25,7 @@
             <description>Default = .f.. Returns the value as a hex encoded value instead of a base64 encoded value. If .t., returned value is hex encoded. Otherwise, return value is base64 encoded.</description>
         </argument>
     </arguments>
-    <discussion>Generates a base64 digital signature of the data using the key and HMACSHA1, HMACSHA256, or any other signing method supported by the .NET Framework. This is useful for verifying file uploads and downloads, and for signing e-commerce documents as required by sites such as Amazon.
-    </discussion>
+    <discussion>Generates a base64 digital signature of the data using the key and HMACSHA1, HMACSHA256, or any other signing method supported by the .NET Framework. This is useful for verifying file uploads and downloads, and for signing e-commerce documents as required by sites such as Amazon.</discussion>
     <sections>
         <section>
             <title>Example</title>
@@ -58,41 +57,34 @@
         <section>
             <title>Troubleshooting Hash Problems</title>
             <description>
-                <p>Given that a hash is deterministic given the same key, data and alogrithm, if a service you are calling, or a client calling your service, has a hash that doesn't match yours, it is one of the following problems:</p>
+                <p>Given the same key, data, and algorithm, a hash will always return the same value. A service you are calling, or a client calling your service, will return a hash that does not match yours in the following scenarios:</p>
             </description>
-            <cases>
-                <case>
+            <list bullet="true">
+                <item>
+                    <name>The key does not match. Make sure you are using the correct key.</name>
+                </item>
+                <item>
+                    <name>The algorithm does not match. Make sure you picked the same algorithm the service your are calling is using.</name>
+                </item>
+                <item>
+                    <name>The data does not match. This can occur when data sent over HTTP to a service is being normalized.</name>
                     <description>
-                        <p>The key does not match.</p>
+                        <p>For example, carriage-return/linefeeds (CR-LF) in the data may be converted into linefeeds (LF), or data character encoding may change.</p>
+                        <p>If the data is being normalized when it is sent, you will need to adjust the data when calculating the hash. For example, if carriage returns are being removed, convert all CR-LF values to chr(10) in the data before creating the hash:</p>
+                        <p>
+                            <example code="xb"><![CDATA[' Convert CR-LF (crlf()) to linefeeds (chr(10)):
+data = strtran(data,crlf(),chr(10))
+HMAC_HASH(data, "my key", "HMACSHA1")]]></example>
+                        </p>
+                        <p>If data is URLENCODED, you may need to urldecode it before calculating the hash:</p>
+                        <p>
+                            <example code="xb"><![CDATA[' URL Decode data:
+data = urldecode(data)
+HMAC_HASH(, "my key", "HMACSHA1")]]></example>
+                        </p>
                     </description>
-                </case>
-                <case>
-                    <description>
-                        <p>The alogrithm does not match.  Make sure you picked the same alogrithm that that service your are calling is using.</p>
-                    </description>
-                </case>    
-                <case>
-                    <description>
-                        <p>The data does not match.</p>
-                        <p>This can very occur because sending data over HTTP to a service, the data may be normalized in some way.</p>
-                        <p>For example, carriage-return/linefeeds may be converted into linefeeds, or character encoding may change.</p>
-                    </description>
-                    <cases>
-                        <case>
-                            <description>
-                                <p>If the data is being normalized in some way when it is sent, you will need to adjust the data when calculating the hash, for example, if carriage returns are getting lost, simply strip them out when computing the hash.</p>                
-                            </description>
-                            <example code="xb"><![CDATA[HMAC_HASH(strtran(data,crlf(),chr(10)), "my key", "HMACSHA1")]]></example>
-                        </case>    
-                        <case>
-                            <description>
-                                <p>If the data URLENCODED before it is sent, for example when it is included in a URL query parameter, you may need to urldecode it when calculating the hash.</p>                
-                            </description>
-                            <example code="xb"><![CDATA[HMAC_HASH(urldecode(data), "my key", "HMACSHA1")]]></example>
-                        </case>
-                    </cases>
-                </case>    
-            </cases>
+                </item>
+            </list>
         </section>
     </sections>
     <see>
