@@ -55,6 +55,45 @@
         <section>
             <note>The value returned is in base64, which is what most e-commerce sites want. If you try to compare base64 with an online hash calculator that returns hexadecimal, they will not appear to match. Also, HMAC hashes are encrypted with a key, unlike simple unencrypted hashes such as SHA-1.</note>
         </section>
+        <section>
+            <title>Troubleshooting Hash Problems</title>
+            <description>
+                <p>Given that a hash is deterministic given the same key, data and alogrithm, if a service you are calling, or a client calling your service, has a hash that doesn't match yours, it is one of the following problems:</p>
+            </description>
+            <cases>
+                <case>
+                    <description>
+                        <p>The key does not match.</p>
+                    </description>
+                </case>
+                <case>
+                    <description>
+                        <p>The alogrithm does not match.  Make sure you picked the same alogrithm that that service your are calling is using.</p>
+                    </description>
+                </case>    
+                <case>
+                    <description>
+                        <p>The data does not match.</p>
+                        <p>This can very occur because sending data over HTTP to a service, the data may be normalized in some way.</p>
+                        <p>For example, carriage-return/linefeeds may be converted into linefeeds, or character encoding may change.</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <description>
+                                <p>If the data is being normalized in some way when it is sent, you will need to adjust the data when calculating the hash, for example, if carriage returns are getting lost, simply strip them out when computing the hash.</p>                
+                            </description>
+                            <example code="xb"><![CDATA[HMAC_HASH(strtran(data,crlf(),chr(10)), "my key", "HMACSHA1")]]></example>
+                        </case>    
+                        <case>
+                            <description>
+                                <p>If the data URLENCODED before it is sent, for example when it is included in a URL query parameter, you may need to urldecode it when calculating the hash.</p>                
+                            </description>
+                            <example code="xb"><![CDATA[HMAC_HASH(urldecode(data), "my key", "HMACSHA1")]]></example>
+                        </case>
+                    </cases>
+                </case>    
+            </cases>
+        </section>
     </sections>
     <see>
         <ref link="DotNet Example: Digital Hash">DotNet Example: Digital Hash</ref>
