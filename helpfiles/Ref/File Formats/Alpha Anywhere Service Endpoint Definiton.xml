@@ -331,7 +331,18 @@
                 </item>
             </list>
         </section>
-
+        <section>
+            <title>CORS Definition</title>
+            <description>
+            <p>Specifies Cross Origin Resource Sharing settings for the endpoint.</p>
+            </description>
+            <list>
+                <item>
+                    <name>headers</name>
+                    <description>String containing comma separated List of allowed headers, use '*' for allow all requested headers.</description>
+                </item>
+            </list>
+        </section>
         <section>
             <title>Binary Types</title>
             <list>
@@ -781,5 +792,56 @@ c:\>curl -X GET "http://127.0.0.1:1580/LivePreview/MultiAuth.a5svc/ListUsers?api
 ]
 ]]></example>
         </section>        
+        <section> 
+        <title>CORS settings</title>
+        <description>
+            <p>Cross Origin Resource Sharing is an important issue for services, especially since services generally are called from different hosts.</p>
+            <p>There is a "cors" section to the A5SVC definition which controls which headers are allowed in a request.  If you set the "headers" to "*", then the endpoint will allow every header that the caller requests.</p>
+        </description>
+        <example>
+<![CDATA[
+{
+    ....
+    "cors" : {
+        "headers" : "*"
+    }
+}
+]]></example>
+        </section>
+        <section> 
+        <title>Custom CORS behaviour</title>
+        <description>
+            <p>A custom handler can be defined for options if anything more complicated is required.</p>
+            <p>The service definition 'options_handler' section contains the name of the class, the language used, and the name of the class method to call.</p>
+        </description>
+        <example>
+<![CDATA[
+{
+    ...
+    "options_handler": {
+        "service": "customOptions::Manager",
+        "implementation": "xbasic",
+        "name": "option_request_handler",
+    }
+    ...
+}
+]]></example>
+        </section>
+        <section> 
+        <description>In the above example, the implementation is a function with no arguments that sets the __http_status that is to be returned (you can return 401 if you don't like the request).  In this example we are adding headers to allow content-type and apikey headers.</description>
+        <example>
+<![CDATA[
+define class customOptions::Manager
+    dim __http_status as n 
+     ....
+    function option_request_handler as n ()
+        'handle the browser's pre-flight OPTIONS request
+        self.__http_status = 200
+        Response.AddHeader("Access-Control-Allow-Headers: content-type,apikey")		
+    end function
+    ...
+end class    
+]]></example>
+        </section>
     </sections>
 </page>    
