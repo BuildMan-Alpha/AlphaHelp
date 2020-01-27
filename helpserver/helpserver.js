@@ -1594,7 +1594,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                             }
                             if (redirectToPage) {
                                 // don't want to use /documentation/, but it is not critical to make this case work with /transformDocumentation/
-                                res.redirect(absolutePath + "pages/" + foundItem.path);
+                                res.redirect(absolutePath + "pages" + foundItem.path);
                             } else {
                                 help.onSendExpress(res);
                                 res.send(JSON.stringify(foundItem));
