@@ -19,29 +19,113 @@ rs = qry.resultset]]></example>
         <section>
             <description>In the simplest case, you can declare a variable and parse a string. From there you can explore the resulting query as an Xbasic object, or dump the parse tree by looking at the .ParseTree property, or even convert the query to XML using the XML property. For example:</description>
             <example code="xb"><![CDATA[dim Q as SQL::Query
-Q.Parse("select customer, cost, ?Hello' as Message from orderheader o order by customer")
+Q.Parse("select customer, cost, 'Hello' as Message from orderheader o order by customer")
 ? Q.ParseTree
-=
-{ SELECT:510:193 NONE:182 SELECT_LIST:160 TABLE_LIST:164
+= 
+{ select:55  -1:213   0:213   NONE:202 
+  { SELECT_LIST:180
+    { SELECT_ITEM:181
+      { COLUMN_REFERENCE:188  :193   customer:143 }      :192 }  
+    { SELECT_ITEM:181
+      { COLUMN_REFERENCE:188  :193   cost:143 }      :192 }  
+    { SELECT_ITEM:181
+      { VALUE_EXPRESSION:212  NONE:140 
+        { LIST:178  Hello:214 }      }      Message:192 }  }
+  { TABLE_LIST:184
+    { SELECT_TABLE_REFERENCE:189  :195   orderheader:193   o:194   JOIN_LIST:196 }  }
+  { LOGICAL_EXPRESSION:211  EMPTY:170   LIST:178 }
+  { GROUPBY_CLAUSE:207  GROUPBY_LIST:208 
+    { LOGICAL_EXPRESSION:211  EMPTY:170   LIST:178 }  }
+  { ORDERBY_CLAUSE:204
+    { ORDERBY_ITEM:205
+      { COLUMN_REFERENCE:188  :193   customer:143 }      EMPTY:170 }  }  UNION_LIST:209   ORDERBY_CLAUSE:204 }
 
-{ LOGICAL_EXPRESSION:191NONE:120 LIST:158 }
-
-{ GROUPBY_CLAUSE:187GROUPBY_LIST:188 WHERE_CLAUSE:183 .f.:4 }ORDERBY_CLAUSE:184 UNION_LIST:189 ORDERBY_CLAUSE:184 }
 ? Q.XML
-= <CommonAST text="SELECT" type="51"><CommonAST text="0" type="193"></CommonAST>
-<CommonAST text="NONE" type="182"></CommonAST>
-<CommonAST text="SELECT_LIST" type="160"></CommonAST>
-<CommonAST text="TABLE_LIST" type="164"></CommonAST>
-<CommonAST text="LOGICAL_EXPRESSION" type="191"><CommonAST text="NONE" type="120"></CommonAST>
-<CommonAST text="LIST" type="158"></CommonAST>
+= <CommonAST text="select" type="55">
+<CommonAST text="-1" type="213">
 </CommonAST>
-<CommonAST text="GROUPBY_CLAUSE" type="187"><CommonAST text="GROUPBY_LIST" type="188"></CommonAST>
-<CommonAST text="WHERE_CLAUSE" type="183"></CommonAST>
-<CommonAST text=".f." type="4"></CommonAST>
+<CommonAST text="0" type="213">
 </CommonAST>
-<CommonAST text="ORDERBY_CLAUSE" type="184"></CommonAST>
-<CommonAST text="UNION_LIST" type="189"></CommonAST>
-<CommonAST text="ORDERBY_CLAUSE" type="184"></CommonAST>
+<CommonAST text="NONE" type="202">
+</CommonAST>
+<CommonAST text="SELECT_LIST" type="180">
+<CommonAST text="SELECT_ITEM" type="181">
+<CommonAST text="COLUMN_REFERENCE" type="188">
+<CommonAST text="" type="193">
+</CommonAST>
+<CommonAST text="customer" type="143">
+</CommonAST>
+</CommonAST>
+<CommonAST text="" type="192">
+</CommonAST>
+</CommonAST>
+<CommonAST text="SELECT_ITEM" type="181">
+<CommonAST text="COLUMN_REFERENCE" type="188">
+<CommonAST text="" type="193">
+</CommonAST>
+<CommonAST text="cost" type="143">
+</CommonAST>
+</CommonAST>
+<CommonAST text="" type="192">
+</CommonAST>
+</CommonAST>
+<CommonAST text="SELECT_ITEM" type="181">
+<CommonAST text="VALUE_EXPRESSION" type="212">
+<CommonAST text="NONE" type="140">
+</CommonAST>
+<CommonAST text="LIST" type="178">
+<CommonAST text="Hello" type="214">
+</CommonAST>
+</CommonAST>
+</CommonAST>
+<CommonAST text="Message" type="192">
+</CommonAST>
+</CommonAST>
+</CommonAST>
+<CommonAST text="TABLE_LIST" type="184">
+<CommonAST text="SELECT_TABLE_REFERENCE" type="189">
+<CommonAST text="" type="195">
+</CommonAST>
+<CommonAST text="orderheader" type="193">
+</CommonAST>
+<CommonAST text="o" type="194">
+</CommonAST>
+<CommonAST text="JOIN_LIST" type="196">
+</CommonAST>
+</CommonAST>
+</CommonAST>
+<CommonAST text="LOGICAL_EXPRESSION" type="211">
+<CommonAST text="EMPTY" type="170">
+</CommonAST>
+<CommonAST text="LIST" type="178">
+</CommonAST>
+</CommonAST>
+<CommonAST text="GROUPBY_CLAUSE" type="207">
+<CommonAST text="GROUPBY_LIST" type="208">
+</CommonAST>
+<CommonAST text="LOGICAL_EXPRESSION" type="211">
+<CommonAST text="EMPTY" type="170">
+</CommonAST>
+<CommonAST text="LIST" type="178">
+</CommonAST>
+</CommonAST>
+</CommonAST>
+<CommonAST text="ORDERBY_CLAUSE" type="204">
+<CommonAST text="ORDERBY_ITEM" type="205">
+<CommonAST text="COLUMN_REFERENCE" type="188">
+<CommonAST text="" type="193">
+</CommonAST>
+<CommonAST text="customer" type="143">
+</CommonAST>
+</CommonAST>
+<CommonAST text="EMPTY" type="170">
+</CommonAST>
+</CommonAST>
+</CommonAST>
+<CommonAST text="UNION_LIST" type="209">
+</CommonAST>
+<CommonAST text="ORDERBY_CLAUSE" type="204">
+</CommonAST>
 </CommonAST>]]></example>
         </section>
         <section>
@@ -49,12 +133,24 @@ Q.Parse("select customer, cost, ?Hello' as Message from orderheader o order by c
             <example><![CDATA[dim Q2 as SQL::Query
 Q2.XML = Q.XML
 ? Q2.ParseTree
-=
-{ SELECT:510:193 NONE:182 SELECT_LIST:160 TABLE_LIST:164
-
-{ LOGICAL_EXPRESSION:191NONE:120 LIST:158 }
-
-{ GROUPBY_CLAUSE:187GROUPBY_LIST:188 WHERE_CLAUSE:183 .f.:4 }ORDERBY_CLAUSE:184 UNION_LIST:189 ORDERBY_CLAUSE:184 }]]></example>
+= 
+{ select:55  -1:213   0:213   NONE:202 
+  { SELECT_LIST:180
+    { SELECT_ITEM:181
+      { COLUMN_REFERENCE:188  :193   customer:143 }      :192 }  
+    { SELECT_ITEM:181
+      { COLUMN_REFERENCE:188  :193   cost:143 }      :192 }  
+    { SELECT_ITEM:181
+      { VALUE_EXPRESSION:212  NONE:140 
+        { LIST:178  Hello:214 }      }      Message:192 }  }
+  { TABLE_LIST:184
+    { SELECT_TABLE_REFERENCE:189  :195   orderheader:193   o:194   JOIN_LIST:196 }  }
+  { LOGICAL_EXPRESSION:211  EMPTY:170   LIST:178 }
+  { GROUPBY_CLAUSE:207  GROUPBY_LIST:208 
+    { LOGICAL_EXPRESSION:211  EMPTY:170   LIST:178 }  }
+  { ORDERBY_CLAUSE:204
+    { ORDERBY_ITEM:205
+      { COLUMN_REFERENCE:188  :193   customer:143 }      EMPTY:170 }  }  UNION_LIST:209   ORDERBY_CLAUSE:204 }]]></example>
         </section>
         <section>
             <title>Using Arguments</title>
