@@ -1,0 +1,50 @@
+<page build="0">
+    <shortlink>storing files in sessions</shortlink>
+    <topic>Storing Files in Sessions</topic>
+    <description>Session storage is able to deliver robust and scalable server solutions. In order to enable this feature, data intended to be stored on disk at the session level should use context.session.SaveDataAsFile(). This stored file can then be linked to using context.session.FormatFileDataURL().</description>
+    <sections>
+        <section>
+            <description>
+                <p>[context.session.SaveDataAsFile()] is a method that takes a key and data, then saves that data somewhere using the key you supplied. The key is typically a filename without a path but with an extension, for instance as MyFile.txt. The storage location is not significant to the application developer because you will not be directly coding to the physical location.</p>
+                <p>When you want to link to a file that has been stored using context.session.SaveDataAsFile(), you use [context.session.FormatFileDataURL()] to create the URL by passing in the key you used when storing the data.</p>
+            </description>
+            <example code="xb"><![CDATA[dim FileKey as c = "MyFile.txt"
+context.session.SaveDataAsFile(FileKey,"Hello World, this is a session file")
+context.response.Redirect(Session.FormatFileDataURL(FileKey))]]></example>
+            <note>The file extension of the filename used as a key in context.session.SaveDataAsFile(Key, data) and context.session.FormatFileDataURL(Key) matters, because the extension is used for MIME type parsing. For example, in order to have Excel data treated as such when it is sent to the browser, use an extension of .XLS. The above example uses a file extension of .TXT.</note>
+        </section>
+        <section>
+            <title>Generating Temporary File Names</title>
+            <description>
+                <p>Temporary file names are used when generating reports and other files on the server that will be either sent directly to a user for download or reloacated to a long-term storage system, such as a database or Amazon S3. Functions, such as *[xb:a5w_report_saveAs()]* require the file name before the file can be created. In this situation, you can use the [context.request.GetRequestTempFileName()] method to generate a temporary location where the file will be created. The file can then be moved to session storage or other location.</p>
+            </description>
+            <example code="xb"><![CDATA[dim filter as c = ""
+dim order as c = ""
+Dim filename as c = context.request.GetRequestTempFileName()
+a5w_report_saveAs(context.request.applicationRoot + "MyReport.a5rpt","pdf",filter,order,filename)
+if (file.exists(filename)) then
+    ' Code to send file to user, save in a database, or upload to S3.
+end if]]></example>
+        </section>
+        <section>
+            <title>Sending Files to the Client</title>
+            <description>
+                <p>Files can be sent back to the client browser using the [context.response.SendFile()] method. The file will be sent to the user's browser. The user will either be prompted to download the file or be shown the file. Using [context.response.SendFile()] is a Best Practice and is strongly recommended over other, less efficient methods, such as *[xb:context.response.Redirect()]*:</p>
+            </description>
+            <example code="xb"><![CDATA[dim filter as c = ""
+dim order as c = ""
+Dim filename as c = context.request.GetRequestTempFileName()
+a5w_report_saveAs(context.request.applicationRoot + "MyReport.a5rpt","pdf",filter,order,filename)
+if file.exists(filename)
+    ' Prompt user to save file with alternate file name:
+    context.response.SendFile(filename,.t.,"MyReport.pdf")
+end if]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="savedataasfile method">context.session.SaveDataAsFile()</link>
+        <link link="api%20objects%20session%20object%20format%20file%20data%20url%20method">context.session.FormatFileDataURL()</link>
+        <link link="api%20objects%20request%20object%20get%20request%20temp%20file%20name%20method">context.request.GetRequestTempFileName()</link>
+        <link link="api%20objects%20response%20object%20send%20file%20method">context.response.SendFile()</link>
+    </links>
+</page>

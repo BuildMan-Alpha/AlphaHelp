@@ -1,0 +1,93 @@
+<page>
+    <shortlink>server sessions Storing Files in Sessions</shortlink>
+    <topic>Upgrading Session File Storage in Legacy apps</topic>
+    <description>Prior to Alpha Five Version 11, developers often used the Session.Session_Folder property as a location in which to save session files and Session.Session_URL as a base URL to then link to the session file. Both of these properties were removed in Version 11, which means legacy code which uses them must be updated.</description>
+    <sections>
+        <section>
+            <important>
+                <p>This article applies to developers who are migrating applications from Alpha Five V10 or older to a newer release of Alpha Anywhere.</p>
+            </important>
+        </section>
+        <section>
+            <description>Files are now stored in sessions using the methods described below:</description>
+            <cases>
+                <case>
+                    <description>*[[Session.SaveDataAsFile()]]* - saves data directly to the session storage as opposed to being a string value like Session.Session_Folder which could be used as part of a file path.</description>
+                </case>
+                <case>
+                    <description>*[[Session.FormatFileDataURL()]]* - is similar to using Session.Session_URL.</description>
+                </case>
+                <case>
+                    <description>*[[Session.SaveSessionFileToFile()]]* - This method allows you to save a file in the session folder to another location on the server. The syntax for this method is *[xb:session.saveSessionFileToFile(c Key, C DestinationFile)]*. The session file may have been created using either the session.saveFileToSessionFile( c fileName, c key) or session.saveDataAsFile(b data, c key) methods.</description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <description>Typically, Session.Session_Folder and Session.Session_URL have been used in a pattern such as that shown below.</description>
+            <example code="xb"><![CDATA[<%a5
+dim Filename as c = "MyFile.txt"
+save_to_file("Hello World, this is a session file",Session.Session_Folder + Filename)
+Response.Redirect(Session.Session_Url + Filename)
+%> ]]></example>
+        </section>
+        <section>
+            <description>
+                <p>The legacy code below can be directly replaced by the following code:</p>
+            </description>
+            <example code="xb"><![CDATA[<%a5
+dim FileKey as c = "MyFile.txt"
+Session.SaveDataAsFile(FileKey,"Hello World, this is a session file")
+Response.Redirect(Session.FormatFileDataURL(FileKey))
+%> ]]></example>
+        </section>
+        <section>
+            <description>Another common usage of these properties prior to Version 11 is for generation of reports as a session file:</description>
+            <example code="xb"><![CDATA[<%a5
+dim filter as c = ""
+dim order as c = ""
+Dim filename as c = Session.Session_Folder + "tempreport.pdf"
+filename = report.saveas("MyReport@[PathAlias.ADB_Path]\MyApp.ddd","pdf",filter,order,filename,.f.)
+if file.exists(filename)
+    Response.Redirect(Session.Session_URL + "tempreport.pdf")
+end if
+%> ]]></example>
+        </section>
+        <section>
+            <description>This example is a bit more involved to replace because there is no direct replacement for the Session.Session_Folder property in order to build a file name to be used by Report.SaveAs(). Because of this, [Request.GetRequestTempFileName()] should be used to provide a temporary file location for the report generation, and then the file's contents can be moved into session storage.</description>
+            <example code="xb"><![CDATA[<%a5
+dim filter as c = ""
+dim order as c = ""
+Dim filename as c = Request.GetRequestTempFileName()
+filename = report.saveas("MyReport@[PathAlias.ADB_Path]\MyApp.ddd","pdf",filter,order,filename,.f.)
+if file.exists(filename)
+    Session.SaveDataAsFile("tempreport.pdf",file.to_blob(filename))
+    Response.Redirect( Session.FormatFileDataURL("tempreport.pdf") )
+end if
+%> ]]></example>
+        </section>
+        <section>
+            <description>The code above uses Session.SaveDataAsFile() and [Response.Redirect()] in order to demonstrate the usage of those methods. However, this is NOT the most efficient way of sending the PDF contents back to the browser. Using [Response.SendFile()] is a Best Practice and is strongly recommended instead, as shown below:</description>
+            <example code="xb"><![CDATA[<%a5
+dim filter as c = ""
+dim order as c = ""
+Dim filename as c = Request.GetRequestTempFileName()
+filename = report.saveas("MyReport@[PathAlias.ADB_Path]\MyApp.ddd","pdf",filter,order,filename,.f.)
+if file.exists(filename)
+    Response.SendFile(filename)
+end if
+%>]]></example>
+        </section>
+    </sections>
+    <links>
+        <link link="savedataasfile method">Session.SaveDataAsFile()</link>
+        <link link="api objects session object format file data url method">Session.FormatFileDataURL()</link>
+        <link link="savesessionfiletofile method">Session.SaveSessionFileToFile()</link>
+        <link link="getrequesttempfilename method">Request.GetRequestTempFileName()</link>
+        <link link="sendfile method">Response.SendFile()</link>
+        <link link="redirect method">Response.Redirect()</link>
+    </links>
+    <see>
+        <ref link="getrequesttempfilename method">Request.GetRequestTempFileName()</ref>
+        <ref link="sendfile method">Response.SendFile()</ref>
+    </see>
+</page>	
