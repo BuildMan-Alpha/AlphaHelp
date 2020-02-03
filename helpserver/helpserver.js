@@ -1368,7 +1368,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     newData += "*[" + emph;
                 } else {
                     ++i;
-                    newData += "*[" + emph + item[i];
+                    newData += "*[" + emph + items[i];
                 }
             }
             data = newData;
