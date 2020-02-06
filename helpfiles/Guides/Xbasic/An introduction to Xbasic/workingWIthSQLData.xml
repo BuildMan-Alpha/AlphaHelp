@@ -1,0 +1,832 @@
+<page build="0">
+    <shortlink>xbasic guide sql</shortlink>
+    <topic parent="Xbasic Guide" parentType="guide" elementName="Working With SQL Data Using Xbasic">Xbasic Guide - Working With SQL Data Using Xbasic</topic>
+    <description></description>
+    <sections>
+        <section>
+            <description>
+                <p>Most applications build in Alpha Anywhere communicate with a database -- such as MySQL or SQL Server. Xbasic provides powerful commands for working with data in a SQL database. Understanding how to use these commands enables you to build complex workflows in your applications beyond what Alpha Anywhere provides out of the box.</p>
+            </description>
+        </section>
+        <section>
+            <title>AlphaDAO Connections</title>
+            <description>
+                <p>Alpha Anywhere communicates with a database using an AlphaDAO connection string. AlphaDAO stands for "Alpha Anywhere Data Access Object". AlphaDAO is an interface through which you access data stored in SQL, NoSQL, DBaaS, SaaS, and other data sources, including static JSON and OData (Open Data Protocol) APIs. There are several methods for creating a connection string, including Ad-hoc and Named Connections.</p>
+                <p>AlphaDAO connections can be created using the AlphaDAO Connections dialog, found under the Edit menu on the Web Projects Control Panel.</p>
+            </description>
+            <figure>
+                <link>images/image012.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Named connection strings are created and managed using the AlphaDAO connections dialog. For the SQL examples in this section, we will use the Microsoft Access Northwind database. Alpha Anywhere includes a pre-defined connection string, "AADemo-Northwind", for communicating with the Northwind database. This connection string can be added to your workspace by clicking the "Create 'AADemo-Northwind' demo connection string" link at the bottom of the AlphaDAO Connections dialog.</p>
+            </description>
+            <figure>
+                <link>images/image013.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Follow the instructions to create the connection string and close the AlphaDAO Connections dialog after the AADemo-Northwind named connection has been created.</p>
+            </description>
+            <figure>
+                <link>images/image014.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>The SQL Namespace</title>
+            <description>
+                <p>The SQL namespace is a collection of Xbasic classes used for communicating with and performing operations on a database or any system of record that you can connect to with an AlphaDAO connection. The core SQL namespace classes used to interact with a SQL database in an Xbasic script are:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>*[xb:SQL::Connection]*</name>
+                            <description>The SQL::Connection object is used to open a connection to a SQL database and execute commands against the database. Commands are specified using SQL – Structured Query Language.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:SQL::ResultSet]*</name>
+                            <description>The SQL::ResultSet object contains the data retrieved from a database after executing a SQL SELECT command.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:SQL::Arguments]*</name>
+                            <description>The SQL::Arguments object is used to pass values to a SQL command. An argument is a variable used in an SQL command, such as in WHERE or ORDER BY clauses, in place of constant values. Always use arguments when building SQL commands.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:SQL::CallResult]*</name>
+                            <description>The SQL::CallResult object contains detailed information about the success of calling a method of a SQL::Connection or SQL::ResultSet object. If executing a SQL command fails, the CallResult object contains additional information about why the command failed.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>Using these four classes, you can perform CRUD (create, read, update, delete) operations against a SQL database directly from Xbasic.</p>
+            </description>
+        </section>
+        <section>
+            <title>Connecting to the Database</title>
+            <description>
+                <p>Before you can query the SQL database, you must first open a connection to the database. Connections are opened using the SQL::Connection open() method:</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM connStr AS C = "::Name::AADemo-Northwind"
+
+success = conn.open("::Name::AADemo-Northwind")]]></example>
+                </p>
+                <p>The open() method takes a named or ad-hoc AlphaDAO connection string and opens a communications channel to the database. The example above uses the AADemo-Northwind named connection (see "AlphaDAO Connections" on page 53 if you do not have the AADemo-Northwind named connection.) If the connection is established successfully, open() returns .T.. If the connection fails, open() returns .F..</p>
+                <p>If the connection fails, the SQL::Connection's CallResult object contains additional details as to why the call failed:</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM cr AS SQL::CallResult
+cr = conn.callResult
+
+IF (.not. success) THEN  'Could not open connection
+    'Get the error message from the SQL::CallResult
+    DIM errorMsg AS C
+    errorMsg = cr.text
+
+    'Write the message to the Trace log
+    TRACE.writeLn(errorMsg,"SQL Error")
+
+    'Terminate the script
+    END
+END IF]]></example>
+                </p>
+                <p>You should always check the return value of the open() method before attempting to perform a query against a database. It is also a best practice to copy the SQL::Connection CallResult property into a SQL::CallResult variable to ensure the error message is preserved when working with SQL functions.</p>
+            </description>
+        </section>
+        <section>
+            <title>Executing a Query</title>
+            <description>
+                <p>Once a connection has been established, you can execute queries against the database. The SQL::Connection execute() method can be used to perform any CRUD operations against a SQL database.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM sqlQuery AS C = "SELECT * FROM Customers"
+success = conn.execute(sqlQuery)
+cr = conn.callResult]]></example>
+                </p>
+                <p>The execute() method also returns a .T. or .F. value indicating whether or not the SQL query succeeded. Most methods of the SQL::Connection object return a value indicating their success. If the method call fails, the CallResult object contains additional information about the operation's failure.</p>
+                <p>
+                    <example code="xb"><![CDATA[IF (success) THEN
+    'Process the Query results
+ELSE
+    'SQL statement failed to execute:
+    DIM errorMsg AS C
+    errorMsg = cr.text
+
+    'Write the message to the Trace log
+    TRACE.writeLn(errorMsg,"SQL Error")
+END IF]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Processing the Query Results</title>
+            <description>
+                <p>If a SQL query returns any records, the SQL::Connection's ResultSet property will contain one or more rows of data. You can use the nextRow() method to access each record returned by the query. The nextRow() method steps through each record returned by the query. The first time you access records in a SQL::ResultSet, the current record pointer is positioned before the first row. Calling nextRow() advances the record pointer to the first record. Subsequent calls to nextRow() advance the record pointer to the next record. When there are no more available records, nextRow() returns .F..</p>
+                <p>
+                    <example code="xb"><![CDATA[WHILE conn.resultSet.nextRow() 
+    'Code to process the current row
+END WHILE
+]]></example>
+                </p>
+                <p>The SQL::ResultSet is a "forwards only" object. Records are processed from first to last; you cannot access previously seen records in a SQL::ResultSet. You either need to execute the query a second time or store the records from the SQL::ResultSet in a variable.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Reading Data from the Current Record</title>
+                    <description>
+                        <p>Specific field (or column) values in a SQL::ResultSet are accessed using the data() method. The data() method returns the value for a column in the current row. The column is specified either as the column name or the column's number. For example, in the script below, the data() method is used to get the value of the "country" field:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM countries AS C
+DIM country AS C
+WHILE conn.resultSet.nextRow() 
+    'Get the country from the current record
+    country = conn.resultSet.data("country")
+
+    'Test to see if the country is in the list
+    IF (country !$ countries) THEN
+        'country was not found in the list
+        'Add the country to the countries list
+        countries = countries + country + crlf()
+    END IF
+END WHILE]]></example>
+                        </p>
+                        <p>If you know the order of the columns in the query, you can use the column's number instead of the column name. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM sqlSelect AS C =<<%sql%
+SELECT city, country FROM Customers 
+WHERE CustomerId = :CustomerID
+%sql%
+
+DIM args as SQL::Arguments
+args.set("CustomerID","BOLID")
+
+DIM country AS C = ""
+IF (conn.execute(sqlSelect, args) <> .F.) THEN
+    IF (conn.resultSet.nextRow() <> .F.) THEN
+        country = conn.resultSet.data(2)
+    END IF
+END IF
+
+? country
+= "Spain"]]></example>
+                        </p>
+                        <p>The SQL SELECT statement specifies 2 columns in the query: city and country. city is the first column, and country is the second column. conn.resultSet.data(2) returns the value of the country column for the current row of data in the result set.</p>
+                        <p>Specifying the column number can be faster in some situations. Using the column number also allows for dynamically retrieving data from a result set row using a loop. Use the conn.resultSet.ColumnCount property to determine the total number of columns in the result set.</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Closing Connections</title>
+            <description>
+                <p>When you are done querying the database, you should close the connection. Connections are closed using the SQL::Connection close() method.</p>
+                <p>
+                    <example code="xb"><![CDATA[conn.close() 'Close the connection]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Creating Queries with Arguments</title>
+            <description>
+                <p>Most SQL queries include WHERE clauses to filter the results. For example, you may only want to fetch a list of customers from Spain. The SQL query to do this may look like this:</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM sqlSelect AS C = "SELECT * FROM Customers WHERE Country = 'Spain'"]]></example>
+                </p>
+                <p>If you wanted to give the user a choice as to what country to get customer data for, however, you will need to define the SQL WHERE clause using arguments in place of static values.</p>
+                <p>Arguments allow you to define a SQL statement where parts of the statement are determined dynamically. For example, the above SELECT statement can be rewritten using SQL arguments as follows:</p>
+                <p>
+                    <example code="xb"><![CDATA[country = "Spain"
+DIM sqlSelect AS C = "SELECT * FROM Customers Where Country = :Country"
+
+DIM args AS SQL::Arguments
+args.set("Country",country)]]></example>
+                </p>
+                <p>The country variable represents the data we received from the user. In a web application, this data may be passed to the Xbasic script via an Ajax callback or session variable.</p>
+                <p>
+                    <example code="xb"><![CDATA['Read the country from the data submitted
+'to this Ajax callback function:
+country = e.dataSubmitted.selectedCountry]]></example>
+                </p>
+                <p>You might be wondering why we did not use string concatenation to create the query. If the query is populated with data gathered from the user, you risk exposing your database to common SQL vulnerabilities if you do not pre-process the data submitted by the user before using it in a query. Values set in SQL::Arguments are sanitized before being used in SQL statements, protecting you from SQL Injection attacks and other common SQL hacks. Because of this, *[bold:you should always use arguments in SQL queries.]*</p>
+            </description>
+        </section>
+        <section>
+            <title>Converting Query Results to Other Formats</title>
+            <description>
+                <p>The ResultSet includes methods for converting the query results to another data format, including character lists, property arrays, JSON, XML, CSV, and Excel.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Converting a ResultSet to an Xbasic Variable</title>
+                    <description>
+                        <p>It's sometimes easier to deal with a result set by saving the data into an Xbasic Variable, such as a character list or property array. The SQL::ResultSet has several methods for converting a result set to a variable: toString() and toPropertyArray().</p>
+                        <p>The toString() method formats the results set as a character list. The first line in the character list contains the column names. The lines that follow are the records returned by the SQL query. For example, run the following code in the Interactive Window:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+DIM args AS SQL::Arguments
+
+DIM sqlQuery AS C = "SELECT * FROM Customers WHERE Country = :Country"
+args.set("Country","Spain")
+
+DIM recordList AS C
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlQuery,args)) THEN
+        recordList = conn.resultSet.toString()
+    ELSE        
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Error")
+        conn.close()
+        END
+    END IF
+    conn.close()
+ELSE
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Error")
+    END
+END IF
+
+'Reformat UTF8 database data to ACP, which is used by the Interactive Window
+recordList = convert_utf8_to_acp(recordList)
+
+? recordList]]></example>
+                        </p>
+                        <p>The toPropertyArray() method is similar to toString() in that it converts the result set to a format stored in an Xbasic variable. Instead of formatting the data as a CR-LF delimited list of strings, however, toPropertyArray() converts the result set to a property array where each record is an entry in the array, and each field is a property of an array entry.</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+DIM args AS SQL::Arguments
+
+DIM sqlQuery AS C = "SELECT * FROM Customers WHERE Country = :Country"
+args.set("Country","Spain")
+
+DIM recordArr[0] AS P
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlQuery,args)) THEN
+        conn.resultSet.toPropertyArray(recordArr)
+    ELSE        
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Error")
+        conn.close()
+        END
+    END IF
+    conn.close()
+ELSE
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Error")
+    END
+END IF
+
+'Output the number of records
+? recordArr.size()
+
+'Output the first record 
+? recordArr[1] 
+
+'Output the value of customerId in first record
+? recordArr[1].customerId ]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Converting a ResultSet to JSON, XML, or CSV</title>
+                    <description>
+                        <p>In addition to converting a result set to a variable, you can also convert the result set to another data format, such as JSON. JSON is frequently used when processing SQL data to display in a List control. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[FUNCTION getCustomerData AS C ()
+    DIM conn AS SQL::Connection
+    DIM cr AS SQL::CallResult
+    DIM sqlQuery AS C = "SELECT * FROM Customers"
+    
+    DIM recordJSON AS C
+    IF (conn.open("::Name::AADemo-Northwind")) THEN
+        IF (conn.execute(sqlQuery)) THEN
+            recordJSON = conn.resultSet.toJSON()
+        ELSE        
+            cr = conn.callResult
+            TRACE.writeLn(cr.text,"SQL Error")
+            conn.close()
+            END
+        END IF
+        conn.close()
+    ELSE
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Error")
+        END
+    END IF
+
+    RETURN recordJSON
+END FUNCTION]]></example>
+                        </p>
+                        <p>The result set can be converted to other formats as well, including XML (the toXML() method) and Comma Separated Variable format (the toCSV() method).</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Writing a ResultSet to a JSON or Excel File</title>
+                    <description>
+                        <p>A result set can be written out to file in a variety of formats. This includes JSON, XML, CSV, and Excel. For example, the script below writes the customer table out to an Excel file named "Customers.xlsx":</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+DIM args AS SQL::Arguments
+
+DIM sqlQuery AS C = "SELECT * FROM Customers WHERE Country = :Country"
+args.set("Country","Spain")
+
+DIM recordList AS C
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlQuery,args)) THEN
+        conn.resultSet.toExcel("C:/spreadsheets/Customers.xlsx")
+    ELSE        
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Error")
+        conn.close()
+        END
+    END IF
+    conn.close()
+ELSE
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Error")
+    END
+END IF]]></example>
+                        </p>
+                        <p>Other functions available for writing the result set to file include toCSVFile(), which writes the result set to a file in Comma Separated Variable format, and toJSONFile(), which converts the result set to JSON format and saves it to a file.</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Transactions</title>
+            <description>
+                <p>Many database systems allow you to perform updates to tables within the context of a transaction. Transactions are useful when you want to make multiple updates to one or more tables if and only if all of the updates are successful. Statements executed during a transaction are applied (e.g., committed) when the transaction is committed. If something happens that requires undoing (e.g., rolling back) all of the changes to the database, however, the transaction can be rolled back instead.</p>
+                <p>The SQL::Connection object provides the following methods for wrapping your queries inside a transaction:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>*[xb:beginTransaction()]*</name>
+                            <description>Starts a transaction. All queries executed after calling this method are included in the transaction.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:rollbackTransaction()]*</name>
+                            <description>Reverts all changes to the database made during the transaction, returning the database to the state it was before executing any statements and ends the transaction.</description>
+                        </item>
+                        <item>
+                            <name>*[xb:commitTransaction()]*</name>
+                            <description>Commits the changes to the database and ends the transaction.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>The workflow for transactional queries is shown below:</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr as SQL::CallResult
+IF (conn.open("::Name::AADemo-Northwind") THEN 
+
+    'Perform any queries that don't need to be transacted here
+
+    'Begin the transaction
+    conn.beginTransaction()
+    
+    'Execute the query or queries that need to be transacted here
+    '(Note: Replace sqlUpdateQueries with your SQL queries)
+    success = conn.execute(sqlUpdateQueries)
+
+    'Capture the CallResult
+    cr = conn.callResult
+
+    'Validate the query or queries succeeded
+    IF (success) THEN
+        'Query or queries succeeded; commit transaction
+        conn.commitTransaction()
+    ELSE
+        'Query or queries failed; rollback transaction
+        conn.rollbackTransaction()
+
+        'Optional, but recommended: log any error messages
+        TRACE.writeLn(cr.text,"SQL Error")
+    END IF
+END IF
+
+conn.close() 'Close the connection]]></example>
+                </p>
+                <p>If creating the transaction fails or the database does not support transactions, the beginTransaction(), commitTransaction(), and rollbackTransaction() statements will return .F.. The SQL::Connection's call result object will contain any additional details as to why the method(s) failed.</p>
+                <p>While using transactions is good practice when executing a batch of INSERT, UPDATE, or DELETE queries, not all queries can be transacted. Some queries are permanent once they have been executed and cannot be undone using transactions. For example, MySQL does not support making database and table structure changes (e.g., ALTER TABLE) in a transaction. Altering or dropping a table is a permanent action in MySQL and cannot be undone using transactions.</p>
+                <p>You can also commit your transactions prematurely if you execute a statement that performs an implicit commit. Administrative queries (such as getting the table info using the SQL::Connection getTableInfo() method) or nesting transactions may automatically commit the current transaction when they execute.</p>
+                <p>In general, you should keep your transaction as short as possible. This can be accomplished by gathering all of the data you need upfront and only transaction queries that require it. For other types of queries that are not INSERT, UPDATE, or DELETE statements, you should consult your database documentation to ensure they are supported in transactions and do not cause any unwanted side effects.</p>
+            </description>
+        </section>
+        <section>
+            <title>Writing Portable SQL Queries</title>
+            <description>
+                <p>SQL (Structured Query Language) is not a standard syntax. While most database management systems use SQL to interact with the database, each SQL database vendor provides an implementation of SQL that is not compatible with other database systems. For example, the three queries shown below fetch the same data from the Northwind Customers table stored in different database systems:</p>
+                <p>
+                    <example code="xb"><![CDATA[' Access:
+sql = "SELECT CompanyName, City & Region, Time() FROM Customers"
+
+' MySQL:
+sql = "SELECT CompanyName, City + Region, CURRENT_TIMESTAMP FROM Customers"
+
+' SQL Server:
+sql = "SELECT CompanyName, Concat(City, Region), CurTime() FROM Customers"]]></example>
+                </p>
+                <p>If you only work with one database system, the lack of a standard syntax for SQL may not pose any issues. However, if you develop Software-as-a-Service (SaaS) systems, work with multiple database systems, or may migrate your systems of record to a different vendor in the future, using native SQL syntax can be problematic.</p>
+                <p>To solve the problem of the lack of SQL standardization and ensure that applications built with Alpha Anywhere can seamlessly integrate with any database back-end, Alpha Anywhere supports Portable SQL. Portable SQL is a database-independent standardized SQL syntax with built-in functions. The three database-specific SQL queries shown above can be re-written using Portable SQL as follows:</p>
+                <p>
+                    <example code="xb"><![CDATA[SELECT CompanyName, Concatenate(City, Region), CurrentTime() FROM Customers]]></example>
+                </p>
+                <p>Alpha Anywhere automatically translates portable SQL to the native SQL syntax used by the target database system at run-time. Queries are written once using portable SQL and executed on any database system supported in Alpha Anywhere.</p>
+                <p>The SQL::Connection object defines whether or not the portable SQL parser is used when processing a query. By default, when a SQL::Connection object is created, portable SQL is disabled. To enable portable SQL, set the portableSQLEnabled property of the SQL::Connection object to true (.T.):</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+? conn.portableSQLEnabled	
+= .F.
+
+conn.portableSQLEnabled = .T.
+? conn.portableSQLEnabled
+= .T.]]></example>
+                </p>
+                <p>Portable SQL can be used to create any SQL SELECT, INSERT, UPDATE, or DELETE statement.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Portable INSERT Statements</title>
+                    <description>
+                        <p>The portable SQL INSERT statement adds one or more records to a table. The basic format of an INSERT statement is</p>
+                        <p>
+                            <example code="xb"><![CDATA[INSERT INTO *[em:tableName]* (*[em:colName1]*, *[em:colName2]*, ..., *[em:colNameN]*) 
+VALUES (*[em:colVal1]*, *[em:colVal2]*, ..., *[em:colValN]*)]]></example>
+                        </p>
+                        <p>colName1 through colNameN correspond to the column names in the table, while colVal1 through colValN are the values to set in those columns. The number of columns specified must match the number of values. Values can either be literal values or an expression.</p>
+                        <p>SQL::Arguments should always be used with INSERT statements. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+DIM sqlInsert AS C =<<%sql%
+INSERT INTO Customers (customerid,companyname,city,country)
+VALUES (:customerid,:companyname,:city,:country)
+%sql%	
+DIM args AS SQL::Arguments
+args.set("customerid","SAMPL")
+args.set("companyname","Sample Company")
+args.set("city","Lewiston")
+args.set("country","USA")
+
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlInsert,args)) THEN
+        ' Insert successful; log a success message to the SQL Log.
+        DIM affectedRows AS N = conn.affectedRows()
+        DIM msg AS C
+        msg = "Insert Successful! " + affectedRows + " added."
+        TRACE.writeLn(msg,"SQL Log")
+    ELSE	
+        ' Insert failed; log a failure message to the SQL Log.
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Log")
+    END IF
+ELSE
+    ' Connection failed: log a failure message to the SQL Log.
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Log")
+END IF
+conn.close()]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Portable UPDATE and DELETE Statements</title>
+                    <description>
+                        <p>SQL UPDATE and DELETE statements also modify the data in a database. However, unlike the INSERT statement, they modify existing records. It is crucially important that you always include a WHERE clause in your UPDATE and DELETE statements. Without a WHERE clause, you risk modifying (or deleting) all records in a table.</p>
+                        <p>SQL::Arguments should always be used with UPDATE and DELETE statements.</p>
+                        <p>The syntax of a portable SQL UPDATE statement is shown below:</p>
+                        <p>
+                            <example code="xb"><![CDATA[UPDATE *[em:tablename]*
+SET
+*[em:field1]* = *[em:value1]*,
+*[em:field2]* = *[em:value2]*,
+*[em:fieldN]* = *[em:valueN]*
+WHERE *[em:where_clause]*]]></example>
+                        </p>
+                        <p>For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+DIM sqlUpdate AS C =<<%sql%
+UPDATE Customers
+SET
+city = :city,
+region = :region
+WHERE customerid = :customerid
+%sql%		
+
+DIM args AS SQL::Arguments
+args.set("customerid","SAMPL")
+args.set("city","Montpelier")
+args.set("region","VA")
+
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlUpdate,args)) THEN
+        ' Update successful; log a success message to the SQL Log.
+        DIM affectedRows AS N = conn.affectedRows()
+        DIM msg AS C
+        msg = "Insert Successful! " + affectedRows + " updated."
+        TRACE.writeLn(msg,"SQL Log")
+    ELSE	
+        ' Insert failed; log a failure message to the SQL Log.
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Log")
+    END IF
+ELSE
+    ' Connection failed: log a failure message to the SQL Log.
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Log")
+END IF
+conn.close()]]></example>
+                        </p>
+                        <p>The syntax of a portable SQL DELETE statement is shown below:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DELETE FROM *[em:tablename]*
+WHERE *[em:where_clause]*]]></example>
+                        </p>
+                        <p>For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+DIM cr AS SQL::CallResult
+
+dim sqlDelete AS C =<<%sql%
+DELETE FROM customers
+WHERE customerid = :customerid
+%sql%
+
+DIM args AS SQL::Arguments
+args.set("customerid","SAMPL")
+
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    IF (conn.execute(sqlDelete,args)) THEN
+        ' Delete successful; log a success message to the SQL Log.
+        DIM affectedRows AS N = conn.affectedRows()
+        DIM msg AS C
+        msg = "Delete Successful! " + affectedRows + " deleted."
+        TRACE.writeLn(msg,"SQL Log")
+    ELSE	
+        ' Delete failed; log a failure message to the SQL Log.
+        cr = conn.callResult
+        TRACE.writeLn(cr.text,"SQL Log")
+    END IF
+ELSE
+    ' Connection failed: log a failure message to the SQL Log.
+    cr = conn.callResult
+    TRACE.writeLn(cr.text,"SQL Log")
+END IF
+conn.close()]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">SQL Query Genie</title>
+                    <description>
+                        <p>The SQL Query Genie is a handy tool for building SQL select statements. The genie is located under the SQL menu on the Web Projects Control Panel.</p>
+                    </description>
+                    <figure>
+                        <link>images/image015.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>Using this genie, you can create and test both native and portable SQL queries for selecting or updating data in a database. The actions available in the genie are shown in the image below.</p>
+                    </description>
+                    <figure>
+                        <link>images/image016.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>The genie dynamically creates the SQL query based on the selections you make on the tabs for selecting the tables, columns, filters, and sort criteria required in your query.</p>
+                    </description>
+                    <figure>
+                        <link>images/image017.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>Only the first 100 results for a query appear in the Preview pane. Queries can be converted between portable SQL (the default query format) and native SQL and copied any time using the Copy to Clipboard feature. Alpha Anywhere also keeps track of the queries you create in the SQL History, which can be used to retrieve past queries quickly.</p>
+                    </description>
+                    <figure>
+                        <title>SQL Native Syntax dialog.</title>
+                        <link>images/image018.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <figure>
+                        <title>SQL History dialog.</title>
+                        <link>images/image019.png</link>
+                    </figure>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Xbasic SQL Helper Functions</title>
+            <description>
+                <p>Many functions exist for performing common SQL queries using Xbasic. Internally, these functions use the SQL objects we've discussed previously to connect to and execute commands on a SQL database. The examples below show some of the more common SQL helper functions used in Xbasic scripts. You can learn more about these functions as well as other SQL helper functions in the Alpha Anywhere documentation. See [SQL Helper Functions] for more information.</p>
+                <p>*[bold:sql_lookup()]*</p>
+                <p>The [sql_lookup()] function retrieves a value from a table.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM connection AS C = "::Name::AADemo-Northwind"
+DIM table AS C = "customers"
+DIM result_expression AS C = "concatenate(city,' - ',contactname)"
+DIM filter AS C = "customerid = :whatcustomerid"
+DIM args AS SQL::arguments
+args.set("whatcustomerid","ALFKI")
+
+? sql_lookup(connection,table,filter,result_expression,args)
+= "Berlin - Maria Anders"]]></example>
+                </p>
+                <p>*[bold:sql_records_get()]*</p>
+                <p>The [sql_records_get()] function retrieves one or more records and returns it as a character list.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM connection AS C = "::Name::AADemo-Northwind"
+DIM table AS C = "customers"
+DIM result_expression AS C = "concatenate(city,' - ',contactname)"
+DIM filter AS C = "city = 'London'"
+
+? sql_records_get(connection,table,filter,result_expression)
+= London - Thomas Hardy
+London - Victoria Ashworth
+London - Elizabeth Brown
+London - Ann Devon
+London - Simon Crowther
+London - Hari Kumar]]></example>
+                </p>
+                <p>*[bold:sql_query()]*</p>
+                <p>The [sql_query()] creates and executes a SQL query to select records from a SQL database.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM result AS P
+DIM sql AS C = "SELECT FIRST 10 * FROM customers"
+DIM cnIn AS C = "::Name::AADemo-Northwind"
+
+result = sql_query(cnIn, sql)
+
+? result.error
+= .F.
+
+? result.json
+= [
+{"CustomerID" : "ALFKI"},
+{"CustomerID" : "ANATR"},
+{"CustomerID" : "ANTON"},
+{"CustomerID" : "AROUT"},
+{"CustomerID" : "BERGS"},
+{"CustomerID" : "BLAUS"},
+{"CustomerID" : "BLONP"},
+{"CustomerID" : "BOLID"},
+{"CustomerID" : "BONAP"},
+{"CustomerID" : "BOTTM"}
+]]]></example>
+                </p>
+                <p>*[bold:sql_insert()]*</p>
+                <p>The [sql_insert()] function creates and executes an INSERT statement to add a new record to a table. The value to set in the field for a new record is defined as a JSON object of name-value pairs.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM cn AS C = "::Name::AADemo-Northwind"
+DIM tablename AS C = "customers"
+DIM fieldsValuePairs AS C = <<%str%
+{
+    "customerid":"SMPL2",
+    "companyname":"ABC Co.",
+    "city":"Springfield",
+    "country":"USA"
+}
+%str%	
+
+p = sql_insert(cn,tablename,fieldsValuePairs)
+? p.error
+= .F.]]></example>
+                </p>
+                <p>*[bold:sql_update() ]*</p>
+                <p>The [sql_update()] function creates and executes an UPDATE statement to modify an existing record in a table.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM connection AS C = "::Name::AADemo-Northwind"
+DIM tablename AS C = "customers"
+DIM primaryKey AS C = "customerid"
+DIM primaryKeyValue AS C = "SMPL2"
+DIM fieldsValuePairs AS C = <<%str%
+{
+    "city":"Framingham"
+}
+%str%	
+
+p = sql_update(connection,tablename,fieldsValuePairs,primaryKey,primaryKeyValue)
+? p.error
+= .F.
+
+? p.rowsAffected
+= 1]]></example>
+                </p>
+                <p>*[bold:sql_count()]*</p>
+                <p>The [sql_count()] function returns a count of the number of records matching a SQL query.</p>
+                <p>
+                    <example code="xb"><![CDATA[DIM cn AS SQL::Connection
+? cn.open("::Name::AADemo-Northwind")
+= .T.
+
+DIM table AS C
+DIM fields AS C
+DIM filter AS C
+table = "customers"
+' * indicates all fields in the table
+fields = "*"
+filter = "country='UK'"
+
+? sql_count(cn,table,fields,filter)]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Other Helpful Tools</title>
+            <cases>
+                <case>
+                    <title nested="2">Xbasic SQL Actions Code Generator</title>
+                    <description>
+                        <p>The Xbasic SQL Actions Code Generator can be used to generate Xbasic for performing create, read, update, and delete (CRUD) operations against a data source. The Xbasic SQL Actions Code Generator is especially useful when writing server-side logic in web applications where data needs to be in a JSON format.</p>
+                        <p>The genie uses AlphaDAO connection strings to connect to the data source. To access the genie, right-click anywhere in the Xbasic editor to open the context menu. Then, select "Genies..." &gt; "Xbasic SQL Actions Code Generator..." to open the genie.</p>
+                    </description>
+                    <figure>
+                        <link>images/image020.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>The genie generates Xbasic for the actions listed below:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>Query a SQL database to get JSON data</name>
+                                    <description>Generates the Xbasic to fetch one or more records from a table and convert the query result into a JSON object. This action, as well as the *[bold:Query a SQL database to get hierarchical JSON data]*, is ideal for getting data from a database used to populate a List control, ViewBox, or other controls that require data to be in a JSON format.</description>
+                                </item>
+                                <item>
+                                    <name>Query a SQL database to get hierarchical JSON data</name>
+                                    <description>Generates the Xbasic to fetch records from multiple tables and merge the results into a nested JSON object where child records are included as an object array property of the parent record.</description>
+                                </item>
+                                <item>
+                                    <name>Perform an UPDATE action</name>
+                                    <description>Generates the Xbasic required to update one or more records in a table.</description>
+                                </item>
+                                <item>
+                                    <name>Perform an INSERT action</name>
+                                    <description>Generates the Xbasic required to add one or more records into a table.</description>
+                                </item>
+                                <item>
+                                    <name>Perform a DELETE action</name>
+                                    <description>Generates the Xbasic required to delete one or more records in a table.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Xbasic Code Glossary</title>
+                    <description>
+                        <p>The Glossary can be used to save Xbasic snippets that you frequently use. Snippets are saved with an abbreviation. When you type the abbreviation in the Xbasic editor, Alpha Anywhere automatically inserts the Xbasic snippet into your script.</p>
+                    </description>
+                    <figure>
+                        <link>images/image021.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>To access the Glossary, right-click in the Xbasic editor and select "Edit Glossary" from the context menu.</p>
+                    </description>
+                    <figure>
+                        <link>images/image022.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>The Xbasic snippet can be as long as you require. The special placeholder {ip} defines where to place the text insertion pointer after inserting the snippet. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[DIM conn AS SQL::Connection
+
+IF (conn.open("::Name::AADemo-Northwind")) THEN
+    *[highlighter:{ip}]*
+ELSE
+    TRACE.writeLn("Error opening connection" + conn.callResult.text,"SQL Log")
+END IF
+
+conn.close()
+]]></example>
+                        </p>
+                        <p>Additional options are available for configuring whether or not the snippet should appear in the auto help while you are writing Xbasic as well as restrictions on where a snippet can be inserted.</p>
+                    </description>
+                    <figure>
+                        <link>images/image023.png</link>
+                    </figure>
+                </case>
+            </cases>
+        </section>
+    </sections>
+    <links>
+        <link link="api%20sql%20helper%20functions">SQL Helper Functions</link>
+        <link link="api%20sql%20lookup%20function">sql_lookup()</link>
+        <link link="api%20sql%20records%20get%20function">sql_records_get()</link>
+        <link link="api%20sql%20query%20function">sql_query()</link>
+        <link link="api%20sql%20insert%20function">sql_insert()</link>
+        <link link="api%20sql%20update%20function">sql_update()</link>
+        <link link="api%20sql%20count%20function">sql_count()</link>
+    </links>
+</page>

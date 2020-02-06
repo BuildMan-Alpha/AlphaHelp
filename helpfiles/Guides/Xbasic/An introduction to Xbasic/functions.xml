@@ -1,0 +1,166 @@
+<page build="0">
+    <shortlink>xbasic guide functions</shortlink>
+    <topic parent="Xbasic Guide" parentType="guide" elementName="Functions">Xbasic Guide - Functions</topic>
+    <description></description>
+    <sections>
+        <section>
+            <description>
+                <p>Functions are named reusable Xbasic code blocks. Functions can be called in expressions or by themselves to perform a task. They can optionally take one or more input arguments (also called parameters) and return a value.</p>
+                <p>Functions are declared as follows:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION function_name AS *[em:return_type]* ()
+     ' Xbasic code to execute here
+END FUNCTION]]></example>
+                </p>
+                <p>The *[em:return_type]* declares the data type of the return value from the function. If a function returns no value, use the void (V) return type. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION myFunction AS V ()
+     ' Xbasic code to execute here
+     showvar("Function 'myFunction' has been called","myFunction")
+END FUNCTION]]></example>
+                </p>
+                <p>To call the function, type the function name followed by opening and closing parentheses:</p>
+                <p>
+                    <example code="xb"><![CDATA[myFunction() 'Call myFunction]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Passing Data to Functions</title>
+            <description>
+                <p>Xbasic functions can take one or more arguments. Arguments are defined in the parentheses of the FUNCTION declaration:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION myFunction AS V (name AS C, address AS C, age AS N)
+     ' Xbasic code to execute here
+     DIM msg AS C = name + ", age " + age + ", lives at " + address + "."
+     showvar(msg,"myFunction")
+END FUNCTION]]></example>
+                </p>
+                <p>When the function is called, the arguments are passed as a comma-delimited list inside the parentheses. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[myFunction("Susan","123 Baker St, Boston, MA", 37)]]></example>
+                </p>
+                <p>Arguments can be constant values, as shown above, or variables:</p>
+                <p>
+                    <example code="xb"><![CDATA[name = "Susan"
+address = "123 Baker St, Boston, MA"
+age = 37
+
+myFunction(name,address,age)]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Declaring Optional Arguments</title>
+            <description>
+                <p>Arguments can be assigned default values, making them optional. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION myFunction as V (name as C, address as C, age as N, phoneNumber = "")
+     ' Xbasic code to execute here
+     DIM msg AS C = name + ", age " + age + ", lives at " + address + "."
+     if (len(alltrim(phoneNumber)) > 0) then
+          msg = msg + " Phone: " + phoneNumber
+     end if
+     showvar(msg,"myFunction")
+END FUNCTION]]></example>
+                </p>
+                <p>The assignment operator (=) is used instead of the AS keyword when declaring arguments with default values. The default value's type determines the argument's type. For example, phoneNumber is a character type because it is assigned an empty string.</p>
+                <p>Optional arguments must be declared after all required arguments.</p>
+                <p>When calling a function, you can omit optional arguments. For example, in the code below the first line omits the phone number argument when calling myFunction while the second line includes phone number:</p>
+                <p>
+                    <example code="xb"><![CDATA[myFunction("Susan","123 Baker St, Boston, MA", 37)
+myFunction("Steve","1314 W Elm, Springfield, IL", 44, "123-445-6778")]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Returning Values</title>
+            <description>
+                <p>Data is returned from an Xbasic function by assigning an expression to the function name. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION square AS N (value as N)
+    square = value * value
+END FUNCTION
+
+square(12)]]></example>
+                </p>
+                <p>Multiple values can be returned from a function by declaring the function's type as P. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION getCat AS P ()
+    DIM cat AS P
+    cat.pet_name = "Savvy"
+    cat.breed = "Tuxedo"
+    
+    getCat = cat
+END FUNCTION
+
+DIM cat AS P
+cat = getCat()
+showvar(cat)]]></example>
+                </p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Using the RETURN Keyword</title>
+                    <description>
+                        <p>Data can alternatively be returned from a function using the RETURN keyword. The difference between assigning a value to the function name and RETURN is that RETURN immediately exits the function. Assigning an expression to the function name does not terminate the function. For example, copy the code below into the Interactive Window and run it.</p>
+                        <p>
+                            <example code="xb"><![CDATA[FUNCTION squareA AS N (value AS N)
+    DIM result AS N = value * value
+    RETURN result
+    showvar("squareA result = " + result) ' this code is never executed
+END FUNCTION
+
+FUNCTION squareB AS N (value AS N)
+    squareB = value * value
+    showvar("squareB result = " + squareB) ' this code is always executed
+END FUNCTION
+
+aSquare = squareA(10)
+bSquare = squareB(10)]]></example>
+                        </p>
+                        <p>Note that the showvar() statement in squareA() never executes, but the showvar() statement in squareB() runs, displaying the message shown below.</p>
+                    </description>
+                    <figure>
+                        <link>images/image010.png</link>
+                    </figure>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Returning Data Using Arguments</title>
+            <description>
+                <p>Data can also be returned using function arguments. If an argument is declared as BYREF, any modifications to the argument by the function changes the variable passed into the function from in the calling script.</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION squareC AS V (value AS N, BYREF result AS N)
+    result = value * value
+END FUNCTION
+
+DIM num AS N = 10
+DIM numSquare AS N = 0
+squareC(num, numSquare)
+showvar("squareC result = " + numSquare)]]></example>
+                </p>
+                <p>An argument declared as BYREF is called "passed by reference." All function arguments, except object pointer variables, are passed by value (BYVAL) by default. When an argument is passed by value, a copy of the variable is made and sent to the function. If your variable contains a lot of data, such as the contents of a file, passing the variable by value can require a lot of memory. If a variable is passed by reference, however, the original variable is sent to the function and is not copied. Any modifications to a variable passed by reference changes the variable in the calling script.</p>
+                <p>Passing arguments by reference is often used by functions and methods in the Xbasic Function Library to return data from the function.</p>
+            </description>
+        </section>
+        <section>
+            <title>Function Pointers</title>
+            <description>
+                <p>Functions can be passed as arguments to other functions as function pointers. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[FUNCTION sayHello as V (name as C, formatter AS F)
+    msg = "Hello " + name
+    msg = formatter(msg)
+    showvar(msg, "Hello")
+END FUNCTION
+
+sayHello("Jules",UPPER)
+sayHello("Verne",LOWER)]]></example>
+                </p>
+                <p>The sayHello() function takes two arguments: name and formatter. name is a character variable added to the message, msg. formatter is a function pointer used to format the message. formatter can be any function that takes a character variable as an argument and returns a character value. The example demonstrates passing the UPPER() and LOWER() Xbasic functions when calling sayHello(). UPPER() converts a character string to upper case. LOWER() converts a character string to lower case.</p>
+            </description>
+        </section>
+    </sections>
+</page>
