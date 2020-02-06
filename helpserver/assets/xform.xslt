@@ -305,6 +305,9 @@
 		<xsl:if test="see">
             <xsl:call-template name="seeAlso" />
 		</xsl:if>
+        <xsl:if test="next">
+            <xsl:call-template name="next" />
+        </xsl:if>
         <xsl:if test="attribution">  <xsl:for-each select="attribution"><xsl:call-template name="attribution"/></xsl:for-each> </xsl:if>
 	</xsl:template>
 	<xsl:template match="list" name="list" >
@@ -456,7 +459,40 @@
 		<xsl:if test="see">
             <xsl:call-template name="seeAlso" />
 		</xsl:if>
-    </xsl:template>    
+        <xsl:if test="next">
+            <xsl:call-template name="next" />
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="next" name="next">
+        <xsl:for-each select="next/link">
+            <div class="nextButton">
+                <xsl:choose>
+                    <xsl:when test="./@href">
+                            <xsl:choose>
+                                <xsl:when test="./@target">
+                                    <a xsl:use-attribute-sets="ref-href-link" target="{./@target}"><xsl:value-of select="."/> &#10095;</a>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <a xsl:use-attribute-sets="ref-href-link"><xsl:value-of select="." /> &#10095;</a>
+                                </xsl:otherwise>
+                           </xsl:choose>
+                    </xsl:when>
+                    <xsl:when test="./@link">
+                            <a href="((A5_BASE_PATH))index?search={./@link}">
+                                <xsl:value-of select="." /> &#10095;
+                            </a>
+                    </xsl:when>
+                    <xsl:otherwise>
+                            <a href="javascript:helpServer.navigateClosestTopic('{normalize-space(.)}')">
+                                <xsl:value-of select="." /> &#10095;
+                            </a>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+        </xsl:for-each>
+    </xsl:template>
+    
     <xsl:template match="seeAlso" name="seeAlso">
         <p class="A5">See Also</p>
         <ul>
@@ -492,7 +528,7 @@
             </xsl:for-each>
         </ul>
     </xsl:template>
-    <xsl:template match="videos" name="videos" >    	
+    <xsl:template match="videos" name="videos" >
         <xsl:if test="videos/title">
             <h3 class="videosTitle"> <xsl:value-of select="videos/title" /> </h3>
         </xsl:if>
