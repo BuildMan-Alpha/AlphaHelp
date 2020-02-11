@@ -518,6 +518,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         }
         var index = 0;
         var fs = require('fs');
+        // If you want to include multiple annotations, you must place them in <sections>
         var origSections = extractTag(data, "<sections>", "</sections>");
         var nextStep = function() {
             if (index < annotations.length) {
@@ -527,29 +528,46 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                 ++index;
                 fs.readFile(annotationFile, "utf8", function(rErr, annotationConcat) {
                     var annotationSee = extractTag(annotationConcat, "<see>", "</see>");
-                    if (annotationSee) {
-                        annotationSee = "<see>" + annotationSee + "</see>"
-                    } else {
-                        annotationSee = "";
-                    }
                     var annotationLinks = extractTag(annotationConcat, "<links>", "</links>");
-                    if (annotationLinks) {
-                        annotationLinks = "<links>" + annotationLinks + "</links>";
-                    } else {
-                        annotationLinks = "";
-                    }
+                    
+                    // Extract section(s) from annotation file:
                     annotationConcat = extractTag(annotationConcat, "<sections>", "</sections>");
                     if (!annotationConcat) {
                         annotationConcat = "";
                     }
-
+                    
                     if (rErr || (annotationConcat == "" && annotationLinks == "" && annotationSee == "")) {
                         nextStep();
                     } else {
+                        // Add <section> tags from <annotations>. If a page has <sections>, <annotations> MUST be placed inside <sections> tag.
                         if (origSections) {
-                            data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat + annotationSee + annotationLinks);
+                            data = data.replace("<annotations>" + thisAnnotation + "</annotations>", annotationConcat);
                         } else {
-                            data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>" + annotationSee + annotationLinks);
+                            data = data.replace("<annotations>" + thisAnnotation + "</annotations>", "<sections>" + annotationConcat + "</sections>");
+                        }
+
+                        // Add <ref> tags from <annotations> IF any exist.
+                        if (annotationSee) {
+                            // Fetch see tags from data
+                            // If the file contains multiple annotations, a previous annotation may have added a <see> tag.
+                            var origSee = extractTag(data, "<see>", "</see>");
+                            if (origSee) {
+                                data = data.replace("</see>", annotationSee + "</see>");
+                            } else {
+                                data = data.replace("</page>", "<see>" + annotationSee + "</see></page>");
+                            }
+                        }
+
+                        // Add <links> & <href> tags from <annotations> IF any exist.
+                        if (annotationLinks) {
+                            // Fetch links tags from data
+                            // If the file contains multiple annotations, a previous annotation may have added a <links> tag.
+                            var origLinks = extractTag(data, "<links>", "</links>");
+                            if (origLinks) {
+                                data = data.replace("</links>", annotationLinks + "</links>")
+                            } else {
+                                data = data.replace("</page>", "<links>" + annotationLinks + "</links></page>")
+                            }
                         }
                         saveIt = true;
                         nextStep();
