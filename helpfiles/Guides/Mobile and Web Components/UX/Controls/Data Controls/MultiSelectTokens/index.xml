@@ -90,19 +90,226 @@
                 <case>
                     <title nested="2">onChange</title>
                     <description>
-                        <p>The *[ui:onChange]* event can be used to execute JavaScript code when the value in the control changes. This event will fire each time the user makes a selection from the choice list to select a new token, or when the user types in the value of a new token and presses Enter. The JavaScript code can reference *[js:this.value]*, an array of the selected token values.</p>
+                        <p>The *[ui:onChange]* event can be used to execute JavaScript code when the value in the control changes. This event will fire each time the user makes a selection from the choice list to select a new token, or when the user types in the value of a new token and presses Enter. Values are stored in the order they are added to the control.</p>
+                        <p>The following variables are available in the *[ui:onChange]* event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:this]*</name>
+                                    <description>A pointer to the ViewBox control used to implement the Mutlti-select Token Control.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:this.value]*</name>
+                                    <description>An array containing all of the selections in the control. The last value in the list is always the most recent token added.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>
+                            <example code="js"><![CDATA[// Display the choices in a popup window for a multi-select token
+// control that displays and stores different values.
+
+var selected = this.value;
+var choices = [];
+
+for (const choice in selected) {
+    var currValue = selected[choice];
+    var productName = "";
+
+    productName = this.getDisplayValue(currValue);
+
+    if (productName) {
+        choices.push(productName);
+    }
+}
+
+// Dislpay selected choices as bullet list in popup message:
+choices = choices.join("</li><li>");
+var msg = '<p style="max-width:300px;">User has selected the following choices:</p><ul><li>' + choices + "</li></ul>";
+A5.msgBox.show("Selected Choices",msg,"o");]]></example>
+                        </p>
                     </description>
                 </case>
                 <case>
                     <title nested="2">valueNotInList</title>
                     <description>
                         <p>The *[ui:valueNotInList]* event can be used to execute JavaScript code when the user enters a value that is not in the list of choices. This property is only shown if the *[ui:User must select from choices]* property is unchecked. If the user types in a value that in is not in the list of choices, the code defined for this event will execute. This event can be used to add the value to a database.</p>
+                        <p>The following variables are available in the *[ui:valueNotInList]* event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:val]*</name>
+                                    <description>The value the user typed into the control.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:ci]*</name>
+                                    <description>A pointer to the ViewBox control used to implement the Mutlti-select Token Control.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>For example, the code below makes an ajax callback to the server, passing the value that was not in the list to the function as the parameter "newProduct". [A5.ajax.buildURLParam()] is used to create the URL parameter to pass the data to the callback:</p>
+                        <p>
+                            <example code="js"><![CDATA[// Create parameter to pass to callback.
+var parameters = A5.ajax.buildURLParam("newProduct",val)
+
+// Do an Ajax Callback to the server to add the new product
+{dialog.object}.ajaxCallback("","","addNewProduct","",parameters);]]></example>
+                        </p>
+                        <p>The *[xb:addNewProduct()]* callback function does the work of adding the new value to the Products table and returning JavaScript to the client to update the Multi-select token control. In the callback function, shown below, the [sql_insert()] Xbasic function is used to add the new product to the Products table in the Northwind database:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function addNewProduct AS C (e AS P)
+    dim js as c = ""
+
+    if (variable_exists("e.newProduct")) then
+        dim result as P
+        dim record as P
+        record.ProductName = e.newProduct
+        dim recordJSON as C
+        recordJSON = json_generate(record);
+
+        '' Add new product to Products database.
+        result = sql_insert("::Name::AADemo-Northwind","Products",recordJSON);
+        
+        if (result.error) then
+            '' Error: Unable to add product
+            js = "alert('Could not insert new product, " + js_escape(e.newProduct) + ". Error was: " + js_escape(result.errorText) + ".');"
+        else
+            '' Success: Call repopulateProducts to update the list of choices for the control
+            js = js + "var productName = '"+js_escape(e.newProduct)+"';"
+            js = js + "var productValue = '"+js_escape(result.lastInsertedIdentity) + "';"
+            js = js + "repopulateProducts(productName, productValue);"
+        end if
+    else
+        '' Error: You didn't pass in newProduct=value to the callback function
+        js = "alert('New product was not submitted to callback.');"
+    end if
+    
+    return js
+end function]]></example>
+                        </p>
+                        <p>If the product is succesfully added to the Products table, the *[xb:addNewProducts()]* callback function returns JavaScript to call the *[js:repopulateProducts]* function on the client to update the Multi-select token control with the new value.</p>
+                        <p>The *[js:repopulateProducts()]* JavaScript function is shown below:</p>
+                        <p>
+                            <example code="js"><![CDATA[var repopulateProducts = function(productName,productValue) {
+    var currentValue = {dialog.object}.getValue("MULTISELECTTOKENS");
+    var vobj = {dialog.object}.getControl("MULTISELECTTOKENS");
+    if (vobj) {	
+        // Add the new option to the list of choices for the multi-select token control
+        
+        // Get the existing data from the current control (Only need to add an entry)
+        // List of choices is stored in the data.data property of the control's JS object:
+        var data = vobj.data.data;
+        
+        // Add the new entry:
+        var newProduct = {"value":productValue,"display":productName};
+        data.push(newProduct);
+        
+        // Repopulate the control:
+        {dialog.object}.populateMultiSelectTokensControl('MULTISELECTTOKENS',data);
+        
+        
+        // Reset the value of the control to use the value added to the database
+        for (choice in currentValue) {
+            if (currentValue[choice] === productName) {
+                currentValue[choice] = productValue;
+            }
+        }
+        
+        // Set the value of the multi-select token control using item
+        {dialog.object}.setValue("MULTISELECTTOKENS",currentValue);
+        
+        var msg = '<p style="width:300px;">New value added to Multi-select Token Choices: ' + productName + "!</p>"
+        
+        A5.msgBox.show("New Product Added!",msg,"o");
+    }
+
+}]]></example>
+                        </p>
+                        <p>*[link:Download Example@components/multiSelectNotInList.zip]*</p>
                     </description>
                 </case>
             </cases>
         </section>
         <section>
-            <title>Dynamically Populating Choices at Runtime</title>
+            <title>Methods</title>
+            <description>
+                <p>The following methods are available for the Multi-select Token Control. To call these methods, you need to first get the JavaScript object for the control:</p>
+                <p>
+                    <example code="js"><![CDATA[var tokenObj = {dialog.object}.getControl("MULTI_SELECT_TOKEN_CONTROL_NAME");
+if (tokenObj) {
+    // Success! Object exists and can be used to call methods on the
+    // multi-select token control
+}]]></example>
+                </p>
+                <p>For example:</p>
+                <p>
+                    <example code="js"><![CDATA[var tokenObj = {dialog.object}.getControl("MULTISELECTTOKENS");
+if (tokenObj) {
+    
+}]]></example>
+                </p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Method</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[js:getDisplayValue(value)]*</name>
+                            <description>
+                                <p>Returns the text shown in the multi-select token control for the specified value. This method is useful only when the value shown in the multi-select token control is different from the stored value.</p>
+                                <p>
+                                    <example code="js"><![CDATA[// 27 is the ProductId for "Schoggi Schokolade" in the Northwind Products table.
+var value = "27"
+var name = tokenObj.getDisplayValue(value);
+alert(name);]]></example>
+                                </p>
+                                <p>If the value is not found in the list of choices, *[js:getDisplayValue]* returns the value passed into the function.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:getRealValue(value)]*</name>
+                            <description>
+                                <p>Returns the data stored for the specified value. This method is useful only when the value shown in the multi-select token control is different from the stored value.</p>
+                                <p>
+                                    <example code="js"><![CDATA[var name = "Schoggi Schokolade";
+var value = tokenObj.getRealValue(name);
+alert(value);]]></example>
+                                </p>
+                                <p>If the value is not found in the list of choices, *[js:getRealValue]* returns the value passed into the function.</p>
+                            </description>
+                        </item>
+<!-- Actually, probably don't want to doc these; they may not fire watch events.
+                        <item>
+                            <name>*[js:addToken]*</name>
+                            <description>
+                                <p>Adds the value to the list of tokens in the control. For example:</p>
+                                <p>
+                                    <example code="js"><![CDATA[var newToken = "Aniseed Syrup";
+// If the control stores a different value than is displayed, 
+// look up the real value before adding it.
+newToken = tokenObj.getRealValue(newToken);
+
+tokenObj.addToke(newToken);]]></example>
+                                </p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>*[js:remToken]*</name>
+                            <description>
+                                <p>Removes the token from the list. Takes the index of the token. The index is the zero-based location of where the token appears in the selected values. For example, if the selected values shown are "Aniseed Syrup", "Alice Mutton", and "Boston Crab Meat", the code below will remove "Alice Mutton" from the control:</p>
+                                <p>
+                                    <example code="js"><![CDATA[tokenObj.remToken(1); // remove second token]]></example>
+                                </p>
+                            </description>
+                        </item>
+-->
+                    </list>
+                </p>
+            </description>
+            <note>Examples shown for methods created by populating a Multi-select Token Control with data from the Northwind Products table.</note>
+        </section>
+        <section>
+            <title>Dynamically Populating or Repopulating Choices at Runtime</title>
             <description>
                 <p>Choices in the Multi-select Token control can be dynamically populated at runtime by calling the control's *[js:.populate()]* method. For example, the following JavaScript will populate the choices for the Multi-Select Token control with an ID of 'MST1':</p>
             </description>
@@ -134,6 +341,23 @@
 
 var obj = {dialog.object}.getControl('MST1');
 obj.populate(_d);]]></example>
+        </section>
+        <section>
+            <description>
+                <p>You can alternatively use the *[js:{dialog.object}.populateMultiSelectTokensControl()]* function to repopulate the control:</p>
+                <p>
+                    <example code="js"><![CDATA[var data = [ 
+    {"value" : "1", "display" : "Alpha"},
+    {"value" : "2", "display" : "Beta"},
+    {"value" : "3", "display" : "Gamma"}
+]
+
+var keepExistingData = true; // Optional; if omitted, third parameter defaults to false.
+
+{dialog.object}.populateMultiSelectTokensControl('MultiSelectToken1',data,keepExistingData);]]></example>
+                </p>
+                <p>The *[js:{dialog.object}.populateMultiSelectTokensControl()]* function takes three parameters: the name of the mulit-select token control to update, an array of values to set, and an optional third parameter that defines whether or not the existing selected tokens should be kept.</p>
+            </description>
         </section>
         <section build="4497">
             <title>Text Highlighting</title>
@@ -172,5 +396,7 @@ obj.populate(_d);]]></example>
         <link link="ux component getvalue method">.getValue()</link>
         <link link="ux component setvalue method">.setValue()</link>
         <link href="/images/tools/ellipsesButton.png">...</link>
+        <link link="api%20sql%20insert%20function">sql_insert()</link>
+        <link link="js%20a5%20ajax%20buildurlparam%20method">A5.ajax.buildURLParam()</link>
     </links>
 </page>
