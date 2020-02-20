@@ -71,7 +71,8 @@ To install node, execute the following.  nodejs-legacy must also be installed be
 
 ```sh
 sudo apt-get update
-sudo apt-get install nodejs
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+sudo apt-get install -y nodejs
 sudo apt-get install npm
 sudo apt-get install nodejs-legacy
 ```
@@ -88,17 +89,6 @@ sudo mkdir /home/AlphaHelp/generated/topics
 sudo mkdir /home/AlphaHelp/generated/plaintext
 cd /home/AlphaHelp/helpserver
 sudo npm install
-sudo cp settingslocal.js settingslocalinit.js
-sudo nodejs initializeserver.js ./settingslocalinit.js
-sudo nodejs updateserver.js ./settingslocalinit.js
-```
-
-## Install xsltproc
-
-Install xsltproc if it is not already installed:
-
-```sh
-sudo apt-get install xsltproc
 ```
 
 ## Create the helpserver Service
@@ -108,8 +98,33 @@ Copy the configuration file(s) to the /etc/init folder
 ```sh
 sudo cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
-sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/inti
+sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/init
 ```
+
+## Then do this stuff
+
+```sh
+sudo cp settingslocal.json settingslocalinit.js
+sudo nodejs initializeserver.js ./settingslocalinit.js
+sudo nodejs updateserver.js ./settingslocalinit.js
+```
+
+### If npm fails with CERT_UNTRUSTED
+
+Run this:
+
+```sh
+sudo npm config set strict-ssl false
+```
+
+## Install xsltproc
+
+Install xsltproc if it is not already installed:
+
+```sh
+sudo apt-get install xsltproc
+```
+## Start the helpserver Service
 
 Then start the server...
 
