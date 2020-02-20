@@ -92,6 +92,15 @@ sudo cp settingslocal.js settingslocalinit.js
 sudo nodejs initializeserver.js ./settingslocalinit.js
 sudo nodejs updateserver.js ./settingslocalinit.js
 ```
+
+## Install xsltproc
+
+Install xsltproc if it is not already installed:
+
+```sh
+sudo apt-get install xsltproc
+```
+
 ## Create the helpserver Service
 
 Copy the configuration file(s) to the /etc/init folder
@@ -99,6 +108,7 @@ Copy the configuration file(s) to the /etc/init folder
 ```sh
 sudo cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
+sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/inti
 ```
 
 Then start the server...
@@ -106,7 +116,19 @@ Then start the server...
 ```sh
 sudo start helpserver
 ```
-To Refresh the server modules (new release of helpserver npm).
+
+## Initialize the Helpserver TOC and Search Indicies
+
+The first time in, there will be no generated table of contents. If you are running the helpserver with elasticsearch, the search index for the help system will also not exist. Before you can start browsing and searching the help system, you must initilize the index and TOC. The system can be initilized by refreshing the help index:
+
+```sh
+curl --insecure -d "" https://127.0.0.1/refresh
+curl --insecure -d "" https://127.0.0.1/TransFormDocumentation/refresh
+```
+
+## Refreshing Server Modules
+
+To refresh the server modules (new release of helpserver npm).
 
 ```sh
 sudo stop helpserver
@@ -114,7 +136,6 @@ cd /home/AlphaHelp/helpserver/node_modules/help_server
 sudo npm update
 sudo start helpserver
 ```
-
 
 Caveat - nodegit 4.0.0 broken in reposity.js - whenever I refresh the npm now I need to execute this line
 
