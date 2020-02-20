@@ -84,6 +84,8 @@ Clone alphahelp, make a folder for generated files, initialize and update the el
 sudo git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
 sudo git clone https://github.com/BuildMan-Alpha/AlphaHelpGen /home/AlphaHelpGen
 sudo mkdir /home/AlphaHelp/generated
+sudo mkdir /home/AlphaHelp/generated/topics
+sudo mkdir /home/AlphaHelp/generated/plaintext
 cd /home/AlphaHelp/helpserver
 sudo npm install
 sudo cp settingslocal.js settingslocalinit.js
