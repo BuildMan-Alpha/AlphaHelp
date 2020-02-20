@@ -34,9 +34,9 @@ sudo apt-get install software-properties-common
 First, installing Elasticsearch is required - install java8 before installing elastic search.
 
 ```sh
-sudo add-apt-repository -y ppa:webupd8team/java
+sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt-get update
-sudo apt-get -y install oracle-java8-installer
+sudo apt-get -y install openjdk-8-jdk
 wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add -
 echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' | sudo tee /etc/apt/sources.list.d/elasticsearch.list
 sudo apt-get update
