@@ -15,7 +15,7 @@ values for tags : (can be one or more)
 
 
 # Installation on Ubuntu
-Installing the help server on ubuntu 14.04.
+Installing the help server on ubuntu 14.04.6 LTS
 
 ## Prerequisites
 
