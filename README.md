@@ -55,6 +55,11 @@ cursor keys (to navigate) work as expected to move to the file location.
 x - delete character cursor is over
 :wq - this sequence of characters writes the file and exist vi.
 
+Then, start the elastic search service:
+
+```sh
+sudo start elasticsearch
+```
 
 ## Installing GIT
 
@@ -117,17 +122,14 @@ sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/init
 ```
 
-## Then do this stuff
+Then, initialize the server. Replace "settings.json" with the name of the JSON file that contains the helpserver settings.
 
 ```sh
-sudo cp settingslocal.json settingslocalinit.js
-sudo nodejs initializeserver.js ./settingslocalinit.js
-sudo nodejs updateserver.js ./settingslocalinit.js
+sudo nodejs initializeserver.js ./settings.json
+sudo nodejs updateserver.js ./settings.json
 ```
 
-### If npm fails with CERT_UNTRUSTED
-
-Run this:
+If Initialization fails with CERT_UNTRUSTED, run the commands below. Then try initializing the server again.
 
 ```sh
 sudo npm config set strict-ssl false
