@@ -92,9 +92,14 @@ sudo git clone https://github.com/BuildMan-Alpha/AlphaHelpGen /home/AlphaHelpGen
 sudo mkdir /home/AlphaHelp/generated
 sudo mkdir /home/AlphaHelp/generated/topics
 sudo mkdir /home/AlphaHelp/generated/plaintext
+sudo mkdir /home/AlphaHelp/transform/generated
+sudo mkdir /home/AlphaHelp/transform/generated/topics
+sudo mkdir /home/AlphaHelp/transform/generated/plaintext
 cd /home/AlphaHelp/helpserver
 sudo npm install
 ```
+
+
 
 ### If npm complains about nodegit
 
