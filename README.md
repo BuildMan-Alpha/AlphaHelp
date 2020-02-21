@@ -91,6 +91,22 @@ cd /home/AlphaHelp/helpserver
 sudo npm install
 ```
 
+### If npm complains about nodegit
+
+Make sure version 0.26.1 of nodegit is installed (should be resolved in future versions of helpserver):
+
+```sh
+sudo npm install nodegit@0.26.1
+```
+
+If the nodegit install fails because libstdc++ is missing, install it. The error message from nodegit will have instructions on how to install libstdc++. Below are the commands for installing libstdc++ version 4.9:
+
+```sh
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install libstdc++4.9-dev
+```
+
 ## Create the helpserver Service
 
 Copy the configuration file(s) to the /etc/init folder
