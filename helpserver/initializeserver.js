@@ -1,9 +1,17 @@
-//var options = require("./settings");
+var settingsFile = "./settings.json";
+for (arg in process.argv) {
+	if (process.argv[arg].search(".json") !== -1) {
+		settingsFile = process.argv[arg];
+	}
+}
+
 var helpServer = require("./helpserver.js");
 var Help = require('helpserver');
-var options = helpServer.loader("./settings");
+var options = helpServer.loader(settingsFile);
 options.webhookPort = null;
 var help = Help(options);
+
+
 
 // First build the table of contents
 help.status(function(stats) {

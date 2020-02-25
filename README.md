@@ -15,7 +15,7 @@ values for tags : (can be one or more)
 
 
 # Installation on Ubuntu
-Installing the help server on ubuntu 14.04.
+Installing the help server on ubuntu 14.04.6 LTS
 
 ## Prerequisites
 
@@ -34,9 +34,9 @@ sudo apt-get install software-properties-common
 First, installing Elasticsearch is required - install java8 before installing elastic search.
 
 ```sh
-sudo add-apt-repository -y ppa:webupd8team/java
+sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt-get update
-sudo apt-get -y install oracle-java8-installer
+sudo apt-get -y install openjdk-8-jdk
 wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add -
 echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' | sudo tee /etc/apt/sources.list.d/elasticsearch.list
 sudo apt-get update
@@ -55,6 +55,11 @@ cursor keys (to navigate) work as expected to move to the file location.
 x - delete character cursor is over
 :wq - this sequence of characters writes the file and exist vi.
 
+Then, start the elastic search service:
+
+```sh
+sudo start elasticsearch
+```
 
 ## Installing GIT
 
@@ -71,7 +76,8 @@ To install node, execute the following.  nodejs-legacy must also be installed be
 
 ```sh
 sudo apt-get update
-sudo apt-get install nodejs
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+sudo apt-get install -y nodejs
 sudo apt-get install npm
 sudo apt-get install nodejs-legacy
 ```
@@ -84,12 +90,33 @@ Clone alphahelp, make a folder for generated files, initialize and update the el
 sudo git clone https://github.com/BuildMan-Alpha/AlphaHelp /home/AlphaHelp
 sudo git clone https://github.com/BuildMan-Alpha/AlphaHelpGen /home/AlphaHelpGen
 sudo mkdir /home/AlphaHelp/generated
+sudo mkdir /home/AlphaHelp/generated/topics
+sudo mkdir /home/AlphaHelp/generated/plaintext
+sudo mkdir /home/AlphaHelp/transform/generated
+sudo mkdir /home/AlphaHelp/transform/generated/topics
+sudo mkdir /home/AlphaHelp/transform/generated/plaintext
 cd /home/AlphaHelp/helpserver
 sudo npm install
-sudo cp settingslocal.js settingslocalinit.js
-sudo nodejs initializeserver.js ./settingslocalinit.js
-sudo nodejs updateserver.js ./settingslocalinit.js
 ```
+
+
+
+### If npm complains about nodegit
+
+Make sure version 0.26.1 of nodegit is installed (should be resolved in future versions of helpserver):
+
+```sh
+sudo npm install nodegit@0.26.1
+```
+
+If the nodegit install fails because libstdc++ is missing, install it. The error message from nodegit will have instructions on how to install libstdc++. Below are the commands for installing libstdc++ version 4.9:
+
+```sh
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install libstdc++4.9-dev
+```
+
 ## Create the helpserver Service
 
 Copy the configuration file(s) to the /etc/init folder
@@ -97,14 +124,49 @@ Copy the configuration file(s) to the /etc/init folder
 ```sh
 sudo cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
+sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/init
 ```
+
+Then, initialize the server. Replace "settings.json" with the name of the JSON file that contains the helpserver settings.
+
+```sh
+sudo nodejs initializeserver.js ./settings.json
+sudo nodejs updateserver.js ./settings.json
+```
+
+If Initialization fails with CERT_UNTRUSTED, run the commands below. Then try initializing the server again.
+
+```sh
+sudo npm config set strict-ssl false
+```
+
+## Install xsltproc
+
+Install xsltproc if it is not already installed:
+
+```sh
+sudo apt-get install xsltproc
+```
+## Start the helpserver Service
 
 Then start the server...
 
 ```sh
 sudo start helpserver
 ```
-To Refresh the server modules (new release of helpserver npm).
+
+## Initialize the Helpserver TOC and Search Indicies
+
+The first time in, there will be no generated table of contents. If you are running the helpserver with elasticsearch, the search index for the help system will also not exist. Before you can start browsing and searching the help system, you must initilize the index and TOC. The system can be initilized by refreshing the help index:
+
+```sh
+curl --insecure -d "" https://127.0.0.1/refresh
+curl --insecure -d "" https://127.0.0.1/TransFormDocumentation/refresh
+```
+
+## Refreshing Server Modules
+
+To refresh the server modules (new release of helpserver npm).
 
 ```sh
 sudo stop helpserver
@@ -112,7 +174,6 @@ cd /home/AlphaHelp/helpserver/node_modules/help_server
 sudo npm update
 sudo start helpserver
 ```
-
 
 Caveat - nodegit 4.0.0 broken in reposity.js - whenever I refresh the npm now I need to execute this line
 
