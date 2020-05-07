@@ -1,0 +1,69 @@
+<page build="6581">
+    <shortlink>iis stack options</shortlink>
+    <topic>Optimizing Memory Usage on IIS</topic>
+    <description>Reduce memory and CPU usage for applications running on the Application Server for IIS and Alpha Cloud by enabling Stack Options.</description>
+    <discussion>
+        <p>When a request is made for an A5W page, component, or endpoint built with Xbasic, two threads are created: an IIS thread with an 8MB stack to handle the request and a separate worker thread to process Xbasic. *[ui:Stack options]* allow the Xbasic processing to be handled by the IIS thread without creating a separate worker thread. This reduces both the memory and processing required to handle the request.</p>
+        <p>Stack options are located in the Web site defaults (ISS and Alpha Cloud Only) section of the web project properties dialog:</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/stackOptionsProperty.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Click the [...] smart button to edit the *[ui:Stack options]* settings:</p>
+            </description>
+            <figure>
+                <link>images/stackOptions1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When *[ui:Stack options]* is enabled, a stack size of 256KB is used to run requests in an IIS thread. Any stack value greater than 256KB will cause an additional worker thread to be created.</p>
+                <p>Custom stack sizes can be defined for specific pages that require a larger stack in the "Advanced" section of the dialog. For example, if a page uses a third-party assembly that requires a stack larger than 256KB, a custom stack size can be defined for that page. When a request is made to that page, the Application Server for IIS will create an additional worker thread to process the request. All other requests will run in the IIS thread while the specified page will have a worker thread created for it.</p>
+                <p>The page names are defined as regular expressions. The [...] smart button for the *[ui:Page Name Regular Expression]* can be used to open a dialog to help build the regular expression:</p>
+            </description>
+            <figure>
+                <link>images/stackOptions2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Use the *[ui:Add Page Names]* button to select pages from your web project to add to the expression.</p>
+            </description>
+            <figure>
+                <link>images/stackOptions3.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The *[ui:Test]* field in the dialog can be used to verify your regular expression will match the specific page or resource that requires an additional worker thread to process requests.</p>
+            </description>
+            <figure>
+                <link>images/stackOptions4.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Stack options are not enabled by default in existing web applications and existing applications will continue to work without changing this property. New web applications built with Alpha Anywhere 4.6.2 or newer will have Stack options enabled by default.</p>
+                <p>Published applications must be republished (both IIS and Alpha Cloud) after changing the Stack options configuration.</p>
+            </description>
+        </section>
+        <section>
+            <title>Understanding IIS Requests and why Stack Options is Disabled for Existing Applications</title>
+            <description>
+                <p>IIS assigns a thread to each request. The memory stack size of that thread is 256KB. The amount of memory was insufficient for the Xbasic engine in prior versions of Alpha Anwhere, so the Application Server for IIS created an additional worker thread to process the request with an 8MB memory stack. The IIS thread must wait for the worker thread to finish before processing the request and sending a response.</p>
+                <p>Work has been done to reduce the memory required by the Xbasic engine so that it can run within the IIS thread. While the Xbasic engine is small enough to run within the IIS thread, existing web applications may use third-party assemblies that require more memory. Because of this concern, Stack options must be manually enabled in existing applications.</p>
+                <p>With Stack Options enabled and a stack size set to 256KB, there is no need for Application Server for IIS to create its own worker thread. The IIS thread is able to process the request in Xbasic. This saves time and memory associated with allocating and freeing a worker thread. You may not see a direct savings of 8MB of memory usage per request due because of how Windows virtual memory management works. There will be a savings, however, in thread management for each request, which will enable a machine to handle more concurrent requests. Actual performance gains will vary based on your web application's implementation.</p>
+            </description>
+        </section>
+    </sections>
+    <limitations>Application Server for IIS and Alpha Cloud</limitations>
+    <links>
+        <link href="/images/tools/ellipsesButton.png">...</link>
+        <link link=""></link>
+    </links>
+</page>
