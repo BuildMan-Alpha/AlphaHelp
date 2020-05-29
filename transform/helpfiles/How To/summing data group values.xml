@@ -1,0 +1,51 @@
+<page>
+    <shortlink>howto sum datagroup</shortlink>
+    <topic>Using TPL to Sum up Values in a Data Group</topic>
+    <description>TPL can be used to compute summary values for a Data Group, such as the total for a list of invoice line items.</description>
+    <discussion>
+        <p>In some cases, you might want to perform mathematical operations using multiple values in a data group.  For example, say you created an invoice form and had a data group to record each line on an invoice. At the bottom of the form, you want a field that displays the total of all of the lines, here is how you could do that:</p>
+    </discussion>
+    <sections>
+        <section>
+            <description>
+                <p>First create a form design with a data group. In this case the data group *[ui:Array Name]* property is *[ui:items]*. In the data group, place a number or currency field. (This example uses a currency field). Below the data group insert another number or currency field to hold the total. Be sure to give each field a meaningful *[ui:Field Name]*.</p>
+            </description>
+            <figure>
+                <link>/images/sumdatagroup1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Then using TPL, create a script that fires whenever a new price is entered, changed, or deleted by attaching it to the price field's *[ui:Changed]* event. The script uses a loop to go through all of the items and to set the total field.</p>
+                <p>
+                    <example code="tpl"><![CDATA[ON *changed_items,price
+    #total = 0
+
+    FOR i=0 TO len(#items)-1
+        #total = #total + #items[i].price
+    ENDFOR
+
+ENDON]]></example>
+                </p>
+            </description>
+            <figure>
+                <link>/images/sumdatagroup2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When the script is run, it first zeros out the #total field. Then it runs a loop that runs through each value in the data group.</p>
+                <p>Data groups start with an index value of 0, which is why the loop is from 0 to the length of the array minus 1.</p>
+                <p>Each time it loops it adds the price of the current item into the total field. When it's done, the total field now holds the total for all of the items multiplied together.</p>
+                <p>Suppose there is another field for quantity and you want to multiply the quantity by the price for each item, the syntax would be:</p>
+                <p>
+                    <example code="tpl"><![CDATA[#total = #total + (#items[i].price * #items[i].quantity)]]></example>
+                </p>
+                <p>This calculation would need to be added to the *[ui:Changed]* event for both the *[ui:price]* and *[ui:quantity]* field to ensure the total is updated when either the price or quantity changed.</p>
+            </description>
+        </section>
+    </sections>
+    <see>
+        <ref link="howto calc fields">How do I create a Calculated Field?</ref>
+    </see>
+</page>
