@@ -1,0 +1,548 @@
+<page>
+    <shortlink>tf bulk dispatch exceltemplate</shortlink>
+    <topic>Bulk Dispatch Excel Template</topic>
+    <description>How to fill in the Excel template for use with the Bulk Dispatch action or TransForm API BulkDispatchProcessExcelFile method.</description>
+    <discussion>
+        <p>The Bulk Dispatch action dispatches forms specified in an Excel file, which Alpha TransForm generates for you as part of the action. Depending on the complexity of your form design, the file may contain multiple sheets that you must fill out.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Excel File Structure for Simple Forms</title>
+            <description>
+                <p>If the forms you are dispatching do not contain Data Groups, the structure of the Excel template is very simple. The Excel template will have a sheet for each form type you are dispatching.</p>
+                <p>For example, say you specified that you want to dispatch instances of the Inspection form and the FollowUp form, your Excel template will have a sheet called *[ui:Inspection]* and another sheet called *[ui:FollowUp]*.</p>
+                <p>The Excel template will also have a sheet called *[ui:__bulkDispatch_settings]*. Filling out this sheet is optional. It contains settings that control how notifications are sent when the forms are dispatched. See [Configuring Dispatch Notifications] for more information.</p>
+                <p>Each sheet in the Excel template will have columns for each field in the corresponding form. For example, assume the FollowUp form has these fields:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Address</name>
+                        </item>
+                        <item>
+                            <name>City</name>
+                        </item>
+                        <item>
+                            <name>State</name>
+                        </item>
+                        <item>
+                            <name>Zip</name>
+                        </item>
+                        <item>
+                            <name>Date</name>
+                        </item>
+                        <item>
+                            <name>Comments</name>
+                        </item>
+                    </list>
+                </p>
+                <p>The *[ui:FollowUp]* sheet in the Excel template will have these columns:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr>
+                        <th>__id</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Zip</th>
+                        <th>Date</th>
+                        <th>Comments</th>
+                        <th>&amp;#person</th>
+                        <th>&amp;#status</th>
+                        <th>&amp;#comments</th>
+                        <th>&amp;#duedate</th>
+                    </tr>
+                    <tr>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>Note that some of the columns are prefixed with *[bold:&amp;#]*. These columns are metadata columns. They are for data fields that are not part of the form itself, but describe some aspect of the form.</p>
+                <p>The following metadata fields are defined in the Excel template:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Metadata Field</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>&amp;#person</name>
+                            <description>
+                                <p>The person or queue to which the form is dispatched. If dispatching to a person, *[ui:&amp;#person]* is the email address for the user's TransForm Account, e.g. "susan@example.com". If you enter an email address that is not associated with a TransForm account, the Dispatch action will fail.</p>
+                                <p>If dispatching to a queue, enter the queue name with the prefix "queue:". For example, *[ui:queue:default]* or *[ui:queue:unclaimedtasks]*. The queue must exist in the TransForm Account. See [On-device Asset Policies: Queues] to learn more about queues.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>&amp;#status</name>
+                            <description>
+                                <p>*[Required]* All form instances have a status, such as "open", "closed", or "submitted". The status a form can have is defined on the [Permissions tab] in TransForm Central. By default, TransForm provides the following statuses:</p>
+                                <p>
+                                    <list bullet="true">
+                                        <item>
+                                            <name>open</name>
+                                        </item>
+                                        <item>
+                                            <name>submitted</name>
+                                        </item>
+                                        <item>
+                                            <name>approval</name>
+                                        </item>
+                                        <item>
+                                            <name>closed</name>
+                                        </item>
+                                    </list>
+                                </p>
+                                <p>When specifying the *[bold:&amp;#status]*, you must enter the *[ui:Status Id]* for the status.</p>
+                                <p>If you have modified the statuses for your TransForm Account, the available options may differ. Check the [Permissions tab] for your TransForm account for a list of available statuses.</p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>&amp;#comments</name>
+                            <description>Every form can have a comment. Note that the metadata *[bold:&amp;#comments]* field is not the same as the *[bold:Comments]* field shown in column 7 of the table above. The *[bold:Comments]* field shown in column 7 is part of the form data. Not all forms will have a *[bold:Comments]* field, but all forms will have a *[bold:&amp;#comments]* metadata field.</description>
+                        </item>
+                        <item>
+                            <name>&amp;#duedate</name>
+                            <description>
+                                <p>The form's due date. This is the date the user is expected to submit the completed form. The syntax for this value is *[yyyy-mm-dd]*. For example:</p>
+                                <p>
+                                    <example><![CDATA[2020-06-22]]></example>
+                                </p>
+                            </description>
+                        </item>
+                    </list>
+                </p>
+                <p>The *[bold:&amp;#status]* metadata field is the only required field.</p>
+                <p>The *[bold:__id]* field is a number to uniquely identify each row in the sheet. The *[bold:__id]* field is not part of the form's data and is only required if the dispatched forms also include Data Groups.</p>
+                <p>Here is an example of filling in the Excel template for the FollowUp form:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr>
+                        <th>__id</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Zip</th>
+                        <th>Date</th>
+                        <th>Comments</th>
+                        <th>&amp;#person</th>
+                        <th>&amp;#status</th>
+                        <th>&amp;#comments</th>
+                        <th>&amp;#duedate</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>23 Main St.</td>
+                        <td>Boston</td>
+                        <td>MA</td>
+                        <td>02139</td>
+                        <td>2020-06-15</td>
+                        <td>&#160;</td>
+                        <td>fred@acme.com</td>
+                        <td>open</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>11 Circle Dr.</td>
+                        <td>Burlington</td>
+                        <td>MA</td>
+                        <td>01803</td>
+                        <td>2020-06-15</td>
+                        <td>&#160;</td>
+                        <td>tom@acme.com</td>
+                        <td>open</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>4 Pleasant St.</td>
+                        <td>Lexington</td>
+                        <td>MA</td>
+                        <td>02421</td>
+                        <td>2020-06-22</td>
+                        <td>&#160;</td>
+                        <td>jenny@acme.com</td>
+                        <td>open</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>When the completed Excel template is uploaded to TransForm Central, three form instances of the FollowUp form will be dispatched (to fred@acme.com, tom@acme.com, and jenny@acme.com). Each row in the *[ui:FollowUp]* sheet of the Excel template represents a form instance that will be dispatched.</p>
+            </description>
+        </section>
+        <section>
+            <title>Excel File Structure for Complex Forms (Data Groups)</title>
+            <description>
+                <p>If the forms you are dispatching contain Data Groups, the Excel template will be more complex. The Excel template will have a sheet for each form type you are dispatching, as well as the *[ui:__bulkDispatch_settings]* sheet. In addition, there will be a sheet for each Data Group in the form(s).</p>
+                <p>For example, say you specified that you want to dispatch instances of the Inspection form. This form may have a Data Group called Equipment that allows the user to enter data for multiple pieces of equipment.</p>
+                <p>The Excel template for the Inspection form will have the following sheets:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Sheet Name</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[ui:Inspection]*</name>
+                            <description>A sheet containing the top level fields in the Inspection form.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Inspection_Equipment]*</name>
+                            <description>A sheet for the fields in the Equipment Data Group. Data Group sheets are always prefixed with "*[em:FormName_]*". E.g. The Equipment Data Group is prefixed with "Inspection_".</description>
+                        </item>
+                        <item>
+                            <name>*[ui:__bulkDispatch_settings]*</name>
+                            <description>A sheet for optionally customizing how the forms are dispatched. See [Configuring Dispatch Notifications] for more information.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>Let's assume that the Inspection form has these fields:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Address</name>
+                        </item>
+                        <item>
+                            <name>City</name>
+                        </item>
+                        <item>
+                            <name>State</name>
+                        </item>
+                        <item>
+                            <name>Zip</name>
+                        </item>
+                        <item>
+                            <name>Date</name>
+                        </item>
+                        <item>
+                            <name>Equipment.Name</name>
+                        </item>
+                        <item>
+                            <name>Equipment.Comments</name>
+                        </item>
+                    </list>
+                </p>
+                <p>The top level fields in this form are *[bold:Address]*, *[bold:City]*, *[bold:State]*, *[bold:Zip]*, and *[bold:Date]*, and the Equipment Data Group has a *[bold:Name]* and *[bold:Comments]* field.</p>
+                <p>The *[ui:Inspection]* sheet in the Excel template will have this structure:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr>
+                        <th>__id</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Zip</th>
+                        <th>Date</th>
+                        <th>&amp;#person</th>
+                        <th>&amp;#status</th>
+                        <th>&amp;#comments</th>
+                        <th>&amp;#duedate</th>
+                    </tr>
+                    <tr>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>The *[ui:Inspection_Equipment]* sheet in the Excel template will have this structure:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr>
+                        <th>__id</th>
+                        <th>Name</th>
+                        <th>Comments</th>
+                        <th>__linkId</th>
+                        <th>__linkTable</th>
+                    </tr>
+                    <tr>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                        <td>&#160;</td>
+                    </tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>All sheets for Data Groups have the following fields:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Field</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>__id</name>
+                            <description>The id of the row to uniquely identify the row.</description>
+                        </item>
+                        <item>
+                            <name>__linkId</name>
+                            <description>The *[bold:__id]* of the row in the specified *[bold:__linkTable]* to which this record is linked.</description>
+                        </item>
+                        <item>
+                            <name>__linkTable</name>
+                            <description>The name of the sheet to which the record is linked. When the template is filled in every row will have the *[same]* value in this column.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>Notice that the sheet for the Data Group does not have any metadata fields (i.e. fields starting with *[bold:&amp;#]*). Only the sheet for the top level fields in the form contains metadata fields.</p>
+                <p>Here is an example of how the Excel template for the Inspection form could be filled in:</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">The Inspection Sheet</title>
+                    <description>
+                        <table>
+                            <tr>
+                                <th>__id</th>
+                                <th>Address</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Zip</th>
+                                <th>Date</th>
+                                <th>&amp;#person</th>
+                                <th>&amp;#status</th>
+                                <th>&amp;#comments</th>
+                                <th>&amp;#duedate</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>23 Main St.</td>
+                                <td>Boston</td>
+                                <td>MA</td>
+                                <td>02139</td>
+                                <td>2019-06-03</td>
+                                <td>&#160;</td>
+                                <td>fred@acme.com</td>
+                                <td>open</td>
+                                <td>&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>11 Circle Dr.</td>
+                                <td>Burlington</td>
+                                <td>MA</td>
+                                <td>01803</td>
+                                <td>2019-06-03</td>
+                                <td>&#160;</td>
+                                <td>tom@acme.com</td>
+                                <td>open</td>
+                                <td>&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>4 Pleasant St.</td>
+                                <td>Lexington</td>
+                                <td>MA</td>
+                                <td>02421</td>
+                                <td>2019-06-03</td>
+                                <td>&#160;</td>
+                                <td>jenny@acme.com</td>
+                                <td>open</td>
+                                <td>&#160;</td>
+                            </tr>
+                        </table>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">The Inspection_Equipment Sheet</title>
+                    <description>
+                        <table>
+                            <tr>
+                                <th>__id</th>
+                                <th>Name</th>
+                                <th>Comments</th>
+                                <th>__linkId</th>
+                                <th>__linkTable</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Boiler</td>
+                                <td>&#160;</td>
+                                <td>1</td>
+                                <td>Inspection</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Stove</td>
+                                <td>&#160;</td>
+                                <td>1</td>
+                                <td>Inspection</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Refrigerator</td>
+                                <td>&#160;</td>
+                                <td>1</td>
+                                <td>Inspection</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Boiler</td>
+                                <td>&#160;</td>
+                                <td>2</td>
+                                <td>Inspection</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Thermostats</td>
+                                <td>&#160;</td>
+                                <td>2</td>
+                                <td>Inspection</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Stove</td>
+                                <td>&#160;</td>
+                                <td>3</td>
+                                <td>Inspection</td>
+                            </tr>
+                        </table>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <description>
+                <p>When the completed Inspection Excel template is uploaded, three instances of the Inspection form will be dispatched -- one for each row in the *[ui:Inspection]* sheet. The form dispatched to fred@acme.com will contain three entries in the Equipment Data Group corresponding to rows 1, 2 and 3 in the *[ui:Inspection_Equipment]* sheet. Notice that the *[bold:__linkId]* field in these three rows of data all point to the row with an *[bold:__id]* of 1 in the *[ui:Inspection]* sheet (the record for "23 Main St.")</p>
+                <p>The form that is dispatched to tom@acme.com will have two rows of data in the Equipment Data Group, and the form that is dispatched to jenny@acme.com will have a single Equipment Data Group record.</p>
+            </description>
+        </section>
+        <section>
+            <title>Dispatching Forms that Contain Images</title>
+            <description>
+                <p>If dispatched forms contain Image fields, you can specify the images to show in the fields as follows:</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>Upload the images to a server that TransForm can access, such as Amazon S3, DropBox, Google Drive, or your own server.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Enter the URL of the image on the server in the image field of Excel template.</p>
+                    </description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>For example, say you have an file called c:\equipmentImages\boiler234.jpg. You could upload this image an Amazon S3 bucket and its URL might then be: https://acmecoimages.s3.amazonaws.com/boiler234.jpg. You would enter the Amazon S3 URL in the image field of the Excel template.</p>
+            </description>
+        </section>
+        <section>
+            <title>Configuring Dispatch Notifications</title>
+            <description>
+                <p>When forms are dispatched to a user, a notification can be sent to the user. The type of notification sent to each user is determined by the user's [User Preference settings]. Users can specify their notification preferences in TransForm Central or within the TransForm App. The user can specify that they want to receive notifications via email, SMS messages or both email and SMS. If a user selects SMS as an option, they must specify a mobile device phone number.</p>
+                <p>The image below shows how a user can set their preferences in TransForm Central:</p>
+            </description>
+            <figure>
+                <link>/images/bulkDispatchSettings1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>In order for notifications to be sent, the TransForm account owner must configure the [Account Preferences] for sending email and/or SMS messages. Email notification are sent using either the SparkPost or SendGrid service. These services have a free tier, but you must register for an account to generate an API key.</p>
+                <p>SMS messages are sent using Twilio. You need to register for a Twilio account to generate credentials for sending SMS messages.</p>
+                <p>TransForm Account Preferences are set in TransForm Central by selecting the *[ui:Change Preferences]* menu option in the *[ui:Account Settings]* section. The image below shows the screen for defining Account Preferences:</p>
+            </description>
+            <figure>
+                <link>/images/bulkDispatchSettings2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Excel template includes a sheet called *[ui:__bulkDispatch_settings]* that includes optional settings for configuring notifications. When you open the *[ui:__bulkDispatch_settings]* sheet, it will contain the following information:</p>
+            </description>
+        </section>
+        <section>
+            <description>
+                <table>
+                    <tr>
+                        <th>__propertyName</th>
+                        <th>__value</th>
+                    </tr>
+                    <tr>
+                        <td>__comment</td>
+                        <td>these properties control how the Excel file is processed</td>
+                    </tr>
+
+                    <tr>
+                        <td>sendSummaryNotification</td>
+                        <td>comment:Specify 'yes' or 'no' to indicate if individual notifications should be sent out for each form that was dispatched, or a single notification to each person telling how many forms were dispatched to them. Default value is 'no'.</td>
+                    </tr>
+                    <tr>
+                        <td>summaryNotificationTemplate_email</td>
+                        <td>comment:Specify the template to use for the summary email notification. Your template can use [count] as a placeholder for the number of forms that were dispatched. Only meaningful if 'sendSummaryNotification' is set to 'yes'.</td>
+                    </tr>
+                    <tr>
+                        <td>summaryNotificationTemplate_sms</td>
+                        <td>comment:Specify the template to use for the summary SMS notification. Your template can use [count] as a placeholder for the number of forms that were dispatched. Only meaningful if 'sendSummaryNotification' is set to 'yes'.</td>
+                    </tr>
+                </table>
+            </description>
+        </section>
+        <section>
+            <description>
+                <p>Notifications can be sent for each form that is dispatched, or a summary notification can be sent. For example, say that you fill in the Excel template to dispatch multiple forms to fred@acme.com. If you set the *[ui:sendSummaryNotification]* property to *[bold:yes]*, then only one notification will be sent to fred@acme.com. On the other hand, if the *[ui:sendSummaryNotification]* property is set to *[bold:no]* or is not set, then a notification will be sent for each form dispatched to fred@acme.com.</p>
+                <p>The notification message is defined in [Account Preferences]. If summary notifications are enabled, you can specify a custom summary message in the *[ui:summaryNotificationTemplate_email]* and *[ui:summaryNotificationTemplate_sms]* properties for email and SMS messages, respectively.</p>
+            </description>
+        </section>
+    </sections>
+    <see>
+        <ref link="transform central home#section1_Account%20Notifications">Setting up Account Notifications</ref>
+        <ref link="transform central home#section1_User%20Preferences">Configuring User Notification Preferences</ref>
+    </see>
+    <links>
+        <link link="transform%20central%20permissions">Permissions tab</link>
+        <link link="ondevice%20assets%20policy#group_Queues">On-device Asset Policies: Queues</link>
+        <link link="transform central home#section1_User%20Preferences">User Preference settings</link>
+        <link link="transform central home#section1_Account%20Notifications">Account Preferences</link>
+        <link link="ondevice%20assets%20policy#section2_White-listing%20Images">On-device Asset Policies: White-listing Images</link>
+        <link href="#section1_Configuring%20Dispatch%20Notifications">Configuring Dispatch Notifications</link>
+    </links>
+</page>
