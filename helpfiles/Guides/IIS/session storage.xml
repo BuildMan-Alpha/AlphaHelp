@@ -1,0 +1,85 @@
+<page build="5151">
+    <shortlink>iis session state storage</shortlink>
+    <topic>Session State Storage Type on IIS</topic>
+    <description>
+        <p>The Session State Storage Type defines where session files are stored.</p>
+    </description>
+    <discussion>
+        <p>Temporary files created as part of a user's interaction with your application are stored in Session State Storage. You can configure where session files are stored in the IIS publishing profile.</p>
+        <p>The Session State Storage Type can be configured when you are setting up your IIS publishing profile (click the *[ui:Storage Settings]* button)</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/iissessionstate1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Or in an existing profile using the *[ui:Session State Storage Type]* property.</p>
+            </description>
+            <figure>
+                <link>images/iissessionstate2.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>There are two options available for the Session State Storage Type:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>In Session Provider</name>
+                            <description>This option is the default and is currently how applications work. Files stored to session are written to the session state provider. Writing files to the session state provider can be a bottleneck causing performance issues.</description>
+                        </item>
+                        <item>
+                            <name>Storage Connection String</name>
+                            <description>This option defines a specific location where session files can be written. This offloads the session state provider, improving performance while still connecting the file to the user's session. Storage connection strings can point to Disk, Amazon S3, or Azure. In most cases for an application published to a self-hosted IIS server, a "Disk" type storage connection string makes the most sense.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Storing files on Disk</title>
+            <description>
+                <p>If the session files are stored on disk -- by choosing a *[Storage Connection String]* with the type *[Disk]* -- you can additionally specify how long the files will be stored and whether or not session state information can be shared among multiple applications.</p>
+            </description>
+            <figure>
+                <link>images/iissessionstate3.gif</link>
+            </figure>
+        </section>
+        <section>
+            <title nested="2">Storage Lifetime</title>
+            <description>
+                <p>*[ui:Storage Lifetime]* defines how long a file will be available in the location on disk. It will be automatically deleted after the time period has elapsed. The files will be cleaned up by a new Windows service that is installed with Application Server for IIS. The service is named "Alpha Anywhere Disk Storage Monitor"</p>
+            </description>
+            <figure>
+                <link>images/iissessionstate4.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This service is installed as Manual startup and not running by default. It will be changed to Automatic startup and set to running when an application is published that has a "Disk" type session storage connection string. If an application is manually deployed rather that using publish, the service will need to be started and set to Automatic startup by hand.</p>
+            </description>
+        </section>
+        <section>
+            <title nested="2">Storage Scope</title>
+            <description>
+                <p>This option defines whether or not session state is shared between applications. By default session state is not shared between applications. The available storage scopes include:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>Only this application</name>
+                            <description>This is the default. A unique path will be appended to the storage connection string container (the disk path) to ensure files are separate for each application. For instance, a storage connection string can point to the folder "c:\temp\SessionStorage" for 2 different applications. The actual path used for each application will different though "c:\temp\SessionStorage\app1uniqueName" and "c:\temp\SessionStorage\app2uniqueName".</description>
+                        </item>
+                        <item>
+                            <name>Shared with other applications</name>
+                            <description>Occasionally, it may be necessary for applications to share session state. In these cases, both applications will need to use the same session storage. This option will use the session storage connection string as is. Each application will need to take care that the same file name is not used for files that have different content so that one won't possibly overwrite the other if they are written to session storage.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <limitations>Application Server for IIS</limitations>
+</page>
