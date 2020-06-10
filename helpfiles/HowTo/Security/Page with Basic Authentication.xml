@@ -1,0 +1,63 @@
+<page>
+    <shortlink>howto page with basic authentication</shortlink>
+    <topic>How to Create an .A5W Page that Requires Basic Authentication</topic>
+    <description></description>
+    <discussion>
+        <p>Basic Authentication is a simple HTTP form of authentication. As defined in *[extlink:Wikipedia@https://en.wikipedia.org/wiki/Basic_access_authentication]*:</p>
+        <p>*[em:"HTTP Basic authentication (BA) implementation is the simplest technique for enforcing access controls to web resources because it doesn't require cookies, session identifier and login pages. Rather, HTTP Basic authentication uses static, standard HTTP headers which means that no handshakes have to be done in anticipation."]*</p>
+        <p>If you create simple [web services] in Alpha Anywhere, you might want to use basic authentication on the .a5w page that implements your web service.</p>
+        <p>In the example page below, basic authentication is used. In this trivial example, the only user Id/password combination that is valid is Alpha/Anywhere. However, the example could easily be extended to do a database lookup to authenticate the user.</p>
+        <p>When this page is called (by some other program that is trying to consume the web service implemented by this page), it is assumed that the headers will have been set to supply the user id and password.</p>
+        <p>If you try to call this page from a browser, the browser will prompt for a user id and password:</p>
+        <p>
+            <example><![CDATA[<%a5
+if ("Authorization: Basic " $ Request.Headers)
+
+    'Extract the Authorization from the request header
+    dim EncodedUserAndPass as c = filter_string(Request.Headers,"Authorization: Basic", crlf())
+    EncodedUserAndPass = word(EncodedUserAndPass,2,": Basic")
+    EncodedUserAndPass = alltrim(EncodedUserAndPass)
+
+    'The authorization is base64 encoded. Decode it.
+    dim DecodedUserAndPass as b = base64decode(EncodedUserAndPass)
+
+    'Extract the username and password
+    dim Username as c = word(DecodedUserAndPass, 1,":")
+    dim Password as c = word(DecodedUserAndPass, 2, ":")
+   
+    'Here is where you could do a database lookup to authorize the user
+
+    if (Username = "Alpha" .and. Password = "Anywhere")
+        'The user has been authorized.
+        ? "Authorized as " + Username
+
+        'This is where you would implement the web service.
+        'For example, you might respond with some JSON data
+        'e.g.:
+        'data = "{name: 'alpha', city: 'Boston'}"
+        '?data
+
+    else
+        ?"Invalid username or password"
+
+        'If you want to present the user with another chance to log in, uncomment the code below:
+        'Response.StatusCode = "401"
+        'Response.StatusDescription = "Not Authorized"
+        'Response.Headers.Add("WWW-Authenticate", "Basic")
+
+    end if
+else
+    Response.StatusCode = "401"
+    Response.StatusDescription = "Not Authorized"
+    Response.Headers.Add("WWW-Authenticate", "Basic")
+end if
+%>]]></example>
+        </p>
+    </discussion>
+    <links>
+        <link link="services">web services</link>
+    </links>
+    <see>
+        <ref href="https://en.wikipedia.org/wiki/Basic_access_authentication">Wikipedia: Basic access authentication</ref>
+    </see>
+</page>
