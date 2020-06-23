@@ -232,8 +232,10 @@ function getGitTimestamp() {
             day = (day < 10) ? "0" + day:""+day;
             var dateStr = d.getFullYear() + "/" + month + "/" + day;
 
-            var ele = document.getElementById('report-issue-timestamp')
-            ele.innerHTML = "Page Last Modified on " + dateStr;
+            var ele = document.getElementById('report-issue-timestamp');
+            if (ele) {
+                ele.innerHTML = "Page Last Modified on " + dateStr;
+            }
         }
     }
 
