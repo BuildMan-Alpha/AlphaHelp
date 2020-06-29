@@ -1,0 +1,736 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "SomeSchema",
+    "description": "Document generation format",
+    "type": "object",
+    "properties": {
+        "data": {
+            "$ref": "#/definitions/dataDef"
+        },
+        "layout": {
+            "$ref": "#/definitions/presentationDef"
+        }
+    },
+    "definitions": {
+        "dataDef": {
+            "type": "object",
+            "properties": {
+                "datasource": {
+                    "type": "object",
+                    "title": "Source for the data.",
+                    "properties": {
+                        "set": {
+                            "type": "string",
+                            "title": "Name of legacy .SET to use for the datasource."
+                        },
+                        "Type": {
+                            "type": "string",
+                            "enum": [
+                                "AdHoc",
+                                "Named"
+                            ],
+                            "title": "SQL Connection string type (AdHoc or Named)."
+                        },
+                        "Name": {
+                            "type": "string",
+                            "title" : "Name (for groups in nested data sources)."
+                        },
+                        "ConnectionString": {
+                            "type": "string",
+                            "title": "Connection string or name of named connection."
+                        },
+                        "SQLSelectStatement": {
+                            "type": "string",
+                            "title": "Select statement for SQL query."
+                        },
+                        "SQLType": {
+                            "type": "string",
+                            "enum": [
+                                "Portable",
+                                "Native"
+                            ],
+                            "title": "Select statement for SQL query."
+                        },
+                        "GUID": {
+                            "type": "string"
+                        },
+                        "Timestamp": {
+                            "type": "string"
+                        },
+                        "AdvancedOptions": {
+                            "type": "object",
+                            "title": "Source for the data.",
+                            "properties": {
+                                "SizeToFit": {
+                                    "type": "boolean"
+                                },
+                                "ConvertTimeToDate": {
+                                    "type": "boolean"
+                                },
+                                "DefineFieldOverrides": {
+                                    "type": "boolean"
+                                },
+                                "OverrideDefinitions": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "AllowUnknownCount": {
+                            "type": "boolean"
+                        },
+                        "UnknownCountLimit": {
+                            "type": "integer"
+                        },
+                        "DBFTableStructure": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "calculated": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/definitions/calculatedDef"
+                    },
+                    "title": "Calculated fields expressed in the language."
+                },
+                "columns": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/definitions/columnDef"
+                    },
+                    "title": "Top level columns for grand (top) level fields."
+                },
+                "children": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/definitions/groupDef"
+                    },
+                    "title": "Child groups and 'Detail' section."
+                }
+            }
+        },
+        "calculatedDef": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": "string"
+                }
+            }
+        },
+        "columnDef": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": "string"
+                }
+            }
+        },
+        "groupDef": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": "object",
+                    "properties": {
+                        "break": {
+                            "type": "string",
+                            "title": "Column or expression to partition data on for this group."
+                        },
+                        "order": {
+                            "type": "string",
+                            "title": "Optional Column or expression to order the data in this group on."
+                        },
+                        "columns": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "$ref": "#/definitions/columnDef"
+                            },
+                            "title": "Columns for the fields within this group."
+                        },
+                        "children" : {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "$ref": "#/definitions/groupDef"
+                            },
+                            "title": "Child groups and 'Detail' section."        
+                        }
+                    }
+                }
+            }
+        },
+        "presentationDef": {
+            "type": "object",
+            "properties": {
+                "Layout": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/layoutDef"
+                    },
+                    "title": "Layout level (render order / structure of the report)."
+                },
+                "Table": {
+                    "type": "object",
+                    "$ref": "#/definitions/tableDef",
+                    "title": "A shared table that spans multiple sections."
+                },
+                "Info": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportInfo"
+                },
+                "Styles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reportStyleDef"
+                    },
+                    "title": "Named style definition (referenced by stylename)."
+                },
+                "hasStaticExternalReferences": {
+                    "type": "boolean",
+                    "title": "The layout includes static images that are stored externally (require download)."
+                },
+                "hasRoundedCorners": {
+                    "type": "boolean",
+                    "title": "The layout includes border definitions that are rounded. This is required because creating tables with rounded borders requires postproccessing of the definition."
+                }
+            }
+        },
+        "reportInfo": {
+            "type": "object",
+            "properties": {
+                "PageWidth": {
+                    "type": "integer",
+                    "title": "Width in twips of the page."
+                },
+                "PageHeight": {
+                    "type": "integer",
+                    "title": "Height in twips of the page."
+                },
+                "Landscape": {
+                    "type": "boolean",
+                    "title": "Page orientation, false means Portrait, true means Landscape."
+                },
+                "MarginLeft": {
+                    "type": "integer",
+                    "title": "Left margin for the page in twips."
+                },
+                "MarginTop": {
+                    "type": "integer",
+                    "title": "Top margin for the page in twips."
+                },
+                "MarginRight": {
+                    "type": "integer",
+                    "title": "Right margin for the page in twips."
+                },
+                "MarginBottom": {
+                    "type": "integer",
+                    "title": "Bottom margin for the page in twips."
+                }
+            }
+        },
+        "layoutDef": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "title": "Name for the section, corresponds with a grouping level if defined."
+                },
+                "band": {
+                    "type": "object",
+                    "$ref": "#/definitions/bandDef",
+                    "title": "Lowest level 'section' for a report (contains a table)."
+                },
+                "section": {
+                    "type": "object",
+                    "$ref": "#/definitions/sectionDef",
+                    "title": "Page headers and footers and optional margin overrides for this section."
+                },
+                "body": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/layoutDef"
+                    },
+                    "title": "Nested level group or detail level (what gets iterated over by the parent)."
+                },
+                "header":{
+                    "type": "object",
+                    "$ref": "#/definitions/layoutDef",
+                    "title": "Header - a section that appears before body."
+                },
+                "footer":{
+                    "type": "object",
+                    "$ref": "#/definitions/layoutDef",
+                    "title": "Footer - a section that appears after body."
+                },    
+                "pageBreakBefore": {
+                    "type": "boolean",
+                    "title": "Put each instance of this layout on its own page."
+                }
+            }
+        },
+        "bandDef": {
+            "type": "object",
+            "properties": {
+                "tableObjectName": {
+                    "type": "string",
+                    "title": "Name of top level table objects (for report with tables that span section)."
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tableDef"
+                    },
+                    "title": "Table(s) if using standalone tables for the band contents."
+                }
+            }
+        },
+        "tableDef": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tableColumnDef"
+                    },
+                    "title": "Column definition (Width of columns in table)."
+                },
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tableObjectDef"
+                    },
+                    "title": "Collection of table 'sections' for a common table that spans sections."
+                },
+                "body": {
+                    "type": "object",
+                    "$ref": "#/definitions/tableObjectDef",
+                    "title": "For inline table definitions, the body of the table (contains rows)."
+                },
+                "area": {
+                    "type": "object",
+                    "$ref": "#/definitions/areaDef",
+                    "title": "Area fill and border properties for the entire table."
+                },
+                "repeatFirstRow": {
+                    "type": "boolean",
+                    "title": "The first row of the table will be repeated after every page break if the contents of the table spans multiple pages."
+                }
+            }
+        },
+        "tableColumnDef": {
+            "type": "object",
+            "properties": {
+                "Width": {
+                    "type": "integer",
+                    "title": "Width expressed in twips."
+                }
+            }
+        },
+        "tableObjectDef": {
+            "type": "object",
+            "properties": {
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tableRowDef"
+                    },
+                    "title": "Table object, for a section - defines the table rows."
+                }
+            }
+        },
+        "tableRowDef": {
+            "type": "object",
+            "properties": {
+                "cells": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tableCellDef"
+                    },
+                    "title": "List of individual cells in the table."
+                },
+                "area": {
+                    "type": "object",
+                    "$ref": "#/definitions/areaDef",
+                    "title": "Backround and border for the row."
+                },
+                "stylename": {
+                    "type": "string",
+                    "title": "Named style if background and border are defined in named style."
+                },
+                "Height": {
+                    "type": "integer",
+                    "title": "Height of row, in twips."
+                }
+            }
+        },
+        "tableCellDef": {
+            "type": "object",
+            "properties": {
+                "Content": {
+                    "type": "object",
+                    "$ref": "#/definitions/contentDef",
+                    "title": "Simple contents of cell (text , reference to data, or template)."
+                },
+                "subTable": {
+                    "type": "object",
+                    "$ref": "#/definitions/tableDef",
+                    "title": "Complex cell content (a nested table)."
+                },
+                "area": {
+                    "type": "object",
+                    "$ref": "#/definitions/areaDef",
+                    "title": "Backround and border for the cell."
+                },
+                "stylename": {
+                    "type": "string",
+                    "title": "Named style if background and border are defined in named style."
+                },
+                "MergeRight": {
+                    "type": "integer",
+                    "title": "Number of cells that follow to merge with this cell."
+                }
+            }
+        },
+        "contentDef": {
+            "type": "object",
+            "properties": {
+                "Field": {
+                    "type": "string",
+                    "title": "Reference to column in supplied 'data'."
+                },
+                "Text": {
+                    "type": "string",
+                    "title": "Static text content."
+                },
+                "#template": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/templateDef"
+                    },
+                    "title": "Template (mix of static text and data, with support for conditionals)."
+                },
+                "ContentType": {
+                    "type": "string",
+                    "enum": [
+                        "Text",
+                        "Html",
+                        "PngImage",
+                        "BitmapImage",
+                        "JpgImage",
+                        "ExternalImage"
+                    ],
+                    "title": "Indicates the Content type, so that it can be rendered as an image or rich text if required."
+                },
+                "TextFormat": {
+                    "type": "object",
+                    "$ref": "#/definitions/textFormatDef",
+                    "title": "Set the font properties for the text."
+                },
+                "suppressEmpty": {
+                    "type": "boolean",
+                    "title": "If the content is HTML, do not render empty paragraphs."
+                }
+            }
+        },
+        "templateDef": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "title": "Static text in the template."
+                },
+                {
+                    "type": "object",
+                    "$ref": "#/definitions/fieldRefDef",
+                    "title": "Reference a column from the data in the template."
+                },
+                {
+                    "type": "object",
+                    "$ref": "#/definitions/ifStatementDef",
+                    "title": "Conditional section based on a logical column in the data."
+                }
+            ]
+        },
+        "fieldRefDef": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string",
+                    "title": "Reference a column from the data in the template."
+                }
+            }
+        },
+        "ifStatementDef": {
+            "type": "object",
+            "properties": {
+                "if": {
+                    "type": "object",
+                    "properties": {
+                        "condition": {
+                            "type": "string",
+                            "title": "The column in the data that contains the logical field (true means include this content) - if ommitted, assume true (else)."
+                        },
+                        "content": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/templateDef"
+                            },
+                            "title": "Content to include if condition is met."
+                        }
+                    }
+                }
+            }
+        },
+        "textFormatDef": {
+            "type": "object",
+            "properties": {
+                "faceName": {
+                    "type": "string",
+                    "title": "Font name to use (i.e. Courier, Arial, Times Roman etc)."
+                },
+                "sizeTwips": {
+                    "type": "string",
+                    "title": "Size of font in twips."
+                },
+                "bold": {
+                    "type": "boolean",
+                    "title": "Render text as bold."
+                },
+                "italic": {
+                    "type": "boolean",
+                    "title": "Render the text as italic."
+                },
+                "underline": {
+                    "type": "boolean",
+                    "title": "Render text with an underline."
+                },
+                "strikeout": {
+                    "type": "boolean",
+                    "title": "Render text with an strikeout."
+                },
+                "Justification": {
+                    "type": "string",
+                    "enum": [
+                        "Left",
+                        "Center",
+                        "Right",
+                        "Justify"
+                    ],
+                    "title": "Horizontal justification for text (Left, Center, Right or Justify)."
+                },
+                "Alignment": {
+                    "type": "string",
+                    "enum": [
+                        "Top",
+                        "Center",
+                        "Bottom"
+                    ],
+                    "title": "Vertical alignment for text."
+                }
+            }
+        },
+        "areaDef": {
+            "type": "object",
+            "properties": {
+                "Border": {
+                    "type": "object",
+                    "$ref": "#/definitions/borderFormatDef"
+                },
+                "BorderLeft": {
+                    "type": "object",
+                    "$ref": "#/definitions/borderFormatDef"
+                },
+                "BorderRight": {
+                    "type": "object",
+                    "$ref": "#/definitions/borderFormatDef"
+                },
+                "BorderTop": {
+                    "type": "object",
+                    "$ref": "#/definitions/borderFormatDef"
+                },
+                "BorderBottom": {
+                    "type": "object",
+                    "$ref": "#/definitions/borderFormatDef"
+                },
+                "fill": {
+                    "type": "object",
+                    "$ref": "#/definitions/fillDef"
+                }
+            }
+        },
+        "fillDef": {
+            "type": "object",
+            "properties": {
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "None",
+                        "Solid"
+                    ]
+                },
+                "color": {
+                    "type": "integer"
+                }
+            }
+        },
+        "borderFormatDef": {
+            "type": "object",
+            "properties": {
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "None",
+                        "Single",
+                        "Indent",
+                        "Raised",
+                        "Dots",
+                        "Dash",
+                        "LongDash",
+                        "Etched",
+                        "Bump"
+                    ]
+                },
+                "width": {
+                    "type": "integer"
+                },
+                "color": {
+                    "type": "integer"
+                },
+                "startRounded": {
+                    "type": "integer"
+                },
+                "endRounded": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sectionDef": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "header": {
+                    "type": "object",
+                    "$ref": "#/definitions/pageHeaderFooter"
+                },
+                "footer": {
+                    "type": "object",
+                    "$ref": "#/definitions/pageHeaderFooter"
+                },
+                "MarginLeft": {
+                    "type": "integer"
+                },
+                "MarginRight": {
+                    "type": "integer"
+                },
+                "MarginTop": {
+                    "type": "integer"
+                },
+                "MarginBottom": {
+                    "type": "integer"
+                },
+                "Columns": {
+                    "type": "integer"
+                }
+            },
+        },
+        "pageHeaderFooter": {
+            "type": "object",
+            "properties": {
+                "Primary": {
+                    "type": "object",
+                    "$ref": "#/definitions/layoutDef"
+                },
+                "Even": {
+                    "type": "object",
+                    "$ref": "#/definitions/layoutDef"
+                },
+                "First": {
+                    "type": "object",
+                    "$ref": "#/definitions/layoutDef"
+                }
+            }
+        },
+        "reportStyleDef": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "AliasOf": {
+                    "type": "string"
+                },
+                "Area": {
+                    "type": "object",
+                    "$ref": "#/definitions/areaDef"
+                },
+                "TextFormat": {
+                    "type": "object",
+                    "$ref": "#/definitions/textFormatDef"
+                },
+                "LeftCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "RightCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "TopCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "BottomCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "TopLeftCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "TopRightCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "BottomLeftCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "BottomRightCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                },
+                "MiddleCell": {
+                    "type": "object",
+                    "$ref": "#/definitions/reportStyleBaseDef"
+                }
+            }
+        },
+        "reportStyleBaseDef": {
+            "type": "object",
+            "properties": {
+                "Area": {
+                    "type": "object",
+                    "$ref": "#/definitions/areaDef"
+                },
+                "TextFormat": {
+                    "type": "object",
+                    "$ref": "#/definitions/textFormatDef"
+                }
+            }
+        }
+    }
+}
