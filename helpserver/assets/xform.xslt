@@ -121,9 +121,16 @@
                    <div class="underConstruction">&#160;</div>
                    <p>We're working on filling in the missing information as quickly as possible. If there's something you'd like to see here, use the "Report an Issue with this Page" link at the bottom of this page to let us know.</p>
                 </xsl:when>
-                <xsl:otherwise>            
+                <xsl:otherwise>                
                     <meta name="description" content="{description}"/>
-                    <p class="A5">Description</p>
+                    <xsl:choose>
+                        <xsl:when test="description/@title">
+                            <p class="A5"><xsl:value-of select="description/@title" /></p>
+                        </xsl:when>
+                        <xsl:otherwise>
+                        <p class="A5">Description</p>
+                        </xsl:otherwise>
+                    </xsl:choose>
                     <xsl:for-each select="description">
                         <xsl:call-template name="text-content"/>
                     </xsl:for-each>
