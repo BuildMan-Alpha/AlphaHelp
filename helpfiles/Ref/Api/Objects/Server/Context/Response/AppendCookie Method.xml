@@ -7,14 +7,80 @@
         <argument>
             <name>Cookie</name>
             <type>[System::Web::HttpCookie]</type>
-            <description>The cookie to add.</description>
+            <description>The cookie to add. Commonly used properties are listed below. For further information about available properties and methods, visit the [System::Web::HttpCookie] documentation.</description>
+            <properties>
+                <property>
+                    <name>Domain</name>
+                    <type>C</type>
+                    <description>The cookie's domain.</description>
+                </property>
+                <property>
+                    <name>Expires</name>
+                    <type>T</type>
+                    <description>The cookie's expiration date and time (on the client).</description>
+                </property>
+                <property>
+                    <name>HttpOnly</name>
+                    <type>L</type>
+                    <description>Specifies whether or not the cookie is available client-side. See *[extlink:Mitigating Cross-site Scripting With HTTP-only Cookies
+ (Microsoft)@https://docs.microsoft.com/en-us/previous-versions//ms533046(v=vs.85)?redirectedfrom=MSDN]* to learn more about using this property.</description>
+                </property>
+                <property>
+                    <name>Name</name>
+                    <type>C</type>
+                    <description>The cookie's name.</description>
+                </property>
+                <property>
+                    <name>SameSite</name>
+                    <type>[System::Web::SameSiteMode]</type>
+                    <description>The value of the SameSite attribute for the cookie. Can be *[xb:System::Web::SameSiteMode::Lax]*, *[xb:System::Web::SameSiteMode::None]*, or *[xb:System::Web::SameSiteMode::Strict]*.</description>
+                </property>
+                <property>
+                    <name>Secure</name>
+                    <type>L</type>
+                    <description>Whether or not the cookie should be transmitted over a secure connection (HTTPS).</description>
+                </property>
+                <property>
+                    <name>Value</name>
+                    <type>C</type>
+                    <description>Cookie value.</description>
+                </property>
+            </properties>
         </argument>
     </arguments>
-    <discussion>*[xb:Context.Response.AppendCookie(Cookie)]* adds a cookie to the response's cookie collection.</discussion>
-    <example><![CDATA[dim newCookie as System::Web::HttpCookie = new System::Web::HttpCookie(cookieName)
+    <discussion>
+        <p>*[xb:Context.Response.AppendCookie(Cookie)]* adds a cookie to the response's cookie collection. If a cookie with the same name already exists, it's replaced with the new cookie.</p>
+        <p>
+            <example code="xb"><![CDATA[dim cookieName as c = "MyCookieName"
+dim newCookie as System::Web::HttpCookie = new System::Web::HttpCookie(cookieName)
 newCookie.HttpOnly = .t.
 newCookie.Value = "This is the cookie's value."
 Context.Response.AppendCookie(newCookie)]]></example>
+        </p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Example: Setting the SameSite attribute</title>
+            <example code="xb"><![CDATA[dim cookie as System::Web::HttpCookie = new System::Web::HttpCookie("MyCookie", "MyCookieValue")
+cookie.HttpOnly = .t.
+cookie.SameSite = System::Web::SameSiteMode::None
+Context.Response.AppendCookie(cookie)]]></example>
+        </section>
+        <section>
+            <title>Example: Deleting a Cookie</title>
+            <description>
+                <p>You cannot directly delete a cookie on a user's computer. To remove a cookie, you must set the cookie's expiration date and time to a time in the past. The browser will then remove the cookie the next time a request is made and the cookie is inspected.</p>
+            </description>
+            <example code="xb"><![CDATA[dim cookieName as c
+cookieName = "CustomCookie"
+if Context.Request.HasCookie(cookieName) then
+    dim cookie as System::Web::HttpCookie = Context.Request.GetCookie(cookieName)
+    cookie.HttpOnly = .t.
+    cookie.Expires = ctodt("1/1/1970 12:00:00 00 am")
+    Context.Response.AppendCookie(cookie)
+end if]]></example>
+        </section>
+    </sections>
     <see>
         <ref link="api objects response object get cookie method">Context.Response.GetCookie Method</ref>
         <ref link="Context.Response.HasCookie Method">Context.Response.HasCookie Method</ref>
@@ -25,6 +91,7 @@ Context.Response.AppendCookie(newCookie)]]></example>
     </see>
     <links>
         <link href="https://msdn.microsoft.com/en-us/library/system.web.httpcookie(v=vs.110).aspx">System::Web::HttpCookie</link>
+        <link href="https://docs.microsoft.com/en-us/dotnet/api/system.web.samesitemode?view=netframework-4.8">System::Web::SameSiteMode</link>
     </links>
     <terms>response</terms>
 </page>
