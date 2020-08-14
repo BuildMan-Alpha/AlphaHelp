@@ -1,45 +1,114 @@
 <page api="xb">
     <shortlink>api save to file function</shortlink>
-   <topic>SAVE_TO_FILE Function</topic>
-   <description>Save a string to a file</description>
- 
-   <prototype>L save_to_file(C string ,C filename [,L append [,L silent ]])</prototype>
-   <arguments>
-     <argument>
-         <name>string</name>
-         <description>The data to save into the file.</description>
-     </argument>
-     <argument>
-         <name>filename</name>
-         <description>The fully qualified name of a file.</description>
-     </argument>
-     <argument>
-         <name>append</name>
-         <description><![CDATA[Logical. Optional. Default = .F. (overwrite file)
- .T. = Append data.
- .F. = Overwrite existing data. ]]>
-</description>
-     </argument>
-     <argument>
-         <name>silent</name>
-         <description>Logical</description>
-     </argument>
-   </arguments>  <discussion><![CDATA[
-SAVE_TO_FILE() saves a character string to a file specified by filename. This high level command is easier than using the low level <FILE>.CREATE()and <FILE>.WRITE()methods.
-   ]]></discussion>
-  
-   <sections>
-       <section><title>Example</title>
-            <description><![CDATA[This script saves the contents of the variable, xx2 to a text file.]]></description>
-            <example><![CDATA[
-save_to_file(xx2, "f:\a5\test2.txt")
-]]></example>
-       </section>
-   </sections>
-   
-   <see>
+    <topic>SAVE_TO_FILE Function</topic>
+    <description>Save a string to a file. The file can be saved to the local machine or Amazon S3.</description>
+    <prototypes>
+        <prototype>L save_to_file(C data ,C fileLocation [,L appendToFile [,L silent ]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>data</name>
+            <type>C</type>
+            <description>The data to save to file.</description>
+        </argument>
+        <argument>
+            <name>fileLocation</name>
+            <type>C</type>
+            <description>
+                <p>The location to save the file.</p>
+                <p>The location is either a fully qualified path on the server that executes the Xbasic script or a JSON string with the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>connectionString</name>
+                    <type>C</type>
+                    <description>The name of a saved [Storage Connection].</description>
+                </property>
+                <property>
+                    <name>objectName</name>
+                    <type>C</type>
+                    <description>The name of the file object to create that contains the saved data.</description>
+                </property>
+            </properties>
+        </argument>
+        <argument optional="true">
+            <name>appendToFile</name>
+            <type>L</type>
+            <description>Default = *[xb:.f.]*. If *[xb:.t.]*, data will be appended to the file. If *[xb:.f.]*, file will be overwritten.</description>
+        </argument>
+        <argument optional="true">
+            <name>silent</name>
+            <type>L</type>
+            <description>Default = *[xb:.t.]*. If *[xb:.t.]*, suppresses all popup messages. If *[xb:.f.]*, displays any popup messages that occur when the file is saved.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <types>
+                <type>L</type>
+            </types>
+            <description>
+                <p>Returns *[xb:.t.]* if the data is saved. Otherwise, returns *[xb:.f.]*.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>SAVE_TO_FILE() saves a character string to a file. If the file exists, data can optionally be appended to the file. The file can be a file on the server or a file on AmazonS3 by specifying a [Storage Connection] string and object name in the file location parameter as a JSON string.</discussion>
+    <sections>
+        <section>
+            <title>Example: Saving text to a file</title>
+            <description>This script saves text to a file.</description>
+            <example code="xb"><![CDATA[dim text as c = "Example saving text to a file."
+dim fileLocation as c = A5.GET_PATH() + "simpleExample.txt"
+
+if (save_to_file(text, fileLocation) == .f.) then
+    '' An error occurred
+end if]]></example>
+        </section>
+        <section>
+            <title>Example: Appending Information to a file</title>
+            <description>
+                <p>This script demonstrates how to append text to a file.</p>
+            </description>
+            <example code=""><![CDATA[dim moreText as c = crlf()+"Appending data to an existing file."
+dim fileLocation as c = A5.GET_PATH() + "simpleExample.txt"
+dim appendToFile as L = .t.
+
+if (save_to_file(moreText, fileLocation, appendToFile) == .f.) then
+    '' An error occurred
+end if]]></example>
+        </section>
+        <section>
+            <title>Example: Saving text to a file on AmazonS3</title>
+            <description>
+                <p>This script demonstrates how to write to a file on AmazonS3 using a [Storage Connection].</p>
+            </description>
+            <example code="xb"><![CDATA[dim text as c = "Example saving text to a file using a Storage Connection."
+dim fileSaveParams as P
+fileSaveParams.connectionString = "AmazonS3" 'The name of a saved Storage Connection string
+fileSaveParams.objectName = "logs\myFile.txt" 'The name of the object to create
+
+' Generate a JSON string:
+dim containsSpecialFlags as L = .f.
+dim compactJSON as L = .t.
+
+dim fileLocation as C = json_generate(fileSaveParams,containsSpecialFlags,compactJSON)
+
+if (save_to_file(text, fileLocation) == .f.) then
+    '' An error occurred
+end if]]></example>
+            <note>
+                <p>To append data to a file on AmazonS3, set the *[ui:appendToFile]* parameter to *[xb:.t.]* when calling *[xb:save_to_file()]*.</p>
+            </note>
+        </section>
+    </sections>
+    <links>
+        <link link="named%20storage%20connection%20strings">Storage Connection</link>
+    </links>
+    <see>
         <ref link="FILE Functions">FILE Functions</ref>
         <ref link="File methods">FILE Methods</ref>
-   </see>
-   <terms>file,filename,function,logical,save,string</terms>
+        <ref link="named%20storage%20connection%20strings">Storage Connections</ref>
+    </see>
+    <terms>file,filename,function,logical,save,string</terms>
 </page>
