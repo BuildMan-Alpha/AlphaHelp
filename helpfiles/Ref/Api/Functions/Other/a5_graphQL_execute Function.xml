@@ -1,0 +1,224 @@
+<page api="xb" build="6945">
+    <shortlink>a5_graphql_execute function</shortlink>
+    <topic>a5_graphQL_execute Function</topic>
+    <description>
+        <p>Executes a GraphQL query.</p>
+    </description>
+    <prototypes>
+        <prototype>DIM Result as P =  a5_graphQL_Execute as P (C serviceName, C queryString [, C headers [,C variables [, C queryParameters]]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>serviceName</name>
+            <type>C</type>
+            <description>
+                <p>The name of the GraphQL service. E.g. northwind.a5svc (the .a5svc extension is optional. If the service was defined in a different Web Project you can qualify the service name with the project name (e.g. [demoProject]\northwind.a5svc).</p>
+            </description>
+        </argument>
+        <argument>
+            <name>queryString</name>
+            <type>C</type>
+            <description>
+                <p>The GraphQL query definition.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>headers</name>
+            <type>C</type>
+            <description>
+                <p>Default = *[xb:""]*. If the service requires authentication and if the api key is passed in the header, specify the headers.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>variables</name>
+            <type>C</type>
+            <description>
+                <p>Default = *[xb:""]*. If the queryString uses variables, the value for each variable (JSON format).</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>queryParameters</name>
+            <type>C</type>
+            <description>
+                <p>Default = *[xb:""]*. If the service requires authentication and if the api key is passed in the query string, specify the query string.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <type>P</type>
+            <description>
+                <p>Returns an object with the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>A *[xb:.t.]* or *[xb:.f.]* value indicating whether or not an error occurred.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>If *[xb:error]* is *[xb:.t.]*, contains additional information about the error.</description>
+                </property>
+                <property>
+                    <name>responseCode</name>
+                    <type>N</type>
+                    <description>The HTTP Response Code. If 200, call was a success.</description>
+                </property>
+                <property>
+                    <name>result</name>
+                    <type>C</type>
+                    <description>The query result in JSON format.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5_graphQL_execute()]* function executes a GraphQL query against a GraphQL service defined in Alpha Anywhere.</p>
+    </discussion>
+    <sections>
+        <section>
+            <important>
+                <p>This function is not intended to execute against a 3rd party GraphQL service. To execute a query against a 3rd party GraphQL service, use the Xbasic CURL object to make an HTTP POST request.</p>
+            </important>
+        </section>
+        <section>
+            <description>
+                <p>Assume you have built a service called Northwind.a5svc in the current Web Project. Here is a script to execute a query against this service:</p>
+                <p>
+                    <example code=""><![CDATA[dim serviceName as c = "[demo]\northwind"
+dim queryString as c = <<%str%
+{
+    cust1: GetCustomer(CustomerID: $var1) {
+        CustomerID
+        ContactName
+        CompanyName
+        City
+        Country
+    }
+    cust2: GetCustomer(CustomerID: $var2) {
+        CustomerID
+        ContactName
+        CompanyName
+        City
+        Country
+        ContactTitle
+        Orders {
+            OrderID
+            OrderDate
+            OrderDetails {
+                ProductID
+                Quantity
+                UnitPrice
+                __typename
+            }
+        }
+    }
+}
+%str%
+
+dim variables as c = <<%str%
+{
+    "var1": "blaus",
+    "var2": "bolid"
+}
+%str%
+
+dim result as p 
+result = a5_graphQL_Execute(serviceName, queryString, "", variables)
+
+if result.error = .f. then 
+    DIM jsonResult as c = result.result
+    jsonResult = convert_utf8_to_acp(jsonResult)
+    showvar(jsonResult)
+else
+    showvar(result.errortext)
+end if]]></example>
+                </p>
+                <p>Here is the result returned by this query:</p>
+                <p>
+                    <example code="xb"><![CDATA[{
+    "data": {
+        "cust1": {
+            "CustomerID": "BLAUS",
+            "ContactName": "Hanna Moos",
+            "CompanyName": "Blauer See Delikatessen",
+            "City": "Mannheim",
+            "Country": "Germany"
+        },
+        "cust2": {
+            "CustomerID": "BOLID",
+            "ContactName": "Martín Sommer",
+            "CompanyName": "Bólido Comidas preparadas",
+            "City": "Madrid",
+            "Country": "Spain",
+            "ContactTitle": "Owner",
+            "Orders": [
+                {
+                    "OrderID": 10326,
+                    "OrderDate": "1996-10-10 00:00:00",
+                    "OrderDetails": [
+                        {
+                            "ProductID": 4,
+                            "Quantity": 24,
+                            "UnitPrice": 17.6,
+                            "__typename": "OrderDetail"
+                        },
+                        {
+                            "ProductID": 57,
+                            "Quantity": 16,
+                            "UnitPrice": 15.6,
+                            "__typename": "OrderDetail"
+                        },
+                        {
+                            "ProductID": 75,
+                            "Quantity": 50,
+                            "UnitPrice": 6.2,
+                            "__typename": "OrderDetail"
+                        }
+                    ]
+                },
+                {
+                    "OrderID": 10801,
+                    "OrderDate": "1997-12-29 00:00:00",
+                    "OrderDetails": [
+                        {
+                            "ProductID": 17,
+                            "Quantity": 40,
+                            "UnitPrice": 39,
+                            "__typename": "OrderDetail"
+                        },
+                        {
+                            "ProductID": 29,
+                            "Quantity": 20,
+                            "UnitPrice": 123.79,
+                            "__typename": "OrderDetail"
+                        }
+                    ]
+                },
+                {
+                    "OrderID": 10970,
+                    "OrderDate": "1998-03-24 00:00:00",
+                    "OrderDetails": [
+                        {
+                            "ProductID": 52,
+                            "Quantity": 40,
+                            "UnitPrice": 7,
+                            "__typename": "OrderDetail"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <see>
+        <ref link="graphql">Building a GraphQL Service to Expose Data in a SQL Database</ref>
+    </see>
+</page>
