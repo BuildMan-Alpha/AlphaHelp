@@ -1,0 +1,1156 @@
+<page build="6945">
+    <shortlink>graphql</shortlink>
+    <topic>Building a GraphQL Service to Expose Data in a SQL Database</topic>
+    <description>GraphQL is a popular approach for defining APIs. Unlike REST APIs, which have multiple endpoints, a GraphQL API exposes a single endpoint that allows many different types of queries and mutations (a mutation is a method that changes data). Alpha Anywhere's built-in genie makes creating a GraphQL service (i.e. API) to expose data in a SQL database extremely easy.</description>
+    <sections>
+        <section>
+            <title>How to Create a GraphQL API</title>
+            <description>
+                <p>Alpha Anywhere has a built-in genie that automatically generates a GraphQL API that can be used to query a SQL database, perform CRUD operations against tables in a SQL database, execute custom mutations (i.e. call custom function defined in Xbasic classes or Node APIs that you write).</p>
+                <p>To create a GraphQL API select the *[ui:Web Services]* category in the Web Control Panel.</p>
+            </description>
+            <figure>
+                <link>images/graphQ1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Then click the *[ui:New]* button.</p>
+            </description>
+            <figure>
+                <link>images/graphQ2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will display the New Service Type dialog.</p>
+            </description>
+            <figure>
+                <link>images/graphQ3.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Click the *[ui:Create a new definition to create a GraphQL service]* button. This will open the builder.</p>
+            </description>
+            <figure>
+                <link>images/GraphQbuilder1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The GraphQL service builder assumes you will be creating a service to expose data in a SQL database. Therefore, you must specify the connection string to your SQL database. You will then be able to select which tables in your SQL database you want to expose in your service.</p>
+                <p>Click the *[ui:Change Connection String...]* hyperlink and select a connection string.</p>
+                <p>Next, click the *[ui:Pick Tables...]* hyperlink. The *[ui:Select Tables to Expose]* dialog will be shown.</p>
+            </description>
+            <figure>
+                <link>images/GraphQpicktables.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Pick the tables that you want your service to expose. The genie will automatically detect relationships between tables. For example, if you select a connection string for the sample Northwind database, the builder will automatically infer that there is a one-to-many relationship between the Customers and Orders tables, between the Orders and Orders Details table and so on. The builder will also be able to automatically infer that that there is a one-to-one relationship between the Order Details and the Products table, etc.</p>
+            </description>
+        </section>
+        <section>
+            <title>Custom Views</title>
+            <description>
+                <p>In addition to exposing the physical tables in your database you can also expose views (virtual tables) by clicking the *[ui:Add a Custom View]* hyperlink. A custom view lets you define which columns to expose and what WHERE clause to apply. You can also specify if you want DISTINCT records. (When executing a GraphQL query against a Custom View, the user will be able to apply additional filter parameters - in addition to the WHERE clause defined for the Custom View.)</p>
+            </description>
+            <note>
+                <p>Another way in which to limit the columns you expose from a particular table is to modify the schema that Alpha Anywhere generates after you click the *[ui:Save]* button to close the *[ui:Database GraphQL Service]* window.</p>
+            </note>
+        </section>
+        <section>
+            <figure>
+                <link>images/Graphql_customview.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Click the Create button button to define the Custom View and return to the *[ui:Database GraphQL Service]* window.</p>
+                <p>Once you are back at the *[ui:Database GraphQL Service]* window, click the *[ui:Save]* button when you are done and give your service a name. Alpha Anywhere will then automatically generate a schema for your service.</p>
+                <p>A sample of the Schema is shown below (in abbreviated form to save space).</p>
+                <p>Notice that for each table you selected, the schema specifies which type of CRUD operations are allowed, and it specifies which fields from the table are exposed. In addition, each table may have a *[js:children]* property which specifies the one-to-many tables that are linked to the table and a *[js:join]* property which specifies the one-to-one tables that are linked to the table.</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "connection": "::Name::sqlserver_northwind",
+    "tables": [
+        {
+            "name": "Customers",
+            "actualname": "Customers",
+            "query": true,
+            "insert": true,
+            "update": true,
+            "delete": true,
+            "first": true,
+            "cursor": true,
+            "skip": true,
+            "totalCount": true,
+            "orderBy": true,
+            "fields": [
+                {
+                    "name": "CustomerID",
+                    "type": "String"
+                },
+                {
+                    "name": "CompanyName",
+                    "type": "String"
+                },
+                {
+                    "name": "ContactName",
+                    "type": "String"
+                },
+                more fields.....,
+                {
+                    "name": "cursor",
+                    "expression": "CustomerID",
+                    "type": "String"
+                }
+            ],
+            "children": [
+                {
+                    "name": "Orders",
+                    "parent": "CustomerID",
+                    "child": "CustomerID"
+                }
+            ]
+        },
+        {
+            "name": "Employees",
+            "actualname": "Employees",
+            "query": true,
+            "insert": true,
+            "update": true,
+            "delete": true,
+            "first": true,
+            "cursor": true,
+            "skip": true,
+            "totalCount": true,
+            "orderBy": true,
+            "fields": [
+                {
+                    "name": "EmployeeID",
+                    "type": "Double"
+                },
+                {
+                    "name": "LastName",
+                    "type": "String"
+                },
+                {
+                    "name": "FirstName",
+                    "type": "String"
+                },
+		more fields....
+
+                {
+                    "name": "cursor",
+                    "expression": "EmployeeID",
+                    "type": "String"
+                }
+            ],
+            "children": [
+                {
+                    "name": "Employees",
+                    "parent": "EmployeeID",
+                    "child": "ReportsTo"
+                },
+                {
+                    "name": "Orders",
+                    "parent": "EmployeeID",
+                    "child": "EmployeeID"
+                }
+            ]
+        },
+        {
+            "name": "OrderDetails",
+            "actualname": "Order Details",
+            "query": true,
+            "insert": true,
+            "update": true,
+            "delete": true,
+            "first": true,
+            "cursor": true,
+            "skip": true,
+            "totalCount": true,
+            "orderBy": true,
+            "fields": [
+                {
+                    "name": "OrderID",
+                    "type": "Double"
+                },
+                {
+                    "name": "ProductID",
+                    "type": "Double"
+                },
+                more fields...
+                {
+                    "name": "cursor",
+                    "expression": "OrderID+ProductID",
+                    "type": "Double"
+                }
+            ],
+            "join": [
+                {
+                    "name": "Orders",
+                    "parent": "OrderID",
+                    "child": "OrderID"
+                },
+                {
+                    "name": "Products",
+                    "parent": "ProductID",
+                    "child": "ProductID"
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "actualname": "Orders",
+            "query": true,
+            "insert": true,
+            "update": true,
+            "delete": true,
+            "first": true,
+            "cursor": true,
+            "skip": true,
+            "totalCount": true,
+            "orderBy": true,
+            "fields": [
+                {
+                    "name": "OrderID",
+                    "type": "Double"
+                },
+                {
+                    "name": "CustomerID",
+                    "type": "String"
+                },
+                {
+                    "name": "EmployeeID",
+                    "type": "Double"
+                },
+                more fields...
+                {
+                    "name": "cursor",
+                    "expression": "OrderID",
+                    "type": "String"
+                }
+            ],
+            "children": [
+                {
+                    "name": "OrderDetails",
+                    "parent": "OrderID",
+                    "child": "OrderID"
+                }
+            ],
+            "join": [
+                {
+                    "name": "Customers",
+                    "parent": "CustomerID",
+                    "child": "CustomerID"
+                },
+                {
+                    "name": "Employees",
+                    "parent": "EmployeeID",
+                    "child": "EmployeeID"
+                }
+            ]
+        },
+        {
+            "name": "Products",
+            "actualname": "Products",
+            "query": true,
+            "insert": true,
+            "update": true,
+            "delete": true,
+            "first": true,
+            "cursor": true,
+            "skip": true,
+            "totalCount": true,
+            "orderBy": true,
+            "fields": [
+                {
+                    "name": "ProductID",
+                    "type": "Double"
+                },
+                {
+                    "name": "ProductName",
+                    "type": "String"
+                },
+                more fields...
+                {
+                    "name": "cursor",
+                    "expression": "ProductID",
+                    "type": "Boolean"
+                }
+            ],
+            "children": [
+                {
+                    "name": "OrderDetails",
+                    "parent": "ProductID",
+                    "child": "ProductID"
+                }
+            ],
+            "join": [
+                {
+                    "name": "Suppliers",
+                    "parent": "SupplierID",
+                    "child": "SupplierID"
+                }
+            ]
+        }
+    more tables...
+    ]
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Testing Your GraphQL API</title>
+            <description>
+                <p>Right-click on the service in the Web Control Panel and select *[ui:Test API with GraphIQL]*. GraphIQL is a graphical GraphQL query tester.</p>
+                <p>You can either perform the testing using *[ui:Working Preview]* mode (Development Server does not need to be running) or *[ui:Live]* mode (Development server must be running and service will be published to the Live Preview folder).</p>
+            </description>
+            <figure>
+                <link>images/GraphQtesting.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>If you select the *[ui:Working Preview]* mode, a dialog will open shown the GraphIQL tester.</p>
+                <p>If you select *[ui:Live]* mode, the browser will open, showing the *[ui:GraphIQL]* tester page and your GraphQL API definition will be loaded.</p>
+                <p>The *[ui:Document Explorer]* panel will be shown on the right where you can explore the Queries and Mutations defined in your GraphQL Service.</p>
+            </description>
+            <note>
+                <p>If you do not see the *[ui:Document Explorer]* panel, click the *[ui:Docs]* button in the toolbar.</p>
+            </note>
+        </section>
+        <section>
+            <figure>
+                <link>images/graphQ8.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <figure>
+                <link>images/graphQ7.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Enter a GraphQL query and then click the *[ui:Run]* button to execute your query.</p>
+                <p>To learn more about GraphQL syntax, visit *[extlink:graphql.org@https://graphql.org/learn/]*.</p>
+                <p>Assuming you have build a service that exposes the Customers, Orders, Order Details and Products table from the sample Northwind database, here are some example queries and the corresponding data return by the query.</p>
+                <p>*[Query 1]* - A simple query that only returns fields from the Customer table. The query uses the GetCustomer query and it specifies the Id (CustomerID: BONAP) of the customer to fetch.</p>
+                <p>
+                    <example><![CDATA[{
+    GetCustomer(CustomerID: BONAP) {
+        CustomerID
+        ContactName
+        City
+        Country
+    }
+}]]></example>
+                </p>
+                <p>*[Query 2]* - Builds on Query 1, but includes data from the child Orders table. The OrderID and OrderData fields from the Orders table are retrieved</p>
+                <p>
+                    <example><![CDATA[{
+    GetCustomer(CustomerID: BONAP) {
+        CustomerID
+        ContactName
+        City
+        Country
+        Orders{
+        OrderID
+        OrderDate
+        }
+    }
+}]]></example>
+                </p>
+                <p>Result of Query 2</p>
+                <p>
+                    <example><![CDATA[{
+  "data": {
+    "GetCustomer": {
+      "CustomerID": "BONAP",
+      "ContactName": "Laurence Lebihan",
+      "City": "Marseille",
+      "Country": "France",
+      "Orders": [
+        {
+          "OrderID": 10331,
+          "OrderDate": "1994-11-16 00:00:00"
+        },
+        {
+          "OrderID": 10340,
+          "OrderDate": "1994-11-29 00:00:00"
+        },
+        {
+          "OrderID": 10362,
+          "OrderDate": "1994-12-26 00:00:00"
+        },
+        {
+          "OrderID": 10470,
+          "OrderDate": "1995-04-11 00:00:00"
+        },
+        .......truncated]]></example>
+                </p>
+                <p>*[Query 3]* - Builds on Query 2, but includes data from the Order Details table (which is aliased as OrderDetails). OrderDetails is a child table of the Orders table.</p>
+                <p>
+                    <example><![CDATA[{
+    GetCustomer(CustomerID: BONAP) {
+        CustomerID
+        ContactName
+        City
+        Country
+        Orders{
+        OrderID
+        OrderDate
+        OrderDetails{
+            ProductID
+            Quantity
+            UnitPrice
+            Products_ProductName
+        }
+        }
+    }
+}]]></example>
+                </p>
+                <p>Result of Query 3</p>
+                <p>
+                    <example><![CDATA[{
+  "data": {
+    "GetCustomer": {
+      "CustomerID": "BONAP",
+      "ContactName": "Laurence Lebihan",
+      "City": "Marseille",
+      "Country": "France",
+      "Orders": [
+        {
+          "OrderID": 10331,
+          "OrderDate": "1994-11-16 00:00:00",
+          "OrderDetails": [
+            {
+              "ProductID": 54,
+              "Quantity": 15,
+              "UnitPrice": 5.9,
+              "Products_ProductName": "Tourtière"
+            }
+          ]
+        },
+        {
+          "OrderID": 10340,
+          "OrderDate": "1994-11-29 00:00:00",
+          "OrderDetails": [
+            {
+              "ProductID": 18,
+              "Quantity": 20,
+              "UnitPrice": 50,
+              "Products_ProductName": "Carnarvon Tigers"
+            },
+            {
+              "ProductID": 41,
+              "Quantity": 12,
+              "UnitPrice": 7.7,
+              "Products_ProductName": "Jack's New England Clam Chowder"
+            },
+            {
+              "ProductID": 43,
+              "Quantity": 40,
+              "UnitPrice": 36.8,
+              "Products_ProductName": "Ipoh Coffee"
+            }
+          ]
+        },]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Using Variables in a Query</title>
+            <description>
+                <p>You can use variables, rather than hard coded literal values in your GraphQL queries. In the above samples, the CustomerID parameter is hard coded as BONAP. This example can be rewritten to use a variable for the CustomerID parameter value.</p>
+                <p>To use a variable, define your variables in *[ui:Query Variables]* section in the GraphIQL builder.</p>
+            </description>
+            <figure>
+                <link>images/GraphQ2variables.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Query Variables are defined using a JSON syntax. For example:</p>
+                <p>
+                    <example><![CDATA[{
+    "customerId": "BOLID",
+    "city": "London"
+}]]></example>
+                </p>
+                <p>To consume a query variable in the query definition, use the variable name with a $ prefix. For example:</p>
+                <p>
+                    <example><![CDATA[{
+    GetCustomer(CustomerID: $customerId) {
+        CustomerID
+        ContactName
+        City
+        Country
+    }
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Using Aliases</title>
+            <description>
+                <p>You can define an alias for any of the property names in the query result. For example in the sample Query 3 above, the Product Name is called  *[json:Products_ProductName]* in the query result. You can change the alias to a simpler name, such as *[json:ProductName]*. To do this, specify an alias in the query definition. To specify an alias for a property name, prefix the property name with *[json:aliasName:]* where *[em:aliasName]* is the alias you want to use.</p>
+                <p> For example:</p>
+                <p>
+                    <example><![CDATA[{
+  GetCustomer(CustomerID: BONAP) {
+    CustomerID
+    ContactName
+    City
+    Country
+    Orders{
+      OrderID
+      OrderDate
+      OrderDetails{
+        ProductID
+        Quantity
+        UnitPrice
+        ProductName:Products_ProductName
+      }
+    }
+  }
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Getting Multiple Records</title>
+            <description>
+                <p>In the previous examples we have executed queries that returned a single record. The Alpha Anywhere genie also generates queries to return multiple records. For example, the genie generates these queries for the Customer table: GetCustomer and GetManyCustomers.</p>
+                <p>When executing a GetMany* query (e.g. GetManyCustomers, GetManyOrders, etc.), you can optionally specify that you want to return a "page" of records (by specifying a "page size" parameter -- called first. You can also specify a cursor property to indicate at which record you want to start, and a skip property which indicates how many records you want to skip - after the record with the specified cursor) . For example, to return the first page of records where the Country field is "USA" and the page size is 3 records, you would define this query shown below:</p>
+                <p>Notice that the fields to be returned by the query are specified in an object called records. Your query definition can also include a property called pageInfo, which returns information about the pages in the query result, specifically if there are more pages of data.</p>
+                <p>
+                    <example><![CDATA[{
+    GetManyCustomers( country: usa, first: 3, skip: 0  ){
+        records{
+        CustomerID
+        City
+        ContactName
+        Cursor
+        }
+        pageInfo{
+        hasNextPage
+        
+        }
+    }
+}]]></example>
+                </p>
+                <p>Here is the result of this query:</p>
+                <p>
+                    <example><![CDATA[{
+    "data": {
+        "GetManyCustomers": {
+        "records": [
+            {
+            "CustomerID": "GREAL",
+            "City": "Eugene",
+            "ContactName": "Howard Snyder",
+            "cursor": "eyJjdXJzb3IiOiJHUkVBTCJ9"
+            },
+            {
+            "CustomerID": "HUNGC",
+            "City": "Elgin",
+            "ContactName": "Yoshi Latimer",
+            "cursor": "eyJjdXJzb3IiOiJIVU5HQyJ9"
+            },
+            {
+            "CustomerID": "LAZYK",
+            "City": "Walla Walla",
+            "ContactName": "John Steel",
+            "cursor": "eyJjdXJzb3IiOiJMQVpZSyJ9"
+            }
+        ],
+        "pageInfo": {
+            "hasNextPage": true
+        }
+        }
+    }
+}]]></example>
+                </p>
+                <p>Notice that in the query result pageInfo.hasNextPage property we can see that  there are more pages of data. To get the second page of data we include the cursor property in the query parameters and we set the skip property to 1. (If we did not set the skip property to 1 then the last record in the previous query would become the first record in this query).</p>
+                <p>Here is the query to get the second page of records:</p>
+                <p>
+                    <example><![CDATA[{
+    GetManyCustomers( country: usa, first: 3, skip: 1 cursor: "eyJjdXJzb3IiOiJMQVpZSyJ9" ){
+        records{
+        CustomerID
+        City
+        ContactName
+        Cursor
+        }
+        pageInfo{
+        hasNextPage
+        
+        }
+    }
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Calling a Mutation</title>
+            <description>
+                <p>By default the GraphQL genie will automatically create mutations to update, insert, and delete records in each of the tables in your API definition.</p>
+                <p>In the next example, we show how to do an update on the Customers table.</p>
+                <p>
+                    <example><![CDATA[mutation {
+    UpdateCustomer(
+        where: {CustomerID: bolid}, 
+        set: {City: Madrid}
+    ) {
+        CustomerID
+        CompanyName
+        ContactName
+        ContactTitle
+        City
+        Country
+    }
+}]]></example>
+                </p>
+                <p>The syntax for the mutation includes a where clause with values for certain fields (in the above example, the record for CustomerID = BOLID will be updated) and a set clause that contains a comma delimited list of fields and corresponding values. You can use arguments in both the where clause and the set clause. You can also optionally specify fields to be returned after he update is completed. In the above example, after the update is performed, the query returns data for the CustomerID, CompanyName, ContactTitle, City and Country fields.</p>
+                <p>In addition to the automatically created mutations (such as the UpdateCustomer mutation shown above), you can also create custom mutations (using either Xbasic or NodeJS). This is discussed below.</p>
+                <p>This mutation will update multiple records (because the Set clause specified city = London and there are multiple matching records):</p>
+                <p>
+                    <example><![CDATA[mutation {
+    UpdateCustomer(where: {city: london}, set: {ContactTitle: Apprentice}) {
+        CustomerID
+        CompanyName
+        ContactName
+        ContactTitle
+        City
+        Country
+    }
+}]]></example>
+                </p>
+                <p>Here is a mutation to insert a new record:</p>
+                <p>
+                    <example><![CDATA[mutation {
+    AddCustomer(CustomerID: ABCD, ContactName: Jim Smith, CompanyName: Alpha Software) {
+        CustomerID
+        CompanyName
+    }
+}]]></example>
+                </p>
+                <p>Notice that the inserted record has set three field values and after the insert is completed, the query returns the value in the CustomerID field and the CompanyName field.</p>
+                <p>In this case, the table primary key (CustomerID) is not an auto-increment field (and it is explicitly set when the new record is added). But in many cases the primary key will be an auto-increment field and you will want to  know what the primary key of the inserted record is. By specifying the primary key field in the list of fields returned by the query, you can get the value of the primary key.</p>
+            </description>
+        </section>
+        <section>
+            <title>Required Fields</title>
+            <description>
+                <p>When you define a GraphQL API to perform CRUD operations on a SQL table, you can mark certain fields in your definition as required fields (i.e. non nullable). For example in the sample definition show earlier, we indicated that the Categories table exposed certain fields. If we want to indicate that the CategoryName field is a required field (so that when you use the AddCategories mutation you will be required to specify a value for this field, change the definition for the CategoryName field to use an ! character after the type name. For example:</p>
+                <p>
+                    <example><![CDATA[{
+    "name": "CategoryName",
+    "type": "String!"
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Reporting Errors</title>
+            <description>
+                <p>When you execute a mutation, by default errors are not reported unless you add a directive to your GraphQL definition.</p>
+                <p>For example, say we want the mutations that operate on the Categories table to report errors. You would need to add a new property to the definition. You can add the "nativeErrors" or "errors" property to the definition (set the property value to true or false). The nativeErrors property will report errors returned by the SQL database. The errors property will return error reported to Xbasic.</p>
+                <p>For example:</p>
+                <p>
+                    <example><![CDATA["totalCount": true,
+"orderBy": true,
+"nativeErrors": true,
+....]]></example>
+                </p>
+                <p>To see the errors in the query result add the __error column to the query result specification.</p>
+                <p>You can easily set or unset the error properties for all tables in your GraphQL service definition by clicking on the *[ui:Runtime Error Settings]* hyperlink the the builder.</p>
+            </description>
+            <figure>
+                <link>images/GraphQerrors1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will open a builder when you can select the error setting.</p>
+            </description>
+            <figure>
+                <link>images/GraphQerrors2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <title>How to Create Custom Mutations</title>
+            <description>
+                <p>Alpha Anywhere automatically adds mutations to perform update, insert and delete operations for all of the tables you select when you define the service (unless you set the corresponding query, update, insert or delete property to false in the service definition). You may also want your GraphQL service to define custom mutations -- that you write using either Xbasic or Node.</p>
+                <p>To add custom mutations to your GraphQL API create a new Xbasic class or Node API. Your Xbasic class definition or Node API will include one or more methods. Your GraphQL API will expose all of the methods defined in the Xbasic class or Node API.</p>
+                <p>In the walkthrough that follows we will define a custom mutation (called parseNameXB based on a method in an Xbasic class) that will take a string of the form:</p>
+                <p>
+                    <example><![CDATA[firstname lastname,streetNumber streetName,city state zip]]></example>
+                </p>
+                <p>and will return and object with these properties:</p>
+                <p>
+                    <example><![CDATA[firstname
+lastname
+address
+    streetNumber
+    streetName
+    citystatezip
+        city
+        state
+        zip]]></example>
+                </p>
+                <p>We will then show a second custom mutation (called parseNameNode) that does the same thing, but this time based on a method defined in a Node API.</p>
+                <p>Here is a summary of the steps we will go through:</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>Create an Xbasic class with a method called parseNameXB.</name>
+                        </item>
+                        <item>
+                            <name>Test the method in the Interactive Window</name>
+                        </item>
+                        <item>
+                            <name>Create a new GraphQL service and define a Custom Mutation using the Xbasic class you created</name>
+                        </item>
+                        <item>
+                            <name>Test the custom Mutation in the GraphIQL tester</name>
+                        </item>
+                    </list>
+                </p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Create an Xbasic class</title>
+                    <description>
+                        <p>At the Web Projects Control panel, select the Xbasic category. Click the New button and create a new Xbasic Class. Enter the following code in the editor:</p>
+                        <p>
+                            <example code="xb"><![CDATA[define class customMutations::class1
+    function parseNamexb as customMutations::name (fullnameandaddress as c)
+        dim text as c = fullnameandaddress
+        dim line1 as c 
+        dim line2 as c
+        dim line3 as c 
+        text = comma_to_crlf(text)
+        line1 = alltrim(word(text,1, crlf()))
+        line2 = alltrim(word(text,2, crlf()))
+        line3 = alltrim(word(text,3, crlf()))
+        if w_count(line1," ") = 2 then 
+            dim fname as c  = word(line1,1," ")
+            dim lname as c = word(line1,2," ")
+        else 'account for possible middle initial
+            dim fname as c  = word(line1,1," ")
+            dim lname as c = word(line1,-1," ")
+        end if 
+        dim streetNumber as c  = word(line2,1," ")
+        dim street as c
+        street = alltrim(stritran(line2,streetNumber,"")) 'remove streetnumber from line2
+        dim zip as c = word(line3,-1," ")
+        dim state as c = word(line3,-2," ",1)
+        dim city as c = alltrim(stritran(line3,zip,"")) 'remove zip from line3
+        city = alltrim(stritran(city,state,"")) 'remove state from city
+
+        dim address as customMutations::address
+        dim citystatezip as customMutations::citystatezip 
+        address.streetNumber = streetNumber
+        address.street = street
+        
+        citystatezip.zip = zip 
+        citystatezip.city = city 
+        citystatezip.state = state 
+        
+        address.citystatezip = citystatezip
+        parseNamexb.firstname = fname
+        parseNamexb.lastname = lname
+        parseNamexb.address = address 
+    end function 
+end class
+
+define class customMutations::name 
+    dim firstname as c 
+    dim lastname as c 
+    dim address as customMutations::address
+end class
+
+define class customMutations::citystatezip
+    dim zip as c 
+    dim state as c 
+    dim city as c 
+end class 
+
+define class customMutations::address
+    dim street as c 
+    dim streetNumber as c 
+    DIM citystatezip as customMutations::citystatezip
+end class]]></example>
+                        </p>
+                        <p>Here are some key points about the code in the method definition:</p>
+                        <p>
+                            <list bullet="true">
+                                <item>
+                                    <name>We define four classes in the file, one of which contains the definitions of the methods we want to expose. The other three classes (customMutations::name, customMutations::citystatezip and customMutations::address)  define complex types used in defining the return value of the method.</name>
+                                </item>
+                                <item>
+                                    <name>Notice that the parseNameXB method returns a value of type customMutations::name. (It is more common to see custom Xbasic code return a value of type P, but by setting the return value to an explicit type we can be more specific about what values the method returns).</name>
+                                </item>
+                                <item>
+                                    <name>The customMutations::name class is defined in the file. Notice that this class returns a class with 3 properties, one of which (address) is also a complex type.</name>
+                                </item>
+                                <item>
+                                    <name>The address type is also defined in the file and one of the properties in this class is another complex type (citystatezip) which is also defined in this class.</name>
+                                </item>
+                                <item>
+                                    <name>The method that does the work (parseNameXb) works as follows:</name>
+                                    <list bullet="true">
+                                        <item>
+                                            <name>Split the input parameter into 3 lines</name>
+                                        </item>
+                                        <item>
+                                            <name>Extract fname and lname from line1 (taking into account that the input value might include a middle initial, in which case line1 will have 3 words)</name>
+                                        </item>
+                                        <item>
+                                            <name>Extract the streetnumber and street from line2</name>
+                                        </item>
+                                        <item>
+                                            <name>Extract the city, state and zip from line3</name>
+                                        </item>
+                                        <item>
+                                            <name>DIM an instance of the address and citystatezip types</name>
+                                        </item>
+                                        <item>
+                                            <name>Assign property values to the properties of these two classes</name>
+                                        </item>
+                                        <item>
+                                            <name>Assign the return value of the method</name>
+                                        </item>
+                                    </list>
+                                </item>
+                            </list>
+                        </p>
+                        <p>When you are done entering the Xbasic class definitions, click the Save button on the toolbar. Alpha Anywhere will suggest a default file name, which you can accept.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Testing with the Interactive Window</title>
+                    <description>
+                        <p>To test the code in the mutation from the Interactive window, go to the Interactive window and enter these lines (pressing enter after you enter each line)</p>
+                        <p>
+                            <example code="xb"><![CDATA[dim x as customMutations::class1
+p = x.parseNamexb("fred smith, 123 main street,boston ma")
+?json_generate(p)
+= {
+    "firstname": "fred",
+    "lastname": "smith",
+    "address": {
+        "street": "main street",
+        "streetNumber": "123",
+        "citystatezip": {
+            "zip": "ma",
+            "state": "boston",
+            "city": ""
+        }
+    }
+}]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Create a new GraphQL Service</title>
+                    <description>
+                        <p>Next you will need to add the custom mutation to your GraphQL service definition. Edit the service definition and then click on the *[ui:User-defined mutations]* hyperlink at the bottom of the window.</p>
+                    </description>
+                    <figure>
+                        <link>images/GraphQ12custommuation.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>This will open a dialog where you can specify the classes that define the methods you want to expose in your custom mutations:</p>
+                    </description>
+                    <figure>
+                        <link>images/GraphQ13custommutation.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>Click the *[ui:Select class]* hyperlink.</p>
+                    </description>
+                    <figure>
+                        <link>images/GraphQ14custommutation.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>Click *[ui:OK]* twice. Then, save the service definition.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Testing Custom Mutation in the GraphIQL Tester</title>
+                    <description>
+                        <p>To test the mutation in the GraphIQL tester, right-click on the service name in the Web Control Panel and select the Test with GraphIQL command.</p>
+                        <p>Enter this mutation:</p>
+                        <p>
+                            <example><![CDATA[mutation {
+    parseNamexb(fullnameandaddress: "Fred Smith,123 Main St,Ithaca NY 12345") {
+        firstname
+        lastname
+        address {
+        street
+        streetNumber
+        citystatezip {
+            city
+            state
+            zip
+        }
+        }
+    }
+}]]></example>
+                        </p>
+                        <p>When you run the query, you should see this result:</p>
+                        <p>
+                            <example><![CDATA[{
+    "data": {
+        "parseNamexb": {
+        "firstname": "Fred",
+        "lastname": "Smith",
+        "address": {
+            "street": "Main St",
+            "streetNumber": "123",
+            "citystatezip": {
+            "city": "Ithaca",
+            "state": "NY",
+            "zip": "12345"
+            }
+        }
+        }
+    }
+}]]></example>
+                        </p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Security</title>
+            <description>
+                <p>By default, the GraphQL API that you create is not authenticated. You can add authentication to your API by clicking the *[ui:Authorization]* hyperlink in the GraphQL Service builder.</p>
+            </description>
+            <figure>
+                <link>images/GraphQ9.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will open a dialog where you can specify the name of the method to call to authorize the user. You can use either Xbasic or Node to write the authorization method.</p>
+            </description>
+            <figure>
+                <link>images/GraphQ10.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>You can also specify if the arguments to the authentication method are supplied in the request header, or in the query string.</p>
+                <p>The authentication method should return an HTTP status code. For example if your method returns 200, the user is authorized. If your method returns 401, the user is denied permission to use the API.</p>
+                <p>For example, here is a Xbasic class that defines an authorize method that you can specify in the Authentication method dialog. This class must be defined in the Xbasic section of the Web Control Panel. The method authorizes the user if they specify a value of "alpha" for the apikey.</p>
+                <p>
+                    <example code="xb"><![CDATA[define class graphql::auth
+    function authorize as n (apikey as c )
+        if apikey = "alpha"
+            authorize = 200
+        else
+            authorize = 401
+        end if
+    end function
+end class]]></example>
+                </p>
+            </description>
+            <figure>
+                <link>images/</link>
+            </figure>
+        </section>
+        <section>
+            <title>Creating a Test Page For Your GraphQL API</title>
+            <description>
+                <p>You might want your published application to include a page where users can test your GraphQL API (in the same way that you can test it at development time by right clicking on the service name in the Web Control Panel, and then selecting the Test API with GraphIQL command.</p>
+                <p>To create a page for testing your GraphQL service open the GraphQL service definition and click the *[ui:Create GraphQL API test page]* hyperlink.</p>
+            </description>
+            <figure>
+                <link>images/GraphQ11.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <title>Xbasic Helper Functions</title>
+            <description>
+                <p>The following Xbasic helper functions are available:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Function</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>[a5wcb_graphQLQueryBuilder()]</name>
+                            <description>Allows you to use the GraphIQL Query Tester to define a GraphQL query.</description>
+                        </item>
+                        <item>
+                            <name>[a5_graphQL_Execute()]</name>
+                            <description>Allows you to execute a GraphQL query against a GraphQL service defined in Alpha Anywhere.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Javascript Helper Functions</title>
+            <description>
+                <p>You can also execute queries against GraphQL services directly from the browser using a function defined in the Alpha Anywhere Javascript library.</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Function</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>[{dialog.object}.graphQLQuery()]</name>
+                            <description>Executes a GraphQL query. Takes two functions as parameters to call when the query succeeds and when the query fails.</description>
+                        </item>
+                        <item>
+                            <name>[{dialog.object}.graphQLQueryPromise()]</name>
+                            <description>Executes a GraphQL query. Returns a promise.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+        </section>
+        <section>
+            <videos>
+                <title>Building a GraphQL Service</title>
+                <description>
+                    <p>In this video, we show how to create a GraphQL API to expose data in a SQL database.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=OgJ5vhKj6Jk</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Testing Your Service</title>
+                <description>
+                    <p>Once you have defined a GraphQL API, you can use the built-in tester to test your GraphQL API. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=44yNI6MKrYc</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Testing Your Service - Using Variables</title>
+                <description>
+                    <p>You can use variables in your query parameters rather than using hard coded literal values. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=ZQorNJDl2mk</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Testing Your Service - Getting Multiple Records</title>
+                <description>
+                    <p>You can use a GetMany query to return multiple records. When you return multiple records, you can specify a page size, number of records to skip over etc. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=EsW14yHL4fg</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Paginated Queries</title>
+                <description>
+                    <p>When you use a GetMany query, you can do paginated queries. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=Y1wKIprRl6U</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Update Mutations</title>
+                <description>
+                    <p>Using an Update mutation, you can perform Updates on any of the tables exposed in the API. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=c3xgDCfcmGg</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Add Mutations</title>
+                <description>
+                    <p>Using an Add mutation, you can add records to a table. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=-v6S37xzZNE</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Delete Mutations</title>
+                <description>
+                    <p>Using a Delete mutation, you can delete records to a table. In this video, we show how this is done.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=iUypA67K3WM</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Executing a GraphQL Query Directly from the Browser</title>
+                <description>
+                    <p>When you execute a GraphQL query, you can either do the query in server-side code or client-side code.</p>
+                    <p>In this video, we show how to make a request to a GraphQL endpoint directly from the browser and populate a List control with the returned data.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.youtube.com/watch?v=y1fIY34iaT0</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <see>
+        <ref href="https://graphql.org/" target="_blank">GraphQL: A query language for your API (external link)</ref>
+        <ref href="https://graphql.org/learn/" target="_blank">Introduction to GraphQL (external link)</ref>
+        <ref link="a5wcb_graphqlquerybuilder function">a5wcb_graphQLQueryBuilder()</ref>
+        <ref link="a5_graphql_execute function">a5_graphQL_Execute()</ref>
+        <ref link="ux component graphQLQuery method">{dialog.object}.graphQLQuery()</ref>
+        <ref link="ux component graphQLQueryPromise method">{dialog.object}.graphQLQueryPromise()</ref>
+    </see>
+    <links>
+        <link link="a5wcb_graphqlquerybuilder function">a5wcb_graphQLQueryBuilder()</link>
+        <link link="a5_graphql_execute function">a5_graphQL_Execute()</link>
+        <link link="ux component graphQLQuery method">{dialog.object}.graphQLQuery()</link>
+        <link link="ux component graphQLQueryPromise method">{dialog.object}.graphQLQueryPromise()</link>
+    </links>
+</page>
