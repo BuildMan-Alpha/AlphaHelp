@@ -364,6 +364,7 @@ PostgreSQL connection string dialog entitled <strong>Install ODBC Driver</strong
 
 <h3><a id="Microsoft SQL Server">Microsoft SQL Server</a></h3>
 
+<h4><a id="Microsoft SQL Server Client">Client Configuration</a></h4>
 <p>The Alpha Anywhere SQL Server extension driver supports TLS/SSL connections using the underlying facility of the SQL Server native client driver.</p>
 
 
@@ -375,11 +376,78 @@ PostgreSQL connection string dialog entitled <strong>Install ODBC Driver</strong
 		</li>
 </ul>
 
+<p> Update your connection string to use the actual fully qualified DNS name for the host.  Using the IP address will interfere with validating the 
+certificate presented by the server during TLS negotiation.</p>
+
 <p><strong>Note:</strong> Install any certificate authority files as trusted certificates in the Windows Certificate Store. 
 The Microsoft SQL Server native client will find them there.
 For help on importing a certificate on Microsoft Windows Servers see <a href="https://technet.microsoft.com/en-us/library/cc776889(v=ws.10).aspx">Import a Certificate</a>
 </p>
 
+<h4><a id="Microsoft SQL Server Server">Server Configuration</a></h4>
+<p>In order to maximize the security of connections to your SQL Server database, you will want to purchase a TLS (SSL) certificate for your server and 
+configure SQL Server to recognize it.  The instructions below describe the steps required to install a certificate. This is not comprehensive documentation.  
+Please see the Microsoft documentation for SQL Server for detailed instructions.
+</p>
+
+<p>
+<ol>
+	<li>Set the host and domain names on your server machine in the proper registry entries for SQL Server.
+		Set the values <strong>Hostname </strong> and <strong>Domain </strong> for the registry key 
+		<strong>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters </strong> 
+		to the hostname and the domain name respectively.
+		<br/><br/>
+		<strong>Note: </strong>Be sure that the name of your computer matches the host name.<br/><br/>
+		</li>
+	<li>Purchase a TLS(SSL) certificate for your server.
+		<p><strong>Note: </strong>This certificate must meet the following criteria:<br/>
+			<ul>
+				<li>Use a fully qualified DNS name; not just a host name.</li>
+				<li>Include Server Authentication in the Enhanced Key Usage property.</li>
+				<li>Have a KeySpec option of AT_KEYEXCHANGE.</li>
+				<li>The KEY_USAGE property should include CERT_KEY_ENCIPHERMENT_KEY_USAGE.</li>
+			</ul>
+		</p>
+		</li>
+	<li>Install the certificate along with the private key on the machine where your server is installed.
+			for detailed instructions on installing your certificate, see 
+			<a href="https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine?view=sql-server-ver15#single-server">Installing a Certificate on a Single Server</a><br/>
+			<br/>
+			<strong>Note: </strong>Grant the user account under which the SQL Server service is running permission to read the certificate and the private key while you are installing it.</br><br/>
+			</li>
+	<li>Select the installed certificate in the SQL Server configuration dialog.<br/>
+		<p><strong>Note: </strong>If you have purchased a wild card certificate, you may not see the certificate in the SQL Server configuration manager.<br/>
+			<ol>
+			<li>You will need to open the certificate in the certificate manager and find the thumbprint attribute.</li>
+			<li>Edit the thumbprint to remove all of the spaces between values.  Make sure there are no trailing spaces or carriage returns.</li>
+			<li>Set the <strong>Certificate</strong> value of the key <strong>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQLServer\SuperSocketNetLib</strong> 
+				in the registry to the edited thumbprint value.
+				</li>
+			</ol>
+			<br/>
+		</li>
+	<li>In the SQL Server configuration manager, under Protocols, select ForceEncryption and set it to Yes.</li>
+	<li>Restart the SQL Server service.</li>
+	<li>You can verify that the server is secure by executing the following SQL in SQL Server Management Studio or Alpha Anwyhere<br/><br/>
+			<p><strong>Note: </strong>The user running the query must have VIEW SERVER_STATE permissions.</p>
+
+			<p>SELECT session_id, net_transport, encrypt_option, auth_scheme, client_net_address FROM sys.dm_exec_connections</p>
+
+			<p>The encrypt_option column should contain the value TRUE</p>
+
+		</li>
+</ol>
+</p>
+<p>You can find more information on installing a TLS certificate and configuring SQL Server to use it at the following links:<br/><br/>
+
+<ul>
+	<li><a href="https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine?view=sql-server-ver15">Enable encrypted connections to SQL Server</a></li>
+	<li><a href="https://stackoverflow.com/questions/36817627/ssl-certificate-missing-from-dropdown-in-sql-server-configuration-manager">SSL Certificate missing from dropdown in SQL Server Configuration Manager
+</a></li>
+	<li><a href="https://sajidfiaz.wordpress.com/2016/12/23/configure-ssl-encryption-for-sql-server-using-wildcard-certificate/">Special instructions for using a wild-card certificate.</a></li>
+</ul>
+</p>
+<br/>
 
 <h3><a id="AmazonRDS">TLS/SSL Connections to Amazon RDS (Relational Database Service)</a></h3>
 
