@@ -1,0 +1,326 @@
+<page api="xb" build="6465">
+    <shortlink>word_merge_python function</shortlink>
+    <topic>word_merge_python Function</topic>
+    <description>
+        <p>Merges JSON data into a Word template document.</p>
+    </description>
+    <prototypes>
+        <prototype>DIM result AS P = word_merge_python(C templateFilename, C filenameOut, C json)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>templateFilename</name>
+            <type>C</type>
+            <description>
+                <p>The filename of the Word template document. Can be a URL that points to a remote file.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>filenameOut</name>
+            <type>C</type>
+            <description>
+                <p>The filename for the Word document to be created by merging the JSON data into the template document. (If *[xb:filenameOut]* is open and therefore cannot be overwritten, a unique filename is generated and is returned by the function in the result.filename property). *[xb:filenameOut]* can also be a JSON string that specifies that the resulting file should be uploaded to S3 or sent via email. See [Advanced Actions] below for more information.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>json</name>
+            <type>C</type>
+            <description>
+                <p>The JSON data to be merged into the template document.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>P</type>
+            <description>
+                <p>Returns an object with these properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Either .t. or .f., indicating if there was an error</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>Description of the error</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>A common requirement is to create a Microsoft Word document from a Word template by merging data into placeholders in the Word template documents. There is an existing Xbasic function to do this (the [a5_word_merge_dotNet()] function), but this function requires that Microsoft Word is installed on the machine where the Alpha Server is running. This precludes the *[xb:a5_word_merge_dotNet()]* function from being used in applications that are hosted on Alpha Cloud). The *[xb:word_merge_python()]* function does not require that Word be installed and also, this function is significantly faster than the the *[xb:a5_word_merge_dotNet()]* function.</p>
+        <p>Another significant benefit of the *[xb:word_merge_python()]* function is the ability to merge data from nested Arrays in the input JSON data into tables in the Word template. Additional rows are automatically added to the table in the template document to accommodate all of the rows in the nested array in the input JSON.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Configuring your Workspace to use word_merge_python()</title>
+            <description>
+                <p>In order to use the *[xb:word_merge_python()]* function you must install Python, which (as of the time of this writing) is not installed by default when you install Alpha Anywhere. Installing the Python dependency in the Alpha Anywhere IDE is done by selecting the *[ui:Tools]* &gt; *[ui:Packages]* menu command when the *[ui:Web Control Panel]* has focus.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge_python1.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Installing the Python dependency in your Web Project is done by clicking the *[ui:Project Properties]* button on the *[ui:Web Control Panel]* and then clicking the smart field for the *[ui:Referenced Packages]* property.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge_python2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <title>How to Create the Word Template</title>
+            <description>
+                <p>To create the Word template, create a new Word document and then insert placeholders in the Word document for the fields in your JSON data.</p>
+                <p>To insert a field placeholder, put your insertion point at the place where you want to insert the placeholder and then press *[ui:Ctrl-F9]*.</p>
+            </description>
+            <figure>
+                <link>images/wordmergepython3.gif</link>
+            </figure>
+            <tip>
+                <p>You can also use the [word_template_from_schema()] or [word_template_from_sample_json()] functions to generate a Word template.</p>
+            </tip>
+        </section>
+        <section>
+            <description>
+                <p>This will insert a pair of braces as shown in the above image (DO NOT type the braces yourself).</p>
+                <p>Type (case insensitive) the following between the braces:</p>
+                <p>
+                    <example><![CDATA[Mergefield name_of_field_in_json_data]]></example>
+                </p>
+                <p>For example, say you have a field in your JSON data called *[js:Firstname]*, you would type:</p>
+            </description>
+            <figure>
+                <link>images/wordmergepython4.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When you are done, press the *[ui:F9]* key (with the insertion point inside the braces). The document will then show the placeholder as follows:</p>
+            </description>
+            <figure>
+                <link>images/wordmergepython5.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>To edit the placeholder, right click on it and select *[ui:Edit Field...]*</p>
+            </description>
+        </section>
+        <section>
+            <title>How to Define Tables in the Word Template for Array Data in the JSON</title>
+            <description>
+                <p>To insert data from a nested array into a table in the Word Template, insert a Table into the Word document, The table should have two rows - one for column headings and one for placeholders, and as many columns as you need (plus one additional column - which can be hidden, as explained later- where the Linking field must be specified).</p>
+                <p>For example, consider the following JSON data. This data has a nested array called *[js:Children]*.</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "Firstname": "John",
+    "Lastname": "Smith",
+    "City": "Boston",
+    "State": "MA",
+    "Children": [
+        {
+        	
+            "Name": "Callie",
+            "Age": 5
+        },
+        {
+            "Name": "Griffin",
+            "Age": 3
+        },
+        {
+            "Name": "Luke",
+            "Age": 1
+        }
+    ]
+ }]]></example>
+                </p>
+                <p>The Word template should have a table that looks like this (Note, the &lt;&lt; &gt;&gt; characters are not typed in yourself - they are inserted by Word automatically when you insert placeholders as explained above - i.e. by pressing Ctrl - F9):</p>
+            </description>
+        </section>
+        <section>
+            <content><![CDATA[<table border="1" cellspacing="1" cellpadding="3" id="table135" style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; margin-left: 0.5in; border-collapse: collapse; " width="389">
+            <tbody><tr>
+                            <td width="83" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            &nbsp;</td>
+                            <td width="163" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            <b>Name</b></td>
+                            <td style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            <b>Age</b></td>
+                        </tr>
+            <tr>
+                            <td width="83" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            &lt;&lt;Children&gt;&gt;</td>
+                            <td width="163" style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            &lt;&lt;Name&gt;&gt;</td>
+                            <td style="font-family: Tahoma; font-size: 8pt; vertical-align: top; ">
+                            &lt;&lt;Age&gt;&gt;</td>
+                        </tr>
+            </tbody></table>]]></content>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the first column (i.e. the linking column) has a placeholder with the name of the nested array (*[js:Children]*). The column heading for this this column is irrelevant (and is blank in this example). The data in the array is shown using placeholders in the second row (columns 2 and 3). The column heading for the data columns can be anything you want (i.e. they do not have to match the names of the data properties).</p>
+            </description>
+        </section>
+        <section>
+            <title>How to Hide the Linking Column</title>
+            <description>
+                <p>To hide the linking column (i.e. the first column), select the first column and set the font color to white on white. Then set the font size for the column to 1 pixel (the smallest value Word allows), then set the cell border to none, then drag the column divider to the left to make the column as narrow as possible.</p>
+                <p>After you do this, the first visible column (the *[js:Name]* column in this example) will not have a left border, so select the column and turn on the border for all edges.</p>
+                <p>*[extlink:Watch Video@http://alphamediacapture.s3.amazonaws.com/videos/mw_mail_merge_python_adjustingLinkColumnWidth.mp4]*</p>
+            </description>
+        </section>
+        <section>
+            <title>Example: Merging JSON into a Word Template</title>
+            <description>
+                <p>Assume the following JSON data:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "CUSTOMERID": "123",
+    "FIRSTNAME": "Fred",
+    "LASTNAME": "Thomas",
+    "COMPANY": "Alpha Anywhere Development",
+    "ADDRESSES": [
+        {
+            "ADDRESSTYPE": "Billing",
+            "ADDRESS": "123 Billing Street",
+            "CITY": "Boston",
+            "STATE": "MA",
+            "POSTALCODE": "02134"
+        },
+        {
+            "ADDRESSTYPE": "Headquarters",
+            "ADDRESS": "987 Headquarters Lanest",
+            "CITY": "Burlington",
+            "STATE": "MA",
+            "POSTALCODE": "01803"
+        },
+        {
+            "ADDRESSTYPE": "Shipping",
+            "ADDRESS": "33 Shipping Ave.",
+            "CITY": "Lexington",
+            "STATE": "MA",
+            "POSTALCODE": "02142"
+        }
+    ]
+}]]></example>
+                </p>
+                <p>Assume a Word template document that looks like this (*[link:Download Word Template@http://alphaanywheredownloads.s3.amazonaws.com/MiscFiles/word_mailmerge_python/template.docx]*):</p>
+            </description>
+            <figure>
+                <link>images/wordmergepython100.gif</link>
+            </figure>
+            <note>
+                <p>The linking column in the table is now shown, as it has been hidden. The first column in the table actually has a placeholder in the second row called *[js:Addresses]* to indicate that the table will display data from the nested *[js:ADDRESSES]* array.</p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>Xbasic to merge data into template:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim json as c
+json = <<%txt%
+{
+    "CUSTOMERID": "123",
+    "FIRSTNAME": "Fred",
+    "LASTNAME": "Thomas",
+    "COMPANY": "Alpha Anywhere Development",
+    "ADDRESSES": [
+        {
+            "ADDRESSTYPE": "Billing",
+            "ADDRESS": "123 Billing Street",
+            "CITY": "Boston",
+            "STATE": "MA",
+            "POSTALCODE": "02134"
+        },
+        {
+            "ADDRESSTYPE": "Headquarters",
+            "ADDRESS": "987 Headquarters Lanest",
+            "CITY": "Burlington",
+            "STATE": "MA",
+            "POSTALCODE": "01803"
+        },
+        {
+            "ADDRESSTYPE": "Shipping",
+            "ADDRESS": "33 Shipping Ave.",
+            "CITY": "Lexington",
+            "STATE": "MA",
+            "POSTALCODE": "02142"
+        }
+    ]
+}
+%txt%
+
+dim fn_template as c = "c:\word\template.docx"
+dim fn_out as c = "c:\word\template_out.docx"
+dim result as p
+result = word_merge_python(fn_template,fn_out,json)]]></example>
+                </p>
+                <p>The resulting Word document showing the placeholders replaced with data and showing the Table expanded to show all of the data in the nested array will look like this.</p>
+            </description>
+            <figure>
+                <link>images/wordmergepython101.gif</link>
+            </figure>
+        </section>
+        <section>
+            <title>Advanced Actions</title>
+            <description>
+                <p>Here is a sample JSON definition for the *[xb:filenameOut]* parameter to specify that the resulting Word document should be uploaded to an Amazon S3 bucket. The objectName can specify a folder in your S3 bucket. For example, in the example below the 'folder' is 'word_merge').</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "type": "Store",
+    "storageConnectionString": "your_AA_storage_connection_string",
+    "objectName": "word_merge/document1.docx"
+}]]></example>
+                </p>
+                <p>Here is a sample JSON definition for the *[xb:filenameOut]* parameter to specify that the resulting Word document should be emailed:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "type": "email",
+    "apikey": "your SparkPost or SendGrid API key",
+    "send_to": "comma delimited list of email addresses",
+    "send_from": "email address of sender",
+    "send_from_friendly_name": "name of sender",
+    "subject": "subject",
+    "message": "message body",
+    "attachment_filename": "name of attachment file e.g. invoice.docx"
+}]]></example>
+                </p>
+            </description>
+            <important>
+                <p>Your Alpha Anywhere storage connection string must not be encrypted</p>
+            </important>
+            <note>
+                <p>If you are using SendGrid, prefix the API key with *[xb:sendgrid:]*</p>
+            </note>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Hiding the Link Column in a Microsoft Word Template</title>
+                <description>
+                    <p>In this video, we show how to hide a column in a table that is used as a linking column. A linking column is used in a table to indicate where nested JSON data should be merged in a Word template. The linking column contains the name of the nested JSON array that contains the values to include in the table.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/mw_mail_merge_python_adjustingLinkColumnWidth.mp4</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link href="#section1_Advanced Actions">Advanced Actions</link>
+        <link link="word_template_from_schema function">word_template_from_schema()</link>
+        <link link="word_template_from_sample_json function">word_template_from_sample_json()</link>
+        <link link="a5_word_merge_dotnet%20function">a5_word_merge_dotNet()</link>
+    </links>
+    <see>
+        <ref link="word_merge_json function">word_merge_json()</ref>
+    </see>
+</page>

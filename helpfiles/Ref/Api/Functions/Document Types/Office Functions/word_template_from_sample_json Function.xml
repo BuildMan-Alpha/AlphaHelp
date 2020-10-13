@@ -1,0 +1,137 @@
+<page api="xb" build="6945">
+    <shortlink>word_template_from_sample_json function</shortlink>
+    <topic>word_template_from_sample_json Function</topic>
+    <description>
+        <p>Creates a Word template from sample JSON data.</p>
+    </description>
+    <prototypes>
+        <prototype>DIM result AS L = word_template_from_sample_json(C json, C templateFilename)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>json</name>
+            <type>C</type>
+            <description>
+                <p>The sample JSON data</p>
+            </description>
+        </argument>
+        <argument>
+            <name>templateFilename</name>
+            <type>C</type>
+            <description>
+                <p>Filename of the Word merge template document to create.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>L</type>
+            <description>
+                <p>Returns .t. or .f. indicating whether or not the template file was created.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p></p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Example</title>
+            <description>
+                <p>Assume you have the following sample JSON data in a variable called *[xb:JSONData]*:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "name":"Belinda Monat",
+    "image":"http://aadocuments.s3.amazonaws.com/headshots/AllisonBerman.png",
+    "children":[
+        {"name":"Callie","image":"http://aadocuments.s3.amazonaws.com/headshots/NancyShmidt.png"},
+        {"name":"Griffin","image":"http://aadocuments.s3.amazonaws.com/headshots/TonyJones.png"}
+    ]
+}]]></example>
+                </p>
+                <p>The following XBasic can be used to create a Word template:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim fnTemplate as c = "c:\data\wordTemplate1.docx"
+dim flag as L
+flag = word_template_from_sample_json(JSONdata,fnTemplate)]]></example>
+                </p>
+                <p>If you then open the template document in Word it will show as follows:</p>
+                <p>Note that all of the property name in the sample JSON data (*[json:name]*, *[json:image]*, and *[json:children]*) are shown as merge fields in the template document.</p>
+                <p>Since the children property name is an array, the template documents shows *[xb:&lt;&lt;children&gt;&gt;]* and *[xb:&lt;&lt;/children&gt;&gt;]* to indicate that the children is an array.</p>
+                <p>Within the*[xb: &lt;&lt;children&gt;&gt;]* group merge field for *[xb:&lt;&lt;name&gt;&gt;]* and *[xb:&lt;&lt;image&gt;&gt;]* are shown (these are the properties of each item in the children array.</p>
+                <p></p>
+            </description>
+            <figure>
+                <title>Generated Word Template</title>
+                <link>images/wordmergetemplate.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>If you then merge the JSON data into the template using the [word_merge_json()] function...</p>
+                <p>
+                    <example code="xb"><![CDATA[dim mergedFilename = "c:\data\mergedTemplate1.docx"
+dim result as P
+result = word_merge_json(fnTemplate, mergedFilename, JSONdata)]]></example>
+                </p>
+                </p>...the resulting Word document looks like this:</p>
+            </description>
+            <figure>
+                <title>Word Template with JSON data merged into it using *[xb:word_merge_json()]*</title>
+                <link>images/wordmerge3.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the image urls are just treated as data. So the merge document shows the image URLs and not the images themselves. It is likely that you might want the merge document to show the actual image and not the image URL.</p>
+                <p>In order to do this, it is necessary to modify the merge template document to add decorators to some of the merge fields to indicate that the merge fields are image references.</p>
+                <p>To add a decorator to a merge field, edit the template document in Word. Right click on a merge field. The right click menu will display the menu shown below. Select the *[ui:Edit Field...]* menu option.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge30.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The *[ui:Edit Field]* window appears.</p>
+                <p>Make sure that the *[ui:MergeField]() category is selected.</p>
+                <p>Add the decorator (*[xb:image:]*) as a prefix to the field name.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge31.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The image below shows how the template document appears in Word after *[xb:decorators]* have been added to the *[xb:&lt;&lt;image&gt;&gt;]* placeholder at the top level and the *[xb:&lt;&lt;image&gt;&gt;]* placeholder within the *[xb:&lt;&lt;children&gt;&gt;]* group.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge4.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>When the JSON data is merged into the modified template document, the following Word document is created. Notice that now, the actual images are shown, rather than the text URL.</p>
+            </description>
+            <figure>
+                <link>images/wordmerge20.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>In addition to the *[xb:image]* decorator, you can also use the *[xb:html]* decorator. The html decorator is used to indicate that the JSON data contain HTML data that should be rendered as HTML, rather than plain text.</p>
+            </description>
+            <note>
+                <p>When you use the *[xb:html]* decorator to indicate that the JSON field has HTML text, there are limitations as to what HTML elements and styles are supported. You may need to experiment to determine if the HTML markup in your JSON data is supported.</p>
+            </note>
+            <tip>
+                <p>Instead of using the *[xb:word_template_from_sample_json()]* function to create the template from sample data, you might want to use the [word_template_from_schema()] function because this function will automatically add the necessary decorators to the merge fields. You will not have to edit the template to manually add the decorators to the merge fields.</p>
+            </tip>
+        </section>
+    </sections>
+    <links>
+        <link link="word_merge_json function">word_merge_json()</link>
+        <link link="word_template_from_schema function">word_template_from_schema()</link>
+    </links>
+</page>

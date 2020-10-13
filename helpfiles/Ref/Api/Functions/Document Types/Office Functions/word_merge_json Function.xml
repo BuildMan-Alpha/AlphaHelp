@@ -1,0 +1,125 @@
+<page api="xb" build="6945">
+    <shortlink>word_merge_json function</shortlink>
+    <topic>word_merge_json Function</topic>
+    <description>
+        <p>Merges JSON data into a Word template document.</p>
+    </description>
+    <prototypes>
+        <prototype>DIM result AS P = word_merge_json(C templateFilename, C filenameOut, C json)</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>templateFilename</name>
+            <type>C</type>
+            <description>
+                <p>The filename of the Word template document. Can be a URL that points to a remote file.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>filenameOut</name>
+            <type>C</type>
+            <description>
+                <p>The filename for the Word document to be created by merging the JSON data into the template document. (If *[xb:filenameOut]* is open and therefore cannot be overwritten, a unique filename is generated and is returned by the function in the result.filename property). *[xb:filenameOut]* can also be a JSON string that specifies that the resulting file should be uploaded to S3 or sent via email. See [Advanced Options] below for more information.</p>
+            </description>
+            <note>
+                <p>If the filename extension is .pdf, a PDF document is created.</p>
+            </note>
+        </argument>
+        <argument>
+            <name>json</name>
+            <type>C</type>
+            <description>
+                <p>The JSON data to be merged into the template document.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>P</type>
+            <description>
+                <p>Returns an object with these properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Either .t. or .f., indicating if there was an error</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>Description of the error</description>
+                </property>
+                <property>
+                    <name>filename</name>
+                    <type>C</type>
+                    <description>The name of the file that was created. Will be the same as *[xb:filenameOut]* as long as *[xb:filenameOut]* is not currently open (and therefore cannot be deleted).</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:word_merge_json()]* function merges JSON data into a Microsoft Word template document. This function has no dependencies. Unlike the [word_merge_python()], this function does not rely on Python, and unlike [a5_word_merge()] and [a5_word_merge_dotNet()], the function does not require MS Word to be installed.</p>
+        <p>Another advantage of this function is the ability to convert the resulting Word document directly into a .pdf file (by specify an output filename with a .pdf extension).</p>
+    </discussion>
+    <sections>
+        <section>
+            <note>
+                <p>The Word template document can be automatically generated from the JSON data using the either the [word_template_from_sample_json()] or [word_template_from_schema()] functions.</p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>The advantage of *[xb:word_merge_json()]* over *[xb:word_merge_python()]* is that you can merge images and use nested tables. *[xb:word_merge_json()]* also supports looping over nested arrays in the JSON data without having to use Word tables.</p>
+            </description>
+        </section>
+        <section>
+            <title>Advanced Options</title>
+            <description>
+                <p>Here is a sample JSON definition for the *[xb:filenameOut]* parameter to specify that the resulting Word document should be uploaded to an Amazon S3 bucket. The objectName can specify a folder in your S3 bucket. For example, in the example below the 'folder' is 'word_merge').</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "type": "Store",
+    "storageConnectionString": "your_AA_storage_connection_string",
+    "objectName": "word_merge/document1.docx"
+}]]></example>
+                </p>
+                <p>Here is a sample JSON definition for the *[xb:filenameOut]* parameter to specify that the resulting Word document should be emailed:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "type": "email",
+    "apikey": "your SparkPost or SendGrid API key",
+    "send_to": "comma delimited list of email addresses",
+    "send_from": "email address of sender",
+    "send_from_friendly_name": "name of sender",
+    "subject": "subject",
+    "message": "message body",
+    "attachment_filename": "name of attachment file e.g. invoice.docx"
+}]]></example>
+                </p>
+            </description>
+            <important>
+                <p>Your Alpha Anywhere storage connection string must not be encrypted</p>
+            </important>
+            <note>
+                <p>If you are using SendGrid, prefix the API key with *[xb:sendgrid:]*</p>
+            </note>
+        </section>
+        <section>
+            <title>More About Image Field Sizing</title>
+            <description>
+                <p>If the JSON data you are merging into the Word template document is an image URL, and you have added the *[js:image]* decorator to the image field placeholder (e.g. *[xb:&lt;&lt;image:imagefield&gt;&gt;]*, assuming the JSON property name for the image field is *[xb:imagefield]*), the image will be printed at its full size.</p>
+                <p>It is likely, however, that you will want to control the dimensions of the image. If the image is in a table cell, then you can adjust the size of the table cell. The image will fill the table cell. If the image field is a top-level field (i.e. it is not in a nested array), you can also edit the Word template document, insert a Text Box object (on Word's Insert Ribbon toolbar) and then place the image inside the Text Box object. Size the Text Box to the size you want for the image. The image will fill the Text Box object control.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link href="#section1_Advanced Options">Advanced Options</link>
+        <link link="word_merge_python function">word_merge_python()</link>
+        <link link="api%20a5%20word%20merge%20function">a5_word_merge()</link>
+        <link link="a5_word_merge_dotnet%20function">a5_word_merge_dotNet()</link>
+        <link link="word_template_from_sample_json function">word_template_from_sample_json()</link>
+        <link link="word_template_from_schema function">word_template_from_schema()</link>
+    </links>
+</page>
