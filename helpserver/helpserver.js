@@ -20,6 +20,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     var buildClasses = require("./builds.json");
     var options = require(settingsFile);
     var serverType = "";
+    var helpEmail = "guides@alphasoftware.com";
     if (searchLocalFlag) {
         serverType = "(searchlocal) ";
     } else if (noSearchFlag) {
@@ -42,6 +43,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     if (options.errorLog) errorLog = options.errorLog;
     if (options.helpfilesBasepath) helpfilesBasepath = options.helpfilesBasepath;
     if (options.annotationPath) annotationPath = options.annotationPath;
+    if (options.helpEmail) helpEmail = options.helpEmail;
 
     if (options.libraryPath) {
         library = require(options.libraryPath + "library");
@@ -1463,7 +1465,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
     };
 
     events.noSearchResults = function(pattern) {
-        var url = "mailto:documentation@alphasoftware.com?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
+        var url = "mailto:"+helpEmail+"?subject=No Search Results Found for '" + pattern + "'&body=What can we help you find today?";
         return '<div id="search-no-results"><br><br><p>No results found.</p><p>Can\'t find what you\'re looking for? <a href="' + url + '">Contact us!</a></p></div>';
     };
 

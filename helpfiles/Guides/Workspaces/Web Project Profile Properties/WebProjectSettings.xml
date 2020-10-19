@@ -347,7 +347,7 @@ Alpha-Grey:compact,pulse]]></example>
                         </case>
                         <case>
                             <title nested="2">SSL Option</title>
-                            <description>Defines the SSL option to use when sending Email. If SSL is not used, leave this property blank. Example settings: SSL, TLS.</description>
+                            <description>Defines the SSL option to use when sending e-mail. If SSL is not used, leave this property blank. Example settings: SSL, TLS.</description>
                         </case>
                         <case>
                             <title nested="2">E-mail account user name</title>
@@ -367,32 +367,137 @@ Alpha-Grey:compact,pulse]]></example>
                         </case>
                         <case>
                             <title nested="2">Mandrill key</title>
-                            <description>If you use the Mandrill web service to send email, you can set the key value here. If you set the value here you will not need to set the value each time you call the Mandrill web service (using the email_send_mandrill() Xbasic function).</description>
+                            <description>If you use the Mandrill web service to send e-mail, you can set the key value here. If you set the value here you will not need to set the value each time you call the Mandrill web service (using the email_send_mandrill() Xbasic function).</description>
+                        </case>
+                        <case>
+                            <title nested="2">SparkPost key</title>
+                            <description>
+                                <p>If you use the SparkPost web service to send e-mail, you can set the key value here. If you set the value here, you do not need too set the value each time you call the SparkPost web service (using the email_send_sparkpost() Xbasic function).</p>
+                            </description>
+                        </case>
+                        <case>
+                            <title nested="2">Default sending method</title>
+                            <description>
+                                <p>The method to use when sending e-mail. You can choose *[ui:Internal]* to use Alpha Anywhere's internal e-mail functions or *[ui:SparkPost]* to use the SparkPost web service.</p>
+                            </description>
                         </case>
                     </cases>
                 </section>
                 <section>
                     <title>E-mail Outbox</title>
+                    <description>
+                        <p>The *[ui:E-mail Outbox]* is a table used to store a copy of e-mail messages sent from a web application.</p>
+                    </description>
+                    <figure>
+                        <link>images/emailOutboxSettingsProperties.png</link>
+                    </figure>
+                </section>
+                <section>
                     <cases>
                         <case>
                             <title nested="2">Table type</title>
-                            <description>Specify if the e-mail outbox is a .DBF or SQL table. The e-mail outbox stores a copy of e-mail messages sent from this application.</description>
+                            <description>Defines the table type. This can be DBF or SQL (recommended).</description>
                         </case>
                         <case>
                             <title nested="2">Connection string</title>
-                            <description>Sent e-mail can optionally be stored in an outbox. Specify the connection string to the SQL database where the outbox is stored.</description>
+                            <description>If the *[ui:Table type]* is SQL, the *[ui:Connection string]* property must be defined. This property specifies what connection string should be used to connect to the database that contains the e-mail outbox table.</description>
                         </case>
                         <case>
                             <title nested="2">Table name</title>
-                            <description>Specify the outbox table name where sent emails will be stored.</description>
+                            <description>
+                                <p>The *[ui:Table name]* defines what table in the data source is the e-mail outbox table. You can use the *[ui:Create E-mail Outbox Table]* link in the *[ui:Define E-mail Outbox Table]* dialog to generate a table in the destination database if one doesn't exist.</p>
+                                <p>Alternatively, you can create the table yourself. The e-mail outbox table must have the following structure:</p>
+                            </description>
+                            <example><![CDATA[Field name: ID, Type: Numeric(8), Primary key: True, Allow Nulls: False, Is Auto-increment: True
+Field name: wasSent, Type: Character(3), Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: errorText, Type: Character(255), Primary key: False, Allow Nulls: True, Is Auto-increment: False
+Field name: dateStamp, Type: DateTime, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: subject, Type: Character(255), Primary key: False, Allow Nulls: True, Is Auto-increment: False
+Field name: Message, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: SentTo, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: CC, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: BCC, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: Attachments, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: Comments, Type: Memo, Primary key: False, Allow Nulls: False, Is Auto-increment: False
+Field name: sent_by, Type: Character(255), Primary key: False, Allow Nulls: True, Is Auto-increment: False
+Field name: sent_by_alias, Type: Character(255), Primary key: False, Allow Nulls: True, Is Auto-increment: False
+]]>                            </example>
                         </case>
                         <case>
                             <title nested="2">Sequence name</title>
-                            <description>Specify the sequence name for the table. The Sequence name is only needed for databases such as Oracle and PostgresSQL that use sequences for auto-increment fields.</description>
+                            <description>Specify the sequence name for the table. The Sequence name is only needed for databases such as Oracle and PostgreSQL that use sequences for auto-increment fields.</description>
                         </case>
                         <case>
                             <title nested="2">Field map</title>
-                            <description>Specify how the fields in the outbox table are mapped to the required fields. You only need to specify mappings for fields that do not match the corresponding 'system' value shown in the map.</description>
+                            <description>
+                                <p>The field map defines how the fields in the table map to the required e-mail outbox fields. Use the *[ui:Auto map fields]* link to automatically map the fields. Any fields that don't use the same name as the ones shown below need to be manually mapped:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name-title>Field Name</name-title>
+                                            <description-title>Field Map Property</description-title>
+                                        </item>
+                                        <item>
+                                            <name>ID</name>
+                                            <description>Primary key field</description>
+                                        </item>
+                                        <item>
+                                            <name>wasSent</name>
+                                            <description>WasSent field</description>
+                                        </item>
+                                        <item>
+                                            <name>errorText</name>
+                                            <description>Error Text field</description>
+                                        </item>
+                                        <item>
+                                            <name>dateStamp</name>
+                                            <description>DateStamp field</description>
+                                        </item>
+                                        <item>
+                                            <name>subject</name>
+                                            <description>Subject field</description>
+                                        </item>
+                                        <item>
+                                            <name>Message</name>
+                                            <description>Message</description>
+                                        </item>
+                                        <item>
+                                            <name>SentTo</name>
+                                            <description>Sent To</description>
+                                        </item>
+                                        <item>
+                                            <name>CC</name>
+                                            <description>CC</description>
+                                        </item>
+                                        <item>
+                                            <name>BCC</name>
+                                            <description>BCC</description>
+                                        </item>
+                                        <item>
+                                            <name>Attachments</name>
+                                            <description>Attachments</description>
+                                        </item>
+                                        <item>
+                                            <name>Comments</name>
+                                            <description>Comments</description>
+                                        </item>
+                                        <item>
+                                            <name>sent_by</name>
+                                            <description>Sent_By field</description>
+                                        </item>
+                                        <item>
+                                            <name>sent_by_alias</name>
+                                            <description>Sent_By Alias field</description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                        </case>
+                        <case>
+                            <figure>
+                                <title>The Define E-mail Outbox Table dialog is shown when the [...] smart field button is clicked for any of the E-mail Outbox properties.</title>
+                                <link>images/emailOutboxSettingsProperties2.png</link>
+                            </figure>
                         </case>
                     </cases>
                 </section>
@@ -586,7 +691,7 @@ OtherOptionsJSON|M]]></example>
                 </section>
                 <section>
                     <description>
-                        <p>A repository is a table (either .dbf or SQL) where a web application can read or write data. The data are typically items such as email templates, or saved queries, or other settings. For the most part, the repository is for internal use by components, but developers can also make use of it using the following functions:</p>
+                        <p>A repository is a table (either .dbf or SQL) where a web application can read or write data. The data are typically items such as e-mail templates, or saved queries, or other settings. For the most part, the repository is for internal use by components, but developers can also make use of it using the following functions:</p>
                         <p>
                             <list bullet="true">
                                 <item>
@@ -826,23 +931,219 @@ Field name: securitySettingsJSON, Type: Memo, Primary key: False, Allow Nulls: F
                     <title>PDF Printing Options</title>
                     <cases>
                         <case>
+                            <title nested="2" build="6945">Use direct to PDF</title>
+                            <description>
+                                <p>If you check this option, all reports that use the PDF option will use the PDFDirect option. This includes overwriting Action Scripting *[ui:Initial View]* and Action Javascript *[link:Initial view@https://documentation.alphasoftware.com/documentation/index?search=open%20a%20report,%20label%20or%20letter%20layout]*.</p>
+                                <p>PDFDirect generates PDFs without using the Amyuni Printer Driver. Some PDF Options are not available when using PDFDirect.</p>
+                            </description>
+                        </case>
+                        <case>
                             <title nested="2">Use Microsoft XPS printer to generate PDF files</title>
-                            <description>Specify if the Microsoft XPS printer should be used instead of the Amyuni PDF printer driver to generate PDF files. When you use this option, you can specify if the resulting XPS files should be converted to PDF files before being sent to the browser, or if they should be sent to the browser as XPS files.</description>
+                            <description>
+                                <p>Specify if the Microsoft XPS printer should be used instead of the Amyuni PDF printer driver to generate PDF files. When you use this option, you can specify if the resulting XPS files should be converted to PDF files before being sent to the browser, or if they should be sent to the browser as XPS files.</p>
+                                <p>This option is not shown if *[ui:Use direct to PDF]* is checked.</p>
+                            </description>
                         </case>
                         <case>
                             <title nested="2">Convert XPS files to PDF before sending to client</title>
-                            <description>Defines whether or not XPS files should be converted to a PDF format before being sent to the client.</description>
+                            <description>
+                                <p>Defines whether or not XPS files should be converted to a PDF format before being sent to the client.</p>
+                                <p>This option is only shown if *[ui:Use Microsoft XPS printer to generate PDF files]* is checked.</p>
+                            </description>
                             <important>
                                 <p>If you choose to send the resulting XPS files to the browser without first converting them to PDF, only Microsoft Internet Explorer will be able to display the file directly in the browser. All other browsers will download the file and you will have to use the local XPS viewer application to see the file.</p>
                             </important>
                         </case>
                         <case>
+                            <title nested="2">Allow all international characters in free-form reports</title>
+                            <description>
+                                <p>Applies to reports with a SQL data source.</p>
+                                <p>If unchecked, Alpha Anywhere renders reports using a .DBF table for report data. This legacy reporting logic does not support UTF8.</p>
+                                <p>This option is not shown if *[ui:Use direct to PDF]* is checked.</p>
+                            </description>
+                            <note>
+                                <p>If reports use international characters, enable the option for *[ui:Multilingual support]* in the *[ui:PDF Options]*.</p>
+                            </note>
+                        </case>
+                        <case>
+                            <title nested="2">PDF Options</title>
+                            <description>
+                                <p>Default settings for creating PDF reports. Settings can be set for individual reports created using Action Scripting, Action Javascript, or Xbasic. Options specified for individual reports override the project default.</p>
+                            </description>
+                            <important>
+                                <p>Some *[ui:PDF Options]* are not supported when using Direct to PDF.</p>
+                            </important>
+                            <cases>
+                                <case>
+                                    <title nested="3">PDF Options</title>
+                                    <list>
+                                        <item>
+                                            <name-title>Property</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>Multilingual support</name>
+                                            <description>Adds support for international character sets.</description>
+                                        </item>
+                                        <item>
+                                            <name>Embed fonts</name>
+                                            <description>Include required fonts in the PDF instead of allowing them to be resolved externally. </description>
+                                            <note>If the font is protected, it can't be embedded; this is often the case for bar code fonts, such as Code39.</note>
+                                        </item>
+                                        <item>
+                                            <name>Linearize</name>
+                                            <description>Uses a format that is better for web viewing. This format makes it possible to view the first page of a large PDF before all remaining pages are downloaded.</description>
+                                        </item>
+                                        <item>
+                                            <name>Black and white</name>
+                                            <description>Converts all colors to black, white, and gray.</description>
+                                        </item>
+                                        <item>
+                                            <name>Convert hyperlinks</name>
+                                            <description>Converts all hyperlinks started with "http://" into live links in the resulting PDF document.
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>JPEG Image Quality</name>
+                                            <description>Set the quality of JPEG images; this is a trade-off between image fidelity and size. Low quality uses the highest compression and produces the smallest images. No Compression produces the largest, highest-quality images.</description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title nested="3">Watermark Options</title>
+                                    <list>
+                                        <item>
+                                            <name-title>Property</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>Watermark</name>
+                                            <description>If enabled, prints a watermark on every page in the report. The properties below are also exposed.</description>
+                                        </item>
+                                        <item>
+                                            <name>Watermark type</name>
+                                            <description>Specifies how to create the watermark. The options are:</description>
+                                            <list>
+                                                <item>
+                                                    <name>Text</name>
+                                                    <description>Watermark is defined as text, including the font, color, orientation, and position.</description>
+                                                </item>
+                                                <item>
+                                                    <name>PDF</name>
+                                                    <description>Watermark is defined as a PDF. Use this option to display a logo or other image as a watermark.</description>
+                                                </item>
+                                            </list>
+                                        </item>
+                                        <item>
+                                            <name>Text</name>
+                                            <description>The text to use as a watermark. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Font name</name>
+                                            <description>The font to use for the watermark text. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Font size</name>
+                                            <description>The font size to use for the watermark text. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Orientation</name>
+                                            <description>The rotation of the watermark text in 0.1 degree increments. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Font color</name>
+                                            <description>The font color to use for the watermark text. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Horizontal position</name>
+                                            <description>The horizontal position of the watermark text in 0.1 inch units. This positive value measured from the left edge of the page should take into account the minimum printer margin. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Vertical position</name>
+                                            <description>The vertical position of the watermark text in 0.1 inch units. This negative value measured from the top of the page should take into account the minimum printer margin. This property is only available if *[ui:Watermark Type]* is set to *[ui:Text]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Watermark file name</name>
+                                            <description>The name of a PDF file to use as the watermark. Optionally, click *[ui:Click to create PDF from Bitmap]* to display the Create PDF File from Bitmap dialog. This property is only available if *[ui:Watermark Type]* is set to *[ui:PDF]*</description>
+                                        </item>
+                                        <item>
+                                            <name>Foreground</name>
+                                            <description>When enabled, places the watermark above the page text, partially obscuring page content. When disabled, places the watermark below the page text.</description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title nested="3">Encryption Options</title>
+                                    <list>
+                                        <item>
+                                            <name-title>Property</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>Encrypt PDF file</name>
+                                            <description>Check this property if you want to require a password to open the PDF file or set file permissions for the PDF. If enabled, the properties below are also exposed.</description>
+                                        </item>
+                                        <item>
+                                            <name>Owner password</name>
+                                            <description>Specifies the text to use as the owner password. Only the owner can change the User password and the document other settings.</description>
+                                        </item>
+                                        <item>
+                                            <name>User password</name>
+                                            <description>Specifies the text to use as the read password.
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>Can print</name>
+                                            <description>Specifies whether the reader can print the document.</description>
+                                        </item>
+                                        <item>
+                                            <name>Can modify document</name>
+                                            <description>Specifies whether the reader can edit the document.</description>
+                                        </item>
+                                        <item>
+                                            <name>Can copy</name>
+                                            <description>Specifies whether the reader can select text in the document and copy it.
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>Can add notes</name>
+                                            <description>Specifies whether the reader can add notes.</description>
+                                        </item>
+                                        <item>
+                                            <name>Use 128 bit key</name>
+                                            <description>Selects between 40 bit and 128 bit encryption. Readers will need Adobe Acrobat version 5 or higher to read 128 bit encrypted files.</description>
+                                        </item>
+                                    </list>
+                                </case>
+                                <case>
+                                    <title nested="3">Other Options</title>
+                                    <list>
+                                        <item>
+                                            <name-title>Property</name-title>
+                                            <description-title>Description</description-title>
+                                        </item>
+                                        <item>
+                                            <name>PDF Title</name>
+                                            <description>The title of the PDF. This title is shown in some browser PDF viewers.</description>
+                                        </item>
+                                    </list>
+                                </case>
+                            </cases>
+                        </case>
+                        <case>
                             <title nested="2">Print timeout (seconds)</title>
-                            <description>Large PDF reports may take a long time to build and you may want to cancel reports that take too long to create. The print timeout setting will cancel any report that has not completed in the allowed time (in seconds). Set the timeout to 0 to allow all reports to run to completion. An error will be reported back to the user if a report is cancelled because it exceeded the allowed time.</description>
+                            <description>
+                                <p>Large PDF reports may take a long time to build and you may want to cancel reports that take too long to create.</p>
+                                <p>The print timeout cancels any reports that do not completed within the specified time (in seconds). Set the timeout to 0 to allow all reports to run to completion.</p>
+                                <p>An error will be reported back to the user if a report is cancelled because it exceeded the allowed time.</p>
+                            </description>
                         </case>
                         <case>
                             <title nested="2">Print timeout message (optional)</title>
-                            <description>The system will generate an error message if a PDF report times out. Any optional message entered here will replace the system error message if the report times out.</description>
+                            <description>
+                                <p>The system will generate an error message if a PDF report times out. Any optional message entered here will replace the system error message if the report times out.</p>
+                                <p>This option is only shown if *[ui:Print timeout (seconds)]* is not zero.</p>
+                            </description>
                         </case>
                     </cases>
                 </section>
@@ -876,7 +1177,7 @@ Field name: securitySettingsJSON, Type: Memo, Primary key: False, Allow Nulls: F
                     <title>Excel Files</title>
                     <cases>
                         <case>
-                            <title nested="2"  build="6010">Extension</title>
+                            <title nested="2" build="6010">Extension</title>
                             <description>The default file extension to use for generated Excel files. This option can be used to force all files to use the *[.xlsx]* extension. This property can be set to the following:</description>
                             <list>
                                 <item>
@@ -996,7 +1297,6 @@ Field name: securitySettingsJSON, Type: Memo, Primary key: False, Allow Nulls: F
             </sections>
         </group>
     </groups>
-    <terms>box.com</terms>
     <links>
         <link link="Using the Stripe API From Xbasic">Stripe Genie...</link>
         <link link="api a5helper writetoauditinglog function">a5Helper_writeToAuditingLog()</link>
@@ -1014,4 +1314,5 @@ Field name: securitySettingsJSON, Type: Memo, Primary key: False, Allow Nulls: F
     <see>
         <ref href="https://blog.chromium.org/2019/10/developers-get-ready-for-new.html">Developers: Get Ready for New SameSite=None; Secure Cookie Settings</ref>
     </see>
+    <terms>box.com,email settings</terms>
 </page>
