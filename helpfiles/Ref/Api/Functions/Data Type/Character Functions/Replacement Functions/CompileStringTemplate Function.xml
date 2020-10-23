@@ -1,48 +1,52 @@
 <page api="xb">
     <shortlink>api compilestringtemplate function</shortlink>
-   <topic>CompileStringTemplate Function</topic>
-    <description><![CDATA[Compile a string template that has expression enclosed in { }. Returns an object. Use <obj>.Output() to evaluate the string. ]]></description>
-  
-   <syntax>P Result = CompileStringTemplate(C string )</syntax>
-   <arguments>
-     <argument>
-         <name>P Result</name>
-         <description>Compiled string template</description>
-     </argument>
-     <argument>
-         <name>string</name>
-         <description>String template that has expressions enclosed in { }. Character</description>
-     </argument>
-   </arguments>
-   <discussion>
-Compile a string template that has expression enclosed in { }. The compiled template created is an object, which is returned from the function. This compiled object has an .Output() method that you can call to evaluate the string.
-The following sequence is the equivalent of new_string = evaluate_string(template):
-obj = CompileStringTemplate(template)
-new_string = obj.Output()
-While this may look more complicated than an evaluate_string() call,  CompileStringTemplate() is much more efficient than evaluate_string() when used inside a loop.
-What can go inside the {...} curly brackets can be arbitrarily complex Xbasic expressions. In the examples below we have restricted ourselves to database fields with simple character manipulation functions for simplicity.
-   </discussion>
- 
-   <sections>
-       <section>
-       <title>Example</title>
-            <description>In this example, the first row in the customer table has a firstname of Tom and a city of Boston. This example is written for a DBF table.
-</description>
-            <example><![CDATA[
-txt = "hello {t.data(\"firstname\")}: Welcome to {upper(t.data(\"city\"))}"
+    <topic>CompileStringTemplate Function</topic>
+    <description>Compile a string template that has expression enclosed in { }. Returns an object. Use &lt;obj&gt;.Output() to evaluate the string.</description>
+    <syntax>P Result = CompileStringTemplate(C string)</syntax>
+    <arguments>
+        <argument>
+            <name>string</name>
+            <type>C</type>
+            <description>String template that has expressions enclosed in { }.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <type>P</type>
+            <description>Returns an object with the following methods:</description>
+            <properties>
+                <property>
+                    <name>Output()</name>
+                    <type>function</type>
+                    <description>Evaluates the template and returns a character string with the merged data.</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>Compile a string template that has expression enclosed in { }. The compiled template created is an object, which is returned from the function. This compiled object has an .Output() method that you can call to evaluate the string.</p>
+        <p>The following sequence is the equivalent of new_string = evaluate_string(template):</p>
+        <p>
+            <example code="xb"><![CDATA[obj = compileStringTemplate(template)
+new_string = obj.Output()]]></example>
+        </p>
+        <p>While this may look more complicated than an evaluate_string() call, compileStringTemplate() is much more efficient than evaluate_string() when used inside a loop.</p>
+        <p>What can go inside the opening and closing braces *[xb:{ }]* can be arbitrarily complex Xbasic expressions. In the examples below, we have restricted ourselves to database fields with simple character manipulation functions for simplicity.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Example</title>
+            <description>In this example, the first row in the customer table has a firstname of Tom and a city of Boston. This example is written for a DBF table.</description>
+            <example code="xb"><![CDATA[txt = "hello {t.data(\"firstname\")}: Welcome to {upper(t.data(\"city\"))}"
 dim t as p
 t = table.open("customer")
-?evaluate_string(txt)
-( "Hello Tom: Welcome to BOSTON.
-
-]]></example>
-       </section>
-       
-       <section>
-            <description>Here is the same example using a compiled string template:
-</description>
-            <example><![CDATA[
-txt = "hello {t.data(\"firstname\")}: Welcome to {upper(t.data(\"city\"))}"
+? evaluate_string(txt)
+= "Hello Tom: Welcome to BOSTON.]]></example>
+        </section>
+        <section>
+            <description>Here is the same example using a compiled string template:</description>
+            <example code="xb"><![CDATA[txt = "hello {t.data(\"firstname\")}: Welcome to {upper(t.data(\"city\"))}"
 dim p as p 
 p = compilestringtemplate(txt)
 dim t as p
@@ -52,17 +56,14 @@ t = table.open("customer")
 
 'Note that <tbl>.data("fieldname") allows you to read data from a field in a table. 
 'tbl.data("firstname"), is similar to the tbl.firstname, i.e. both return the value in the firstname
-'field. But tbl.data("firstname") removes trailing blanks.
-
-]]></example>
-       </section>
-       
-       <section>
-<description>An extremely common pattern in Web Applications is to do a database query and then generate some HTML content to send to the browser. The HTML content is often generated by merging data from the database into an HTML template. The evaluate_string() is ideal for merging data into a template. In the case where the HTML content is constructed by looping over the records in the query and merging data into the template for each row in the query, the compilestringtemplate() function can be used to improve performance.
-This example is written for AlphaDAO.
-</description>
-            <example><![CDATA[
-dim tableBegin as c 
+'field. But tbl.data("firstname") removes trailing blanks.]]></example>
+        </section>
+        <section>
+            <description>
+                <p>An extremely common pattern in Web Applications is to do a database query and then generate some HTML content to send to the browser. The HTML content is often generated by merging data from the database into an HTML template. The evaluate_string() is ideal for merging data into a template. In the case where the HTML content is constructed by looping over the records in the query and merging data into the template for each row in the query, the compileStringTemplate() function can be used to improve performance.</p>
+                <p>This example is written for AlphaDAO.</p>
+            </description>
+            <example code="xb"><![CDATA[dim tableBegin as c 
 tableBegin = "<table>"
 dim thead as c 
 thead = <<%html%
@@ -105,17 +106,17 @@ dim sql as c
 sql = "select customerId, CompanyName, ContactName, Address, City, Country from customers order by companyname"
 
 cn.Execute(sql)
-dim rs as sql::resultset
+dim rs as sql::resultSet
 rs = cn.ResultSet
 
 dim htmlRows as c = ""
 dim p as p
 'compiling the string template is faster than using the evaluate_string() function in a loop.
-p = compilestringtemplate(trow)
+p = compileStringTemplate(trow)
 
 while rs.nextRow()
-	'the *concat() function is much faster than doing: htmlRows = htmlRows + p.output()
-	*concat(htmlRows,p.output())
+    'the *concat() function is much faster than doing: htmlRows = htmlRows + p.output()
+    *concat(htmlRows,p.output())
 end while
 
 dim allHTML as c 
@@ -131,16 +132,12 @@ a5_show_html(allhtml)
 'if you want to see the raw html
 'showvar(allHTML)
 
-cn.close()
-]]></example>
-       </section>
-       
-   </sections>
-   <see>
-      <ref link="Character Replacement Functions">Character Replacement Functions</ref>
-      <ref link="EVALUATE_STRING Function">EVALUATE_STRING Function</ref>
-   </see>
-   
-<terms>string,replacement,case,database,dbf,expressions,field,function,html,object,query,record,template,templates,Xbasic</terms>   
-   
+cn.close()]]></example>
+        </section>
+    </sections>
+    <see>
+        <ref link="Character Replacement Functions">Character Replacement Functions</ref>
+        <ref link="EVALUATE_STRING Function">EVALUATE_STRING Function</ref>
+    </see>
+    <terms>string,replacement,case,database,dbf,expressions,field,function,html,object,query,record,template,templates,Xbasic</terms>
 </page>
