@@ -12,7 +12,82 @@
                 <type>C</type>
                 <type>P</type>
             </types>
-            <description>Request defined as a JSON string or dot variable.</description>
+            <description>
+                <p>Request defined as a JSON string or dot variable. Variable placeholders and SQL::Arguments can be used in the request definition. Variables use bracket syntax *[xb:{variableName}]* and are specified in the *[xb:variables]* parameter. SQL::Arguments are specified using colon syntax *[xb::variableName]* and are specified in the *[xb:args]* parameter.</p>
+                <p>Special placeholders are also available for the *[xb:namedResource]*:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Placeholder</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>{namedresource.access_token}</name>
+                            <description>The access token that was retrieved when the authentication, defined in the Named Resource, was performed.</description>
+                        </item>
+                        <item>
+                            <name>{namedresource.resourceURL}</name>
+                            <description>The base URL for the request as returned by the service when the authentication, defined in the Named Resource, was performed.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>The *[xb:request]* must have the following structure:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>uri</name>
+                    <type>string</type>
+                    <description>
+                        <p>The request URI. See examples below for more information.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>form</name>
+                    <type>object</type>
+                    <description>
+                        <p>Required if the URI endpoint requires data submitted in a form format.</p>
+                        <p>An object containing one or more properties that define data to submit in the request. Refer to the API documentation for the request endpoint for what data can be submitted.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>body</name>
+                    <types>
+                        <type>object</type>
+                        <type>string</type>
+                    </types>
+                    <description>
+                        <p>Required if the URI endpoint requires data submitted in the body of the request.</p>
+                        <p>An object or string containing the body of the request. Refer to the API documentation for the request endpoint for format requirements for data submitted in the body.</p>
+                    </description>
+                </property>
+                <property optional="true">
+                    <name>headers</name>
+                    <type>object</type>
+                    <description>An object containing headers to include in the request. Required if required by the request endpoint.</description>
+                </property>
+                <property optional="true">
+                    <name>auth</name>
+                    <type>object</type>
+                    <description>This property is required if the URI requires authentication. Authentication can be one of two types: username (*[xb:user]*) and  password (*[xb:pass]*) or a bearer token (*[xb:bearer]*), either from a Named Resource or generated using other means (examples below).</description>
+                    <properties>
+                        <property>
+                            <name>bearer</name>
+                            <type>string</type>
+                            <description>Required if authentication uses a bearer token. Can use the special placeholder, *[xb:{namedresource.access_token}]*, to get the token from the Named Resource provider (specified by the *[xb:namedResource]* argument).</description>
+                        </property>
+                        <property>
+                            <name>user</name>
+                            <type>string</type>
+                            <description>Required if authentication uses a user name and password. The authentication user name.</description>
+                        </property>
+                        <property>
+                            <name>pass</name>
+                            <type>string</type>
+                            <description>Required if authentication uses a user name and password. The authentication password.</description>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
         </argument>
         <argument>
             <name>namedResource</name>
@@ -25,12 +100,12 @@
                 <type>C</type>
                 <type>P</type>
             </types>
-            <description>Default = *[xb:null_value()]*. Defines values for variables used in the request URI.</description>
+            <description>Default = *[xb:null_value()]*. Defines values for variables used in the request. Can be specified as a dot variable, a JSON string, or one or more URI encoded name-value pairs in the format "variable_name=value" joined with an ampersand (&amp;). E.g. *[xb:"var1=value1&amp;var2=value2"]*. Required if *[xb:request]* uses variables.</description>
         </argument>
         <argument optional="true">
             <name>args</name>
             <type>SQL::Arguments</type>
-            <description>Default = *[xb:null_value()]*.</description>
+            <description>Default = *[xb:null_value()]*. A SQL::Arguments object that defines arguments used in the request. Required if *[xb:request]* uses SQL::Arguments.</description>
         </argument>
     </arguments>
     <returns>
@@ -52,7 +127,7 @@
                     <name>*[xb:{namedresource.access_token}]* - the access token that was retrieved when the authentication, defined in the Named Resource, was performed</name>
                 </item>
                 <item>
-                    <name>*[xb:{namedresource.resourceURL}]* - the base URL for the request as returned by the service when the authentication, defined in the NamedResource, was performed.</name>
+                    <name>*[xb:{namedresource.resourceURL}]* - the base URL for the request as returned by the service when the authentication, defined in the Named Resource, was performed.</name>
                 </item>
             </list>
         </section>
