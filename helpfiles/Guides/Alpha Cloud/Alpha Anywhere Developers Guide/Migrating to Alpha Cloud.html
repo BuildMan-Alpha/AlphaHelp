@@ -1,0 +1,187 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="description" content="An explanation of Alpha Cloud concepts." />
+<meta name="shortlink" content="Alpha Cloud Alpha Anywhere Developers Guide Concepts" />
+<title>Alpha Cloud Alpha Anywhere Developers Guide Concepts</title>
+<link rel="stylesheet" type="text/css" href="AlphaCloud.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>Alpha Cloud - Alpha Anywhere Developer's Guide</h1>
+
+<h2><a id="Migrating">Migrating Existing Applications to Alpha Cloud</a></h2>
+<br/>
+
+
+<p>
+<a href="#Overview">Overview</a><br/>
+<a href="#Database">Database Hosting</a><br/>
+<a href="#Storage">File Storage</a><br/>
+<a href="#Coding">Code Changes</a><br/>
+<a href="#ThirdParty">Third Party Softtware</a><br/>
+
+<h3><a id="Overview">Overview</a></h3>
+<p>
+Deploying an application to Alpha Cloud that was previously running on the Alpha Anywhere Application server or Alpha Anywhere Application Server for IIS typically requires few changes.
+The most significant considerations tend to be conceptual.  This is because Alpha Cloud manages the infrastructure for you.  
+</p>
+<p>
+Alpha Cloud applications are automatically deployed to multiple servers (at least two) behind a load balancer.
+These servers may be stopped and replaced at any time to apply maintenance updates or replace faulty hardware.
+As load increases, new servers may be started to meet growing demand. 
+This means that you no longer have direct access to a server.
+Instead, you use Alpha Cloud dialogs to define "what" you want to configure, and Alpha Cloud makes it happen for you.
+</p>
+<p>
+Because web sites are deployed using Alpha Anywhere Application Server for IIS, there are multiple processes running at a time.  
+These processes are automatically managed by Microsoft IIS.
+</p>
+<p>
+If you have made use of any of the older features related to security, you may have to modernize parts of your application to be compatibile with Alpha Anywhere Application Server for IIS.
+This is because Alpha Cloud deployed applications run on Alpha Anywhere Application Server for IIS.
+The good news is that the changes required are backward compatible and can be made while your application is still running on Alpha Anywhere Application Server or Alpha Anywhere Application Server for IIS.
+</p>
+<p>
+In the following sections we will look at four areas to consider in moving your application to Alpha Cloud.
+
+</p>
+
+<h3><a id="Database">Database Hosting</a></h3>
+<p>
+While Alpha Cloud includes test database support for MariaDB, PostgreSQL, or SQL Server, Alpha Cloud does not currently host production databases.  
+This is a feature under consideration, but we believe there are some very good existing vendor offered services and until we can assure comparable quality, performance and data protection we recommend that you use an existing service.
+As a result, your database must be hosted somewhere that can be accessed by your application running on Alpha Cloud.
+</p>
+<p>
+There are essentially two options for hosting your production database:<br/>
+
+<ol>
+<li><strong>Subscribe to a Database-as-a-Service (DBaaS) Provider </strong> - We recommend Amazon RDS (Relational Database Services) because your database can be deployed in the same geographic region as your Alpha Anywhere application.  
+	There are, however equivalent offerings from Google (Google Cloud Platform) and Microsoft (Azure) as well as a number of database specific providers.</li>
+<li><strong>Open your firewall to Alpha Cloud </strong> -  This option requires you to open the firewall your database is behind to up to three IP addresses from which Alpha Cloud will attempt to connect to your database.</li>
+</ol>
+</p>
+<p>
+Regardless of which option you choose, you will configure access to your database based on IP address and you will want to configure your server for secure access.
+</p>
+<p>
+<strong>Note: </strong>You should always secure connections to your database using TLS(SSL) or SSH.
+</p>
+<p>
+For more information on securing database connections see:<br/><br/>
+<a href="https://documentation.alphasoftware.com/documentation/pages/Guides/Databases/Connecting/Connecting%20Securely%20with%20TLS%20and%20SSL.html">
+Connecting Securely with TLS and SSL</a><br/>
+<a href="https://documentation.alphasoftware.com/documentation/pages/Guides/Databases/Connecting/Connecting%20Securely%20with%20SSH.html">
+Connecting Securely with SSH</a><br/>
+</p>
+
+<h3><a id="Storage">File Storage</a></h3>
+<p>
+Because servers may come and go at any time, it is not appropriate to store writeable files on servers at runtime.
+You can, of course, publish read-only files from your web project and they will be copied to the web site when servers are started or updated.
+</p>
+<p>
+Cloud deployments typically use a service referred to as Cloud Storage.  
+These services  let you store and retrieve objects using a path similar to a directory structure.
+The access to these objects is done over the internet with a secure connection.
+</p>
+<p>
+Alpha Anywhere's A5Storage classes have built-in support for Amazon S3 (Simple Storage Service) and Microsoft Azure as well as local and network files.
+These storage classes use connection strings similar to database connection strings.
+This makes it relatively easy to configure the same application for local deployment and select an alternate connection string for Alpha Cloud deployment.
+</p>
+<p>
+You can store any file that you would normally store on the local file system on Amazon S3, using your own Amazon account.
+You can also save large objects to storage for the current session using Session Storage configuration options.  
+In the latter case objects are managed by Alpha Cloud and cleaned up automatically.  
+Note: The options for session storage are slightly different for Alpha Anywhere Application Server and Alpha Anywhere Application Server for IIS, but the
+behavior is similar.
+</p>
+<p>
+<strong>Note: </strong>You are not required to use cloud storage. You also have the option of hosting a file server of your own using a variant of security FTP (SFTP or FTPS).  
+Both of these are supported in Alpha Anywhere and Alpha Cloud.
+</p>
+<p>
+For more information on storage classes and secure file transfer see:<br/><br/>
+<a href="https://documentation.alphasoftware.com/documentation/pages/Ref/Api/Namespace/A5Storage/index.xml">A5Storage Namespace</a><br/>
+<a href="https://documentation.alphasoftware.com/documentation/pages/Ref/Api/Namespace/INET/FTP/index.xml">INET::FTP Class</a><br/>
+<a href="https://documentation.alphasoftware.com/documentation/pages/Ref/Api/Namespace/INET/SFTP/index.xml">INET::SFTP Class</a><br/>
+</p>
+
+<h3><a id="Coding">Code Changes</a></h3>
+<p>
+There are three common areas of your application that you may need to attend to:<br/>
+<ol>
+<li>We have already discussed cloud storage, and the need to store uploaded files in a more permanent place than the server running your application.
+This means that you can no longer assume in your code that files you copied to the server are going to be there.  
+In fact, you do not have write access to the file system other than temporary storage.
+</li><br/>
+<li>
+If you need to store a file for part or all of the session lifetime, you can use the Context.Session object methods SaveDataAsFile(), GetDataFromFile(), SaveFileToSessionFile(), or SaveSessionFileToFile()
+to save and retrieve data from session storage.  Since session storage is managed for you automatically in Alpha Cloud, this is fairly simple easy to do.
+<br/><br/>
+Call Context.Session.FormatFileDataURL() to get a URL for a session file that you can request directly from browser code.
+<br/><br/>
+There are also methods such as DeleteSessionFile() to help you manage the lifecycle as well.
+</li><br/>
+<li>
+Alpha Anywhere Application Server for IIS, of course, runs under Microsoft Internet Information Services (IIS) and as a result uses a different mechanism for 
+authentication and authorization than Alpha Anywhere Application Server.  As a result, there are some key differences that may require attention in your code.
+Some of these changes are required for on-premizes Alpha Anywhere Application Server for IIS, and others are more strictly enforced on Alpha Cloud.<br/><br/>
+	<ul>
+	<li>The schema for the database containing users and roles is determined by Membership and Role providers and this schema is fixed.  
+		You cannot alter the schema or manipulate the data tables from outside of the providers.
+		These providers are pluggable components that implement a set of functions defined by Microsoft.<br/><br/>
+		When Alpha Anywhere Application Server for IIS was introduced, a new object was added to the environment to make accessing the classic
+		security functions as well as IIS consistent.  The object is part of the Context object and is addressed as Context.Security.<br/><br/>
+		You can find more information about this object at 
+		<a href="https://documentation.alphasoftware.com/documentation/pages/Ref/Api/Objects/Server/Context/Security/index.xml">Context.Security Object</a><br/><br/>
+		<strong>Note: </strong>Many of the classic security functions are automatically mapped to Context.Security methods when running under
+		Alpha Anywhere Application Server for IIS.  While it is recommended that you update your code to use Context.Security references, existing code
+		may work unmodified.
+		</li><br/>
+	<li>If you have altered the existing security tables to include information specific to your application, you may retain these tables, but the users and roles
+		will no longer be read from them.  You will have to manage the tables independently from the Context.Security functions.
+		</li><br/>
+	<li>The Guids used as unique keys for users and roles in the classic security system are no longer supported.  
+		If you have tables that depend on the Guid values, you will want to create a table (or add a column) mapping a user name to a Guid or you can also
+		update your tables to use the user name directly.
+		</li><br/>
+	<li>Again, if you have been using SQL queries to access users and roles directly, you will need to change this code to use the Context.Security functions instead.
+		</li>
+	</ul>
+</ol>
+</p>
+
+
+<h3><a id="ThirdParty">Third Party Software</a></h3>
+<p>
+While you do not have access to servers to install software as an administrator, there are some options for running third-party software on Alpha Cloud.
+</p>
+<ol>
+	<li>If your application is a .Net assembly, you can simply copy that assembly into the "bin" folder under your web project and it will be published to Alpha Cloud
+		and your web site automatically.  <strong>Note: </strong>You must still register the assembly as you would on premises.
+		Since the assembly is in the "bin" folder under your web project, you will want to address the assembly using the ApplicationRoot property of the Context.Request
+		object.
+		</li><br/>
+	<li>Other executables can also be included in the bin folder, especially if they can be run directly without an installer.
+		</li><br/>
+	<li>While you can run an installer as part of a web request, as long as the installer can install for the current user only, this may not be optimal
+		because you the time taken to run the installer may be longer than the request should run, and you would want to make sure that the installer 
+		runs exactly once per server (only installs if the application is not installed).
+		</li><br/>
+</ol>
+</p>
+<p>
+<strong>Note: </strong>Keep in mind that large applications will slow down your publish and deployment time and add unnecessary complexity to your application.
+If you can replace the executable with a third-party service, you will likely save some work for yourself and create a better user experience.
+</p>
+
+
+</body>
+
+</html>
