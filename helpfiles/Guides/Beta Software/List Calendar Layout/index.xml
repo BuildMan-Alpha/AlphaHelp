@@ -1,0 +1,512 @@
+<page build="0">
+    <shortlink>listcontrol calendar layout</shortlink>
+    <topic>List Calendar Layout</topic>
+    <description>The List Calendar Layout renders list records (events) in a monthly, weekly, or daily calendar layout.</description>
+    <sections>
+        <section>
+            <important>
+                <p>This feature is still under development and requires a Feature Key in order to enable it. This feature is being made available early in the development cycle so we can get feedback from the community. To request a feature key, go to *[ui:Help]* and send an email to *[enhancementrequests@alphasoftware.com]* with "List Calendar Feature Key" in the subject.</p>
+            </important>
+        </section>
+        <section>
+            <title>Settings</title>
+            <description>
+                <p>Settings are defined as a JSON object that specifies how to render the calendar. Sample settings can be inserted using the *[ui:Sample settings]* link. Sample layouts are designed to be used with the "Calendar data" sample data (available when the list's data source is set to "Static Data").</p>
+                <p>Sample layouts include:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>Month</name>
+                            <description>Displays events with a calendar picker on the left and the selected month on the right.</description>
+                        </item>
+                        <item>
+                            <name>Week</name>
+                            <description>Displays events with a calendar picker on the left and the selected week on the right.</description>
+                        </item>
+                        <item>
+                            <name>Day</name>
+                            <description>Displays events with a calendar picker on the left and the selected day on the right.</description>
+                        </item>
+                        <item>
+                            <name>Timeline</name>
+                            <description>Displays events with a calendar picker on the left and a two-week view on the right.</description>
+                        </item>
+                        <item>
+                            <name>Custom</name>
+                            <description>Deletes all settings in the settings dialog, letting you define your own custom settings.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>See [Appendix A] for a listing of the available settings. This same information can be accessed in the *[ui:Calendar Settings]* dialog via the *[ui:Settings object documentation]* link.</p>
+            </description>
+        </section>
+        <section>
+            <title>Events</title>
+            <cases>
+                <case>
+                    <title nested="2">onClick</title>
+                    <description>
+                        <p>Fires when the calendar is clicked. Several variables are available in this event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:target]*</name>
+                                    <description>The part of the calender that was clicked (such as "item", "nav", and "date")</description>
+                                </item>
+                                <item>
+                                    <name>*[js:date]*</name>
+                                    <description>The date/time that was clicked.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:item]*</name>
+                                    <description>The item that was clicked if *[js:target]* was "item".</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">onDblClick</title>
+                    <description>
+                        <p>Fires when the calendar is double-clicked. Several variables are available in this event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:target]*</name>
+                                    <description>The part of the calender that was clicked (such as "item", "nav", and "date")</description>
+                                </item>
+                                <item>
+                                    <name>*[js:date]*</name>
+                                    <description>The date/time that was clicked.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:item]*</name>
+                                    <description>The item that was clicked if *[js:target]* was "item".</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">onRightClick</title>
+                    <description>
+                        <p>Fires when the calendar is right-clicked. Several variables are available in this event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:target]*</name>
+                                    <description>The part of the calender that was clicked (such as "item", "nav", and "date")</description>
+                                </item>
+                                <item>
+                                    <name>*[js:date]*</name>
+                                    <description>The date/time that was clicked.</description>
+                                </item>
+                                <item>
+                                    <name>*[js:item]*</name>
+                                    <description>The item that was clicked if *[js:target]* was "item".</description>
+                                </item>
+                            </list>
+
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">onDragStart</title>
+                    <description>
+                        <p>Fires when the user starts dragging an existing calendar event.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">onDrag</title>
+                    <description>
+                        <p>Fires while an existing event is being dragged.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">onDragEnd</title>
+                    <description>
+                        <p>Fires when the user stops dragging an existing calendar event. The following variables are available in this event:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[js:d]*</name>
+                                    <description>An object with the drag properties.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>The example below updates the data in the List when the user stops dragging the event -- i.e. when an event is dragged to a new date or its duration is changed. This allows users to change an event's duration or date by dragging it to a new time or date.</p>
+                        <p>
+                            <example code="js"><![CDATA[var data = this.getData(d.index);
+var start = d.start.toFormat('MM/dd/yyyy h:mm am')
+var dur = ''+d.start.diff('hours',d.end).hours;
+if(d.type == 'move' || d.type == 'start' || d.type == 'end'){
+     data.start = start;
+     data.duration = dur;
+
+} else if(d.type == 'drop'){
+     if(d.target.indexOf('group:') == 0){
+         data.group = d.target.substr(6);
+     }
+} else if(d.type == 'custom'){
+     this.appendRows({id: ''+Date.now(), start: start, duration: dur,group: 'A', title: 'New Item', disc: 'New item description...'});
+}
+this.calendarRefresh();]]></example>
+                        </p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Overview of the List Calendar Layout</title>
+                <description>
+                    <p>In this video, we show how to add a calendar layout to a List Control.</p>
+                </description>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.screencast.com/t/dvLrLJNmhG1</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <title>Appendix A: Settings Object</title>
+            <description>
+                <p>General Settings:</p>
+                <p>Most className and style attributes support the ability to use a function to generate the class name or style - this can be used to do things like style specific dates (holidays, weekends, etc.)</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    flow: 'ltr', // the flow of the calendar - can be "ltr", "rtl", or "ttb" in the case of "timeline"
+    resolution: 'time', // the resolution of items in the calendar - can be "time" or "date"
+    input: {
+        start: 'startDate:MM/dd/yyyy h:mm am', // start date-time column name and format - required - can also be an object that uses the Date.fromObject method (see documentation.alphasoftware.com) where the properties passed in are the names of columns instead of values
+        end: 'endDate:MM/dd/yyyy h:mm am', // end date-time column name and format - optional - can also be an object that uses the Date.fromObject method (see documentation.alphasoftware.com) where the properties passed in are the names of columns instead of values
+        duration: { // alternate duration instead of end settings
+            days: 'days', // days duration field - optional
+            hours: 'hours', // hours duration field - optional
+            minutes: 'minutes', // minutes duration field - optional
+            seconds: 'seconds', // seconds duration field - optional
+            milliseconds: 'milliseconds', // seconds duration field - optional
+        },
+        group: { // see documentation for A5.u.array.group (on documentation.alphasoftware.com)
+            by: 'column' // the column to group by
+        }
+    },
+    layout: { // define content around calendar
+        above: { // content above  (top)
+            show: true, // whether or not to show the content section
+            className: '', // the class name for the content section
+            style: 'border-bottom: 1px solid #bbb;', // the style for the content section
+            html: '<previous /><today/><next/> <range/>' // the HTML to place in the content section - generated controls can be placed by using the custom tags: "<previous />", "<today />", "<next/>", "<navigator />" and "<range />" - see layout.controls
+        },
+        before: { // content before (left)
+            show: true, // whether or not to show the content section
+            className: '', // the class name for the content section
+            style: 'border-right: 1px solid #bbb; margin-right: -1px;', // the style for the content section
+            html: '<navigator />' // the HTML to place in the content section - generated controls can be placed by using the custom tags: "<previous />", "<today />", "<next/>", "<navigator />" and "<range />" - see layout.controls
+        },
+        after: { // content after (right)
+            show: false, // whether or not to show the content section
+            className: '', // the class name for the content section
+            style: 'border-left: 1px solid #bbb;', // the style for the content section
+            html: '' // the HTML to place in the content section - generated controls can be placed by using the custom tags: "<previous />", "<today />", "<next/>", "<navigator />" and "<range />" - see layout.controls
+        },
+        below: { // content below (bottom)
+            show: false, // whether or not to show the content section
+            className: '', // the class name for the content section
+            style: 'border-top: 1px solid #bbb;', // the style for the content section
+            html: '' // the HTML to place in the content section - generated controls can be placed by using the custom tags: "<previous />", "<today />", "<next/>", "<navigator />" and "<range />" - see layout.controls
+        },
+        controls: { // settings for generated controls
+            navigator: { // the navigator control
+                type: 'month', // the type of navigator - can be "month" or "date" - "month" will show standard calendar view and "date" will show a run of dates
+                range: '', // the range of the navigator - value can be a number (e.g. the number of months/dates to show), or one of several strings: "year", "month", "week". multiples of these units can be specified as well with "N-years", "N-months", or "N-weeks" where "N" is the number of years/months/weeks
+                flow: 'ttb', // the flow of the navigator - values can be "ttb", "ltr", "rtl" pr "ttb-rtl"
+                className: '',// the class name for the navigator
+                style: 'height: 100%;', // the style for the navigator
+                navigation: { // the navigation secton of the navigator control
+                    location: 'inline', // the location of navigation - values can be "before", "after", "inline"
+                    className: '', // the class name for the navigation "header"
+                    style: 'border: 1px solid #ccc; margin: -1px; padding: 1px; z-index: 1', // the style for the navigation "header"		
+                    previous: {theme: this.theme, icon: 'default'}, // the settings for the previous button (see A5.Button for all settings) - the icon can be automatically chosen based on the flow by using the value "default"
+                    next: {theme: this.theme, icon: 'default'}, // the settings for the next button (see A5.Button for all settings) - the icon can be automatically chosen based on the flow by using the value "default"
+                    range: {theme: this.theme, html: 'default'} // the settings for the range button (see A5.Button for all settings) - the HTML can be automatically chosen based on the range by using the value "default", or can be a date formate (see Date.toFormat) or a function that will be passed the start and end dates
+                },
+                month: { // settings for month navigator
+                    className: '', // the class name for a calendar month
+                    style: 'margin: 0px -1px; border-left: 1px solid #ddd; border-right: 1px solid #ddd; background: #fff;', // the style for a calendar month
+                    header: { // the settings for a calendar month heading
+                        className: '', // the class name for a calendar month heading
+                        style: 'padding: 4px; font-size: 75%; font-weight: bold; text-align: center;',  // the style for a calendar month heading
+                        html: '{month.full.toCase(\'proper\')} {year.value}' // the HTML to put in a calendar month heading - can be a template for function
+                    },
+                    week: { // the settings for a calendar month week
+                        className: '', // the class name for a calendar month week
+                        style: '' // the style for a calendar month week
+                    }
+                },
+                date: { // settings for a date in the navigator
+                    className: 'listItem', // the class name for a date
+                    selectedClassName: 'listItemSelected', // the selected class name for a date
+                    style: 'padding: 6px; text-align: center;', // the style for a date
+                    html: 'default' // the HTML for a date - a value of "default" will use a reasonable default, or a template or function can be used
+                },
+                items: { // settings for items in the navigator
+                    type: 'dots', // the item type - values can be "none", "dots", "single-dot", "condensed-dots" (e.g. one-per-color), or "timeline"
+                    className: '', // the class name for the items container
+                    style: '', // the style for the items container
+                    max: 8, // the max number of items to show (per date or week)
+                    item: {
+                        className: '', // the class name for an item
+                        style: 'border: 1px solid;', // the style for an item
+                        color: 'inherit', // the color for an item - see items.item.color
+                        size: 4, // the size (in pixels) of an item
+                        offset: 2 // the offset (in pixels) between items
+                    }
+                }
+            },
+            range: {theme: this.theme+':subtle', html: 'default'}, // the settings for the range button (see A5.Button for all settings) - the HTML can be automatically chosen based on the range by using the value "default", or can be a date formate (see Date.toFormat) or a function that will be passed the start and end dates
+            previous: {theme: this.theme+':icon', layout: 'icon'}, // the settings for the previous button (see A5.Button for all settings).
+            next: {theme: this.theme+':icon', layout: 'icon'}, // the settings for the next button (see A5.Button for all settings).
+            today: {theme: this.theme, layout: 'text', html: 'Today'} // the settings for the today button (see A5.Button for all settings).
+        }
+    },
+    items: {
+        allowCustom: true, // allow drag on the background of the calendar
+        allowEdit: true, // allow drag edit of existing items on the calendar
+        item: { // settings for an item
+            html: '<b>{data.title}</b><div style="position: absolute; left: 4px; right: 4px; top: 40px; bottom: 4px; overflow: hidden; text-overflow: ellipsis;">{data.disc}</div>', // the HTML to place in an item - can be a template or function - row data can be found in the data sub-property
+            className: '', // the class name for an item
+            selectedClassName: 'A5CalItemSelected', // the class name for a selected item
+            style: 'border: 1px solid; border-radius: 2px; color: {color.text}; background: {color.fill}; border-color: {color.line};', // the style for an item
+            overflow: { // item overflow settings
+                after: '<b>&ctdot;</b>', // the HTML to place at the end of a item that is continuing out of view
+                before: '<b>&ctdot;</b>' // the HTML to place at the start of a item that is continuing out of view
+            },
+            handles: { // item handle settings
+                start: { // item start handle settings
+                    adjust: 'start', // what the start handle adjusts - values can be "start", "move" to move the item or "none" to not show a handle
+                    className: '', // the class name for the start handle
+                    style: 'display: inline-block; width: 12px; height: 12px; background: {color.line}; border: 1px solid rgba(0,0,0,.5); border-radius: 7px;' // the style for the start handle
+                },
+                end: { // item end handle settings
+                    adjust: 'end', // what the end handle adjusts - values can be "end", "move" to move the item or "none" to not show a handle
+                    className: '', // the class name for the end handle
+                    style: 'display: inline-block; width: 12px; height: 12px; background: {color.line}; border: 1px solid rgba(0,0,0,.5); border-radius: 7px;' // the style for the end handle
+                }
+            },
+            color: [{line: '#0A7EE5', fill: '#3F96E4', text: '#000'},{line: '#D41712', fill: '#F05B57', text: '#000'},{line: '#67A228', fill: '#A0CE6D', text: '#000'},{line: '#D9A300', fill: '#FDCC39', text: '#000'},{line: '#00899D', fill: '#01DFFE', text: '#000'},{line: '#D58000', fill: '#FCAC35', text: '#000'},{line: '#9607AF', fill: '#A641B8', text: '#000'}] 
+                /*
+                    the colors for an item - can be a single CSS color, and array of colors (each group will use a color from the array), or a function.
+                    a color can be a CSS color, or an object with "line", "fill", and "text" values as CSS colors.
+                    other representatios of items can use the selected color of an item by using "inherit", or use a custom color object (with "line", "fill", and "text").
+                */
+        },
+        range: { // the settings for the drag range both "edit" and "custom"
+            step: '15m', // the snapping step - "m" and "hr" can be used to specify minute or hour units
+            color: 'inherit', // the color for the drag range - see items.item.color
+            start: { // range start settings
+                format: 'default' // the format to use for the range start text (see Date.toFormat) - a value of "default" will use the most logical format based on calendar type and settings
+            },
+            end: { // range end settings
+                format: 'default' // the format to use for the range end text (see Date.toFormat) - a value of "default" will use the most logical format based on calendar type and settings
+            }
+        },
+        dragDrop: { // the settings to use when the user has dragged an item out of the calendar to drop it on some other part (such as a navigator date)
+            html: '<b>{data.title}</b>', // the HTML to display while drag-dropping can be a template or function
+            className: '', // the class name for a drag-drop item
+            style: 'border: 1px solid; border-radius: 2px; color: {color.text}; background: {color.fill}; border-color: {color.line}; box-shadow: 2px 2px 10px 0px rgba(0,0,0,.5);', // the style for a drag-drop item
+            offset: 10 // the offset for a drag-drop item
+        }
+    },
+    date: { // the settings for a date in the calendar
+        header: { // the settings for the date header in the calendar
+            className: '', // the class name for the date header
+            style: '', // the style for the date header
+            labels: {
+                className: '', // the class name for a date header label
+                style: ''// the style for a date header label
+            }
+        },
+        content: { // the settings for a date content region in the calendar
+            className: '', // the class name for a date
+            style: '' // the style for a date
+        }
+    },
+    time: { // the settings for time in the calendar
+        scale: '1hr', // the time scale (in "m" or "hr" - decimals allowed) - a major and minor unit can be specified by using a "/" - for example "1hr/15m" for one hour major steps divided into 15 minute minor steps
+        header: { // the settings for the time header
+            className: '', // the class name for the time header
+            style: '',// the style for the time header
+            major: { // the settings for the time header major units
+                className: '', // the class name for the time header major units
+                style: '', // the style for the time header major units
+                labels: { // the label settings for the time header major units
+                    html: 'h:mm am', // the label html - can be a format (see Date.toFormat) or a function
+                    className: '', // the label class name
+                    style: '' // the label style
+                }
+            },
+            minor: { // the settings for the time header minor units
+                className: '', // the class name for the time header minor units
+                style: '', // the style for the time header minor units
+                labels: { // the label settings for the time header minor units
+                    html: 'mm', // the label html - can be a format (see Date.toFormat) or a function
+                    className: '', // the label class name
+                    style: '' // the label style
+                }
+            }
+        },
+        content: { // the settings for the time content (inside the date content) - used to draw lines
+            show: true, // show the time content
+            className: '', // the class name for the time content
+            style: '', // the style for the time content
+            major: { // the settings for the major time content
+                className: '', // the class name for the major time content
+                style: '' // the style for the major time content
+            },
+            minor: { // the settings for the minor time content
+                className: '', // the class name for the minor time content
+                style: '' // the style for the minor time content
+            }
+        },
+        now: { // the current date/time marker
+            show: true, // whether to show the current date/time marker
+            className: '', // the current date/time marker class name
+            style: 'border: 1px dotted #ff351c;', // the current date/time marker style (every border except the logical best will be set to a type of none automatically)
+            label: { // the current date/time marker label
+                location: 'after-end',  // the current date/time marker label location - values can be "none", "before-start", "before-end", "after-start", "after-end", "on-start", or "on-end"
+                html: 'h:mm am', // the current date/time marker label format (see Date.toFormat)
+                className: '', // the current date/time marker label class name
+                style: 'background: #ff351c; color: #fff; border-radius: 2px; padding: 2px 4px; font-size: 60%; margin: -1px;' // the current date/time marker label style
+            }
+        }
+    },
+    groups: { // the settings for item groups (if used)
+        header: { // the settings for the item groups header
+            className: '', // the class name for the item groups header
+            style: '', // the style for the item groups header
+            labels: { // the settings for a group header label
+                className: '',// the class name for a group header label
+                style: ''// the style for a group header label
+            }
+        },
+        content: { // the settings for a item group content
+            className: '', // the class name for a item group content
+            style: '' // the style for a item group content
+        }
+    },
+    stack: { // the settings for item stacks (if used)
+        content: { // the settings for item stack content
+            className: '', // the class name for a item stack content
+            style: '' // the style for a item stack content
+        }
+    },
+    
+    onClick: function(target,date,item){}, // event for when the user clicks on the calendar - target is the part of the calendar the user clicked on (such as "item", "nav" and "date"), date is the date/time clicked on, and item is the item clicked on it the target was a item.
+    onDblClick: function(target,date,item){}, // event for when the user double clicks on the calendar - see click for more
+    onRightClick: function(target,date,item){}, // event for when the user right clicks on the calendar - see click for more
+    onDragStart: function(drag){}, // event for when the user starts a drag
+    onDrag: function(drag){}, // events during a drag
+    onDragEnd: function(drag){}, // event for when the user ends a drag
+    
+    /*
+        the drag events argument is an object with data about the drag:
+        
+        {
+            type: 'item', // the drag type - "item" or "custom"
+            original: {
+                start: Date(), // the original start date-time
+                end: Date(), // the original end date-time
+            },
+            start: Date(), // the current start date-time
+            end: Date(), // the current end date-time
+            index: 1, // the item index
+            target: '', // the target when the action is drag drop
+        }
+    */
+}]]></example>
+                </p>
+                <p>Timeline layout specific settings:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    range: '2-weeks', // the range of the timeline layout - number of days, "week", "N-weeks", "work-week" and "month" allowed
+    date: {
+        size: 250, // the size of a date in the timeline (in "ltr" and "rtl" it is "width", in "ttb" it is "height")
+        header: {
+            size: 50 // the size of the date header
+        }
+    }
+}]]></example>
+                </p>
+                <p>Month layout specific settings:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    date: {
+        header: {
+            size: 20, // the size of the date header
+        }
+    },
+    daysOfWeek: { // the days of week settings
+        names: 'short', // names to use - values can be "short", "minimal", "full", an array of names, or a function that returns an array
+        start: 0, // the start day of the week (0 = Sunday)
+        end: -1, // the end day of the week (0 = Sunday, -1 is the last day of the week)
+        className: '', // the class name for the days of week section
+        style: '',	// the style for the days of week section
+        header: { // the settings for the days of week header
+            className: '', // the class name for the days of week header
+            style: 'border-bottom: 1px solid #ccc;', // the style for the days of week header
+            labels: { // the settings for the days of week header labels
+                className: '', // the class name for the days of week header labels
+                style: 'text-align: center; font-size: 75%; font-weight: bold; padding: 4px;' // the style for the days of week header labels
+            }
+        }
+    },
+
+    items: {
+        collapse: { // collapse settings
+            count: 4, // the collapse count
+            size: 20, // the size of collapse section
+            className: '', // the class name of collapse section
+            style: 'background: rgba(0,0,0,.2); opacity: .2; font-size: 10px; font-weight: bold; padding: 4px 2px;', // the style of collapse section
+            show: { // the settings for the show more collapse section
+                html: '<span style="font-family: monospace;">+</span>{count} events...', // the HTML for the show more collapse section
+                className: '', // the class name for the show more collapse section
+                style: '' // the style for the show more collapse section
+            },
+            hide: { // the settings for the hide more collapse section
+                html: '<span style="font-family: monospace;">-</span>{count} events...', // the HTML for the hide more collapse section
+                className: '', // the class name for the hide more collapse section
+                style: '' // the style for the hide more collapse section
+            }
+        },
+        item: {
+            size: 20 // the size of the and item
+        }
+    }
+}]]></example>
+                </p>
+                <p>Day(s) layout specific settings:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    range: 1, // the range of the day layout - number of days, "week", "N-weeks", "work-week" and "month" allowed
+    time: {
+        size: 120, // the size of the major time block
+        range: { // custom time range settings
+            start: '6:00', // the start time of a day
+            end: '22:00' // the end time of a day
+        },
+        header: {
+            size: 60 // the size of the time header
+        }
+    }
+}]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link href="#section1_Appendix%20A:%20Settings%20Object">Appendix A</link>
+        <link link=""></link>
+    </links>
+</page>
