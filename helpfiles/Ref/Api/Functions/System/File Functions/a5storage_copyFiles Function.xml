@@ -1,0 +1,142 @@
+<page api="xb" build="7382">
+    <shortlink>api a5storage_copyfiles function</shortlink>
+    <topic>a5storage_copyFiles Function</topic>
+    <description>
+        <p>Copies a folder or list of files to Amazon S3, Azure, or other location defined using a storage connection string. This function has been optimized for copying multiple files to Amazon S3 and Azure.</p>
+    </description>
+    <prototypes>
+        <prototype>L result = a5storage_copyFiles(C connectionString, C sourceFolder [, C pattern [, C targetFolder [, N concurrentTasks [, P pResultIn [, L flagSetReadPermission [, L optimized]]]]]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>connectionString</name>
+            <type>C</type>
+            <description>
+                <p>The storage connection string for the destination. This is typically a S3 or Azure connection string.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>sourceFolder</name>
+            <type>C</type>
+            <description>
+                <p>The source folder where the files to copy are stored. Can either be a folder name or a CR-LF delimited list of file names.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>pattern</name>
+            <type>C</type>
+            <description>
+                <p>Default = *[xb:"*.*"]*. An optional filter pattern that specifies the files in the source folder to copy.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>targetFolder</name>
+            <type>C</type>
+            <description>
+                <p>Default = *[xb:""]*. The folder in the target location where the files should be copied.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>concurrentTasks</name>
+            <type>N</type>
+            <description>
+                <p>Default = *[xb:100]*. The number of concurrent tasks that should be started to perform the copy. Choosing too high a number will negatively impact performance. If you set a number that exceeds the number of files to copy, the concurrentTasks is automatically reduced to the number of files to copy.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>pResultIn</name>
+            <type>P</type>
+            <description>
+                <p>Default = *[xb:null_value()]*. An optional dot variable passed into the function that is populated with the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>timeTaken</name>
+                    <type>N</type>
+                    <description>How long it took to copy the files.</description>
+                </property>
+                <property>
+                    <name>numberOfFilesCopied</name>
+                    <type>N</type>
+                    <description>The number of files copied.</description>
+                </property>
+                <property>
+                    <name>files</name>
+                    <type>C</type>
+                    <description>A  list of the files that were copied.</description>
+                </property>
+                <property>
+                    <name>concurrentTasks</name>
+                    <type>N</type>
+                    <description>The actual concurrent tasks setting used.</description>
+                </property>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>Indicates whether or not an error occurred.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>If an error occurred, contains an error message.</description>
+                </property>
+            </properties>
+        </argument>
+        <argument optional="true">
+            <name>flagSetReadPermission</name>
+            <type>L</type>
+            <description>
+                <p>Default = *[xb:.f.]*. Only applies when target connection string points to an Amazon S3 bucket. If *[xb:.t.]*, sets the ACL on the files that are copied to allow read access.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>optimized</name>
+            <type>L</type>
+            <description>
+                <p>Default = *[xb:.f.]*. If set to *[xb:.t.]*, only files that do not exist in the bucket are copied. This means existing files with the same name are not overwritten.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>L</type>
+            <description>
+                <p>Returns *[xb:.t.]* if an error occurred. Otherwise, returns *[xb:.f.]*. If an error occurs and you passed in a pointer variable for the *[xb:pResultIn]* variable, the *[xb:pResultIn.errorText]* contains information about the error.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5storage_copyFiles()]* function is optimized to quickly upload multiple files to storage, such as Amazon S3 Bucket or an Azure container. The function can copy an entire folder or comma delimited list of files.</p>
+        <p>An optional filter can be used to specify what files should be copied from a folder. For example, the Xbasic code below copies all .jpg files from a folder called "C:\myfiles" to the "images" folder in an Amazon S3 bucket, defined by the "myS3Bucket" [storage connection string].</p>
+        <p>
+            <example code=""><![CDATA[var result as L
+result = a5storage("myS3Bucket","c:\myfiles","*.jpg","images",100)
+
+if (result) then
+    ' copy successful
+else
+    ' copy failed
+end if]]></example>
+        </p>
+    </discussion>
+    <note>
+        <p>If the target connection string points to disk storage (rather than Amazon S3 or Azure), using this function may not offer any advantages over the [copy_folder()] function.</p>
+    </note>
+    <terms>copy files,upload files,amazon s3,azure,s3 bucket</terms>
+    <links>
+        <link link="api%20copy%20folder%20function">copy_folder()</link>
+        <link link="named%20storage%20connection%20strings">storage connection string</link>
+    </links>
+    <see>
+        <ref link="api%20copy%20folder%20function">copy_folder Function</ref>
+        <ref link="named%20storage%20connection%20strings">Storage Connections</ref>
+        <ref link="api a5 storage list items function">a5storage_listitems Function</ref>
+        <ref link="api a5storage getitem as file function source">a5storage_getitem_as_file Function</ref>
+        <ref link="api a5storage getitem as blob function">a5storage_getItem_as_blob Function</ref>
+        <ref link="api a5 storage delete item function">a5storage_deleteItem Function</ref>
+        <ref link="a5Storage_getItemProperties function">a5storage_getItemProperties Function</ref>
+        <ref link="api a5 storage save data function">a5Storage_saveData Function</ref>
+        <ref link="api a5 storage save file function">a5storage_savefile Function</ref>
+    </see>
+</page>
