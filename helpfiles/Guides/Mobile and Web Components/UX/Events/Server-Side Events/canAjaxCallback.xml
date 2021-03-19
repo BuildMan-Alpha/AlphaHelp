@@ -4,13 +4,11 @@
     <description>Fires before every Ajax callback made to the server.</description>
     <discussion>
         <p>Fires when an Ajax callback is made to the server. You can use this event to authorize the callback action. The *[xb:e]* variable contains information about the callback you can reference in your Xbasic code.</p>
-        <p>If you want to prevent the Ajax callback from executing, set the *[xb:e.authorized]* variable to *[xb:.f.]*. If you do not set the *[xb:e.authorized]* variable or set the value to *[xb:.t.]*, the callback will be executed.</p>
-        <p>Javascript can be returned from the function using the *[xb:e.javascript]* variable.</p>
+        <p>If you want to prevent the Ajax callback from executing, set the *[xb:e.authorized]* variable to *[xb:.f.]*. This will also trigger the [onAjaxCallbackNotAllowed] client-side event.</p>
+        <p>If you set *[xb:e.authorized]* to *[xb:.t.]* or leave it blank, the callback will be executed.</p>
+        <p>JavaScript can be returned from the function using the *[xb:e.javascript]* variable. The JavaScript returned using *[xb:e.javascript]* will be executed regardless of whether or not the callback is cancelled.</p>
     </discussion>
     <sections>
-        <section>
-            <note>The canAjaxCallback server-side event previously would only emit user-defined Javascript if the event denied permission for the callback. Now, user defined Javascript can be emitted even if the Ajax callback is allowed. *[This change was made in Alpha Anywhere build 4307]* to support the [Mobile Application with Persistent Login] pattern.</note>
-        </section>
         <section>
             <title>Available Variables in the 'e' Object</title>
             <description>Several variables are available for reading or setting in the *[xb:canAjaxCallback]* event. These variables are properties of the *[xb:e]* object. The variables in the *[xb:e]* object include:</description>
@@ -29,7 +27,7 @@
                 </item>
                 <item>
                     <name>e.callbackFunctionName</name>
-                    <description>The name of the Ajax callback function that will b called.</description>
+                    <description>The name of the Ajax callback function being called.</description>
                 </item>
             </list>
         </section>
@@ -46,7 +44,7 @@
                 </item>
                 <item>
                     <name>e.authorized</name>
-                    <description>A *[xb:.t.]* or *[xb:.f.]* value. If you do not set the value for this property, then authorized is assumed to be *[xb:.t.]*. If authorized is *[xb:.f.]*, the callback action is not performed.</description>
+                    <description>A *[xb:.t.]* or *[xb:.f.]* value. If you do not set the value for this property, then authorized is assumed to be *[xb:.t.]*. If authorized is *[xb:.f.]*, the callback is cancelled and the [onAjaxCallbackNotAllowed] client-side event is triggered on the client.</description>
                 </item>
             </list>
         </section>
@@ -56,9 +54,26 @@
                 <p>When running in a real application, you can get the names of the security groups for the logged in using using: [Context.Security.GetUserRoles()]</p>
             </tip>
         </section>
+        <section>
+            <title>Example</title>
+            <example code="xb"><![CDATA[function canAjaxCallback as v (e as p)
+
+    if (e.callbackFunctionName == "doNotDoCallback") then
+        e.authorized = .f.
+    else
+        e.authorized = .t.
+    end if
+
+end function]]></example>
+        </section>
     </sections>
     <links>
         <link link="api objects security object get user roles method">Context.Security.GetUserRoles()</link>
         <link link="How to Build a Mobile Application with Persistent Login">Mobile Application with Persistent Login</link>
+        <link link="uxevent onajaxcallbacknotallowed">onAjaxCallbackNotAllowed</link>
     </links>
+    <see>
+        <ref link="uxevent canAjaxCallback">canAjaxCallback (client-side)</ref>
+        <ref link="uxevent onajaxcallbacknotallowed">onAjaxCallbackNotAllowed</ref>
+    </see>
 </page>
