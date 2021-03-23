@@ -9,126 +9,328 @@
                 <link>images/exportExcelAsciiCustom.png</link>
             </figure>
         </section>
-  <section>
+        <section>
             <title>Export Data Properties</title>
-            <list>
-                <item>
-                    <name>Export type</name>
-                    <description>Specify the format of the exported data. If you select Custom, you can define your own Xbasic function to create the export file in any format that you want. For Excel select 'Excel' to create a .xls file and 'Excel-XLSX' for a .xlsx file. Choices include *[ui:Excel]*, *[ui:Excel-XLSX]*, *[ui:Comma delimited ascii]*, *[ui:Tab delimited ascii]*, *[ui:Custom]*.</description>
-                </item>
-                <item>
-                    <name>Custom format Xbasic function</name>
-                    <description>Specify the name of the Xbasic function that will create the custom file you want to export. This function must be defined in the Xbasic Function Declarations property. 
-TIP: Click the hyperlink at the bottom to get the correct function prototype.</description>
-                </item>
-                <item>
-                    <name>Source</name>
-                    <description>Specify what fields should be exported.</description>
-                </item>
-                <item>
-                    <name>Client-side filename</name>
-                    <description><![CDATA[Specify the default filename to use when saving the file on the user's computer. The user can override the suggested name. If you set the name to <Default>, Alpha Anywhere will generate the filename.]]></description>
-                </item>
-                <item>
-                    <name>Zip file</name>
+            <cases>
+                <case>
+                    <title nested="2">Export type</title>
+                    <description>Specify the format of the exported data.</description>
+                    <list>
+                        <item>
+                            <name-title>Export type</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[ui:Excel]*</name>
+                            <description>Export as an .xls (Excel 2003) document.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Excel-XLSX]*</name>
+                            <description>Export as an .xlsx (Excel 2007) document.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Comma delimited ascii]*</name>
+                            <description>Export as a comma delimited ASCII file.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Tab delimited ascii]*</name>
+                            <description>Export as a tab delimited ASCII file.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Custom]*</name>
+                            <description>Export to a custom format defined with an Xbasic function.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <title nested="2">Custom format Xbasic function</title>
+                    <description>
+                        <p>Shown if *[ui:Export type]* is *[ui:Custom]*. The name of the Xbasic function that creates the custom export file. The function must be defined in the Xbasic Function Declarations section.</p>
+                        <p>The following variables are available to your Xbasic function:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[xb:e.tbl]*</name>
+                                    <description>Pointer to the table or record set of the from which data is to be exported.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.itbl]*</name>
+                                    <description>In the case of DBF data, a pointer to the index after the table has been queried.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.datatype]*</name>
+                                    <description>Either 'sql' or 'dbf', depending on what type of table you are exporting data from.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.exportfilename]*</name>
+                                    <description>Name of the file you must create with the exported data.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Your function can set the *[xb:e.abort]* variable to *[xb:.t.]* halt file download. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function exportFormat as v (e as p)
+    ' Abort export
+    e.abort = .t.
+end function]]></example>
+                        </p>
+                        <p>The example below loops through all records in a SQL result set and creates a custom export file:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function exportFormat as v (e as p)
+    'Example (for SQL data):
+    'Loop through all records in the result set to create the custom export file.
+    DIM txt AS C = ""
+    DIM flagLoop AS L = .t.
+    WHILE flagLoop
+        txt = txt + e.tbl.data("field1") + e.tbl.data("field2") + crlf()
+        flagLoop = e.tbl.nextRow()
+    END WHILE
+
+    ' Create file
+    file.from_string(e.exportFilename,txt)
+
+end function]]></example>
+                        </p>
+                    </description>
+                    <tip>
+                        <p>The *[ui:Show Function Prototypes]* link at the bottom of the Action Javascript dialog can be used to generate a function prototype. Enter the name of the Xbasic function you want to create, then click *[ui:Show Function Prototypes]*. Next, select *[ui:Server Side - Custom Export]*. Click *[ui:Copy Code to Clipboard]* to copy the function prototype. Then, click *[ui:Open Xbasic Function Declarations]* and paste the function definition.</p>
+                    </tip>
+                </case>
+                <case>
+                    <title nested="2">Source</title>
+                    <description>Specify the source of the data export:</description>
+                    <list>
+                        <item>
+                            <name-title>Source</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>1 - All Fields in Grid Component</name>
+                            <description>Exports all data displayed in the Grid part of the component. Fields that are not displayed in the Grid part are not exported.</description>
+                        </item>
+                        <item>
+                            <name>2 - All Fields in Grid Query</name>
+                            <description>Exports all fields from the query the Grid component is based on. This includes fields that may not be displayed in the Grid part.</description>
+                        </item>
+                        <item>
+                            <name>3 - Selected Fields in Grid Query</name>
+                            <description>Export all data from a list of field specified in the *[ui:Field list]* property.</description>
+                        </item>
+                        <item>
+                            <name>4 - Custom</name>
+                            <description>Export data from the Grid or a custom SQL or DBF query defined using an Xbasic function.</description>
+                        </item>
+                    </list>
+                </case>
+                <case>
+                    <title nested="2">Client-side filename</title>
+                    <description>Specify the default filename to use when saving the file on the user's computer. The user can override the suggested name. If you set the name to &lt;Default&gt;, Alpha Anywhere will generate the filename.</description>
+                </case>
+                <case>
+                    <title nested="2">Zip file</title>
                     <description>Specify if the exported file should be zipped before it is downloaded to the user's computer.</description>
-                </item>
-                <item>
-                    <name>Export hidden fields</name>
+                </case>
+                <case>
+                    <title nested="2">Export hidden fields</title>
                     <description>Should 'hidden' fields be exported? ('Hidden' fields are not necessarily actually hidden when the Grid is displayed  - they could be shown in another column's Free-form layout section).</description>
-                </item>
-                <item>
-                    <name>Use Grid column headings</name>
+                </case>
+                <case>
+                    <title nested="2">Use Grid column headings</title>
                     <description>Should the column headings in the export file be the same as the Grid Column Headings? If unchecked, the field name is used.</description>
-                </item>
-                <item>
-                    <name>Field list</name>
-                    <description>Select fields to export.</description>
-                </item>
-                <item>
-                    <name>Record selection</name>
-                    <description>Specify if only the records in the current Grid query should be exported, or all records in the Grid. Choices include *[ui:Records in current query]*, *[ui:All records]*, *[ui:Current record only]*.</description>
-                </item>
-                <item>
-                    <name>Maximum number of records</name>
+                </case>
+                <case>
+                    <title nested="2">Field list</title>
+                    <description>
+                        <p>The list of fields to export.</p>
+                        <p>The column headings in the Excel file will use the field name. If you want to specify different column headings from the fields, you can use the following syntax to define a custom column heading:</p>
+                        <p>
+                            <example><![CDATA[fieldname [column heading]]]></example>
+                        </p>
+                        <p>For example:</p>
+                        <p>
+                            <example><![CDATA[firstname [First Name]]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Record selection</title>
+                    <description>Specify if only the records in the current Grid query should be exported, or all records in the Grid. Choices include *[ui:Records in current query]*, *[ui:All records]*, and *[ui:Current record only]*.</description>
+                </case>
+                <case>
+                    <title nested="2">Maximum number of records</title>
                     <description>Specify the maximum number of records to export. Set to 0 for no limit.</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Custom Export Properties</title>
-            <list>
-                <item>
-                    <name>Custom type</name>
+            <description>
+                <p>These options are shown if the *[ui:Source]* is set to 4 (*[ui:Custom]*).</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Custom type</title>
                     <description>Specify if the query is against DBF tables or a SQL database. Choices include *[ui:DBF]*, *[ui:SQL]*.</description>
-                </item>
-                <item>
-                    <name>DBF Table</name>
+                </case>
+                <case>
+                    <title nested="2">DBF Table</title>
                     <description>Specify the name of the DBF table.</description>
-                </item>
-                <item>
-                    <name>Field names</name>
-                    <description>Specify the names of the fields in the DBF table that you want to export</description>
-                </item>
-                <item>
-                    <name>Filter - DBF</name>
+                </case>
+                <case>
+                    <title nested="2">Field names</title>
+                    <description>Specify the names of the fields in the DBF table that you want to export.</description>
+                </case>
+                <case>
+                    <title nested="2">Filter - DBF</title>
                     <description>Specify the filter expression.</description>
-                </item>
-                <item>
-                    <name>Order - DBF</name>
+                </case>
+                <case>
+                    <title nested="2">Order - DBF</title>
                     <description>Specify the filter expression.</description>
-                </item>
-                <item>
-                    <name>Connection string</name>
+                </case>
+                <case>
+                    <title nested="2">Connection string</title>
                     <description>Specify the connection string.</description>
-                </item>
-                <item>
-                    <name>SQL Select</name>
+                </case>
+                <case>
+                    <title nested="2">SQL Select</title>
                     <description>Specify the SQL Select statement.</description>
-                </item>
-                <item>
-                    <name>Filter - SQL</name>
+                </case>
+                <case>
+                    <title nested="2">Filter - SQL</title>
                     <description>Specify the filter expression. (This is in addition to any WHERE clause defined in your SELECT statement.)</description>
-                </item>
-                <item>
-                    <name>Order - SQL</name>
+                </case>
+                <case>
+                    <title nested="2">Order - SQL</title>
                     <description>Specify the filter expression.</description>
-                </item>
-                <item>
-                    <name>Arguments</name>
+                </case>
+                <case>
+                    <title nested="2">Arguments</title>
                     <description>You can use arguments in the filter expressions that you define. Using arguments for variable data makes it easier to write your filter expressions.</description>
-                </item>
-                <item>
-                    <name>Argument bindings</name>
+                </case>
+                <case>
+                    <title nested="2">Argument bindings</title>
                     <description>Specify where each argument that have defined gets its value. Arguments can get their values from a value in the current Grid row, a session variable, or a literal value.</description>
-                </item>
-            </list>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Events - Server-Side Properties</title>
-            <list>
-                <item>
-                    <name>After export</name>
-                    <description>Specify the name of the Xbasic function to call after the records have been exported and the export file has been created, but before the file has been sent to the browser. Function is defined in Xbasic Function Declarations section.</description>
-                </item>
-            </list>
+            <cases>
+                <case>
+                    <title nested="2">After export</title>
+                    <description>
+                        <p>The name of an Xbasic function to call after the records have been exported and the export file has been created, but before the file has been sent to the browser. Function is defined in Xbasic Function Declarations section.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[xb:e.exportFilename]*</name>
+                                    <description>The name of the file that was created. This file will be downloaded to the user's computer.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>Grid properties</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.rtc]*</name>
+                                    <description>Runtime calculations - you can use this to store data to be passed to other server side events. *[This variable cannot be used to persist state information.]*</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Your Xbasic function can set the following variables:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[xb:e.abort]*</name>
+                                    <description>Set to *[xb:.t.]* to prevent the file from being downloaded.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.rtc.abortAfterExportJavascriptEvent]*</name>
+                                    <description>Set to *[xb:.t.]* to suppress the AfterExport JavaScript event from firing.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>For example, to prevent the export file from being downloaded:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function afterExport as v (e as p)
+    ' Abort the file export
+    e.abort = .t.
+end function
+]]>                            </example>
+                        </p>
+                        <p>JavaScript can optionally be returned from the Xbasic Function in the *[xb:e.rtc]* variable. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function afterExport as v (e as p)
+    ' Display a popup alert on the client:
+    e.rtc.A_AjaxResponses[].text = "alert('Export complete.');"
+    e.rtc.A_AjaxResponses[..].id = 100000
+end function]]></example>
+                        </p>
+                    </description>
+                    <tip>
+                        <p>The *[ui:Show Function Prototypes]* link at the bottom of the Action Javascript dialog can be used to generate a function prototype. Enter the name of the Xbasic function you want to create, then click *[ui:Show Function Prototypes]*. Next, select *[ui:Server Side - After Export]*. Click *[ui:Copy Code to Clipboard]* to copy the function prototype. Then, click *[ui:Open Xbasic Function Declarations]* and paste the function definition.</p>
+                    </tip>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Events - Client-Side Properties</title>
-            <list>
-                <item>
-                    <name>Before export</name>
-                    <description>Specify the name of the Javascript function to call before records are exported. This function must return true, or false. If false, export is aborted. Function is defined in Javascript Function Declarations section.</description>
-                </item>
-                <item>
-                    <name>After export</name>
-                    <description>Specify the name of the Javascript function to call before after the records have been exported and the file has been downloaded to the browser.  Function is defined in Javascript Function Declarations section.</description>
-                </item>
-            </list>
+            <cases>
+                <case>
+                    <title nested="2">Before export</title>
+                    <description>
+                        <p>Specify the name of the JavaScript function to call before records are exported. This function must return true, or false. If false, export is aborted. Function is defined in Javascript Function Declarations section.</p>
+                        <p>This function can be used to prevent exporting data if certain conditions are not met. It can also be used to open a "wait" message:</p>
+                        <p>
+                            <example code="js"><![CDATA[function canDoExport() {
+    // Show wait message:
+    var title = "Exporting...";
+    var message = "Please wait for the export to complete.";
+    var buttons = "none";
+    var onClose = function () {};
+
+    A5.msgBox.show(title, message, buttons, onClose);
+}]]></example>
+                        </p>
+                    </description>
+                    <tip>
+                        <p>The *[ui:Show Function Prototypes]* link at the bottom of the Action Javascript dialog can be used to generate a function prototype. Enter the name of the JavaScript function you want to create, then click *[ui:Show Function Prototypes]*. Next, select *[ui:Client Side - Before Export]*. Click *[ui:Copy Code to Clipboard]* to copy the function prototype.</p>
+                    </tip>
+                </case>
+                <case>
+                    <title nested="2">After export</title>
+                    <description>
+                        <p>Specify the name of the JavaScript function to call before after the records have been exported and the file has been downloaded to the browser. Function is defined in Javascript Function Declarations section.</p>
+                        <p>This function can be used to trigger another action, such as closing a wait message shown when the export started:</p>
+                        <p>
+                            <example code=""><![CDATA[function afterExport() {
+    // Hide wait message:
+    A5.msgBox.hide();
+}]]></example>
+                        </p>
+                    </description>
+                    <tip>
+                        <p>The *[ui:Show Function Prototypes]* link at the bottom of the Action Javascript dialog can be used to generate a function prototype. Enter the name of the JavaScript function you want to create, then click *[ui:Show Function Prototypes]*. Next, select *[ui:Client Side - After Export]*. Click *[ui:Copy Code to Clipboard]* to copy the function prototype.</p>
+                    </tip>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Troubleshooting</title>
+            <cases>
+                <case>
+                    <title nested="2">I can't download the exported file from the server</title>
+                    <description>
+                        <p>Only files whose file extension is listed in the *[ui:Allowed filenames]* property in the Project Properties can be downloaded from the Application Server. If the file type you've specified in this action is not listed, the file may not download when the action completes.</p>
+                        <p>To resolve this issue, open the *[ui:Web Projects Control Panel]* add the file extension (e.g. .txt, .xls, .zip) to the *[ui:Project Properties]* &gt; *[ui:File Download]* &gt; *[ui:Allowed filenames]* property.</p>
+                    </description>
+                </case>
+            </cases>
         </section>
     </sections>
     <limitations>Grid Component Only</limitations>
     <see>
-        <ref link="action javascript in the grid">Action Javascript in the Grid</ref>
+        <ref link="advanced%20export%20to%20excel,%20word,%20html,%20or%20ascii%20using%20a%20report%20definition">Advanced Export to Excel, Word, HTML, or Ascii using a Report Definition</ref>
+        <ref link="list%20control%20actions#section1_Export%20Data%20to%20Excel%20or%20Ascii">List Control Actions: Export Data to Excel or Ascii</ref>
     </see>
 </page>

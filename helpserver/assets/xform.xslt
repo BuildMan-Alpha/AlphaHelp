@@ -18,6 +18,7 @@
         <xsl:choose>
             <xsl:when test="./@api='xb'">Xbasic</xsl:when>
             <xsl:when test="./@api='js'">JavaScript</xsl:when>
+            <xsl:when test="./@api='py'">Python</xsl:when>
             <xsl:when test="./@api='cstemplate'">Client Side Template</xsl:when>
             <xsl:otherwise><xsl:value-of select="./@api" /></xsl:otherwise>
         </xsl:choose>

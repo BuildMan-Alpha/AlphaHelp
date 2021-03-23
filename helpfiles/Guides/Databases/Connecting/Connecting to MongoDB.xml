@@ -1,0 +1,222 @@
+<page build="3522">
+    <shortlink>connecting to mongodb</shortlink>
+    <topic>Connecting to MongoDB</topic>
+    <description>Alpha Anywhere can connect directly to MongoDB. Creating a MongoDB connection string makes allows you to build Grid an UX Components against the NoSQL data source.</description>
+    <discussion>
+        <p>Alpha Anywhere has an [API] for working directly with a Mongo database. This [API] is useful if you want to write your own server side code to query and update a Mongo database. However, if you want to use a Mongo database as the data source for a Grid, or UX component, you cannot use the API.</p>
+        <p>In order to use Mongo as the data source for a Grid or UX, it is necessary to impose a schema on the Mongo database, much like any SQL table has a schema.</p>
+        <p>Alpha Anywhere allows you to define a connection string to a Mongo database (much like you would define a connection string to any SQL database). Once you have defined a connection string, you can build Grid and UX components against the Mongo database in exactly the same way that you would build a Grid or UX against any SQL database. You can also use AlphaDAO in Xbasic to perform CRUD operations against the Mongo database.</p>
+        <p>When you define a connection string to a Mongo database, you define a schema for each table (i.e. collection) in the database. This schema defines the fields and data type of each field in each table.</p>
+        <p>When you define a connection string to a Mongo database, you define:</p>
+        <p>
+            <list bullet="true">
+                <item>
+                    <name>URL of the Mongo service.</name>
+                </item>
+                <item>
+                    <name>Username and password, if required. If the Mongo service is launched with the -noauth parameter, the username and password are not required.</name>
+                </item>
+                <item>
+                    <name>Name of the Mongo database. This can either be an existing database or the name of a new Mongo database to create.</name>
+                </item>
+                <item>
+                    <name>Manifest filename. This is the file where the database schema is defined; it is a JSON file.</name>
+                </item>
+            </list>
+        </p>
+        <p>The image below shows the connection string builder for a Mongo database.</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <link>images/mongodb.png</link>
+            </figure>
+            <note>
+                <p>In the above screenshot, the manifest filename stats with '*[.\]*'. This syntax is used to indicate the the manifest is stored relative to the Web Project folder. In the above example, the manifest will be stored in a folder called '*[schemas]*' in the Web Project folder, and when the project is published, the *[schema.json]* file will be published to a folder called 'schemas' in the web root.</p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>Alpha Anywhere has a number of helper function that help you define the schema for the Mongo database.</p>
+                <p>
+                    <list bullet="true">
+                        <item>
+                            <name>If you have an existing Mongo database, Alpha can infer a schema by examining existing data in the Mongo database. You can then tweak the schema that Alpha Anywhere suggests.</name>
+                        </item>
+                        <item>
+                            <name>You can start with a sample schema that shows the format required for the schema.</name>
+                        </item>
+                        <item>
+                            <name>You can build a schema from the schema of a SQL database. You give Alpha Anywhere a connection string to a SQL database and then select the list of tables you want in your Mongo schema. Alpha Anywhere will automatically create the schema for you. When you use this option, you also have the option of exporting data from the SQL database to your Mongo database.</name>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Structure of the Schema JSON File</title>
+            <description>
+                <p>A sample schema JSON file is shown below. The JSON file defines two objects, 'schema' and 'collection', and an optional property, 'sourceconnection'.</p>
+                <p>The 'collection' object contains a property for each collection in the Mongo database and the name of the corresponding schema in the 'schema' object.</p>
+                <p>For example, the entry in the 'schema' object shown below specifies two schemas: one called 'Categories' and another called 'Employees'. For each schema, the primary key column is specified, and the list of columns and their corresponding data type are identified.</p>
+                <p>The optional 'sourceconnection' identifies if the schema was obtained from looking at the schema in some other SQL database. If so, the 'sourceconnection' property is the connection string to that database.</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "schema": {
+        "Categories": {
+            "primary": [
+                "_id"
+            ],
+            "columns": {
+                "_id": "String",
+                "CategoryID": "Number",
+                "CategoryName": "String",
+                "Description": "String",
+                "Picture": "String"
+            }
+        }
+        "Employees": {
+            "primary": [
+                "_id"
+            ],
+            "columns": {
+                "_id": "String",
+                "EmployeeID": "Number",
+                "LastName": "String",
+                "FirstName": "String",
+            }
+        }
+    },
+    "collection": {
+        "Categories": {
+            "schema": "Categories"
+        },
+        "Employees": {
+            "schema": "Employees"
+        }
+    },
+    "sourceconnection": "::Name::AADemo-Northwind"
+}]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Creating the Schema</title>
+            <description>
+                <p>To define the Mongo database schema, click the *[ui:More...]* button in the connection string builder.</p>
+            </description>
+            <figure>
+                <link>images/mongodb2.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This will open an intermediate dialog:</p>
+            </description>
+            <figure>
+                <link>images/mongodb4.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Next, click the *[ui:Edit/create Schema definition...]* hyperlink. This opens a dialog when you can edit the schema definition.</p>
+            </description>
+            <figure>
+                <link>images/mongodb3.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>At the bottom of the dialog you will see several hyperlinks:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>*[ui:Insert sample...]*</name>
+                            <description>This inserts a sample schema definition. You can edit this definition. You would typically use this option if you are creating a new schema for a Mongo database that does not yet have any data in it.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Guess From Content...]*</name>
+                            <description>This examines the data in an existing Mongo database and tries to infer the schema from the data. See below for more information.</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Copy Schema from Connection...]*</name>
+                            <description>This lets you to create a schema based on the schema of a SQL database. When you click this hyperlink, you will be prompted for the connection string to the SQL database with the schema you want to copy. You will then be able to select which tables in the SQL database you want to copy.  NOTE: If you choose this option, the schema that is created will contain the optional 'sourceconnection' property (discussed above).</description>
+                        </item>
+                        <item>
+                            <name>*[ui:Export data from SQL database to Mongo]*</name>
+                            <description>This hyperlink will only be present if the schema was created using the *[ui:Copy Schema from Connection...]* button and the schema has a 'sourceconnection' property. You can use this button to populate a Mongo database with data from a SQL database.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>More on the 'Guess From Content...' Option</title>
+            <description>
+                <p>When you click the *[ui:Guess From Content...]* button, Alpha Anywhere will examine the data in the Mongo database specified at the 'Database' prompt on the connection string builder. This is the dialog that was displayed before you clicked the *[ui:More...]* button to get to the dialogs when you define the schema.</p>
+            </description>
+            <figure>
+                <link>images/mongodb5.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Using a MogoDB Connection String</title>
+            <description>
+                <p>Once you have built the connection string to the MongoDB database, the named connection is used the same way that you use any other AlphaDAO connection string. You can build Grid and UX components against the Mongo database. You can also use Xbasic and AlphaDAO objects to work with the data in the Mongo database.</p>
+                <p>When you use a connection string that points to a Mongo database, you are essentially using SQL syntax to interact with the Mongo database. Behind the scenes Alpha Anywhere is automatically converting the SQL commands to the appropriate commands that then Mongo API understands.</p>
+                <p>You can see how Alpha Anywhere makes this translation but turning on the *[ui:Trace SQL]* option in the connection string builder (shown below). Once you do this, the trace information will be shown in the *[ui:Trace window]* (*[ui:View]* &gt; *[ui:Trace window]*) in the Alpha Anywhere Develpoment environment or found in the Trace logs on the Application Server.</p>
+            </description>
+            <figure>
+                <link>images/mongodb6.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Here is some sample output from the Trace window showing the SQL statement and how that statement was translated to Mongo commands.</p>
+                <p>
+                    <example><![CDATA[SQL Statement: SELECT FIRST 11 [_id], CustomerID, CompanyName, ContactName, ContactTitle, City, Country FROM Customers ORDER BY ContactTitle, [_id]
+Time to prepare URL: 0.001
+Time to execute REST call: 0.041
+Mongo Commands:
+{
+    "verb": "GET",
+    "collection": "Customers",
+    "select": "_id , CustomerID , CompanyName , ContactName , ContactTitle , City , Country",
+    "groupby": "",
+    "where": {},
+    "orderby": "ContactTitle, _id",
+    "limit": "TOP 11 "
+}]]></example>
+                </p>
+                <p>Because Mongo is not a SQL database, there are limitations as to what SQL commands you can send to Mongo. For example, you cannot execute a SQL statement that performs a JOIN since the concept is meaningless to Mongo. You also cannot perform CRUD operations that affect more than a single record. For example, the following SQL statement will update multiple records</p>
+                <p>
+                    <example code="sql"><![CDATA[UPDATE customers set Status = 'B' where Balance > 100]]></example>
+                </p>
+                <p>This will not work if you are connected to a Mongo database if there is more than one record with a Balance that is &gt; 100.</p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Working with MongoDB using AlphaDAO</title>
+                <description>
+                    <p>Alpha Anywhere allows you to connect to a vast array of SQL databases and then build Grid and UX components against the SQL data. You can also use Xbasic (specifically the AlphaDAO object) to write code that executes SQL commands.</p>
+                    <p>You can work with a Mongo database in the same way.</p>
+                    <p>In this video we show how you can create an AlphaDAO connection string that points to a Mongo instance - how you can export data from a SQL database to a Mongo database - and how you can build a Grid component against a Mongo database.</p>
+                    <p>NOTE: These videos show how the Mongo database is accesses using standard AlphaDAO objects. Alpha Anywhere also provides an [API] to access Mongo directly.</p>
+                </description>
+                <date>2016-02-10</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/a339a5f9</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="guide mongodb api">API</link>
+    </links>
+    <see>
+        <ref link="guide mongodb api">MongoDB API</ref>
+    </see>
+</page>

@@ -2,7 +2,7 @@
     <shortlink>api a5 number format function</shortlink>
     <topic>a5_number_format Function</topic>
     <description>Formats a number using the number formatter in the Alpha Javascript library. </description>
-    <syntax>C a5_number_format(N value,C formatString )</syntax>
+    <syntax>C a5_number_format(N value,C formatString)</syntax>
     <arguments>
         <argument>
             <name>value</name>
@@ -12,366 +12,218 @@
         <argument>
             <name>formatString</name>
             <type>C</type>
-            <description>The formatting string. The format is defined using </description>
+            <description>The format string. See discussion below.</description>
         </argument>
     </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>
+                <p>Returns the number as a string using the specified format.</p>
+            </description>
+        </return>
+    </returns>
     <discussion>
-        <p></p>
-        <p></p>
-        <p></p>
-        <p></p>
-        <p></p>
+        <p>The *[xb:a5_number_format()]* function converts a numeric value to a string. The string to generate is specified as a number format string. The number format string contains special characters that define how the number should be presented, including options for decimal places, zero padding, the type of thousands and decimal separators to use, and more.</p>
+        <p>Number format strings can contain up to three custom definitions to format positive, negative, and zero values separately. Multiple formats are specified as a semi-colon ";" delimited list. For example:</p>
+        <p>
+            <example><![CDATA[format1;format2
+format1;format2;format3]]></example>
+        </p>
+        <p>where *[em:format1]*, *[em:format2]*, and *[em:format3]* are number format string expressions.</p>
+        <p>The way a given format in the format string is selected is based on either its location in the string, or by an optional condition.</p>
+        <p>If the format string doesn't contain any conditions then the first format will be used for a positive value, the second for a negative, and the third for a zero value.</p>
+        <p>Conditions can be used in formats by adding the *[xb:if(test)]* expression to the start of the string. The *[xb:test]* can reference the placeholder *[xb:n]*, which is the number to format. For example:</p>
+        <p>
+            <example code="xb"><![CDATA[dim format as c = "if(n>999999999)=(###) ###-####;=###-####"
+? a5_number_format(1234567890, format)
+= "(123) 456-7890"
+
+? a5_number_format(1234567,format)
+= "123-4567"]]></example>
+        </p>
+        <p>This is an example of a multi-format string that the will return numbers greater than 999999999 as a 10 digit phone number mask and number less than 999999999 as a 7 digit phone number mask.</p>
+        <p>You can also optionally process a number before it is formatted by adding *[xb:=(expression)]* to the end of a format string. The *[xb:expression]* can also use the placeholder *[xb:n]*, which is the number to passed to the *[xb:a5_number_format()]* function. For example:</p>
+        <p>
+            <example code="xb"><![CDATA[dim format as c = "##0.00 %=(n*100)"
+
+? a5_number_format(0.827, format)
+= "82.70 %"]]></example>
+        </p>
+        <p>This is an example of a format string that will first multiply the number by 100 before outputting it with the format.</p>
+        <p>A number format can either be of two types: a "number" or a "mask" format.</p>
+        <p>A mask format is indicated by the first character in the format being an *[xb:=]* sign. The *[xb:#]* character in the mask will be replaced with the first available digit from the number. An example of a number format for a 10 digit phone number is: </p>
+        <p>
+            <example code="xb"><![CDATA[dim format as c = "=(###) ###-####"
+
+? a5_number_format(8004511018, format)
+= "(800) 451-1018"]]></example>
+        </p>
+        <p>While 'masks' are simple, 'number' formatting can be more complex. Below is a list of the special characters that can be used in a 'number' format string:</p>
+        <p>
+            <list>
+                <item>
+                    <name-title>Character</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>*[xb:#]*</name>
+                    <description>an optional digit</description>
+                </item>
+                <item>
+                    <name>*[xb:0]*</name>
+                    <description>a required digit (will be output as "0" if no value in the number for the given location)</description>
+                </item>
+                <item>
+                    <name>*[xb:_]*</name>
+                    <description>an optional digit (will be output as " " if no value in the number for the given location)</description>
+                </item>
+                <item>
+                    <name>*[xb:*]*</name>
+                    <description>after the decimal character will cause there to be no rounding (number is output with its full precision)</description>
+                </item>
+                <item>
+                    <name>*[xb:]]*</name>
+                    <description>at end of a number format (before any suffix) means round to zero (there will be no decimal value)</description>
+                </item>
+                <item>
+                    <name>*[xb:[]*</name>
+                    <description>with "]" means force "0" for integer places in the number (e.g. 123 formatted with #[00] would be 100)</description>
+                </item>
+                <item>
+                    <name>*[xb:&lt;]*</name>
+                    <description>at end of a number format (before any suffix) means round decimal up, before "]" is the round up equivalent of "["</description>
+                </item>
+                <item>
+                    <name>*[xb:&gt;]*</name>
+                    <description>at end of a number format (before any suffix) means round decimal down, before "]" is the round down equivalent of "["</description>
+                </item>
+                <item>
+                    <name>*[xb:-/-]*</name>
+                    <description>display decimals as fractions</description>
+                </item>
+            </list>
+        </p>
+        <p>After optional conditions and number processing expressions have been removed from the format string, any non-special characters at the beginning and end of the format string are placed into the prefix or suffix. If a format string does not contain multiple formats for positive and negative values, a *[xb:-]* (minus sign) will be prefixed the result if the number is negative.</p>
     </discussion>
-    <p>
-Number format strings are used in the .toFormat() method
-of numeric variables and in the formatNumber() function
-when defining a client-side expression in a Grid or UX
-component.</p>
-<p>
-
-A number format string can have multiple formats in them
-by using a ";" to separate multiple formats. The way a
-given format in the format string is selected is based
-on either its location in the string, or by an optional
-condition.
-
-If the format string doesn't contain any conditions then
-the first format will be used for a positive value, the
-second for a negative, and the third for a zero value.
-
-Conditions can be put into the format by making the
-first part of the format string contain
-<font color="#0000FF" face="Courier New">if(expression)</font>
-where <font color="#0000FF" face="Courier New">n</font>
-equals the value of the number. For example:</p>
-<p class="xbasic">
-
-if(n&gt;999999999)=(###) ###-####;=###-####
-&nbsp;</p>
-<p>
-is a multi-format string that the will return numbers
-greater than 999999999 as a 10 digit phone number mask
-and number less than 999999999 as a 7 digit phone number
-mask.
-
-You can also optionally process a number before it is
-formatted by adding
-<font color="#0000FF" face="Courier New">=(expression)</font>
-onto the end of a format string where
-<font color="#0000FF" face="Courier New">n</font> equals
-the value of the number. For example:</p>
-<p class="xbasic">
-##0.00 %=(n*100)
-&nbsp;</p>
-<p>
-is a format string that will first multiply the number
-by 100 before outputting it with the format. A value of
-'.254' would be returned as '25.40 %'
-
-A number format can either be of two types: a "number"
-or a "mask" format.
-
-A mask format is indicated by the first character in the
-format being an <font color="#0000FF" face="Courier New">
-=</font> sign. The
-<font color="#0000FF" face="Courier New">#</font>
-character in the mask will be replaced with the first
-available digit from the number. An example of a number
-format for a 10 digit phone number is: </p>
-<p class="xbasic">
-
-=(###) ###-####
-&nbsp;</p>
-<p>
-
-Using the above mask, the number </p>
-<p class="xbasic">
-8004511018 </p>
-<p>
-would be formatted as:</p>
-<p class="xbasic">
-(800) 451-1018</p>
-<p>
-While 'masks' are simple, 'number' formatting can be
-more complex. Below is a list of the special characters
-that can be used in a 'number' format string:</p>
-<table border="1" cellspacing="1" cellpadding="3" id="table69" style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; margin-left: 0.5in; border-collapse: collapse; ">
-
-
-
-<tbody><tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<b>Character</b></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-Description</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">#</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-an optional digit</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">0</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-a required digit (will be output as "0" if no
-value in the number for the given location)</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">_&nbsp;&nbsp;&nbsp;&nbsp;
-(an underscore character)</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-an optional digit (will be output as&nbsp; " "&nbsp;
-if no value in the number for the given
-location)</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">*</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-after the decimal character will cause there to
-be no rounding (number is output with its full
-precision)</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">]</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-at end of a number format (before any suffix)
-means round to zero (there will be no decimal
-value)</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">[</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-with "]" means force "0" for integer places in
-the number (e.g. 123 formatted with #[00] would
-be 100)</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font face="Courier New" color="#0000FF">&lt;</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-at end of a number format (before any suffix)
-means round decimal up, before "]" is the round
-up equivalent of "["</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font face="Courier New" color="#0000FF">&gt;</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-at end of a number format (before any suffix)
-means round decimal down, before "]" is the
-round down equivalent of "["</td>
-</tr>
-
-
-
-<tr>
-<td width="234" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<font color="#0000FF" face="Courier New">-/-</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-display decimals as fractions</td>
-</tr>
-
-
-
-</tbody></table>
-<p>
-
-After optional conditions and number processing
-expressions have been removed from the format string,
-any non-special characters at the beginning and end of
-the format string are placed into the prefix or suffix.
-If a format string does not contain multiple formats for
-positive and negative values, a
-<font color="#0000FF" face="Courier New">'-'</font>
-(minus sign) will be appended to the start of the result
-if the number is negative.
-
-Examples</p>
-<p>
-&nbsp;</p>
-
-<table border="1" cellspacing="1" cellpadding="3" id="table70" style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; margin-left: 0.5in; border-collapse: collapse; ">
-
-
-<tbody><tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-<b>Number</b></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-Format String</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-Result</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-Description</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1256.2</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">#
-##0,00</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1 256.20</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-use a " " to separate thousands and a "," for
-the decimal, round to two decimal places and
-force "0" for those two decimal places</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-.257</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">0.00&gt;</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-0.25</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-pad the integer part with a "0" and use a "."
-for the decimal, round down to two decimal
-places.</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1256.2</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">#,#[00]</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1,300</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-clip to two integer places and use a "," as
-thousands separator.</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1256.2</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">#,#&gt;00]</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1,200</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-clip to two integer places, round down, and use
-a "," as thousands separator.</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1256.2256</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">#,##0.*</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1,256.2256</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-use a "." for the decimal and a "," for the
-thousands separator, don't round the decimal.</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1.256</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">0.##&gt;
-and -/-</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1 and 1/4</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-round down to two decimal places and render the
-decimal as a fraction in the suffix</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-1256.2</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">
-$#,##0.00;$ (#,##0.00);------</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-$1,256.20</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-multiple format strings for positive, negative
-and zero value. The thousands separator is ","
-and the decimal character is ".". Number is
-rounded to 2 places. Negative value is enclosed
-in parentheses. Zero value is output as "------"</td>
-</tr>
-
-
-
-<tr>
-<td width="89" style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-4<br>
-3<br>
-1</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="334">
-<font color="#0000FF" face="Courier New">if(n&gt;=4)#
-(Good);if(n&gt;=2) # (Average);# (Bad)</font></td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; ">
-(Good)<br>
-(Average)<br>
-(Bad)</td>
-<td style="font-family: arial; font-size: 8pt; vertical-align: top; " width="460">
-render the number with a custom suffix based on
-a condition. For example, if the number is 4,
-the output value is (Good). If the number is 1,
-the output value is (Bad)
-&nbsp;</td>
-</tr>
-</tbody></table>
     <sections>
         <section>
+            <title>Format String Example 1</title>
             <description>
-                <p></p>
+                <p>This example format shows using a " " to separate thousands and a "," for the decimal, rounding to two decimal places, and padding with "0" for two decimal places</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "# ##0,00"
+dim number as n = 1256.2
+
+? a5_number_format(number, format)
+= "1 256,20"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 2</title>
+            <description>
+                <p>This example format shows padding the integer part with a "0" and using a "." for the decimal. It also rounds down the number to two decimal places.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "0.00>"
+dim number as n = .257
+
+? a5_number_format(number, format)
+= "0.25"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 3</title>
+            <description>
+                <p>This example format shows clipping to two integer places and using a "," as thousands separator.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "#,#[00]"
+dim number as n = 1256.2
+
+? a5_number_format(number, format)
+= "1,300"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 4</title>
+            <description>
+                <p>This example format shows clipping to two integer places, rounding down, and using a "," as thousands separator.</p>
+                <p>
+                    <example code="xb"><![CDATA["dim format as c = "#,#>00]"
+dim number as n = 1256.2
+
+? a5_number_format(number, format)
+= "1,200""]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 5</title>
+            <description>
+                <p>This example format shows use a "." for the decimal and a "," for the thousands separator, don't round the decimal.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "#,##0.*"
+dim number as n = 1256.2256
+
+? a5_number_format(number, format)
+= "1,256.2256"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 6</title>
+            <description>
+                <p>This example format shows rounding down to two decimal places and rendering the decimal as a fraction in the suffix.</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "0.##> and -/-"
+dim number as n = 1.256
+
+? a5_number_format(number, format)
+= "1 and 1/4"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 7</title>
+            <description>
+                <p>This example format shows creating multiple format strings for positive, negative, and zero values. The thousands separator is "," and the decimal character is ".". The number is rounded to 2 places. Negative values are enclosed in parentheses. The zero value is output as "------".</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "$#,##0.00;$ (#,##0.00);------"
+
+? a5_number_format(1256.2, format)
+= "$1,256.20"
+
+? a5_number_format(-126.887, format)
+= "$ (126.89)"
+
+? a5_number_format(0, format)
+= "------"]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Format String Example 8</title>
+            <description>
+                <p>This example format shows rendering the number with a custom suffix based on a condition. For example, if the number is 4, the output value is (Good). If the number is 1, the output value is (Bad).</p>
+                <p>
+                    <example code="xb"><![CDATA[dim format as c = "if(n>=4)# (Good);if(n>=2)# (Average);# (Bad)"
+
+? a5_number_format(4,format)
+= "4 (Good)"
+
+? a5_number_format(3,format)
+= "3 (Average)"
+
+? a5_number_format(1,format)
+= "1 (Bad)"]]></example>
+                </p>
             </description>
         </section>
     </sections>
-
     <terms>math,formatting,function,javascript,number</terms>
-
-
-
 </page>
