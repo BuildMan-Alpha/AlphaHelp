@@ -2,20 +2,90 @@
 	<shortlink>api extension namespace mongodb class create method</shortlink>
 	<topic>Extension::MongoDB Create Method</topic>
 	<description>Create a mongo object.</description>
-	<prototype static="true">.Create as Extension::MongoDB (_baseURI as C, _database as C, _collection as C)</prototype>
+	<prototype static="true">.Create as Extension::MongoDB (baseURI as C, database as C, collection as C)</prototype>
 	<arguments>
 		<argument>
-			<name>_baseURI</name>
-			<description>Character</description>
+			<name>baseURI</name>
+			<description>The mongoDb server</description>
 		</argument>
 		<argument>
-			<name>_database</name>
-			<description>Character</description>
+			<name>database</name>
+			<description>The Database on the mongoDb server</description>
 		</argument>
 		<argument>
-			<name>_collection</name>
-			<description>Character</description>
+			<name>collection</name>
+			<description>The Collection in the Database on the mongoDb server</description>
 		</argument>
 	</arguments>
-	
+	<sections>
+	   <section>
+         <title>Just The Server URL</title>
+	     <example code="xb"><![CDATA[
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017")
+
+dim databasesJson as c = mongo.ListDatabases()
+dim def as p = json_parse(databasesJson)
+
+? def.databases[1]
+= empty = .F.
+name = "TestDatabase"
+sizeOnDisk = 73728
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>You can supply just the mongo server URL if you are interested in Database discovery, and don't need to update a collection.</p>
+	    </description>
+	   </section>
+	   <section>
+         <title>Just The Server URL and Database</title>
+	     <example code="xb"><![CDATA[
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","TestDatabase")
+
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","TestDatabase")
+? mongo.ListCollections()
+= ["flowers"]
+
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>You can supply just the mongo server URL and the database if you are interested in listing collections available and other database level operations.</p>
+	    </description>
+	   </section>
+	   <section>
+         <title>URL Database and Collection</title>
+	     <example code="xb"><![CDATA[
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","TestDatabase","flowers")
+dim json as c = mongo.GetRecords("")
+dim def as p = json_parse(json)
+? def[1]
+= _id = "6065f82cdbef84456ce731dd"
+Id = "00000062"
+Imagedate = "08/12/2001"
+Keywords = "rudbekia daisy yellow"
+Picture = =filename_decode("Hires\rudbekia.jpg")
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>Finally, if you are going to use collection methods like GetRecords, you will need to supply the collection.</p>
+	    </description>
+	   </section>
+	   <section>
+         <title>Sometimes You will need to set the Certificate property</title>
+	     <example code="xb"><![CDATA[
+dim mongo as  extension::MongoDB = extension::MongoDB::Create("mongodb+srv://<username>:<password>@cluster0.7klge.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+mongo.certificate = "none"
+? mongo.ListDatabases()
+= {"databases":[{"name":"sample_airbnb","sizeOnDisk":54632448,"empty":false},{"name":"sample_analytics","sizeOnDisk":9572352,"empty":false},{"name":"sample_geospatial","sizeOnDisk":1363968,"empty":false},{"name":"sample_mflix","sizeOnDisk":44462080,"empty":false},{"name":"sample_restaurants","sizeOnDisk":6737920,"empty":false},{"name":"sample_supplies","sizeOnDisk":1142784,"empty":false},{"name":"sample_training","sizeOnDisk":49123328,"empty":false},{"name":"sample_weatherdata","sizeOnDisk":2826240,"empty":false},{"name":"admin","sizeOnDisk":327680,"empty":false},{"name":"local","sizeOnDisk":4606025728,"empty":false}],"totalSize":4776214528,"ok":1,"$clusterTime":{"clusterTime":"6946237383616495620","signature":{"hash":"hm1ntWRg7jBUITyS6ZFkgkdvTDI=","keyId":"6931688929225605123"}},"operationTime":"6946237383616495620"}
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>Not settable in the Create method, some servers require you set (or ommit) the certificate file.</p>
+		   <p>The Default behaviour is to include the alpha anywhere caroot certificate, you can supply it with your own certificate, or omit the certificate by setting this to 'none'.</p>
+	    </description>
+	   </section>
+	</sections>	
 </page>
