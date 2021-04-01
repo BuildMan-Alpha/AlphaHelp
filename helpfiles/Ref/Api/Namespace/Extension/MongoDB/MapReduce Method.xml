@@ -6,11 +6,11 @@
 	<arguments>
 		<argument>
 			<name>mapFunction</name>
-			<description>Character</description>
+			<description>function definition to remap the results (grouping).</description>
 		</argument>
 		<argument>
 			<name>reduceFunction</name>
-			<description>Character</description>
+			<description>function to reduce the collected results (i.e summarize)</description>
 		</argument>
 		<argument>
 			<name>finalizeFunction</name>
@@ -21,5 +21,78 @@
 			<description>Character</description>
 		</argument>
 	</arguments>
+	<sections>
+	   <section>
+	   		<description>
+			   <p>MapReduce allows processing of the data on the server to conform better to a desired result.</p>
+			</description>
+	   </section>
+	   <section>
+	   	 <title>Get Companies by Country</title>
+	     <example code="xb"><![CDATA[
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","Northwinds","Customers")
+? json_reformat(mongo.MapReduce("function() {emit(this.Country,this.CompanyName);}",""))
+= [
+    {
+        "_id": "Germany",
+        "value": [
+            "Alfreds Futterkiste",
+            "Blauer See Delikatessen",
+            "Drachenblut Delikatessen",
+            "Frankenversand",
+            "Königlich Essen",
+            "Lehmanns Marktstand",
+            "Morgenstern Gesundkost",
+            "Ottilies Käseladen",
+            "QUICK-Stop",
+            "Toms Spezialitäten",
+            "Die Wandernde Kuh"
+        ]
+    },
+    {
+        "_id": "Mexico",
+        "value": [
+            "Ana Trujillo Emparedados y helados",
+            "Antonio Moreno Taquería",
+            "Centro comercial Moctezuma",
+            "Pericles Comidas clásicas",
+            "Tortuga Restaurante"
+        ]
+    },
+	....
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>The map function here maps the CompanyName into a connection keyed on the Country.</p>
+	    </description>
+	   </section>
+	   <section>
+	   	 <title>Count Companies by Country</title>
+	     <example code="xb"><![CDATA[
+dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","Northwinds","Customers")
+? json_reformat(mongo.MapReduce("function() {emit(this.Country,this.CompanyName);}","function(key,values) { return values.length; }"))
+= [
+    {
+        "_id": "Germany",
+        "value": 11
+    },
+    {
+        "_id": "Mexico",
+        "value": 5
+    },
+    {
+        "_id": "UK",
+        "value": 7
+    },
+	...
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>This example adds a second parameter to 'reduce' the data to a count of the companies found in each Country.</p>
+	    </description>
+	   </section>
+	</sections>
 	
 </page>
