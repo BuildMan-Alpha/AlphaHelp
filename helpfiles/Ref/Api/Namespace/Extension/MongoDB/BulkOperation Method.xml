@@ -52,5 +52,29 @@ mongo.BulkOperation(<<%json%
 		   <p>Bulk allows a lot of record inserts to be done at once, good for initailly populating collections.</p>
 	    </description>
 	   </section>
+	   <section>
+	   	 <title>Populate MongoDB from another DataSource</title>
+	     <example code="xb"><![CDATA[
+dim cn as sql::Connection
+cn.Open("::Name::AADemo-Northwind")
+
+dim tables as c = cn.ListTables()
+for each table in tables
+	cn.PortableSQLEnabled = .t.	
+	if cn.Execute("select * from "+table.value)	 then
+		dim rs as sql::ResultSet
+		rs = cn.ResultSet
+		dim json as  c  = rs.ToJSON()
+		dim mongo as extension::MongoDB = extension::MongoDB::Create("mongodb://localhost:27017","Northwinds",table.value)
+		mongo.BulkOperation("{ \"insert\" : true , \"documents\" : "+json+" }")		
+	end if
+next	
+]]></example>
+	   </section>
+	   <section>
+	   	<description>
+		   <p>This example quickly populates mongo from the tables in Northwinds.</p>
+	    </description>
+	   </section>
 	</sections>	
 </page>
