@@ -118,7 +118,48 @@ a5w_report_saveAs("myReport@[PathAlias.ADB_Path]\MyWorkspace.alb","PDF","","","m
         <section>
             <description>The next example shows how to use the [context.request.applicationRoot] property when specifying the location of a Project Report (a report saved as a *.a5rpt file.)</description>
             <example><![CDATA['Print a Project Report:
-a5w_report_saveAs(a5_removeTrailingBackslash(context.request.applicationRoot) + chr(92) + "myReport.a5rpt","PDF","","","myReport.pdf",global_variables())]]></example>
+dim filename as c
+filename = context.request.getRequestTempFilename(".pdf")
+
+a5w_report_saveAs(context.request.applicationRoot + "myReport.a5rpt","PDF","","",filename,global_variables())]]></example>
+        </section>
+        <section>
+            <title>Sending a Report to the Client</title>
+            <description>
+                <p>Files can be sent back to the client browser using the [context.response.SendFile()] method. The file will be sent to the user's browser. The user will either be prompted to download the file or be shown the file. Using [context.response.SendFile()] is a Best Practice and is strongly recommended over other, less efficient methods, such as *[xb:context.response.Redirect()]*:</p>
+            </description>
+            <example code="xb"><![CDATA[dim filter as c = ""
+dim order as c = ""
+
+dim filename as c = context.request.GetRequestTempFileName()
+
+a5w_report_saveAs(context.request.applicationRoot + "MyReport.a5rpt","pdf",filter,order,filename)
+
+if file.exists(filename)
+    ' Prompt user to save file with alternate file name:
+    context.response.SendFile(filename,.t.,"MyReport.pdf")
+end if]]></example>
+        </section>
+        <section build="4388">
+            <title>Printing SSRS Reports</title>
+            <description>
+                <p>Reports created using SQL Server Reporting Services can be generated from Xbasic using the *[xb:a5w_report_saveAs()]* function. If the SSRS report has any parameters, they can be specified using the *[xb:Arguments]* parameter. For example:</p>
+            </description>
+            <example code="xb"><![CDATA[dim reportName as c
+reportName = "customersbystate.ssrs.a5rpt"
+
+dim args as sql::Arguments
+args.add("whatcountry","UK")
+
+dim filename as c
+
+filename = a5w_report_saveAs(reportname,"pdf","","","c:\pdf\report1.pdf",null_value(),null_value(),args)
+sys_open( filename)]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Not all parameters are supported for SSRS reports. Specifically, you cannot use the filter, order, global variables or print options parameters.</p>
+            </description>
         </section>
         <section>
             <title>Global Variables in Web Applications</title>
@@ -142,31 +183,11 @@ layout_name = a5_removeTrailingBackslash(context.request.applicationRoot) + chr(
 
 a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]></example>
         </section>
-        <section build="4388">
-            <title>Printing SSRS Reports</title>
-            <description>
-                <p>Reports created using SQL Server Reporting Services can be generated from Xbasic using the *[xb:a5w_report_saveAs()]* function. If the SSRS report has any parameters, they can be specified using the *[xb:Arguments]* parameter. For example:</p>
-            </description>
-            <example code="xb"><![CDATA[dim reportName as c
-reportName = "customersbystate.ssrs.a5rpt"
-
-dim args as sql::Arguments
-args.add("whatcountry","UK")
-
-dim filename as c
-
-filename = a5w_report_saveAs(reportname,"pdf","","","c:\pdf\report1.pdf",null_value(),null_value(),args)
-sys_open( filename)]]></example>
-        </section>
-        <section>
-            <description>
-                <p>Not all parameters are supported for SSRS reports. Specifically, you cannot use the filter, order, global variables or print options parameters.</p>
-            </description>
-        </section>
     </sections>
     <terms>reports,a5w,arguments,expressions,file,filename,filter,function,global variables,pdf,pointer,sql,variable</terms>
     <see>
-          <ref link="api printable layouts report functions">Report Functions and Methods</ref>
+        <ref link="storing files in sessions">Storing Files in Sessions</ref>
+        <ref link="api printable layouts report functions">Report Functions and Methods</ref>
         <ref link="Report.SaveAs Function">Report.SaveAs Function</ref>
     </see>
     <links>
@@ -176,5 +197,6 @@ sys_open( filename)]]></example>
         <link link="api null value function">null_value()</link>
         <link link="Understanding and Using Session Variables">session variables</link>
         <link link="api objects context request object">context.request.applicationRoot</link>
+        <link link="api%20objects%20response%20object%20send%20file%20method">context.response.SendFile()</link>
     </links>
 </page>
