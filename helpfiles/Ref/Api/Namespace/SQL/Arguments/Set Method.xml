@@ -49,7 +49,7 @@
         </argument>
     </arguments>
     <discussion>The Set() method adds or redefines an argument's value. You can optionally specify the usage of the argument if the argument is NULL. Returns true (.t.) if the operation is successful and false (.f.) if it fails.</discussion>
-    <example><![CDATA[dim args as SQL::Arguments
+    <example code="xb"><![CDATA[dim args as SQL::Arguments
 args.add("state", "MA")
 ? args.Find("state")
 = "MA"
@@ -64,7 +64,7 @@ args.add("state", "MA")
         <section>
             <title>Setting an Argument to NULL</title>
             <description>This example demonstrates using Set() to add a NULL argument:</description>
-            <example><![CDATA[dim args as SQL::Arguments
+            <example code="xb"><![CDATA[dim args as SQL::Arguments
 args.set("nullValue", "", SQL::ArgumentUsage::InputArgument, .t.)
 
 ? args.find("nullValue").IsNull
@@ -78,7 +78,7 @@ args.set("nullValue", "", SQL::ArgumentUsage::InputArgument, .t.)
                 <link>images/add1.png</link>
             </figure>
             <note>The *[xb:ui_msg_box]* and *[xb:sql_resultset_preview]* functions are only available in desktop applications.</note>
-            <example><![CDATA[dim conn as SQL::Connection
+            <example code="xb"><![CDATA[dim conn as SQL::Connection
 dim sql as C
 dim vCity as C
 dim args as SQL::Arguments
@@ -102,6 +102,52 @@ end if
 
 sql_resultset_preview(conn.resultset)]]></example>
         </section>
+        <section>
+            <title>Setting an Argument Array</title>
+            <description>
+                <p>An argument can be an array of values. Array arguments are often used with IN clauses. For example, in the code below an array argument is used to get a list of records with a CustomerID that matches one of the following values: "ALFKI", "BOLID", "FRANK", or "OCEAN". The resulting query is returned as JSON and displayed using *[xb:showvarjson()]*</p>
+            </description>
+            <example code="xb"><![CDATA[dim sql as c = "SELECT CustomerID, CompanyName FROM Customers WHERE CustomerID IN (:what_customers)"
+dim args as SQL::Arguments
+dim customers[0] as C
+customers.push("ALFKI")
+customers.push("BOLID")
+customers.push("FRANK")
+customers.push("OCEAN")
+
+args.set("what_customers",customers)
+
+dim cn as SQL::Connection
+if (cn.open("::Name::AADemo-Northwind")) then
+	dim JSON as C
+	JSON = cn.toJSON(sql,args)
+	showvarjson(JSON)
+	cn.close()
+end if]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Here is the JSON returned by the query:</p>
+            </description>
+            <example code="json"><![CDATA[[
+    {
+        "CustomerID": "ALFKI",
+        "CompanyName": "Alfreds Futterkiste"
+    },
+    {
+        "CustomerID": "BOLID",
+        "CompanyName": "Bólido Comidas preparadas"
+    },
+    {
+        "CustomerID": "FRANK",
+        "CompanyName": "Frankenversand"
+    },
+    {
+        "CustomerID": "OCEAN",
+        "CompanyName": "Océano Atlántico Ltda."
+    }
+]]]></example>
+        </section>
     </sections>
     <links>
         <link link="sql::argument class">SQL::Argument class</link>
@@ -109,6 +155,7 @@ sql_resultset_preview(conn.resultset)]]></example>
         <link link="sql::arguments setnull function">SQL::Arguments SetNull Function</link>
     </links>
     <see>
+        <ref link="api%20argument%20add%20array%20argument%20function">argument_add_array_argument Function</ref>
         <ref link="sql::arguments add function">SQL::Arguments Add Function</ref>
         <ref link="sql::arguments setnull function">SQL::Arguments SetNull Function</ref>
         <ref link="sql::argumentusage enumerated type">SQL::ArgumentUsage Enumerated Type</ref>
