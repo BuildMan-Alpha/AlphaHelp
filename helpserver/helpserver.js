@@ -332,7 +332,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                         var static = false;
                         if (err) {
                             console.log(err + " processing file " + filename);
-                        } else {
+                        } else { 
                             result = eval(result);
                             if (result) {
                                 if (result.page) {
@@ -662,7 +662,8 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                             if (contentDiv.length > 1) {
                                 var firstDesc = contentDiv[1].split('"/>');
                                 if (firstDesc.length > 1) {
-                                    firstDesc[0] = encodeURIComponent(removeMarkup(firstDesc[0]));
+                                    firstDesc[0] = removeMarkup(firstDesc[0]);
+                                    firstDesc[0] = firstDesc[0].replace(/"/g,"&quot;").replace(/'/g,"&apos;");
                                     contentDiv[1] = firstDesc.join('"/>');
                                     dataOut = contentDiv.join('<meta name="description" content="');
                                 }
