@@ -1,0 +1,211 @@
+<page api="xb" build="7600">
+    <shortlink>xb a5_run_async_xbasic function</shortlink>
+    <topic>a5_run_async_xbasic Function</topic>
+    <description>
+        <p>Executes Xbasic code in an Ajax Callback without waiting for the code to finish running before sending a response to the client.</p>
+    </description>
+    <prototypes>
+        <prototype>dim result as c = a5_run_async_xbasic(xbtorun as c, baseURL as c [, s3connectionString as c = ""])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>xbtorun</name>
+            <type>C</type>
+            <description>
+                <p>The Xbasic code that you want to run asynchronously. Your Xbasic code can reference a variable called __guid (the id that was assigned to the code when it was registered by the a5_run_async_xbasic() function).</p>
+            </description>
+        </argument>
+        <argument>
+            <name>baseURL</name>
+            <type>C</type>
+            <description>
+                <p>The base URL of your web site where the Xbasic code will run. The baseURL must be publicly accessible.
+                For example, the address of a page in your web site might be: https://mywebsite.com/page1.a5w. In this case, the base URL is : https://mywebsite.com.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>s3connectionString</name>
+            <type>C</type>
+            <description>
+                <p>By default the Xbasic code to run is stored in a shared repository in an S3 bucket (the code is encrypted). However, you can also put the code in your own private S3 bucket. This parameter is the connection string to your private S3 bucket. IMPORTANT: You must specify the actual connection string not the name of a named connection string.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>c</type>
+            <description>
+                <p>Returns a string that either contains *[xb:
+                Error"]* if there was an error registering the Xbasic code to run, or a GUID that can be referenced by the script executed by this function (see example below). The GUID is like a "job id" for the Xbasic code executed by this function. The script executed by this function can reference the GUID value using a variable called *[xb:__guid]*.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>When you make an Ajax callback, the server-side code that handles the request runs synchronously. That means that the client (i.e. the browser) waits for a response from the server before continuing execution. The response is either a message that the Ajax callback has finished or a Chunked response if the callback is configured to send intermediate messages during the Ajax callback.</p>
+        <p>In some cases, the Ajax callback may trigger server-side code that might be "long running" and does not require the client to wait for a response. In these cases, you may want to run the server-side code asynchronously. Ideally, the client should still be able to make occasional Ajax callbacks to check on the "status" of the long-running job.</p>
+        <p>The long running script can be executed asynchronously using the *[xb:a5_run_async_xbasic()]* helper function.</p>
+        <p>Here is a typical use case: Say you have a button on a UX or Grid component that runs several long-running reports. When the user clicks the button they need to initiate the job, but they don't need to wait for the job to complete. However, you might want to let the user click another button to find out what the "status" of their long-running job is. This status might be *[xb:"waiting"]*, *[xb:"running (completed task x of y)"]*, *[xb:"completed"]*, or any other status that you want to define.</p>
+        <p>Here is an example that runs reports and then saves the reports as PDF files in a S3 bucket. The code runs the same report multiple times (each time filtered on a different country) and then uploads the resulting PDF files to a S3 bucket.</p>
+        <p>So, when the Xbasic has completed, the S3 bucket will have file for each country. For example:</p>
+        <p>
+            <example><![CDATA[report_USA.pdf
+report_UK.pdf
+report_Austria.pdf
+etc.]]></example>
+        </p>
+        <p>This scenario Xbasic makes the following assumptions:</p>
+        <p>
+            <list bullet="true">
+                <item>
+                    <name>You have a connection string to a S3 bucket where you want to put the report PDF files</name>
+                </item>
+                <item>
+                    <name>You have set up the web repository table (see Project Properties, Repository Settings). This is where your "long-running" Xbasic code will be storing the status information.</name>
+                </item>
+                <item>
+                    <name>You have created a report called rds_customers.a5rpt and this report is based on a SQL table that has a field called country.</name>
+                </item>
+            </list>
+        </p>
+        <p>The steps to implement this use-case are as follows:</p>
+        <p>
+            <list bullet="true">
+                <item>
+                    <name>Define the Xbasic function to handle the Ajax callback. The function will "register" the code that must run asynchronously (i.e. this is the code that will run the reports)</name>
+                </item>
+                <item>
+                    <name>The Xbasic function that handles the Ajax callback will return the guid (i.e. the job id) of the Xbasic code.</name>
+                </item>
+                <item>
+                    <name>The client (i.e. the browser) will save this guid in a variable so that it can do subsequent requests to find out the status of the job.</name>
+                </item>
+            </list>
+        </p>
+        <p>Typically, your Xbasic code will update status information as it is executing by writing to the web repository table (using the Job id as the key). To write to the web repository table, use the function:</p>
+        <p>
+            <example code="xb"><![CDATA[a5w_SaveWebAppRepository("the_job_id_guid","the_job_status")]]></example>
+        </p>
+        <p>Assuming that your Xbasic code update the web repository table while it is executing, you can find out the status of your job by making an Ajax callback and executes code like this:</p>
+        <p>
+            <example code="xb"><![CDATA[a5w_GetFromWebAppRepository("the_job_id_guid")]]></example>
+        </p>
+        <p>Here is the Xbasic code that must be run asynchronously:</p>
+        <p>
+            <example code="xb"><![CDATA[on error goto failed
+    dim rn as c
+
+    'name of the report to run
+    rn ="rds_customers.a5rpt"
+    dim cs as c = "connection_string_to_the_s3_bucket_where_the_reports_should_be_saved"
+
+    'The xbasic code can reference the variable '__guid' -- this is the id of the job
+
+    'save the status of the job in the web repository table
+    a5w_SaveToWebAppRepository(__guid,"Job has been registered")
+
+    'list of countries for which the report should be printed
+    dim json as c
+    json = <<%xstr%
+[
+    {"Country" : "Argentina"},
+    {"Country" : "Austria"},
+    {"Country" : "Belgium"},
+    {"Country" : "Brazil"},
+    {"Country" : "Canada"},
+    {"Country" : "Denmark"},
+    {"Country" : "Finland"},
+    {"Country" : "France"},
+    {"Country" : "Germany"},
+    {"Country" : "Ireland"},
+    {"Country" : "Italy"},
+    {"Country" : "Mexico"},
+    {"Country" : "Norway"},
+    {"Country" : "Poland"},
+    {"Country" : "Portugal"},
+    {"Country" : "Spain"},
+    {"Country" : "Sweden"},
+    {"Country" : "Switzerland"},
+    {"Country" : "UK"},
+    {"Country" : "USA"},
+    {"Country" : "Venezuela"}
+]
+%xstr%
+
+    dim p as p
+    p = json_parse(json)
+
+    dim i as n
+    dim count as n
+    count = p.size()
+    for i = 1 to count
+        'save the current status of the job in the repository
+        dim msg as c
+        msg = "Printing report " + i + " of " + count + " (" + p[i].country + ")"
+        a5w_SaveToWebAppRepository(__guid,msg)
+
+        'define the filter for the report
+        dim o as p
+        o.filter = "country = '"+p[i].country+"'"
+
+        'get a temporary filename where the report will be saved
+        dim fn as c
+        fn = a5_GetTempFilename("pdf")
+
+        'print the report to a temporary pdf file
+        fn = a5w_report_saveas(rn,"Pdf","","",fn,null_value(),null_value(),null_value(),o)
+        if file.exists(fn) then
+            'if the report succeeded (i.e. the file fn exists), upload it to the S3 bucket
+            dim b as b b = file.to_blob(fn)
+            'save the report in a s3 bucket
+            dim objectname as c = "report_" + p[i].country + ".pdf" a5Storage_saveData(cs,b,objectname)
+        else
+            dim objectname as c = "FAILED_" + p[i].country + ".txt"
+            dim b as b = "failed" 
+            a5Storage_saveData(cs,b,objectname)
+        end if
+    next i
+
+    'the job is done, update the status in the web repository
+    msg = "Completed"
+    a5w_SaveToWebAppRepository(__guid,msg)
+
+    end
+
+failed:
+    'error handling in case there is an error.
+    dim b as b
+    b = error_text_get() + " line: " + error_line_get()
+    dim msg as c
+    msg = "Error: " + b
+    a5w_SaveToWebAppRepository(__guid,msg)
+
+    'create an object in the S3 bucket with information about the error
+    a5Storage_saveData(cs,b,"error.txt")]]></example>
+        </p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Videos</title>
+        </section>
+        <section>
+            <videos>
+                <title>Executing "long-running" Xbasic Code Asynchronously in an Ajax Callback</title>
+                <description>
+                    <p>When an Ajax callback is made from a Grid or UX component, the server-side code executes synchronously. The client will wait for a response from the server. This response is typically sent when the server-side code completes. However, the browser will only wait a certain amount of time for the server to send a response. If the server-side code takes a long time to execute, the browser will likely have stopped listening (i.e. the Ajax request will time out) for a response. Furthermore on IIS (which includes Alpha Cloud), as soon as the browser stops listening for a response the server will stop executing the server-side code.</p>
+                    <p>Because of all of the above, it is not appropriate to execute 'long-running' server-side code in an Ajax callback, unless the code can be run asynchronously.</p>
+                    <p>In this video, we show how you can run Xbasic code asynchronously in an Ajax callback. We also show how you can make periodic callbacks to the server to get the status of the asynchronous Xbasic.</p>
+                </description>
+                <date>2021-04-07</date>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/xb_runasync1.mp4</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/xb_runasync2.mp4</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+</page>
