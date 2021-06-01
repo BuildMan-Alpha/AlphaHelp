@@ -1,0 +1,114 @@
+<page api="xb" build="7690">
+    <shortlink>xb a5_createSQLTablesFromExcelFile function</shortlink>
+    <topic>a5_createSQLTablesFromExcelFile Function</topic>
+    <description>
+        <p>Creates tables in a database from an Excel file.</p>
+    </description>
+    <prototypes>
+        <prototype>dim result as c = A5_createSQLTablesFromExcelFile(filename as c, connectionString as c [, mode as c [, tableNamePrefix as c]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>filename</name>
+            <type>c</type>
+            <description>
+                <p>The filename of the Excel file.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>connectionString</name>
+            <type>c</type>
+            <description>
+                <p>The connection string for the target Database.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>mode</name>
+            <type>c</type>
+            <description>
+                <p>The action to take if an existing table in the target database is found. Can be 'skip' or 'overwrite'.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>tableNamePrefix</name>
+            <type>c</type>
+            <description>
+                <p>A prefix to use for each table created in the target database.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>C</type>
+            <description>
+                <p>Returns a JSON string with information for each sheet in the Excel file (see example below)</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The *[xb:a5_createSQLTablesFromExcelFile()]* function allows you to export data from an Excel file to a SQL database.</p>
+        <p>
+            <list bullet="true">
+                <item>
+                    <name>The Excel file can have one or more sheets.</name>
+                </item>
+                <item>
+                    <name>Each sheet in the Excel file will become a table in the SQL database.</name>
+                </item>
+                <item>
+                    <name>Alpha Anywhere will automatically compute the schema for each table in the SQL database. Alpha Anywhere can determine if the data in the Excel file is *[character]*, *[numeric]*, *[dateTime]* or *[logical]*.</name>
+                </item>
+                <item>
+                    <name>For character fields, Alpha Anywhere will automatically compute the appropriate size (by taking the length of the largest value in column and adding an additional 3 spaces). If the computed size is greater than *[255]*, the field is designated as a *[longtext]* (i.e. *[memo]* field)</name>
+                </item>
+                <item>
+                    <name>For *[numeric]* fields, Alpha Anywhere will automatically compute the field *[size]* and number of *[decimal]* places.</name>
+                </item>
+                <item>
+                    <name>A column in the Excel file is considered to be a *[logical]* value if the column has only 1 or 2 unique values, and the unique values match one of the following values: *[0]*, *[1]*, *[yes]*, *[no]*, *[true]*, *[false]*, *[on]*, *[off]*</name>
+                </item>
+                <item>
+                    <name>On each sheet, if the first column contains unique values, that column will be the table's primary key, otherwise an additional numeric, auto-increment field is added to the table and that field is designated as the table's primary key</name>
+                </item>
+                <item>
+                    <name>If the first column in each sheet contains unique, monotonic, numeric values the primary key is designated as an auto-increment field.</name>
+                </item>
+                <item>
+                    <name>When the tables are created in the target database, if an existing table is found, you can either *[xb:overwrite]* the existing table or *[xb:skip]* it.</name>
+                </item>
+                <item>
+                    <name>You can specify an optional prefix for each table name in the target database. For example, if the sheet name in the Excel file is *[xb:customers]* and the prefix is *[xb:imported_]*, the table name in the database will be *[xb:imported_customers]*.</name>
+                </item>
+                <item>
+                    <name>The function will return a JSON string that indicates whether a table was successfully created in the target database for each sheet in the Excel file, and if a table was successfully created, how many records were imported into the table.</name>
+                </item>
+            </list>
+        </p>
+        <p>For example:</p>
+        <p>
+            <example code="xb"><![CDATA[dim fn as c
+fn= "C:\data\sampledata.xlsx"
+cs = "ImportedTables"
+mode = "overwrite"
+tablenameprefix = ""
+json = A5_createSQLTablesFromExcelFile(fn,cs,mode,tablenameprefix)
+
+?json
+=[
+    { "tableName": "Sheet1", "tableCreated": true, "recordsImported": 2155, "importError": false
+        }
+]]]></example>
+        </p>
+        <p>If a table called 'Sheet1' already existed in the target database, and if the mode was set to *[xb:"skip"]*, the JSON returned by the function would be: </p>
+        <p>
+            <example code="json"><![CDATA[[
+    {
+        "tableName": "Sheet1",
+        "tableCreated": false,
+        "errortext": "Table already exists"
+    }
+]]]></example>
+        </p>
+    </discussion>
+</page>
