@@ -428,7 +428,7 @@
                 <div class="figureContainer">
                     <xsl:choose>
                         <xsl:when test="content"><div class="sectionFigure"><xsl:value-of select="content" disable-output-escaping="yes" /></div> </xsl:when>
-                        <xsl:otherwise> <a xsl:use-attribute-sets="href-link" class="sectionFigure"> <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:if test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:if> </xsl:element> </a></xsl:otherwise>
+                        <xsl:otherwise> <a xsl:use-attribute-sets="href-link" class="sectionFigure"> <xsl:element name="img"> <xsl:attribute name="src"> <xsl:value-of select="link" /> </xsl:attribute> <xsl:choose><xsl:when test="alt"> <xsl:attribute name="alt"> <xsl:value-of select="alt" /> </xsl:attribute> </xsl:when> <xsl:otherwise><xsl:attribute name="alt"> <xsl:value-of select="link" /> </xsl:attribute></xsl:otherwise></xsl:choose> </xsl:element> </a></xsl:otherwise>
                     </xsl:choose>
                     <xsl:if test="title">
                         <div class="figureTitle">
