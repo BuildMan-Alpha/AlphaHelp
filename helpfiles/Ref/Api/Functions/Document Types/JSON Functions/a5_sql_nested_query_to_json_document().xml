@@ -1,6 +1,7 @@
 <page api="xb">
     <shortlink>a5_sql_nested_query_to_json_document Function</shortlink>
     <topic>a5_sql_nested_query_to_json_document Function</topic>
+    <description>The a5_sql_nested_query_to_json_document() Function queries one or more SQL databases and returns a JSON document with the query result. </description>
     <prototype>P result = a5_sql_nested_query_to_json_document(options as P, Args as SQL::Arguments [, Mode as C])</prototype>
     <arguments>
         <argument>
@@ -9,19 +10,29 @@
             <description>The options object that is passed into the function has these properties:</description>
             <properties>
                 <property optional="true">
-                    <name>options.connectionString</name>
+                    <name>connectionString</name>
                     <type>C</type>
                     <description>The connection string for the query. This is an optional property. You can also specify a query string to use for each nested query. If you do not specify options.connectionString, then you MUST specify a connection string for each query. Typically, you will querying against a single database, and so it is most efficient to specify the options.connectionString parameter and NOT specify a connection string for each SQL statement.</description>
                 </property>
                 <property>
-                    <name>options.SQL</name>
+                    <name>SQL</name>
                     <type>C</type>
                     <description>A CRLF delimited list of SQL statements to execute. The indentation in the parameter indicates the hierarchy of the query. See below for more details.</description>
                 </property>
                 <property optional="true">
-                    <name>options.flagUseSubSelects</name>
+                    <name>flagUseSubSelects</name>
                     <type>L</type>
                     <description>Indicates if child SQL queries use a SQL Sub-select in the WHERE clause. If you are querying against a single database then this is the most efficient option. If each query specifies its own connection string, then this flag must be set to .f.. </description>
+                </property>
+                <property optional="true">
+                    <name>sparse</name>
+                    <type>L</type>
+                    <description>If *[xb:.T.]*, suppresses parent key values in child records.</description>
+                </property>
+                <property optional="true">
+                    <name>convertToText</name>
+                    <type>L</type>
+                    <description>If *[xb:.T.]*, converts all dates to strings. If *[xb:.F.]*, preserves data types.</description>
                 </property>
             </properties>
         </argument>
@@ -33,36 +44,49 @@
         <argument optional="true">
             <name>Mode</name>
             <type>C</type>
-            <description></description>
+            <description>Internal use only.</description>
+        </argument>
+        <argument optional="true">
+            <name>wfin</name>
+            <type>P</type>
+            <description>
+                <p>Internal use only.</p>
+            </description>
         </argument>
     </arguments>
-    <description>The a5_sql_nested_query_to_json_document() Function queries one or more SQL databases and returns a JSON document with the query result. </description>
+    <returns>
+        <return>
+            <name>result</name>
+            <types>
+                <type>P</type>
+            </types>
+            <description>
+                <p>The returned result has the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>hasError</name>
+                    <type>L</type>
+                    <description>.t. or .f. depending on whether the function returns an error.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>The error text if hasError is .t.</description>
+                </property>
+                <property>
+                    <name>data</name>
+                    <type>C</type>
+                    <description>The JSON data returned by the function</description>
+                </property>
+            </properties>
+        </return>
+    </returns>
     <discussion>This function is inspired by NoSQL databases that return a JSON document with a query result. The JSON document return by such a query often contains nested JSON documents. For example for each customer, show orders for that customer, and for each order, show order details for that order.</discussion>
     <sections>
         <section>
-            <description>The returned result has the following properties:</description>
-            <list>
-                <item>
-                    <name-title>Property</name-title>
-                    <description-title>Description</description-title>
-                </item>
-                <item>
-                    <name>hasError</name>
-                    <description>.t. or .f. depending on whether the function returns an error.</description>
-                </item>
-                <item>
-                    <name>errorText</name>
-                    <description>the error text if hasError is .t.</description>
-                </item>
-                <item>
-                    <name>data</name>
-                    <description>the JSON data returned by the function</description>
-                </item>
-            </list>
-        </section>
-        <section>
             <title>Example</title>
-            <description>For example, here is a sample JSON document returned by this function showing customers, nested orders, and nested order details:</description>
+            <description>Here is a sample JSON document returned by this function showing customers, nested orders, and nested order details:</description>
             <example><![CDATA[{
     "customer": [
         {
@@ -99,7 +123,7 @@
 ]]></example>
         </section>
         <section>
-            <title>options.SQL parameter:</title>
+            <title>options.SQL parameter</title>
             <description>Example:</description>
             <example><![CDATA[options.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
@@ -208,7 +232,6 @@ p = a5_sql_nested_query_to_json_document(ops,args)
                     "ShipAddress": "24, place Klöber",
                     "ShipName": "Blondel piére et fils",
                     truncated for brevity......
-
 ]]></example>
         </section>
         <section>
@@ -221,7 +244,6 @@ ops.sql = <<%txt%
         {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId'}
 %txt%
 
-
 dim args as sql::Arguments
 args.add("whatCountry","France")
 p = a5_sql_nested_query_to_json_document(ops,args)
@@ -233,18 +255,18 @@ p = a5_sql_nested_query_to_json_document(ops,args)
             <description>A three level query, where each query is in a different database (the connection string is specified for each query). </description>
             <example><![CDATA['since each query specifies its own connection string, the flagUseSubSelects flag must 
 'be set to .f.
-
 ops.flagUseSubSelects = .f.
+
 ops.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' , connectionString: '::Name::northwind'}
     {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', connectionString: '::Name::northwind2'}
         {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId' , connectionString: '::Name::northwind2'}
 %txt%
+
 dim args as sql::Arguments
 args.add("whatCountry","France")
-p = a5_sql_nested_query_to_json_document(ops,args)
 
-]]></example>
+p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
         </section>
         <section>
             <title>Limiting the Number of Child Records</title>
@@ -259,20 +281,16 @@ ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
     {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
-%txt%
-]]></example>
+%txt%]]></example>
             <note>If you do use a FIRST clause in a child SQL statement, the SQL statement is automatically parsed and the FIRST clause is removed and converted into a 'limit' property in the JSON definition. So, the following two objects are actually equivalent:</note>
         </section>
         <section>
-            <example><![CDATA[dim ops as p
-ops.connectionString = "::Name::northwind"
+            <example><![CDATA[ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
     {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
 %txt%
 
-
-dim ops as p
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
@@ -282,15 +300,15 @@ ops.sql = <<%txt%
         <section>
             <title>Eliminating Key Values</title>
             <description>By default, the JSON that is created shows the parent key value in the child data. For example in the example JSON shown below (which shows a customer, and all of their orders), the 'CustomerID' property is shown n each item in the 'orders' array. This is really not necessary.</description>
-            <example><![CDATA[ = {
+            <example><![CDATA[= {
     "customer": [
         {
             "CustomerID": "BLONP",
-            "orders": [
             "CompanyName": "Blondesddsl piére et fils",
+            "orders": [
                 {
                     "OrderID": "10265",
-            "ContactName": "Frédérique Citeaux",
+                    "ContactName": "Frédérique Citeaux",
                     "CustomerID": "BLONP",
                     "EmployeeID": "2",
                     "OrderDate": "07/25/1996 12:00:00 00 am",
@@ -315,16 +333,16 @@ p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
         </section>
         <section>
             <description>would result in JSON that looked like this:</description>
-            <example><![CDATA[ "customer": [
-                {
-                    "customerId": "GREAL",
-                    "companyName": "Great Lakes Food Market",
-                    "orders": [
-                                    {
-                                        "orderid": 10528,
-                                        "orderdate": new Date(1997,05,06,00,00,0),
-                                        "value": 10528,
-                                        ........]]></example>
+            <example><![CDATA["customer": [
+    {
+        "customerId": "GREAL",
+        "companyName": "Great Lakes Food Market",
+        "orders": [
+            {
+                "orderid": 10528,
+                "orderdate": new Date(1997,05,06,00,00,0),
+                "value": 10528,
+                truncated for brevity......]]></example>
         </section>
         <section>
             <description>Notice that the 'orderDate, orderId, and value properties are typed.</description>
