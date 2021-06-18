@@ -12,17 +12,48 @@
                 <property optional="true">
                     <name>connectionString</name>
                     <type>C</type>
-                    <description>The connection string for the query. This is an optional property. You can also specify a query string to use for each nested query. If you do not specify options.connectionString, then you MUST specify a connection string for each query. Typically, you will querying against a single database, and so it is most efficient to specify the options.connectionString parameter and NOT specify a connection string for each SQL statement.</description>
+                    <description>The connection string for the query. This is an optional property. You can also specify a query string to use for each nested query. If you do not specify *[xb:connectionString]*, then you MUST specify a connection string for each query. Typically, you are querying against a single database, so it's more efficient to specify the *[xb:connectionString]* property instead of a connection string for each SQL statement.</description>
                 </property>
                 <property>
                     <name>SQL</name>
                     <type>C</type>
-                    <description>A CRLF delimited list of SQL statements to execute. The indentation in the parameter indicates the hierarchy of the query. See below for more details.</description>
+                    <description>
+                        <p>A CRLF delimited list of JSON objects containing the SQL statements to execute. The indentation in the parameter (using tabs) indicates the hierarchy of the query. See [below] for more details.</p>
+                        <p>Each JSON object has the following properties:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>*[xb:sql]*</name>
+                                    <description>Required. The SQL statement to execute.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:name]*</name>
+                                    <description>Required. A unique name identifying this query. This name is used for the child records in the generated JSON document.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:parentKey]*</name>
+                                    <description>Only required for child queries. Defines the field in the child SQL statement that joins the child query with the parent query.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:key]*</name>
+                                    <description>Only required for child queries. Defines the field in the child's parent SQL query that joins the child query with the parent query.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:connectionString]*</name>
+                                    <description>Required if *[xb:options.connectionString]* is not specified or if the SQL queries retrieve data from different databases.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:limit]*</name>
+                                    <description>Optional. The maximum number of records to retrieve for the query.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
                 </property>
                 <property optional="true">
                     <name>flagUseSubSelects</name>
                     <type>L</type>
-                    <description>Indicates if child SQL queries use a SQL Sub-select in the WHERE clause. If you are querying against a single database then this is the most efficient option. If each query specifies its own connection string, then this flag must be set to .f.. </description>
+                    <description>Indicates if child SQL queries use a SQL Sub-select in the WHERE clause. If you are querying against a single database, this is the most efficient option. If each query specifies its own connection string, then this flag must be set to *[xb:.F.]*. </description>
                 </property>
                 <property optional="true">
                     <name>sparse</name>
@@ -39,7 +70,7 @@
         <argument>
             <name>Args</name>
             <type>SQL::Arguments</type>
-            <description>A SQL::Arguments object that defines any arguments used by SQL statements listed in the options.SQL property.</description>
+            <description>The arguments used by SQL statements defined in the *[xb:SQL]* property.</description>
         </argument>
         <argument optional="true">
             <name>Mode</name>
@@ -61,23 +92,23 @@
                 <type>P</type>
             </types>
             <description>
-                <p>The returned result has the following properties:</p>
+                <p>Returns an object with the following properties:</p>
             </description>
             <properties>
                 <property>
                     <name>hasError</name>
                     <type>L</type>
-                    <description>.t. or .f. depending on whether the function returns an error.</description>
+                    <description>*[xb:.T.]* if the operation succeed. Otherwise, *[xb:.F.]*</description>
                 </property>
                 <property>
                     <name>errorText</name>
                     <type>C</type>
-                    <description>The error text if hasError is .t.</description>
+                    <description>If *[xb:hasError]* is *[xb:.T.]*, contains additional information about why the query failed.</description>
                 </property>
                 <property>
                     <name>data</name>
                     <type>C</type>
-                    <description>The JSON data returned by the function</description>
+                    <description>A JSON string containing the results of the query.</description>
                 </property>
             </properties>
         </return>
@@ -85,7 +116,6 @@
     <discussion>This function is inspired by NoSQL databases that return a JSON document with a query result. The JSON document return by such a query often contains nested JSON documents. For example for each customer, show orders for that customer, and for each order, show order details for that order.</discussion>
     <sections>
         <section>
-            <title>Example</title>
             <description>Here is a sample JSON document returned by this function showing customers, nested orders, and nested order details:</description>
             <example><![CDATA[{
     "customer": [
@@ -124,55 +154,38 @@
         </section>
         <section>
             <title>options.SQL parameter</title>
-            <description>Example:</description>
+            <description>The example below shows how to set the *[xb:options.sql]* parameter:</description>
             <example><![CDATA[options.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
-    {sql:'select * from orders', name: 'orders', parentKey: 'cId', key: 'cId'}
+	{sql:'select * from orders', name: 'orders', parentKey: 'cId', key: 'cId'}
 %txt%]]></example>
         </section>
         <section>
-            <description>Notice that the options.sql property is a CRLF delimited string of JSON strings in this format:</description>
+            <description>Notice that the *[xb:options.sql]* property is a CRLF delimited string of JSON strings in this format:</description>
             <example><![CDATA[options.SQL = <<%txt%
 {JSON string 1}
-    {JSON string2}
+	{JSON string2}
 %txt%]]></example>
         </section>
         <section>
-            <description>   
-                <p>The fact that {JSON string 2} is indented (using a single Tab character NOT spaces) is significant. The indentation indicates that this query is an immediate child of the query in the line above it.</p>
+            <description>
+                <p>The fact that *[xb:{JSON string 2}]* is indented (using a single Tab character NOT spaces) is significant. The indentation indicates that this query is an immediate child of the query in the line above it.</p>
                 <p>You can have multiple levels of indentation. and multiple queries with the same parent, for example:</p>
             </description>
             <example><![CDATA[options.SQL = <<%txt%
 {JSON string 1}
-    {JSON string2}
-        {JSON string 3}
-    {JSON string 4}
+	{JSON string2}
+		{JSON string 3}
+	{JSON string 4}
 %txt%]]></example>
         </section>
         <section>
-            <description>In the above example, the SQL query defined by {JSON string 3} is a child of {JSON string2}. The query defined by {JSON string 1} has two child queries. A real world example of an hierarchy that would be defined using the above structure might be:</description>
+            <description>In the above example, the SQL query defined by *[xb:{JSON string 3}]* is a child of *[xb:{JSON string2}]*. The query defined by *[xb:{JSON string 1}]* has two child queries. A real world example of an hierarchy that would be defined using the above structure might be:</description>
             <example><![CDATA[Customers
-     Orders
-            OrderDetails
-    Payments
+	Orders
+		OrderDetails
+	Payments
 ]]></example>
-        </section>
-        <section>
-            <description>The individual JSON strings each have these properties</description>
-            <cases>
-                <case>
-                    <description>sql - The actual SQL statement to execute</description>
-                </case>
-                <case>
-                    <description>name - An arbitrary name. Must be unique. This name is used for the child records in the JSON document that is returned.</description>
-                </case>
-                <case>
-                    <description>parentKey  - Only required for child queries. Defines the field in the child SQL statement that joins the child query with the parent query.</description>
-                </case>
-                <case>
-                    <description>key - Only required for child queries. Defines the field in the child's parent SQL query that joins the child query with the parent query.</description>
-                </case>
-            </cases>
         </section>
         <section>
             <title>Example 1 - Simple two level query</title>
@@ -180,7 +193,7 @@
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
 %txt%
 dim args as sql::Arguments
 args.add("whatCountry","France")
@@ -240,8 +253,8 @@ p = a5_sql_nested_query_to_json_document(ops,args)
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' }
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
-        {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId'}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+		{sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId'}
 %txt%
 
 dim args as sql::Arguments
@@ -259,8 +272,8 @@ ops.flagUseSubSelects = .f.
 
 ops.sql = <<%txt%
 {sql: 'select * from customers where country = :whatCountry ', name: 'customer' , connectionString: '::Name::northwind'}
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', connectionString: '::Name::northwind2'}
-        {sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId' , connectionString: '::Name::northwind2'}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', connectionString: '::Name::northwind2'}
+		{sql: 'select * from [order details]', name: 'orderDetails', parentKey: 'orderId', key: 'orderId' , connectionString: '::Name::northwind2'}
 %txt%
 
 dim args as sql::Arguments
@@ -271,7 +284,7 @@ p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
         <section>
             <title>Limiting the Number of Child Records</title>
             <description>
-                <p>If you want to limit the number of records retrieved at any level in the hierarchy, you can.</p>
+                <p>If you want to limit the number of records retrieved at any level in the hierarchy, you can using the limit property.</p>
                 <p>To limit the number of records at the top level of the hierarchy, you would simply use the FIRST clause in your SQL select statement. However, for child queries, using the FIRST clause in the SQL will not work (because you want the FIRST n records within EACH parent group, not the FIRST n records in ALL parent groups).</p>
                 <p>To limit the number of records in a child query, you use the 'limit' property in the JSON object that defines the query.</p>
                 <p>For example in the code shown below we are fetching the first 5 orders for each customer:</p>
@@ -280,7 +293,7 @@ p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
 %txt%]]></example>
             <note>If you do use a FIRST clause in a child SQL statement, the SQL statement is automatically parsed and the FIRST clause is removed and converted into a 'limit' property in the JSON definition. So, the following two objects are actually equivalent:</note>
         </section>
@@ -288,13 +301,13 @@ ops.sql = <<%txt%
             <example><![CDATA[ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
 %txt%
 
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
-    {sql: 'select FIRST 5 * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
+	{sql: 'select FIRST 5 * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId'}
 %txt%]]></example>
         </section>
         <section>
@@ -322,7 +335,7 @@ ops.sparse = .t.
 ops.connectionString = "::Name::northwind"
 ops.sql = <<%txt%
 {sql: 'select * from customers', name: 'customer' }
-    {sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
+	{sql: 'select * from orders', name: 'orders', parentKey: 'customerid', key: 'customerId', limit: 5}
 %txt%]]></example>
         </section>
         <section>
@@ -345,9 +358,12 @@ p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
                 truncated for brevity......]]></example>
         </section>
         <section>
-            <description>Notice that the 'orderDate, orderId, and value properties are typed.</description>
+            <description>Notice that the 'orderDate', 'orderId', and 'value' properties are typed.</description>
         </section>
     </sections>
+    <links>
+        <link href="#section1_options.SQL%20parameter">below</link>
+    </links>
     <see>
         <ref link="a5_merge_json_into_template Function">a5_merge_json_into_template()</ref>
         <ref link="a5_url_from_storagejsonformat Function">a5_url_from_storagejsonformat()</ref>
