@@ -1,0 +1,76 @@
+<page>
+    <shortlink>howto populate list choices</shortlink>
+    <topic>How do I Dynamically Populate the Choices for a List Field?</topic>
+    <description>List fields can be dynamically populated when opened using the ON *editor event.</description>
+    <sections>
+        <section>
+            <description>
+                <p>The list field can be populated dynamically in the ON *editor event for the List. The event is passed an object that represents the List field. You can retrieve the object using the *[tpl:args()]* function:</p>
+                <p>
+                    <example code="tpl"><![CDATA[listChoices = args(1)]]></example>
+                </p>
+                <p>The object has a property, *[tpl:qList]*, that defines what choices are shown for the List. *[tpl:qList]* is an array of objects that contain the following properties:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>*[tpl:text]*</name>
+                            <description>The text to display in the choice list.</description>
+                        </item>
+                        <item>
+                            <name>*[tpl:value]*</name>
+                            <description>An optional value for the displayed choices. The value can be different from the text shown to the user.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>For example, the code below shows how to populate a List with a selection of colors:</p>
+                <p>
+                    <example code="tpl"><![CDATA[ON *editor_colors
+    listChoices = args(1)
+
+    colors = array()
+    arrayPush(colors, obj("text","Red"))
+    arrayPush(colors, obj("text","Orange"))
+    arrayPush(colors, obj("text","Yellow"))
+    arrayPush(colors, obj("text","Green"))
+    arrayPush(colors, obj("text","Blue"))
+    arrayPush(colors, obj("text","Purple"))
+
+    listChoices.qList = colors
+ENDON]]></example>
+                </p>
+                <p>The optional *[tpl:value]* property can be used to set a stored value different from the displayed value. This lets you create a list where the displayed value is a Customer's but the stored value is their customer ID. For example, the code below retrieves a list of customers from a SQLite database from the on-device assets. It then creates a list of choices where the displayed value (*[tpl:text]*) is the Contact Name and the stored value (*[tpl:value]*) is the Customer ID.</p>
+                <p>
+                    <example code="tpl"><![CDATA[ON *editor_Customers
+    ' Get an object for the field's list editor
+    s = args(1)
+
+    db = "SQLiteNorthwind.db"
+    sql = "SELECT CustomerID, ContactName FROM customers"
+    sqlresults = phoneGapTFExecuteSQL(db, sql)
+
+    choices = array()
+    if sqlresults.length<1
+        arrayPush(choices, obj("value","No customers"))
+        s.qList = choices
+        return ' No query results
+    endif
+
+    FOR i=0 TO len(sqlresults)-1
+
+        row = sqlresults[i]
+        name = row.ContactName
+        id = row.CustomerID
+
+        ' Add the Contact Name to the list of choices
+        arrayPush(choices, obj("text",name,"value",id))
+
+    ENDFOR
+
+    s.qList = choices
+
+ENDON]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
+</page>
