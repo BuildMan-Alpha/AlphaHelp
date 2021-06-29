@@ -99,25 +99,53 @@
     <discussion>The HTTP_POST() function downloads from URL using HTTP/1.1 POST. The function returns a pointer with the parsed response from the server. If *[xb:error_code]* is "0", *[xb:parsed_response]* will contain the headers in the result:</discussion>
     <sections>
         <section>
-            <example code="xb"><![CDATA[? amazon_response.parsed_headers
-= Connection = "close"
-ContentType = "text/html;charset=UTF-8"
-Date = "Thu, 22 Dec 2016 22:55:14 GMT"
+            <example code="xb"><![CDATA[dim url as c = "https://jsonplaceholder.typicode.com/posts"
+dim body as p
+body.title = "This is an example"
+body.body = "It contains some text"
+body.userId = 1
+
+dim req_body as c = json_generate(body)
+
+result = http_post(url, req_body)
+? result.error_code
+= 0
+
+? result.parsed_headers
+= AccessControlAllowCredentials = "true"
+AccessControlExposeHeaders = "Location"
+altsvc = h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+CacheControl = "no-cache"
+CFCacheStatus = "DYNAMIC"
+CFRAY = "667112ddad3c17ed-EWR"
+cfrequestid = "0afa8a1e8b000017ed529ce000000001"
+Connection = "close"
+ContentLength = "132"
+ContentType = "application/json; charset=utf-8"
+Date = "Tue, 29 Jun 2021 18:03:48 GMT"
+Etag = W/"84-xkcUSamvZej8jitZ3eZT7zryuxs"
+ExpectCT = max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+Expires = "-1"
 http_version = "HTTP/1.1"
-reason_phrase = "OK"
-Server = "Server"
-SetCookie = "session-id-time=2113167314l; Domain=.amazon.com; Expires=Wed, 17-Dec-2036 22:55:14 GMT; Path=/"
-status_code = 200
-StrictTransportSecurity = "max-age=47474747; includeSubDomains; preload"
-Vary = "Accept-Encoding,User-Agent"
-xamzid1 = "AZ9PQH4SJQ41F075Z3SD"
-XFrameOptions = "SAMEORIGIN"
-xuacompatible = "IE=edge"]]></example>
+Location = "http://jsonplaceholder.typicode.com/posts/101"
+NEL = {"report_to":"cf-nel","max_age":604800}
+Pragma = "no-cache"
+reason_phrase = "Created"
+ReportTo = {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v2?s=%2BQzj1CipvYUEOIi9werXqGq6kezX8jVgw6PN6cQvqH6qZogYk8dr5%2BOmFYkPgyzTjcUpj%2B9%2F3c4pA9f2yQZ1LRl4UdYG6n8tdkffdCpthF0FH9Eqm%2B1ESDIER6%2BOa2Z24vxEt2rK7qotSA%3D%3D"}],"group":"cf-nel","max_age":604800}
+Server = "cloudflare"
+status_code = 201
+Vary = "Origin, X-HTTP-Method-Override, Accept-Encoding"
+Via = "1.1 vegur"
+XContentTypeOptions = "nosniff"
+XPoweredBy = "Express"
+XRatelimitLimit = "1000"
+XRatelimitRemaining = "999"
+XRatelimitReset = "1624989871"]]></example>
             <note>HTTP_POST sends using a content type of "Content-Type: application/x-www-form-urlencoded". To send a request using a different content type, use [HTTP_FETCH()].</note>
         </section>
         <section>
             <description>Status code 200 indicates that the page exists. Status code 404 indicates that it does not. Other status codes you may encounter, along with the meanings of each, are documented in [Status Codes].</description>
-        </section>        
+        </section>
         <section>
             <title>Handling Redirects</title>
             <description>When the server responds with a 30* code, HTTP_POST() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</description>
@@ -125,30 +153,6 @@ xuacompatible = "IE=edge"]]></example>
         <section>
             <title>HTTP POST vs HTTP GET</title>
             <description>HTTP POST is different from HTTP GET in two significant ways. Some devices may restrict the total length of a URL to 128 characters, which may trim the arguments appended by a GET command. There is no such restriction with POST commands. You may save (bookmark) and refresh URLs formatted through HTTP GET. The arguments sent by HTTP POST are not saved in a bookmark.</description>
-        </section>
-    </sections>
-    <sections>
-        <section>
-            <title>Example</title>
-            <description>Search Amazon.com for a book.</description>
-            <example code="xb">
-                <![CDATA[dim bookname as C
-bookname = ui_get_text("book name", "What book are you looking for?")
-
-dim req_body as C
-req_body = "url=index%3Dstripbooks&field-keywords=" + urlencode(bookname) + "&go.x=1&go.y=1&go=Go"
-dim amazon_search as P
-amazon_search = http_post("https://www.amazon.com/exec/obidos/search-handle-form/103-9603918-793183", req_body)
-
-if (amazon_search.error_code = 0) then
-    if (amazon_search.parsed_headers.status_code = 200) then
-        a5_show_html(amazon_search.body)
-    else
-        ui_msg_box("An error occurred.","An error occurred. Status Code is " + amazon_search.parsed_headers.status_code + ". Reason: " + amazon_search.parsed_headers.reason_phrase)
-    end if
-else
-    ui_msg_box("An error occurred.","Unable to reach server."+crlf()+"Error Code: "+amazon_search.error_code+crlf()+"Error Message: " + amazon_search.error_text)
-end if]]></example>
         </section>
     </sections>
     <links>

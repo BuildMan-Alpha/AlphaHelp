@@ -138,22 +138,26 @@ XTrace = "2B6A4B63690779FED0913D6BF90FF40AB4098349DC000000000000000000"]]></exam
             <example code="xb">
                 <![CDATA[dim url as C = "support.alphasoftware.com"
 dim result as P
-result = http_fetch(url)
+result = http_get(url)
 
 if (result.error_code == 0) then
-    if (result.parsed_headers.status_code = 302) then
-        ' Page has been redirected; fetch page from
-        ' new URL specified in parsed_headers.location:
+    while (result.parsed_headers.status_code == 302 .or. result.parsed_headers.status_code == 301)
         result = http_get(result.parsed_headers.Location)
-
-        if (result.parsed_headers.status_code <> 200) then
-            ' Request returned with an error.
-            ui_msg_box("Error","The request returned with the following status code: " + result.parsed_headers.status_code,UI_STOP_SYMBOL)
+        if (result.error_code <> 0)
+            showvar(result.error_text)
             end
-        else
-            ' status 200
         end if
+    end while
+    if (result.parsed_headers.status_code <> 200) then
+        ' Request returned with an error.
+        ui_msg_box("Error","The request returned with the following status code: " + result.parsed_headers.status_code,UI_STOP_SYMBOL)
+        showvar(result.parsed_headers)
+        end
+    else
+        ' status 200
+        showvar(result)
     end if
+    
 else
     ui_msg_box("Error","The request failed with the following error code: " + result.error_code + crlf() + "Error details: " + result.error_text)
 end if]]>
