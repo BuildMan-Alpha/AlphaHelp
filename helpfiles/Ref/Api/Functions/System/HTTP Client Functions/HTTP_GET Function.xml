@@ -94,22 +94,40 @@
     <discussion>The HTTP_GET() function downloads from a URL using HTTP/1.1 GET. The function supports cookies and returns a pointer with the parsed response from the server. If *[xb:error_code]* is "0", *[xb:parsed_response]* will contain the headers in the result:</discussion>
     <sections>
         <section>
-            <example code="xb"><![CDATA[result = http_get("www.alphasoftware.com")
-? result.parsed_headers
-= AcceptRanges = "none"
-CacheControl = "private"
-Connection = "close"
-ContentLength = "47222"
-ContentType = "text/html"
-Date = "Thu, 22 Dec 2016 23:22:53 GMT"
-http_version = "HTTP/1.1"
-reason_phrase = "OK"
-Server = "Microsoft-IIS/8.5"
-SetCookie = "ASPSESSIONIDQSTBASCQ=BEABFDNBKOJHODCBLBBPAHIG; path=/"
-status_code = 200
-XPoweredBy = "ASP.NET"
+            <example code="xb"><![CDATA[result = http_get("https://www.alphasoftware.com")
 
-]]></example>
+? result.error_code
+= 0
+
+? result.parsed_headers
+= AccessControlAllowCredentials = "false"
+CacheControl = "s-maxage=0,max-age=0"
+CFCacheStatus = "MISS"
+CFRay = "6670eee43f011a70-EWR"
+cfrequestid = "0afa73a2a600001a70d0247000000001"
+Connection = "close"
+ContentSecurityPolicy = "upgrade-insecure-requests"
+ContentType = "text/html;charset=utf-8"
+Date = "Tue, 29 Jun 2021 17:39:15 GMT"
+EdgeCacheTag = "CT-35182565649,P-106714,L-35181923534,L-5604761998,CW-24331389464,CW-35229429723,CW-5735045208,CW-5735324780,CW-5737318041,E-2213003845,E-34723407283,E-48984798551,E-5218256228,E-5218258420,E-5218269128,E-5218270162,PGS-ALL,SW-1,GC-28400762621"
+ExpectCT = max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+http_version = "HTTP/1.1"
+Link = "</hs/hsstatic/cos-i18n/static-1.37/bundles/project.js>; rel=preload; as=script, </hs/hsstatic/HubspotToolsMenu/static-1.103/js/index.js>; rel=preload; as=script"
+NEL = {"report_to":"cf-nel","max_age":604800}
+reason_phrase = "OK"
+ReferrerPolicy = "no-referrer-when-downgrade"
+ReportTo = {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v2?s=bj2NYewys4axOmkRAKRF%2BAqzfhj%2B2fXHr8ib8wYh1dv3taAyRYmH85Bdsu5n1AAws6pSqs1HZJGR6HjcOWJcGaiGIZ4v3I0WyGIfsebkiauedORarKQOL7mFTVrjYsseeIg%3D"}],"group":"cf-nel","max_age":604800}
+Server = "cloudflare"
+SetCookie = "__cfruid=6ecc829e5dcc9b33e3192a52d6758830e9cf1016-1624988355; path=/; domain=.www.alphasoftware.com; HttpOnly; Secure; SameSite=None"
+status_code = 200
+StrictTransportSecurity = "max-age=0"
+Vary = "Accept-Encoding"
+XHSCacheConfig = "BrowserCache-0s-EdgeCache-0s"
+XHSContentId = "35182565649"
+XHSHubId = "106714"
+XHubSpotCorrelationId = "14f0e1de-6feb-4f4c-8973-90863867f09a"
+XPoweredBy = "HubSpot"
+XTrace = "2B6A4B63690779FED0913D6BF90FF40AB4098349DC000000000000000000"]]></example>
         </section>
         <section>
             <description>Status code 200 indicates that the page exists. Status code 404 indicates that it does not. Other status codes you may encounter, along with the meanings of each, are documented in [Status Codes].</description>
@@ -118,22 +136,26 @@ XPoweredBy = "ASP.NET"
             <title>Handling Redirects</title>
             <description>When the server responds with a 30* code, HTTP_GET() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. For example:</description>
             <example code="xb">
-                <![CDATA[
-dim url as C = "support.alphasoftware.com"
+                <![CDATA[dim url as C = "support.alphasoftware.com"
 dim result as P
 result = http_fetch(url)
-if (result.parsed_headers.status_code = 302) then
-    ' Page has been redirected; fetch page from
-    ' new URL specified in parsed_headers.location:
-    result = http_get(result.parsed_headers.Location)
 
-    if (result.parsed_headers.status_code <> 200) then
-        ' Request returned with an error.
-        ui_msg_box("Error","The request returned with the following status code: " + result.parsed_headers.status_code,UI_STOP_SYMBOL)
-        end
-    else
-        '...
+if (result.error_code == 0) then
+    if (result.parsed_headers.status_code = 302) then
+        ' Page has been redirected; fetch page from
+        ' new URL specified in parsed_headers.location:
+        result = http_get(result.parsed_headers.Location)
+
+        if (result.parsed_headers.status_code <> 200) then
+            ' Request returned with an error.
+            ui_msg_box("Error","The request returned with the following status code: " + result.parsed_headers.status_code,UI_STOP_SYMBOL)
+            end
+        else
+            ' status 200
+        end if
     end if
+else
+    ui_msg_box("Error","The request failed with the following error code: " + result.error_code + crlf() + "Error details: " + result.error_text)
 end if]]>
             </example>
         </section>
@@ -146,9 +168,14 @@ end if]]>
             <description>This example retrieves the Alpha Software home page:</description>
             <example code="xb">
                 <![CDATA[dim alpha as P
-alpha = http_get("http://www.alphasoftware.com/")
-if (alpha.parsed_headers.status_code = 200) then
-    a5_show_html(alpha.body)
+alpha = http_get("https://www.alphasoftware.com/")
+
+if (alpha.error_code == 0) then
+    if (alpha.parsed_headers.status_code = 200) then
+        a5_show_html(alpha.body)
+    end if
+else
+    ui_msg_box("Error","The request failed with the following error code: " + alpha.error_code + crlf() + "Error details: " + alpha.error_text)
 end if]]>
             </example>
         </section>
@@ -156,53 +183,55 @@ end if]]>
             <title>Example: Search Google</title>
             <description>In the example below, HTTP_GET is used to perform a search using www.google.com:</description>
             <example code="xb">
-                <![CDATA[
-dim search_term as C
+                <![CDATA[dim search_term as C
 dim google as P
 search_term = ui_get_text("Search for...","What are you looking for?")
 google = http_get("http://www.google.com/search?hl=en&ie=UTF-8&oe=UTF-8&q=" + urlencode(search_term))
 
-if (google.parsed_headers.status_code = 200) then
-    a5_show_html(google.body)
-end if
-]]>
+if (google.error_code == 0) then
+    if (google.parsed_headers.status_code = 200) then
+        a5_show_html(google.body)
+    end if
+else
+    ui_msg_box("Error","The request failed with the following error code: " + google.error_code + crlf() + "Error details: " + google.error_text)
+end if]]>
             </example>
         </section>
         <section>
             <title>Example: RSS Feed</title>
             <description>In this example, RSS text is retrieved from Slashdot.org using HTTP_GET:</description>
             <example code="xb">
-                <![CDATA[
-dim rss as P
-rss = http_get("http://slashdot.org/index.rss")
-if (rss.parsed_headers.status_code <> 200) then
-    ui_msg_box("Error","The request returned with the following status code: " + rss.parsed_headers.status_code,UI_STOP_SYMBOL)
-    end
-end if
+                <![CDATA[dim rss as P
 
-if .not. eval_valid("rss.body")
-    ui_msg_box("Error","The RSS file was not downloaded from the server.",UI_STOP_SYMBOL)
+rss = http_get("http://rss.slashdot.org/Slashdot/slashdot")
+
+if (rss.error_code == 0) then
+    if .not. eval_valid("rss.body")
+        ui_msg_box("Error","The RSS file was not downloaded from the server.",UI_STOP_SYMBOL)
+    else
+        dim num_items as N
+        num_items = count_textblocks(rss.body,"<item","</item>")
+        dim item[num_items] as P
+        dim i as N
+        dim this_item as C
+        for i = 1 to num_items
+            this_item = extract_string(rss.body,"<item","</item>",i,.t.)
+            item[i].title = extract_string(this_item,"<title>","</title>")
+            item[i].link = extract_string(this_item,"<link>","</link>")
+            item[i].description = extract_string(this_item, "<description>", "</description>")
+            item[i].creator = extract_string(this_item, "<dc:creator>", "</dc:creator>")
+            item[i].subject = extract_string(this_item, "<dc:subject>", "</dc:subject>")
+            item[i].date = extract_string(this_item, "<dc:date>", "</dc:date>")
+            item[i].section = extract_string(this_item, "<slash:section>", "</slash:section>")
+            item[i].department = extract_string(this_item, "<slash:department>", "</slash:department>")
+            item[i].comments = extract_string(this_item, "<slash:comments>", "</slash:comments>")
+            item[i].hitparade = extract_string(this_item, "<slash:hitparade>", "</slash:hitparade>")
+        next i
+        'now do something with this, like put it into a table or build an output file.
+        showvar(item)
+    end if
 else
-    dim num_items as N
-    num_items = count_textblocks(rss.body,"")
-    dim item[num_items] as P
-    dim i as N
-    dim this_item as C
-    for i = 1 to num_items
-        this_item = extract_string(rss.body,"",i,.t.)
-        item[i].title = extract_string(this_item,"","")
-        item[i].link = extract_string(this_item,"","")
-        item[i].description = extract_string(this_item, "", "")
-        item[i].creator = extract_string(this_item, "", "")
-        item[i].subject = extract_string(this_item, "", "")
-        item[i].date = extract_string(this_item, "", "")
-        item[i].section = extract_string(this_item, "", "")
-        item[i].department = extract_string(this_item, "", "")
-        item[i].comments = extract_string(this_item, "", "")
-        item[i].hitparade = extract_string(this_item, "", "")
-    next i
-    'now do something with this, like put it into a table or build an output file.
-    a5_show_variable(property_to_string(item))
+    ui_msg_box("Error","The request failed with the following error code: " + rss.error_code + crlf() + "Error details: " + rss.error_text)
 end if]]>
             </example>
         </section>
