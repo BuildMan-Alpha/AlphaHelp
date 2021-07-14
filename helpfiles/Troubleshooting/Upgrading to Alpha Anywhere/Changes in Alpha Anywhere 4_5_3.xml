@@ -1,0 +1,75 @@
+<page build="5007">
+    <shortlink>critical changes alpha anywhere 4_5_3</shortlink>
+    <topic>Important Changes in Alpha Anywhere 4.5.3</topic>
+    <description>
+        <p>Changes have been made in this release to how Active Directory authentication works. This may affect your applications. Also, Cookieless Sessions are no longer supported.</p>
+    </description>
+    <sections>
+        <section>
+            <title>Potential Breaking Change to Active Directory Configuration</title>
+            <description>
+                <p>As a result of changes in the way Active Directory authentication is now implemented, certain applications may need to be reconfigured. If an application uses Forms Based Active Directory for authentication and authorization (i.e. for users and groups) the Active Directory Configuration in the publish profile may need to be updated if the users are defined in one organizational unit and roles are defined in a different organizational units.</p>
+                <p>The Active Directory Configuration dialog now has an additional prompt for the organizational unit that specifies the groups used by the application. The input value is the distinguished name of the organizational unit. This prompt can be set to "All Organization Units" if groups are in the same hierarchy as specified in the LDAP connection string.</p>
+            </description>
+            <figure>
+                <title>Setting the Organizational Unit for Groups</title>
+                <alt>Setting the Organizational Unit for Groups</alt>
+                <link>images/activedirectory.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Given this Active Directory structure:</p>
+                <p>
+                    <example><![CDATA[Company Domain (Domain)
+    Users (Users)
+        User1
+        User2
+        User3
+    Car Division (OU)
+        CarUser1 (User)
+        CarUser2 (User)
+        CarUser3 (User)
+    House Division (OU)
+    Application Division (OU)
+        Group1 (Group)
+
+            User1
+
+            CarUser1
+        Group2 (Group)
+
+            CarUser2
+        Group3 (Group)
+
+            User1]]></example>
+                </p>
+                <p>And this LDAP connection string:</p>
+                <p>
+                    <example><![CDATA[LDAP://ad.company.com/CN=Users,DC=ad,DC=company,DC=com]]></example>
+                </p>
+                <p>And a setting in the Organizational Unit for groups prompt of:</p>
+                <p>
+                    <example><![CDATA[OU=Application Division,DC=ad,DC=company,DC=com]]></example>
+                </p>
+                <p>Then, anyone in Active Directory can login, but *[only]* users in an "Application Division" group (i.e. Group1, Group2, Group3) will have access to protected pages.</p>
+                <p>Next, assume the following LDAP connection string:</p>
+                <p>
+                    <example><![CDATA[LDAP://ad.company.com/OU=Car Division,DC=ad,DC=company,DC=com]]></example>
+                </p>
+                <p>And assume that the setting for the Organizational Unit for groups  prompt is:</p>
+                <p>
+                    <example><![CDATA[OU=Application Division,DC=ad,DC=company,DC=com]]></example>
+                </p>
+                <p>In this case, only users in the Car Division OU will be able to login. Only the users that are assigned to an "Application Division" group will have access to protected pages.</p>
+                <p>This change affects both the Standard Application Server and the Application Server for IIS.</p>
+            </description>
+        </section>
+        <section>
+            <title>Cookieless Session Support Removed</title>
+            <description>
+                <p>Support for cookieless session tracking has been removed from the Classic Application Server. This eliminates the small possibility that previously existed of "session hijacking".  Your application users must now support cookies in order to use sessions with the Classic Application Server.</p>
+            </description>
+        </section>
+    </sections>
+</page>
