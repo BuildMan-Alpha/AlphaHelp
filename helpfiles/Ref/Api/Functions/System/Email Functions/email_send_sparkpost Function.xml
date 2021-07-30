@@ -1,4 +1,4 @@
-<page api="xb">
+<page api="xb" build="3583">
     <shortlink>api email send sparkpost function</shortlink>
     <topic>email_send_sparkpost Function</topic>
     <description>Send an email using the SparkPost service.</description>
@@ -90,14 +90,22 @@
                     </properties>
                 </property>
                 <property optional="true">
+                    <name>inlineImages</name>
+                    <type>C</type>
+                    <description>
+                        <p>A comma delimited list of images inlined in the email message using the format *[xb:"path_to_image|imageName"]*. Use *[html:&lt;img src="cid:imageName"&gt;]* to include images in the email message body where *[em:imageName]* is the image name specified in *[xb:inlineImages]*.</p>
+                        <p>See below for an example.</p>
+                    </description>
+                </property>
+                <property optional="true">
                     <name>inlineImagesArray</name>
                     <type>p</type>
-                    <description>An object array containing images to include in the email message. Each object in the array must define the properties below. See examples below for more information.</description>
+                    <description>An object array containing images to include in the email message. Each object in the array must define the properties below. Use *[html:&lt;img src="cid:imageName"&gt;]* to include images in the email message body where *[xb:imageName]* is the *[xb:name]* defined in the *[xb:inlineImagesArray]*. See examples below for more information.</description>
                     <properties>
                         <property>
                             <name>name</name>
                             <type>C</type>
-                            <description>The image name.</description>
+                            <description>The image name. Used with *[html:cid:]* prefix to embed the image in the message. See examples below for more info.</description>
                         </property>
                         <property>
                             <name>type</name>
@@ -114,7 +122,7 @@
                 <property build="4612" optional="true">
                     <name>options</name>
                     <type>p</type>
-                    <description>Additional SparkPost options. Some options may not be available for your SparkPost subscription. See [SparkPost Transmission Options] for more detailed information.</description>
+                    <description>Additional SparkPost options. Some options may not be available for your SparkPost subscription. See *[extlink:SparkPost Transmission Options@https://developers.sparkpost.com/api/transmissions/#transmissions-post-send-inline-content]* for more detailed information.</description>
                     <properties>
                         <property>
                             <name>start_time</name>
@@ -248,6 +256,7 @@ dim key as c = "your sparkpostkey"
 pp = email_send_SparkPost(key,ms)]]></example>
         </section>
         <section>
+            <title>Defining Attachments</title>
             <description>You can define attachments using an array syntax. Instead of defining a property called *[xb:ms.attachments]*, which has a comma delimited list of files to attach, you can define an array as shown in the example below:</description>
             <example code="xb"><![CDATA[dim ms.attachmentsArray[1] as p
 ms.attachmentsArray[1].name="report.pdf"
@@ -255,28 +264,34 @@ ms.attachmentsArray[1].type= Context.ResolveMimeType("pdf")
 ms.attachmentsArray[1].content=base64encode(file.to_blob("c:\myfiles\invoice.pdf"))]]></example>
         </section>
         <section>
+            <title>Inlining Images</title>
             <description>
-                <p>The body of your HTML message can optionally include in-line images. To define in-line images you can either use a property that specifies a comma-delimited list of image filenames, or you can use an array syntax:</p>
-                <p>*[Array syntax]*</p>
-            </description>
-            <example code="xb"><![CDATA[dim ms.inlineImagesArray[1] as p
+                <p>The body of your HTML message can optionally include in-line images. To define in-line images you can either use a property that specifies a comma-delimited list of image filenames or an object array.</p>
+                <p>To specify as a comma-delimited list of filenames:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.inlineImages = "c:\movieImages\4296.jpg|myimage1.jpeg"]]></example>
+                </p>
+                <p>Notice that the comma delimited names syntax specifies the image name (the name by which you will refer to the image in the HTML body) with a | delimiter. In the above example, the image name is 'myimage1.jpeg'</p>
+                <p>To specify as an object array:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim ms.inlineImagesArray[1] as p
 ms.inlineImagesArray[1].name = "myimage1.jpeg"
 ms.inlineImagesArray[1].type = Context.ResolveMimeType("jpg")
 ms.inlineImagesArray[1].content = base64encode(file.to_blob("C:\Images\4296.JPG"))]]></example>
-        </section>
-        <section>
-            <description>*[Comma delimited filenames syntax]*</description>
-            <example code="xb"><![CDATA[ms.inlineImages = "c:\movieImages\4296.jpg|myimage1.jpeg"]]></example>
-        </section>
-        <section>
-            <description>
-                <p>Notice that the comma delimited names syntax specifies the image name (the name by which you will refer to the image in the HTML body) with a | delimiter. In the above example, the image name is 'myimage1.jpeg'</p>
-                <p>To use the in-line images in the HTML message body, you use this syntax:</p>
+                </p>
+                <p>Note that the image name used to refer to the image in the email message is specified using the *[xb:name]* property.</p>
+                <p>To embed images in the HTML message body, use this syntax:</p>
+                <p>
+                    <example code="xb"><![CDATA[<img src="cid:*[em:imageName]*">]]></example>
+                </p>
+                <p>Where *[em:imageName]* is the value specified in the *[xb:name]* property for an images array or the value after the | if defining images as a comma-delimited list. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[Check out this photo:<br><img src="cid:myimage1.jpeg">]]></example>
+                </p>
             </description>
-            <example code="xb"><![CDATA[Here is your inline image!<br><img src="cid:myimage1.jpeg">]]></example>
         </section>
         <section build="4612">
-            <title>Example: Click Tracking</title>
+            <title>Including Additional SparkPost options</title>
             <description>
                 <p>SparkPost allows you to specify options, such as open_tracking and click_tracking (see [SparkPost API documentation]).</p>
                 <p>In build 4612 and newer, you can pass in these options to the email_send_sparkpost() function as shown below:</p>
@@ -287,19 +302,18 @@ ms.inlineImagesArray[1].content = base64encode(file.to_blob("C:\Images\4296.JPG"
 
 ms.options.open_tracking = .f.
 ms.options.click_tracking = .f.
-dim key as c = "your sparkpostkey"
+dim key as c = "your_sparkpost_key"
 
 dim pp as p
 pp = email_send_sparkpost(key,ms)]]></example>
         </section>
    </sections>
    <links>
-        <link href="https://developers.sparkpost.com/api/">SparkPost documentation</link>
-        <link href="https://developers.sparkpost.com/api/">SparkPost API documentation</link>
+        <link href="https://developers.sparkpost.com/api/" target="_blank">SparkPost documentation</link>
+        <link href="https://developers.sparkpost.com/api/" target="_blank">SparkPost API documentation</link>
         <link link="server%20ref%20web%20project%20settings#section2_SparkPost%20key">Web Project Properties</link>
         <link link="api%20objects%20context%20object%20resolve%20mime%20type%20method">Context.ResolveMimeType()</link>
         <link link="api%20base%2064%20encode%20function">base64encode()</link>
-        <link href="https://developers.sparkpost.com/api/transmissions/#transmissions-post-send-inline-content">SparkPost Transmission Options</link>
    </links>
    <see>
         <ref link="xb email send sendgrid function">email_send_sendgrid Function</ref>
