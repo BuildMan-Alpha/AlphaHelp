@@ -1,7 +1,7 @@
-<page api="xb">
+<page api="xb" build="0">
     <shortlink>api a5w report saveas function</shortlink>
     <topic>a5w_report_saveas Function</topic>
-    <description>The a5w_report_saveas() method prints LayoutName to file in PDF, HTML, RTF, or TXT formats. If no format is specified, the PDF format is used. If a report needs to get access to global variables defined in a .a5w page, you must call this function, and not Report.SaveAs()</description>
+    <description>The a5w_report_saveas() method generates a report as a PDF, HTML, RTF, or TXT document. The report can be downloaded, uploaded to Amazon S3, or emailed.</description>
     <prototype>filenameOut as C = a5w_report_saveAs(C LayoutName [,C Saveas_format [,C Filter [,C Order [,C Filename [,P globalVariables [,P PrintOptions [,SQL::Arguments Arguments [,P Options ]]]]]]])</prototype>
     <arguments>
         <argument>
@@ -43,7 +43,10 @@
         <argument>
             <name>Filter</name>
             <type>C</type>
-            <description>Filter expression to apply to report. Specify an empty string for no filter. Not supported for SSRS reports.</description>
+            <description>
+                <p>Filter expression to apply to report. Specify an empty string for no filter. Not supported for SSRS reports.</p>
+                <p>If the report is based on a SQL data source and the filter can be promoted to a SQL filter, *[xb:Filter]* is automatically added to the *[xb:options.filter]* property for improved performance. See [Filter Parameters] below for more info.</p>
+            </description>
         </argument>
         <argument>
             <name>Order</name>
@@ -53,7 +56,93 @@
         <argument>
             <name>Filename</name>
             <type>C</type>
-            <description>Name of file to create.</description>
+            <description>
+                <p>Name of file to create or a JSON string.</p>
+                <p>A JSON string can be passed using the *[xb:Filename]* argument to upload the report to an S3 Bucket or send it as an email attachment using SparkPost or SendGrid.</p>
+            </description>
+            <properties>
+                <property>
+                    <name>type</name>
+                    <type>C</type>
+                    <description>
+                        <p>Defines what to do with the report after it has been created. Options include:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>type</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>Store</name>
+                                    <description>Report will be uploaded to an S3 bucket.</description>
+                                </item>
+                                <item>
+                                    <name>email</name>
+                                    <description>Report is sent as an email.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </property>
+                <property>
+                    <name>ConnectionString</name>
+                    <type>C</type>
+                    <description>Required if *[xb:type]* is "Store". An Amazon S3 [Storage Connection] string.</description>
+                </property>
+                <property>
+                    <name>objectName</name>
+                    <type>C</type>
+                    <description>
+                        <p>Required if *[xb:type]* is "Store". The name of the object to store the report as in the bucket.</p>
+                        <p>
+                            <example code="json"><![CDATA[{"type":"Store",
+"ConnectionString":"AmazonS3",
+"objectName":"myReport.pdf"}]]></example>
+                        </p>
+                    </description>
+                </property>
+                <property>
+                    <name>apikey</name>
+                    <type>C</type>
+                    <description>
+                        <p>Required if *[xb:type]* is "email". Your SparkPost or SendGrid API key. Leave blank (an empty string) to use the API key stored in [Web Project Properties].</p>
+                        <p>If using SendGrid, the API key must be prefixed with *[xb:sendgrid:]*. For example:</p>
+                        <p>
+                            <example code="json"><![CDATA[{"type:":"email",
+"apikey":"sendgrid:1234567890",
+"send_to":"susan@example.com",
+"send_from":"me@example.com",
+"subject":"Your Report",
+"message":"Here's the report you requested."}]]></example>
+                        </p>
+                    </description>
+                </property>
+                <property>
+                    <name>send_to</name>
+                    <type>C</type>
+                    <description>Required if *[xb:type]* is "email". The recipient's address.</description>
+                </property>
+                <property>
+                    <name>send_from</name>
+                    <type>C</type>
+                    <description>Required if *[xb:type]* is "email". The sender's address.</description>
+                </property>
+                <property optional="true">
+                    <name>send_from_friendly_name</name>
+                    <type>C</type>
+                    <description>Optional if *[xb:type]* is "email". Friendly name to use in the from field.</description>
+                </property>
+                <property>
+                    <name>subject</name>
+                    <type>C</type>
+                    <description>Required if *[xb:type]* is "email". The email subject.</description>
+                </property>
+                <property>
+                    <name>message</name>
+                    <type>C</type>
+                    <description>Required if *[xb:type]* is "email". The email body defined as HTML.</description>
+                </property>
+            </properties>
         </argument>
         <argument>
             <name>globalVariables</name>
@@ -82,13 +171,18 @@
         <return>
             <name>filenameOut</name>
             <type>C</type>
-            <descrption>The filename where the report output is stored. Generally, this will be the same as what is specified in the *[xb:Filename]* parameter, unless the file extension was changed.</descrption>
+            <description>The filename where the report output is stored. Generally, this will be the same as what is specified in the *[xb:Filename]* parameter, unless the file extension was changed.</description>
         </return>
     </returns>
     <discussion>The *[xb:a5w_report_saveas]* function generates a Report from the Application Server.</discussion>
     <sections>
         <section>
-            <example><![CDATA[a5w_report_saveAs("customer List@[PathAlias.ADB_Path]\myalphaworkspace.alb","PDF","","","c:\data\custlist.pdf",global_variables())]]></example>
+            <note>If a report needs to get access to global variables defined in a .a5w page, you must use this function, and not Report.SaveAs().</note>
+        </section>
+        <section>
+            <example code="xb"><![CDATA[dim layoutName as c = "customer List@[PathAlias.ADB_Path]\myalphaworkspace.alb"
+dim filename as c = "c:\data\custlist.pdf"
+a5w_report_saveAs(layoutName,"PDF","","",filename,global_variables())]]></example>
             <note>*[xb:[PathAlias.ADB_Path]]* is an alias for the application webroot.</note>
         </section>
         <section>
@@ -112,28 +206,32 @@
         </section>
         <section>
             <description>The example below shows how to use the *[xb:[PathAlias.ADB_Path]]* placeholder when specifying the location of the workspace library.</description>
-            <example><![CDATA['Print a report stored in the workspace library:
-a5w_report_saveAs("myReport@[PathAlias.ADB_Path]\MyWorkspace.alb","PDF","","","myReport.pdf",global_variables())]]></example>
+            <example code="xb"><![CDATA['Print a report stored in the workspace library:
+dim layoutName as c = "myReport@[PathAlias.ADB_Path]\MyWorkspace.alb"
+dim filename as c = "myReport.pdf"
+a5w_report_saveAs(layoutName,"PDF","","",filename,global_variables())]]></example>
         </section>
         <section>
             <description>The next example shows how to use the [context.request.applicationRoot] property when specifying the location of a Project Report (a report saved as a *.a5rpt file.)</description>
-            <example><![CDATA['Print a Project Report:
+            <example code="xb"><![CDATA['Print a Project Report:
+dim layoutName as c = context.request.applicationRoot + "myReport.a5rpt"
 dim filename as c
 filename = context.request.getRequestTempFilename(".pdf")
 
-a5w_report_saveAs(context.request.applicationRoot + "myReport.a5rpt","PDF","","",filename,global_variables())]]></example>
+a5w_report_saveAs(layoutName,"PDF","","",filename,global_variables())]]></example>
         </section>
         <section>
             <title>Sending a Report to the Client</title>
             <description>
                 <p>Files can be sent back to the client browser using the [context.response.SendFile()] method. The file will be sent to the user's browser. The user will either be prompted to download the file or be shown the file. Using [context.response.SendFile()] is a Best Practice and is strongly recommended over other, less efficient methods, such as *[xb:context.response.Redirect()]*:</p>
             </description>
-            <example code="xb"><![CDATA[dim filter as c = ""
+            <example code="xb"><![CDATA[dim layoutName as c = context.request.applicationRoot + "MyReport.a5rpt"
+dim filter as c = ""
 dim order as c = ""
 
 dim filename as c = context.request.GetRequestTempFileName()
 
-a5w_report_saveAs(context.request.applicationRoot + "MyReport.a5rpt","pdf",filter,order,filename)
+a5w_report_saveAs(layoutName,"pdf",filter,order,filename)
 
 if file.exists(filename)
     ' Prompt user to save file with alternate file name:
@@ -152,9 +250,11 @@ dim args as sql::Arguments
 args.add("whatcountry","UK")
 
 dim filename as c
+filename = "c:\pdf\report1.pdf"
 
-filename = a5w_report_saveAs(reportname,"pdf","","","c:\pdf\report1.pdf",null_value(),null_value(),args)
-sys_open( filename)]]></example>
+result = a5w_report_saveAs(reportName,"pdf","","",filename,null_value(),null_value(),args)
+
+sys_open(result)]]></example>
         </section>
         <section>
             <description>
@@ -167,21 +267,82 @@ sys_open( filename)]]></example>
                 <p>In a desktop application, global variables are accessible throughout the application. Passing a pointer to the global variables is not necessary.</p>
                 <p>In a web application, global variables are variables defined on on the .a5w page and exist for the duration of the page. They are not accessible to other .a5w pages. You can use the [global_variables() method] to create a pointer to the global variables defined in an .a5w page</p>
             </description>
-            <example><![CDATA[dim globalvars as p
+            <example code="xb"><![CDATA[dim globalvars as p
 globalvars = global_variables()
 globalvars.userName = "John Smith"]]>
             </example>
         </section>
         <section>
             <description>If you have global variables that are used by the report, you must create and pass the global variable to the *[xb:a5w_report_saveas]* method in a web application.</description>
-            <example><![CDATA[dim globalvars as p
+            <example code="xb"><![CDATA[dim globalvars as p
 globalvars = global_variables()
 globalvars.myglobal1 = "foo"
 
-dim layout_name as c
-layout_name = a5_removeTrailingBackslash(context.request.applicationRoot) + chr(92) + "customerList.a5rpt"
+dim layoutName as c
+layoutName = a5_removeTrailingBackslash(context.request.applicationRoot) + chr(92) + "customerList.a5rpt"
 
-a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]></example>
+dim filename as c
+filename = "c:\data\custlist.pdf"
+
+a5w_report_saveAs(layoutName,"PDF","","",filename,globalvars)]]></example>
+        </section>
+        <section build="7544">
+            <title>Filter Parameters</title>
+            <description>
+                <p>If the report layout is based on a SQL data source and an Xbasic filter is defined in *[xb:Filter]*, Alpha Anywhere will attempt to promote the filter to a SQL filter. SQL filtering should be preferred over Xbasic filtering. This is because a SQL filter is applied in the database query before the data is downloaded to the application server.</p>
+                <p>SQL filters are defined in the *[xb:options.filter]* object. If the filter can be promoted to a SQL filter, the *[xb:Filter]* parameter is automatically moved into the *[xb:options.filter]* property, which will typically result is much better performance as the query will be executed by the database server.</p>
+                <p>An example of a filter parameter that can be promoted to a SQL filter is shown below:</p>
+                <p>
+                    <example code="xb"><![CDATA[quantity = 100]]></example>
+                </p>
+                <p>If *[xb:Filter]* uses Xbasic functions in the expression, the filter is not promoted. For example, the expression below uses the Xbasic *[xb:max()]* function.</p>
+                <p>
+                    <example code="xb"><![CDATA[quantity = max(100,0)]]></example>
+                </p>
+                <p>In order for this filter to be promoted to a SQL filter, it would need to be rewritten to remove the Xbasic function or rewritten as a SQL filter and added to the *[xb:options.filter]* property.</p>
+                <p>In general, you should prefer to use a SQL filter instead of an Xbasic filter.</p>
+            </description>
+        </section>
+        <section build="7544">
+            <title>Uploading a Report to Amazon S3</title>
+            <description>
+                <p>Reports can be uploaded to Amazon S3 automatically by passing a JSON string as the *[xb:Filename]* parameter. For example, the Xbasic below uploads the generated report to an Amazon S3 Bucket and saves it as "myReport.pdf":</p>
+            </description>
+            <example code="xb"><![CDATA['Upload a Project Report:
+dim layoutName as c = context.request.applicationRoot + "myReport.a5rpt"
+dim fileUploadJSON as c =<<%json%
+{
+    "type":"Store",
+    "ConnectionString":"AmazonS3", ' Named storage connection defined in Storage Connections
+    "objectName":"myReport.pdf"
+}
+%json%
+
+a5w_report_saveAs(layoutName,"PDF","","",fileUploadJSON,global_variables())]]></example>
+        </section>
+        <section build="7544">
+            <title>Emailing a Report</title>
+            <description>
+                <p>Similar to uploading a report to S3, you can email the report after it's generated. To do this, you need to pass in a JSON string as the *[xb:Filename]* parameter. The JSON needs to define the API key to use (either SparkPost or SendGrid), where to send the email, the from address, email subject, and message to include in the email body. The report is sent as an attachment to the message.</p>
+                <p>The example below shows the JSON required to email the report using SparkPost:</p>
+            </description>
+            <example code="xb"><![CDATA['Email a Project Report:
+dim layoutName as c = context.request.applicationRoot + "myReport.a5rpt"
+
+' prefix the api key value with "sendgrid:" if using SendGrid
+' e.g.: "sendgrid:1234567890XXXXX"
+dim fileEmailJSON as c =<<%json%
+{
+    "type:":"email",
+    "apikey":"1234567890XXXXX", 
+    "send_to":"susan@example.com",
+    "send_from":"me@example.com",
+    "subject":"Your Report",
+    "message":"Here's the report you requested."
+}
+%json%
+
+a5w_report_saveAs(layoutName,"PDF","","",fileEmailJSON,global_variables())]]></example>
         </section>
     </sections>
     <terms>reports,a5w,arguments,expressions,file,filename,filter,function,global variables,pdf,pointer,sql,variable</terms>
@@ -198,5 +359,7 @@ a5w_report_saveAs(layout_name,"PDF","","","c:\data\custlist.pdf",globalvars)]]><
         <link link="Understanding and Using Session Variables">session variables</link>
         <link link="api objects context request object">context.request.applicationRoot</link>
         <link link="api%20objects%20response%20object%20send%20file%20method">context.response.SendFile()</link>
+        <link link="named%20storage%20connection%20strings">Storage Connection</link>
+        <link href="#section1_Filter%20Parameters">Filter Parameters</link>
     </links>
 </page>
