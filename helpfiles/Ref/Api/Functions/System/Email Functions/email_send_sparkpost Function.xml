@@ -55,12 +55,12 @@
                 <property>
                     <name>message_html</name>
                     <type>C</type>
-                    <description>Required if *[xb:message_text]* is not defined. The email body defined as HTML.</description>
+                    <description>Required. The email body defined as HTML.</description>
                 </property>
                 <property>
                     <name>message_text</name>
                     <type>C</type>
-                    <description>Required if *[xb:message_html]* is not defined. The email body defined as plain text.</description>
+                    <description>Required. The email body defined as plain text.</description>
                 </property>
                 <property optional="true">
                     <name>attachments</name>
@@ -110,7 +110,7 @@
                         <property>
                             <name>content</name>
                             <type>C</type>
-                            <description>Required. The contents of the file as a base64 encoded string. Use [base64encode()] to encode file contents for the message.</description>
+                            <description>Required. The contents of the file as a base64 encoded string. Use [base64encode()] or [get_from_file()] to encode file contents for the message.</description>
                         </property>
                     </properties>
                 </property>
@@ -282,11 +282,50 @@ pp = email_send_SparkPost(key,ms)]]></example>
         </section>
         <section>
             <title>Defining Attachments</title>
-            <description>You can define attachments using an array syntax. Instead of defining a property called *[xb:ms.attachments]*, which has a comma delimited list of files to attach, you can define an array as shown in the example below:</description>
-            <example code="xb"><![CDATA[dim ms.attachmentsArray[1] as p
-ms.attachmentsArray[1].name="report.pdf"
+            <description>
+                <p>Attachments can be included as a comma-delimited list in the *[xb:attachments]* property. For example, to include two files from the Application Server, you would write:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments = "c:\alphasports\invoice.pdf,c:\alphasports\vendorlist.pdf"]]></example>
+                </p>
+                <p>If the files are located remotely, you can instead specify them as URLS:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments = "https://www.example.com/resources/invoice.pdf,https://www.example.com/resources/vendorlist.pdf"]]></example>
+                </p>
+                <p>To specify files from Amazon S3, use the JSON format for *[xb:attachments]*. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"},{ "connectionString":"::storage::StorageS3", "objectName":"vendorlist.pdf"}
+%str%]]></example>
+                </p>
+                <p>Where *[xb:connectionString]* is a named [Storage connection] and *[xb:objectName]* is the name of the object in the Amazon S3 bucket to attach. If the object is within a subdirectory in the bucket, include the subdirectory in the *[xb:objectName]*. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+{ "connectionString":"::storage::StorageS3", "objectName":"products/fallCatalog.pdf"}
+%str%]]></example>
+                </p>
+                <p>You can mix and match attachments from various locations:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+c:\alphasports\invoice.pdf,https://www.example.com/resources/invoice.pdf,{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"}
+%str%]]></example>
+                </p>
+                <p>You can alternatively define attachments using an array syntax via the *[xb:attachmentsArray]* property. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim ms.attachmentsArray[3] as p
+ms.attachmentsArray[1].name="localInvoice.pdf"
 ms.attachmentsArray[1].type= Context.ResolveMimeType("pdf")
-ms.attachmentsArray[1].content=base64encode(file.to_blob("c:\myfiles\invoice.pdf"))]]></example>
+ms.attachmentsArray[1].content=get_from_file("c:\alphasports\invoice.pdf",.t.) 'base64 encode file
+
+ms.attachmentsArray[2].name="remoteInvoice.pdf"
+ms.attachmentsArray[2].type= Context.ResolveMimeType("pdf")
+ms.attachmentsArray[2].content=get_from_file("https://www.example.com/resources/invoice.pdf",.t.) 'base64 encode file
+
+ms.attachmentsArray[3].name="s3Invoice.pdf"
+ms.attachmentsArray[3].type= Context.ResolveMimeType("pdf")
+ms.attachmentsArray[3].content=get_from_file("{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"}",.t.) 'base64 encode file]]></example>
+                </p>
+                <p>Note that using *[xb:attachmentsArray]* requires you to base64 encode the file content yourself. This can be done using [get_from_file()], which can be used to fetch and base64 encode a file from the file system of the Application Server, a remote URL, or from Amazon S3.</p>
+            </description>
         </section>
         <section>
             <title>Inlining Images</title>
@@ -302,7 +341,7 @@ ms.attachmentsArray[1].content=base64encode(file.to_blob("c:\myfiles\invoice.pdf
                     <example code="xb"><![CDATA[dim ms.inlineImagesArray[1] as p
 ms.inlineImagesArray[1].name = "myimage1.jpeg"
 ms.inlineImagesArray[1].type = Context.ResolveMimeType("jpg")
-ms.inlineImagesArray[1].content = base64encode(file.to_blob("C:\Images\4296.JPG"))]]></example>
+ms.inlineImagesArray[1].content = get_from_file("C:\Images\4296.JPG",.t.) 'base64 encode file]]></example>
                 </p>
                 <p>Note that the image name used to refer to the image in the email message is specified using the *[xb:name]* property.</p>
                 <p>To embed images in the HTML message body, use this syntax:</p>
@@ -336,9 +375,11 @@ pp = email_send_sparkpost(key,ms)]]></example>
    <links>
         <link href="https://developers.sparkpost.com/api/" target="_blank">SparkPost documentation</link>
         <link href="https://developers.sparkpost.com/api/" target="_blank">SparkPost API documentation</link>
-        <link link="server%20ref%20web%20project%20settings#section2_SparkPost%20key">Web Project Properties</link>
+        <link link="server%20ref%20web%20project%20settings#section2_SparkPost/SendGrid%20key">Web Project Properties</link>
         <link link="api%20objects%20context%20object%20resolve%20mime%20type%20method">Context.ResolveMimeType()</link>
         <link link="api%20base%2064%20encode%20function">base64encode()</link>
+        <link link="named%20storage%20connection%20strings">Storage connection</link>
+        <link link="api%20get%20from%20file%20function">get_from_file()</link>
    </links>
    <see>
         <ref link="xb email send sendgrid function">email_send_sendgrid Function</ref>

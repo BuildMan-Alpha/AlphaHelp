@@ -8,44 +8,286 @@
         <prototype>DIM result as P = email_send_sendgrid(key as C, message as P)</prototype>
         <prototype>DIM result as P = email_send_sendgrid(key as C, message as C)</prototype>
     </prototypes>
-   <arguments>
-     <argument>
-         <name>key</name>
-         <type>C</type>
-         <description>Your SendGrid API key.</description>
-     </argument>
-     <argument>
-         <name>message</name>
-         <types>
+    <arguments>
+        <argument>
+            <name>key</name>
             <type>C</type>
+            <description>
+                <p>Your SendGrid API key. Leave blank (an empty string) to use the API key stored in [Web Project Properties].</p>
+                <p>See *[extlink:API Keys (SendGrid)|https://docs.sendgrid.com/ui/account-and-settings/api-keys]* for information on how to create a SendGrid API key.</p>
+            </description>
+        </argument>
+        <argument>
+            <name>message</name>
+            <types>
+                <type>C</type>
+                <type>P</type>
+            </types>
+            <description>A JSON string or dot variable that defines the message properties:</description>
+            <properties>
+                <property>
+                    <name>from_email</name>
+                    <type>C</type>
+                    <description>Required. The verified sender address for your SendGrid account.</description>
+                </property>
+                <property optional="true">
+                    <name>from_name</name>
+                    <type>C</type>
+                    <description>Friendly name to use in the from field.</description>
+                </property>
+                <property optional="true">
+                    <name>reply_to</name>
+                    <type>C</type>
+                    <description>The email address to when the recipient replies to the message.</description>
+                </property>
+                <property>
+                    <name>send_to</name>
+                    <type>C</type>
+                    <description>Required. The recipient's address. Multiple recipients can be specified as a comma-delimited list.</description>
+                </property>
+                <property optional="true">
+                    <name>send_to_cc</name>
+                    <type>C</type>
+                    <description>Additional recipients to copy on the email message. Multiple recipients can be specified as a comma-delimited list.</description>
+                </property>
+                <property optional="true">
+                    <name>send_to_bcc</name>
+                    <type>C</type>
+                    <description>Additional recipients to blind carbon copy on the email message. Multiple recipients can be specified as a comma-delimited list.</description>
+                </property>
+                <property>
+                    <name>subject</name>
+                    <type>C</type>
+                    <description>Required. The email subject</description>
+                </property>
+                <property>
+                    <name>message_html</name>
+                    <type>C</type>
+                    <description>Required. The email body defined as HTML.</description>
+                </property>
+                <property>
+                    <name>message_text</name>
+                    <type>C</type>
+                    <description>Required. The email body defined as plain text.</description>
+                </property>
+                <property optional="true">
+                    <name>attachments</name>
+                    <type>C</type>
+                    <description>A comma delimited list of file attachments.
+                        <p>A list of file attachments. Attachments can be defined as follows:</p>
+                        <p>
+                            <list bullet="true">
+                                <item>
+                                    <name>A comma-delimited list of filenames located on the Application Server.</name>
+                                </item>
+                                <item>
+                                    <name>A comma-delimited list of URLs that reference remote files.</name>
+                                </item>
+                                <item>
+                                    <name>
+                                        <p>A comma-delimited list of JSON strings referencing files stored on Amazon S3 using the following format:</p>
+                                    </name>
+                                    <description>
+                                        <p>
+                                            <example code="json"><![CDATA[{
+    "connectionString":"your storage connection string",
+    "objectName":"name of the S3 object"
+}]]></example>
+                                        </p>
+                                    </description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </property>
+                <property optional="true">
+                    <name>attachmentsArray</name>
+                    <type>p</type>
+                    <description>An array of files to attach to the email. Used instead of *[xb:attachments]* to define a list of files to attach to the email. Each entry in the array must define the following properties:</description>
+                    <properties>
+                        <property>
+                            <name>name</name>
+                            <type>C</type>
+                            <description>Required. The file name.</description>
+                        </property>
+                        <property>
+                            <name>type</name>
+                            <type>C</type>
+                            <description>Required. The file mime type. Use [Context.ResolveMimeType()] to get the appropriate mime type for the file.</description>
+                        </property>
+                        <property>
+                            <name>content</name>
+                            <type>C</type>
+                            <description>Required. The contents of the file as a base64 encoded string. Use [base64encode()] or [get_from_file()] to encode file contents for the message.</description>
+                        </property>
+                    </properties>
+                </property>
+                <property optional="true">
+                    <name>inlineImages</name>
+                    <type>C</type>
+                    <description>
+                        <p>A comma delimited list of images inlined in the email message using the format *[xb:"path_to_image|imageName"]*. Use *[html:&lt;img src="cid:imageName"&gt;]* to include images in the email message body where *[em:imageName]* is the image name specified in *[xb:inlineImages]*.</p>
+                        <p>See below for an example.</p>
+                    </description>
+                </property>
+                <property optional="true">
+                    <name>inlineImagesArray</name>
+                    <type>p</type>
+                    <description>An object array containing images to include in the email message. Each object in the array must define the properties below. Use *[html:&lt;img src="cid:imageName"&gt;]* to include images in the email message body where *[xb:imageName]* is the *[xb:name]* defined in the *[xb:inlineImagesArray]*. See examples below for more information.</description>
+                    <properties>
+                        <property>
+                            <name>name</name>
+                            <type>C</type>
+                            <description>Required. The image name. Used with *[html:cid:]* prefix to embed the image in the message. See examples below for more info.</description>
+                        </property>
+                        <property>
+                            <name>type</name>
+                            <type>C</type>
+                            <description>Required. The image mime type. Use [Context.ResolveMimeType()] to get the appropriate mime type for the image.</description>
+                        </property>
+                        <property>
+                            <name>content</name>
+                            <type>C</type>
+                            <description>Required. The contents of the image as a base64 encoded string. Use [base64encode()] or [get_from_file()] to encode image contents for the message.</description>
+                        </property>
+                    </properties>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
             <type>P</type>
-         </types>
-         <description>Can be a JSON string that defines the message or a dot variable with message properties.</description>
-     </argument>
-   </arguments>
-   <returns>
-    <return>
-        <name>result</name>
-        <type>P</type>
-        <description>Returns a dot variable that includes information about whether or not the message was delivered to the SendGrid server. The returned dot variable does not include information as to whether or not the message was delivered to each recipient. The return value also includes the JSON message definition that was constructed from the *[xb:message]* object.</description>
-    </return>
-   </returns>
+            <description>Returns a dot variable that includes information about whether or not the message was delivered to the SendGrid server. The returned dot variable does not include information as to whether or not the message was delivered to each recipient. The return value also includes the JSON message definition that was constructed from the *[xb:message]* object.</description>
+        </return>
+    </returns>
     <discussion>
         <p>The *[xb:email_send_sendgrid()]* function can be used to send an email to one or more recipients using the SendGrid service.</p>
     </discussion>
-    <example code="xb"><![CDATA[
-dim key as c = "SG.XXXXXXXXXXXXXXXXXXXXXXXXX" 'Replace with your API key
+    <sections>
+        <section>
+            <title>Example</title>
+            <example code="xb"><![CDATA[dim key as c = "SG.XXXXXXXXXXXXXXXXXXXXXXXXX" 'Replace with your SendGrid API key
+
 dim ms as p
 ms.send_to = "fred@acme.com"
+
 ms.reply_to = "fred@acme.com" ' optional
+
 ms.from_email = "fred@acme.com" ' must be the verified sender address
 ms.from_name = "Sales" 'friendly name - optional
+
 ms.subject = "Information You Requested"
+
 ms.message_html = "Here is the <b>information</b> you requested."
+ms.message_text = "Here is the information you requested."
 
 pp = email_send_sendgrid(key,ms)]]></example>
+        </section>
+        <section>
+            <title>A more Complex Example</title>
+            <example code="xb"><![CDATA[dim key as c = "SG.XXXXXXXXXXXXXXXXXXXXXXXXX" 'Replace with your SendGrid API key
+
+dim ms as p
+ms.send_to = "john@example.com:John Smith,sally@example.com:Sally Greene"
+ms.send_to_cc = "bill@example.com"
+ms.send_to_bcc = "marisa@example.com"
+
+ms.from_email = "me@example.com"
+ms.from_name = "Sales at Acme"
+ms.reply_to = "harry@example.com"
+
+ms.subject = "Information You Requested"
+
+ms.message_html = "Here is the <b>information</b> you requested."
+ms.message_text = "Here is the information you requested."
+
+ms.attachments = "c:\alphasports\invoice.pdf,c:\alphasports\vendorlist.pdf"
+
+pp = email_send_sendgrid(key,ms)]]></example>
+        </section>
+        <section>
+            <title>Defining Attachments</title>
+            <description>
+                <p>Attachments can be included as a comma-delimited list in the *[xb:attachments]* property. For example, to include two files from the Application Server, you would write:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments = "c:\alphasports\invoice.pdf,c:\alphasports\vendorlist.pdf"]]></example>
+                </p>
+                <p>If the files are located remotely, you can instead specify them as URLS:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments = "https://www.example.com/resources/invoice.pdf,https://www.example.com/resources/vendorlist.pdf"]]></example>
+                </p>
+                <p>To specify files from Amazon S3, use the JSON format for *[xb:attachments]*. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"},{ "connectionString":"::storage::StorageS3", "objectName":"vendorlist.pdf"}
+%str%]]></example>
+                </p>
+                <p>Where *[xb:connectionString]* is a named [Storage connection] and *[xb:objectName]* is the name of the object in the Amazon S3 bucket to attach. If the object is within a subdirectory in the bucket, include the subdirectory in the *[xb:objectName]*. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+{ "connectionString":"::storage::StorageS3", "objectName":"products/fallCatalog.pdf"}
+%str%]]></example>
+                </p>
+                <p>You can mix and match attachments from various locations:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.attachments =<<%str%
+c:\alphasports\invoice.pdf,https://www.example.com/resources/invoice.pdf,{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"}
+%str%]]></example>
+                </p>
+                <p>You can alternatively define attachments using an array syntax via the *[xb:attachmentsArray]* property. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim ms.attachmentsArray[3] as p
+ms.attachmentsArray[1].name="localInvoice.pdf"
+ms.attachmentsArray[1].type= Context.ResolveMimeType("pdf")
+ms.attachmentsArray[1].content=get_from_file("c:\alphasports\invoice.pdf",.t.) 'base64 encode file
+
+ms.attachmentsArray[2].name="remoteInvoice.pdf"
+ms.attachmentsArray[2].type= Context.ResolveMimeType("pdf")
+ms.attachmentsArray[2].content=get_from_file("https://www.example.com/resources/invoice.pdf",.t.) 'base64 encode file
+
+ms.attachmentsArray[3].name="s3Invoice.pdf"
+ms.attachmentsArray[3].type= Context.ResolveMimeType("pdf")
+ms.attachmentsArray[3].content=get_from_file("{ "connectionString":"::storage::StorageS3", "objectName":"invoice.pdf"}",.t.) 'base64 encode file]]></example>
+                </p>
+                <p>Note that using *[xb:attachmentsArray]* requires you to base64 encode the file content yourself. This can be done using [get_from_file()], which can be used to fetch and base64 encode a file from the file system of the Application Server, a remote URL, or from Amazon S3.</p>
+            </description>
+        </section>
+        <section>
+            <title>Inlining Images</title>
+            <description>
+                <p>The body of your HTML message can optionally include in-line images. To define in-line images you can either use a property that specifies a comma-delimited list of image filenames or an object array.</p>
+                <p>To specify as a comma-delimited list of filenames:</p>
+                <p>
+                    <example code="xb"><![CDATA[ms.inlineImages = "c:\movieImages\4296.jpg|myimage1.jpeg"]]></example>
+                </p>
+                <p>Notice that the comma delimited names syntax specifies the image name (the name by which you will refer to the image in the HTML body) with a | delimiter. In the above example, the image name is 'myimage1.jpeg'</p>
+                <p>To specify as an object array:</p>
+                <p>
+                    <example code="xb"><![CDATA[dim ms.inlineImagesArray[1] as p
+ms.inlineImagesArray[1].name = "myimage1.jpeg"
+ms.inlineImagesArray[1].type = Context.ResolveMimeType("jpg")
+ms.inlineImagesArray[1].content = get_from_file("C:\Images\4296.JPG",.t.) 'base64 encode file]]></example>
+                </p>
+                <p>Note that the image name used to refer to the image in the email message is specified using the *[xb:name]* property.</p>
+                <p>To embed images in the HTML message body, use this syntax:</p>
+                <p>
+                    <example code="xb"><![CDATA[<img src="cid:*[em:imageName]*">]]></example>
+                </p>
+                <p>Where *[em:imageName]* is the value specified in the *[xb:name]* property for an images array or the value after the | if defining images as a comma-delimited list. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[Check out this photo:<br><img src="cid:myimage1.jpeg">]]></example>
+                </p>
+            </description>
+        </section>
+    </sections>
     <links>
-        <link link="server%20ref%20web%20project%20settings#section2_SparkPost%20key">Web Project Properties</link>
+        <link link="server%20ref%20web%20project%20settings#section2_SparkPost/SendGrid%20key">Web Project Properties</link>
+        <link link="api%20objects%20context%20object%20resolve%20mime%20type%20method">Context.ResolveMimeType()</link>
+        <link link="api%20base%2064%20encode%20function">base64encode()</link>
+        <link link="named%20storage%20connection%20strings">Storage connection</link>
+        <link link="api%20get%20from%20file%20function">get_from_file()</link>
     </links>
     <see>
         <ref link="api email send sparkpost function">email_send_sparkpost</ref>
