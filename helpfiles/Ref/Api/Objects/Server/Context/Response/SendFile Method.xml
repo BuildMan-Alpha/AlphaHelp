@@ -37,9 +37,43 @@ context.response.SendFile(Session.FormatFileDataURL(FileKey))]]></example>
             </description>
             <example code="xb"><![CDATA[context.response.SendFile(Session.FormatFileDataURL(FileKey), .t., "HelloWorld.txt")]]></example>
         </section>
+        <section>
+            <title>Sending Files from Ajax Callbacks</title>
+            <description>
+                <p>The *[xb:sendFile()]* method cannot be used to send a file from an Ajax Callback in a component. Instead, use *[xb:a5Helper_generateFileDownloadJS()]*. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[function genExcelFile as c (e as p)
+
+    dim cn as SQL::Connection
+    dim sql as C = "SELECT * FROM Customers"
+    dim filename as c = context.request.GetRequestTempFileName(".xlsx")
+    
+    ' Open connection to Northwind Access database
+    cn.open("::Name::AADemo-Northwind")
+    
+    if (cn.toExcel(sql, filename, "Customers")) then
+        dim js as c = a5Helper_generateFileDownloadJS(e.tmpl.alias,filename,"Northwind_Customers.xlsx")
+        cn.close()
+        return js
+    else
+        trace.writeLn("An error occured: " + cn.CallResult,"GenExcelFile")
+        cn.close()
+    end if
+
+    return ""
+
+end function ]]></example>
+                </p>
+                <p>See [a5Helper_generateFileDownloadJS()] for more info.</p>
+            </description>
+        </section>
     </sections>
+    <limitations>Cannot be used in Ajax Callbacks</limitations>
     <see>
         <ref link="storing files in sessions">Storing Files in Sessions</ref>
     </see>
-	<terms>response,defaults,file,header</terms>
+    <links>
+        <link link="a5helper_generatefiledownload%20function">a5Helper_generateFileDownloadJS()</link>
+    </links>
+    <terms>response,defaults,file,header</terms>
 </page>
