@@ -40,11 +40,72 @@ if file.exists(filename)
     context.response.SendFile(filename,.t.,"MyReport.pdf")
 end if]]></example>
         </section>
+        <section>
+            <title>Sending Files from Ajax Callbacks</title>
+            <description>
+                <p>The *[xb:context.response.sendFile()]* method cannot be used to send a file from an Ajax Callback in a component. Instead, use *[xb:a5Helper_generateFileDownloadJS()]*. *[xb:a5Helper_generateFileDownloadJS()]* will generate the required JavaScript to send to the client to download the file. For example:</p>
+                <p>
+                    <example code="xb"><![CDATA[function genExcelFile as c (e as p)
+
+    dim cn as SQL::Connection
+    dim sql as C = "SELECT * FROM Customers"
+    dim filename as c = context.request.GetRequestTempFileName(".xlsx")
+    
+    ' Open connection to Northwind database
+    cn.open("::Name::AADemo-Northwind")
+    
+    if (cn.toExcel(sql, filename, "Customers")) then
+        dim js as c = a5Helper_generateFileDownloadJS(e.tmpl.alias,filename,"Northwind_Customers.xlsx")
+        cn.close()
+        return js
+    else
+        trace.writeLn("An error occurred: " + cn.CallResult,"GenExcelFile")
+        cn.close()
+    end if
+
+    return ""
+
+end function ]]></example>
+                </p>
+                <p>See [a5Helper_generateFileDownloadJS()] for more info.</p>
+            </description>
+        </section>
+        <section>
+            <title>Allowed File Extensions</title>
+            <description>
+                <p>In web and mobile applications, files can only be downloaded from the Application Server if the file extension is allowed. You can specify the list of allowed file extensions in [Project Properties]. If a file extension is not listed, Alpha Anywhere will not let you download the file.</p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Downloading a File Created in an Ajax Callback</title>
+                <description>
+                    <p>In UX and Grid components you might want to make an Ajax callback to the server and then generate a file on the server which the user can then download. The file that you generate on the server might be an image, Excel spreadsheet, PDF, Word document, or other file type.</p>
+                    <p>In this video we show how you can create the Xbasic function that handles the Ajax callback, creates the file and then generates the necessary Javascript to send back to the browser in order to download the file.</p>
+                </description>
+                <date>2019-12-18</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://alphamediacapture.s3.amazonaws.com/videos/ux_xbasic_createanddownloadAfile.mp4</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://alphamediacapture.s3.amazonaws.com/videos/downloadFile.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
     </sections>
+    <see>
+        <ref link="server%20ref%20web%20project%20settings#section2_Allowed%20filenames">File Download - Allowed filenames</ref>
+    </see>
     <links>
         <link link="savedataasfile method">context.session.SaveDataAsFile()</link>
         <link link="api%20objects%20session%20object%20format%20file%20data%20url%20method">context.session.FormatFileDataURL()</link>
         <link link="api%20objects%20request%20object%20get%20request%20temp%20file%20name%20method">context.request.GetRequestTempFileName()</link>
         <link link="api%20objects%20response%20object%20send%20file%20method">context.response.SendFile()</link>
+        <link link="a5helper_generatefiledownload%20function">a5Helper_generateFileDownloadJS()</link>
+        <link link="server%20ref%20web%20project%20settings#section2_Allowed%20filenames">Project Properties</link>
     </links>
 </page>

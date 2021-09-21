@@ -47,20 +47,21 @@ context.response.SendFile(Session.FormatFileDataURL(FileKey))]]></example>
     dim cn as SQL::Connection
     dim sql as C = "SELECT * FROM Customers"
     dim filename as c = context.request.GetRequestTempFileName(".xlsx")
-    
-    ' Open connection to Northwind Access database
+    dim js as c = ""
+
+    ' Open connection to Northwind database
     cn.open("::Name::AADemo-Northwind")
     
     if (cn.toExcel(sql, filename, "Customers")) then
-        dim js as c = a5Helper_generateFileDownloadJS(e.tmpl.alias,filename,"Northwind_Customers.xlsx")
-        cn.close()
-        return js
+        js = a5Helper_generateFileDownloadJS(e.tmpl.alias,filename,"Northwind_Customers.xlsx")
     else
-        trace.writeLn("An error occured: " + cn.CallResult,"GenExcelFile")
-        cn.close()
-    end if
+        dim cr as SQL::CallResult = cn.CallResult
 
-    return ""
+        trace.writeLn("An error occurred in genExcelFile(): " + cr.text)
+    end if
+    cn.close()
+
+    return js
 
 end function ]]></example>
                 </p>
@@ -71,6 +72,7 @@ end function ]]></example>
     <limitations>Cannot be used in Ajax Callbacks</limitations>
     <see>
         <ref link="storing files in sessions">Storing Files in Sessions</ref>
+        <ref link="server%20ref%20web%20project%20settings#section2_Allowed%20filenames">File Download - Allowed filenames</ref>
     </see>
     <links>
         <link link="a5helper_generatefiledownload%20function">a5Helper_generateFileDownloadJS()</link>
