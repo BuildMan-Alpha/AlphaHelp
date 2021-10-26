@@ -38,7 +38,7 @@
         </section>
         <section>
             <description>
-                <p>Once an app has been installed into Alpha Launch it operates largely identically to the way in which it would operate had it been installed directly on the device. For example, even when there is no internet connection, you will be able to start any app that is installed in Alpha Launch.</p>
+                <p>Once an app has been installed into Alpha Launch, the app runs similarly to the way it would operate if installed directly on the device. For example, if there is no internet connection, you can launch any app installed in Alpha Launch.</p>
                 <p>Alpha Launch is not suitable as a means of deploying a public facing app that will be installed by many users who will go to the app store to find and install your App. When an app is installed directly onto a device the app icon will appear on the device's home screen. However, when you publish to Alpha Launch, the app will not have an icon on the home screen. To launch the app you will first have to open Alpha Launch and select the app from the list of apps installed in Alpha Launch.</p>
             </description>
             <note>Apps installed in Alpha Launch are Cordova applications (even though you did not have to go through the Ionic Appflow or Cordova CLI build process) and they can use any of the Cordova plugins that Alpha Launch exposes. For more information see [Understanding Alpha Launch Limitations].</note>
@@ -163,24 +163,29 @@
             </figure>
         </section>
         <section>
-            <title>How To Publish an App to Alpha Launch</title>
+            <title>Preparing your App to Publish to Alpha Launch</title>
             <description>
-                <p>To publish apps to Alpha Launch open the Web Control Panel and select the project that contains the apps that you want to publish.</p>
+                <p>Apps deployed to Alpha Launch need to give the user a way to get back to the Alpha Launch home screen. This is often done by adding a button to the component that runs the *[ui:Exit to AlphaLaunch home screen]* action.</p>
+                <p>You can alternatively code the Javascript for the button yourself.</p>
+                <p>To use Action Javascript, select the '[AlphaLaunch Actions]' action for the list of available Action Javascript actions.</p>
+                <p>To code the Javascript directly, use this code:</p>
+                <p>
+                    <example code="js"><![CDATA[if (A5.shell) { 
+    A5.shell.exitComponent();
+}]]></example>
+                </p>
+                <p>The code tests if you are running in Alpha Launch, then if you are then it calls the *[js:A5.shell.exitComponent()]* method.</p>
             </description>
-            <note>
-                <p>An 'App' is a UX component. The UX component can call child UX components, but these child UX components should typically be configured as Precomputed so that they can load directly from the device (so as not to be dependent on an Internet connection).</p>
-                <p>[alphalaunch_precomputed.gif]</p>
-            </note>
+        </section>
+        <section>
+            <title>Registering an App to Publish to Alpha Launch</title>
+            <description>
+                <p>Before you publish apps to Alpha Launch you must first 'register' the apps you want to publish. Registering an app involves defining how the app will appear when it is shown in the Alpha Launch home screen and how it will be described when a user displays the list of available apps that can be installed into Alpha Launch.</p>
+            </description>
         </section>
         <section>
             <description>
-                <p>Before you publish apps to Alpha Launch you must first 'register' the apps you want to publish. Registering an app involves defining how the app will appear when it is shown in the Alpha Launch home screen and how it will be described when a user displays the list of available apps that can be installed into Alpha Launch</p>
-            </description>
-        </section>
-        <section>
-            <title>Registering Apps To Be Published to Alpha Launch</title>
-            <description>
-                <p>To register the apps from a particular Web Project for publication to Alpha Launch, tap the More... button on the extreme right of the Web Control Panel.</p>
+                <p>To register the apps from a particular Web Project for publication to Alpha Launch, tap the More... button on the right of the Web Control Panel.</p>
             </description>
             <figure>
                 <link>images/alphaLaunchMore.jpg</link>
@@ -213,6 +218,15 @@
         <section>
             <description>
                 <p>The Alpha Launch dialog will then show the component that you selected and the orange icon will indicate that the settings for this component have not yet been defined.</p>
+            </description>
+            <figure>
+                <title>Component is added, but settings are undefined</title>
+                <alt>Component is added, but settings are undefined</alt>
+                <link>images/alphalaunch_selectux2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
                 <p>Either double click on the component name, or click the Edit component settings button to open the Alpha Launch Settings dialog box.</p>
             </description>
             <figure>
@@ -302,98 +316,247 @@
             </figure>
         </section>
         <section>
+            <title>Publishing Apps to Alpha Launch</title>
             <description>
-                <p>This will bring up the Publish to Alpha Launch dialog. You will need to select the Publishing Profile to use and you will also need to specify the Server URL (i.e. the url of the location where the apps are being published).</p>
-                <p>Once you have published your apps you will need to register the server in Alpha Launch. Alpha Launch will contact the server to get a list of the available apps.</p>
-                <p>For instructions on how to register a server with Alpha Launch, see [How to Register a New Alpha Launch Server]. To make it easy to register a new Alpha Launch server (i.e. to avoid having to type in a long server URL on a mobile device keyboard), you will probably want to generate a QR code with with server address. Check the *[ui:Show a QR code...]* property before you click the OK button.</p>
+                <p>Once you have registered all of the UX components that you want to publish to Alpha Launch, click the Publish Apps to Alpha Launch button.</p>
+                <p>This will then open this dialog where you can configure the publish operation.</p>
             </description>
             <figure>
-                <link>images/alphalaunchpublishdialog.jpg</link>
+                <title>Publish to Alpha Launch Dialog</title>
+                <alt>Publish to Alpha Launch Dialog</alt>
+                <link>images/alphlaunch1.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <cases>
+                <case>
+                    <title nested="2">Key Concepts</title>
+                    <description>
+                        <p>It is important to understand the key concepts of how Alpha Launch works. There are two servers:</p>
+                    </description>
+                    <steps>
+                        <step>
+                            <description>
+                                <p>The download server is where the apps that you install into Alpha Launch are downloaded from.</p>
+                            </description>
+                        </step>
+                        <step>
+                            <description>
+                                <p>The Alpha Anywhere server is where an app that is running in Alpha Launch will make its Ajax callbacks.</p>
+                            </description>
+                        </step>
+                    </steps>
+                    <note>
+                        <p>The Alpha Anywhere server and the download server can be the same or they can be different. For example, it is common to use an Amazon S3 bucket as the download server. The Alpha Anywhere server can be your own classic or IIS Alpha Anywhere server, or it could be Alpha Cloud.</p>
+                    </note>
+                </case>
+                <case>
+                    <description>
+                        <p>If you use an Amazon S3 bucket as your download server, you can either use your own private bucket, or you can use a special shared bucket provided by Alpha Software. The shared S3 bucket is a quick and easy way to get started, but ultimately you will likely want to use a private S3 bucket.</p>
+                        <p>When you publish an app to Alpha Launch you specify a publishing profile. This profile determines how your apps are published to the Alpha Anywhere server.</p>
+                        <p>Once an app has been installed into Alpha Launch it will appear on the Alpha Launch home screen.</p>
+                        <p>For example the screen shot below shows Alpha Launch running on a mobile phone. There are two apps installed. If you tap on one of the items in the List, the app is launched from the file system on the device. Just like when you load an app that you previously installed on a device from an App store by tapping its icon on the device home screen, you do not need to have an internet connection to load an app into Alpha Launch. That is because the app has been physically installed into the file system on the device, and the app is loaded from the file system. Of course, if the app you load makes Ajax callbacks, you will need to have an internet connection.</p>
+                    </description>
+                    <figure>
+                        <title>Alpha Launch Home Screen</title>
+                        <alt>Alpha Launch Home Screen</alt>
+                        <link>images/alphalaunch10.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <title nested="2">Understanding the options on the Publish to Alpha Launch dialog</title>
+                    <description>
+                        <p>The Publish to Alpha Launch dialog is where you configure how the apps that you registered get published to Alpha Launch. You can set the following values in the dialog:</p>
+                    </description>
+                    <cases>
+                        <case>
+                            <title nested="3">Profile</title>
+                            <description>
+                                <p>This is the publishing profile that you want to use to publish your applications to the Alpha Anywhere server.</p>
+                            </description>
+                            <important>
+                                <p>If you choose an Alpha Cloud publishing profile, you will need to ensure that you have previously published your application to Alpha Cloud. You can confirm that you have published your app to Alpha Cloud by clicking the Check if application has been published to Alpha Cloud hyperlink.</p>
+                            </important>
+                        </case>
+                        <case>
+                            <figure>
+                                <title>Profile setting</title>
+                                <alt>Profile setting</alt>
+                                <link>images/al20.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title nested="3">Server URL</title>
+                            <description>
+                                <p>This is the URL of the Alpha Anywhere server where your app will be published. The value for this property depends on what Profile you use to publish your apps. This is the server that will handle Ajax callbacks made by your app. If you do not use an Amazon S3 bucket as your download server, it is also the server from which Alpha Launch will download the app when you install it into Alpha Launch.</p>
+                                <p>If you are using an Alpha Cloud publishing profile and you are unsure of the Server URL, you can set the Server URL to &lt;Auto&gt; and Alpha Anywhere will automatically figure out what the correct value is for the Server URL based on the Publishing profile you selected. There is, however, a disadvantage to using the &lt;Auto&gt; option as it means that Alpha Anywhere will have to go through additional time consuming steps when you publish to Alpha Launch.</p>
+                            </description>
+                            <figure>
+                                <title>Server URL setting</title>
+                                <alt>Server URL setting</alt>
+                                <link>images/al21.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>In order to install apps into Alpha Launch you first have to register the URL of the download server in the Alpha Launch app. Typing a long URL on a mobile keyboard is tedious and it is much easier to register a server by simply scanning a QR code. To display the QR code for the download server, check the checkbox for the Show QR code prompt. Enter a server name and description and then click the Show QR code hyperlink. This will display a QR code that you can scan in Alpha Launch.</p>
+                            </description>
+                            <figure>
+                                <title>Show a QR Code checkbox</title>
+                                <alt>Show a QR Code checkbox</alt>
+                                <link>images/al22.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <note>
+                                <p>If you are using an Alpha Cloud publishing profile and you have set the Server URL to &lt;Auto> you will not be able to display the QR code before the publish to Alpha Launch operation is complete. The QR code will be shown automatically when the publish is complete.</p>
+                            </note>
+                        </case>
+                        <case>
+                            <figure>
+                                <title>Server name and description settings</title>
+                                <alt>Server name and description settings</alt>
+                                <link>images/al23.gif</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If you want to use an Amazon S3 bucket as your download server, check the Use Amazon S3 checkbox.</p>
+                            </description>
+                            <figure>
+                                <title>Use Amazon S3 checkbox</title>
+                                <alt>Use Amazon S3 checkbox</alt>
+                                <link>images/al24.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>When you check this box, the following options appear.</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name>Preserve existing Available App file</name>
+                                            <description>
+                                                <p>By default, when you publish to Alpha Launch the AvailableAppInfo.txt file (this is the file that lists the apps that can be installed from the selected download server) is recreated. If you check this option, the apps that you publish are added to the existing AvailableAppInfo.txt file (if one exists).</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>Use private S3 bucket</name>
+                                            <description>
+                                                <p>Check this option if you do not want to use the shared S3 bucket.</p>
+                                            </description>
+                                        </item>
+                                        <item>
+                                            <name>Download site id</name>
+                                            <description>If you are using the shared Alpha Anywhere S3 bucket as your download server, this id represents the sub-folder in the shared S3 bucket where your apps are download from. Once this id has been assigned, it is not changed (unless you press the Get new id button).</description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                            <important>
+                                <p>If you click the Get new id button, you will then have to register a new download server in Alpha Launch.</p>
+                            </important>
+                            <figure>
+                                <title>Settings for using Amazon S3 to host AlphaLaunch apps</title>
+                                <alt>Settings for using Amazon S3 to host AlphaLaunch apps</alt>
+                                <link>images/al25.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>If you are not using a private S3 bucket, you will be asked to provide the following:</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name>S3 URL</name>
+                                            <description>The URL to your S3 bucket where your Alpha Launch files will be published. e.g. *[html:http://alphalaunchservers.s3.amazonaws.com/]*. Do not include the name of the S3 Folder in the URL.</description>
+                                        </item>
+                                        <item>
+                                            <name>S3 Folder</name>
+                                            <description>The folder within the S3 bucket where your app files will be published.</description>
+                                        </item>
+                                        <item>
+                                            <name>S3 Connection String</name>
+                                            <description>The connection string to your S3 bucket. You can either use an explicit or named connection string. If using a named connection string, you must use the *[xb:::storage::]* prefix.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                            <figure>
+                                <title>Configuring a Private S3 Bucket</title>
+                                <alt>Configuring a Private S3 Bucket</alt>
+                                <link>images/al26.jpg</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <title nested="3">Advanced mode</title>
+                            <description>
+                                <p>When you publish files to Alpha Launch, a Deployment Package (also known as a fileset) must be created. This fileset is stored in the files directory in the __alphaLaunch.alphaLaunch folder in the Web Project folder. The fileset is automatically created when you publish to Alpha Launch, but you might want to create the fileset manually before you initiate the publish so that you can examine the files in the fileset.</p>
+                            </description>
+                            <figure>
+                                <title>Advanced mode</title>
+                                <alt>Advanced mode</alt>
+                                <link>images/al27.gif</link>
+                            </figure>
+                        </case>
+                        <case>
+                            <description>
+                                <p>You can use *[ui:Advanced mode]* when you want to republish to Alpha Launch after having made a change to the app settings (e.g. the app template, description, version number, etc.), but not the app itself. This will speed up the process of publishing the apps because it will avoid having to recreate the static file set for each App.</p>
+                                <p>
+                                    <list>
+                                        <item>
+                                            <name>Create Deployment Packages</name>
+                                            <description>Generates deployment files for the selected components locally but does not publish them. You can find the generated deployment package files in the *[__alphaLaunch.alphaLaunch]* folder in the web projects directory.</description>
+                                        </item>
+                                        <item>
+                                            <name>Re-create all deployment packages when publishing?</name>
+                                            <description>If checked, the entire application will be redeployed when the application is published to Alpha Launch. If you have made modifications to the application settings but not the application, Alpha Anywhere will only publish the app settings if you leave this option unchecked when using *[ui:Advanced mode]*.</description>
+                                        </item>
+                                    </list>
+                                </p>
+                            </description>
+                        </case>
+                    </cases>
+                </case>
+            </cases>
+        </section>
+        <section>
+            <title>Generating a Server QR Code</title>
+            <description>
+                <p>After publish completes, you'll be prompted to generate a Server QR Code. The Server QR Code is used to register your server in Alpha Launch. Enter a name for your server and a short description. Then click *[ui:OK]*.</p>
+            </description>
+            <figure>
+                <title>Server QR Code</title>
+                <alt>Server QR Code</alt>
+                <link>images/alphalaunch_serverQR.png</link>
             </figure>
         </section>
         <section>
             <description>
-                <p>You can use *[ui:Advanced mode]* when you want to republish to Alpha Launch after having made a change to the app settings (e.g. the app template, description, version number, etc.), but not the app itself. This will speed up the process of publishing the apps because it will avoid having to recreate the static file set for each App.</p>
+                <p>See [How to Register a New Alpha Launch Server] for more information about registering servers.</p>
             </description>
-            <figure>
-                <link>images/alphalaunchpublishadvanced.jpg</link>
-            </figure>
         </section>
         <section>
-            <description>
-                <p>
-                    <list>
-                        <item>
-                            <name>Create Deployment Packages</name>
-                            <description>Generates deployment files for the selected components locally but does not publish them. You can find the generated deployment package files in the *[__alphaLaunch.alphaLaunch]* folder in the web projects directory.</description>
-                        </item>
-                        <item>
-                            <name>Re-create all deployment packages when publishing?</name>
-                            <description>If checked, the entire application will be redeployed when the application is published to Alpha Launch. If you have made modifications to the application settings but not the application, Alpha Anywhere will only publish the app settings if you leave this option unchecked when using *[ui:Advanced mode]*.</description>
-                        </item>
-                    </list>
-                </p>
-            </description>
-        </section>
-        <section build="4388">
-            <title>Publishing Alpha Launch App Files to Amazon S3</title>
-            <description>
-                <p>By default, when you publish an app to Alpha Launch, the Alpha Launch client (i.e. the app running on the mobile device) will download the app from the same folder to which the app was published. The app will be published to a folder in the webroot of the standard Alpha Anywhere server, the Alpha Anywhere IIS server, or AlphaCloud.</p>
-                <p>However, you can also publish the app to a S3 bucket and when the Alpha Launch user tries to install a new App, the app files will be downloaded from S3, rather than from your Alpha Anywhere server. Of course, once the user actually starts using the app on their device, Ajax callbacks will be handled by your Alpha Anywhere server.</p>
-                <p>The benefit of downloading apps from S3 is that you offload work from your Alpha Anywhere server to S3. Also, in certain cases, when using an Android device and downloading an app from an Alpha Anywhere standard server, the install might fail because the app has too many files. By using S3 as the download location, you can circumvent this problem.</p>
-                <p>If you want to publish the app to S3, check the *[ui:Use Amazon S3 as download site for Alpha Launch Apps]* checkbox on the Publish to Alpha Launch dialog.</p>
-            </description>
-            <figure>
-                <link>images/alphalaunchs3.jpg</link>
-            </figure>
-        </section>
-        <section>
-            <description>You will need to specify:</description>
-            <list>
-                <item>
-                    <name-title>Setting</name-title>
-                    <description-title>Description</description-title>
-                </item>
-                <item>
-                    <name>S3 URL</name>
-                    <description>The URL to your S3 bucket where your Alpha Launch files will be published. e.g. *[html:http://alphalaunchservers.s3.amazonaws.com/]*. Do not include the name of the S3 Folder in the URL</description>
-                </item>
-                <item>
-                    <name>S3 Folder</name>
-                    <description>The folder within the S3 bucket where your app files will be published.</description>
-                </item>
-                <item>
-                    <name>S3 Connection String</name>
-                    <description>The connection string to your S3 bucket. You can either use an explicit or named connection string. If using a named connection string, you must use the *[xb:::storage::]* prefix.</description>
-                </item>
-            </list>
-        </section>
-        <section build="5114">
             <title>Verifying the Publish</title>
             <description>
-                <p>Publishing apps to Alpha Launch can be tricky. The *[ui:Check if files were published correctly]* button in the Alpha Launch dialog allows you to check if your publish worked correctly. To test your publish, click the Check if files were published correctly button. </p>
+                <p>When the publish completes, you'll be shown a dialog that you can use to verify if the publish was successful. Click the *[ui:Check if files were published correctly]* button to verify the publish.</p>
             </description>
-            <important>The publishing profile you define for Alpha Launch publishing should not use used to publish your application using the standard Publish dialog. The Alpha Launch publishing profile is for the exclusive use of Alpha Launch publishing.</important>
             <figure>
                 <link>images/alphalaunchverify1.jpg</link>
             </figure>
+        </section>
+        <section>
+            <description>
+                <p>If the publish succeeded, the *[ui:Publish was OK]* dialog will be shown that contains the availableAppInfo.txt data that was published.</p>
+            </description>
             <figure>
                 <link>images/alphalaunchverify2.jpg</link>
             </figure>
         </section>
         <section>
-            <title>Adding an Exit Button to your App</title>
             <description>
-                <p>When an app is run in Alpha Launch you will typically want to add an 'Exit' button to your app to go back to the Alpha Launch home screen. If you do not add an Exit button, then after the user launches the app they will not be able to get back to the Alpha Launch home screen to launch a different App.</p>
-                <p>You can use Action Javascript to add an Exit button, or you can code the Javascript for the button yourself.</p>
-                <p>To use Action Javascript, select the '[AlphaLaunch Actions]' action for the list of available Action Javascript actions.</p>
-                <p>To code the Javascript directly, use this code:</p>
-            </description>
-            <example code="js"><![CDATA[if(A5.shell) {A5.shell.exitComponent();};]]></example>
-        </section>
-        <section>
-            <description>
-                <p>The code tests if you are running in Alpha Launch, then if you are then it calls the *[js:A5.shell.exitComponent()]* method.</p>
+                <p>Once you have published your apps, you can register the server in Alpha Launch. Alpha Launch will contact the server to get a list of the available apps. You can then install your apps in Alpha Launch.</p>
+                <p>For instructions on how to register a server with Alpha Launch, see [How to Register a New Alpha Launch Server].</p>
             </description>
         </section>
         <section>
@@ -485,3 +648,6 @@
         <link link="alphalaunch actions">AlphaLaunch Actions</link>
     </links>
 </page>
+
+
+
