@@ -1,0 +1,83 @@
+<page>
+    <shortlink>api Active Directory User GetAttribute method</shortlink>
+    <topic>GetAttribute Method</topic>
+    <prototypes>
+		<prototype>GetAttribute as A (attributeName as C)</prototype>
+	</prototypes>
+    <description>
+		Get a user's attribute for a WindowsServices::ActiveDirectory::User object. 
+	</description>
+	<arguments>
+        <argument>
+            <name>attributeName</name>
+            <type>C</type>
+            <description>The name of a user's attribute. The attribute name must be a name set on the WindowsServices::ActiveDirectory::Domain object's
+			AdditionalUserAttributeNames or one of the property names on the WindowsServices::ActiveDirectory::User object such as &quot;DistinguishedName&quot;. 
+			</description>
+        </argument>
+	</arguments>
+	<returns>
+        <return>
+            <name>value</name>
+            <types>
+                <type>A</type>
+            </types>
+            <description>Returns a value of type A. Check the domain object's CallResult to see if the method succeeds.
+			</description>
+        </return>
+    </returns>
+    <sections>
+        <section>
+            <example><![CDATA['The follow line assumes that the machine is joined to an Active Directory domain and is allow to query Active Directory.
+dim domain as WindowsServices::ActiveDirectory::Domain = new WindowsServices::ActiveDirectory::Domain()
+if .not. domain.CallResult.Success then
+	?"There was an error connecting to an Active Directory domain: " + domain.CallResult.Text + crlf()
+	goto exitTestFunction
+end if
+	
+?"The domain name is " + domain.Name + crlf()
+
+domain.AdditionalUserAttributeNames = &lt;&lt;%txt%
+HomePhone
+Picture
+%txt%
+
+dim userid as c = "JohnDoe"
+
+dim user as p = domain.getUser(userId)
+if .not. domain.CallResult.Success then
+	?"There was an error getting the user " + userId + ": " + domain.CallResult.Text + crlf()
+	goto exitTestFunction
+end if
+
+?user.Name + crlf()
+dim homePhone as c
+homePhone = user.GetAttribute("HomePhone") 
+?homePhone + crlf()
+
+dim usersRoles as c = user.Roles
+
+dim userGuid as c = user.Guid
+dim userSid as c = user.Sid
+
+dim userFromGuid as p = domain.getUserByGuid(userGuid)
+if .not. domain.CallResult.Success then
+	?"There was an error getting the user " + userId + " by guid " + userGuid + ": " + domain.CallResult.Text + crlf()
+	goto exitTestFunction
+end if
+
+?userFromGuid.Name + crlf()
+
+dim userFromSid as p = domain.getUserBySid(userSid)
+if .not. domain.CallResult.Success then
+	?"There was an error getting the user " + userId + " by sid " + userSid + ": " + domain.CallResult.Text + crlf()
+	goto exitTestFunction
+end if
+
+?userFromSid.Name + crlf()
+	
+exitTestFunction:
+]]></example>
+        </section>
+    </sections>
+</page>
