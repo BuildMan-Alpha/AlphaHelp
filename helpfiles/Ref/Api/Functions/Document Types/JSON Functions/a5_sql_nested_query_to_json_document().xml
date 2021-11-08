@@ -1,4 +1,4 @@
-<page api="xb">
+<page api="xb" build="0">
     <shortlink>a5_sql_nested_query_to_json_document Function</shortlink>
     <topic>a5_sql_nested_query_to_json_document Function</topic>
     <description>Execute queries against one or more SQL databases, returning the result as a JSON document.</description>
@@ -64,6 +64,21 @@
                     <name>convertToText</name>
                     <type>L</type>
                     <description>If *[xb:.T.]*, converts all dates to strings. If *[xb:.F.]*, preserves data types.</description>
+                </property>
+                <property optional="true" build="7918">
+                    <name>flagUseOptimizedQueryIfPossible</name>
+                    <type>L</type>
+                    <description>Default = *[xb:.T.]*. If *[xb:.T.]*, the query is optimized if possible. Only applies to SQL Server R2016 and above.</description>
+                </property>
+                <property optional="true" build="7918">
+                    <name>convertNumbersToStrings</name>
+                    <type>L</type>
+                    <description>Default = *[xb:.T.]*. If *[xb:.T.]*, numbers are converted to strings. Only applies to SQL Server R2016 and above.</description>
+                </property>
+                <property readonly="true" build="7981">
+                    <name>optimizedSQL</name>
+                    <type>C</type>
+                    <description>If this function is used to run a query on SQL Server R2016 or above with query optimization enabled (default), *[xb:optimizedSQL]* will contain the generated optimized SQL query used to fetch the data.</description>
                 </property>
             </properties>
         </argument>
@@ -359,6 +374,15 @@ p = a5_sql_nested_query_to_json_document(ops,args)]]></example>
         </section>
         <section>
             <description>Notice that the 'orderDate', 'orderId', and 'value' values are typed.</description>
+        </section>
+        <section build="7918">
+            <title>SQL Server Optimization</title>
+            <description>
+                <p>*[xb:a5_sql_nested_query_to_json_document()]* includes optimizations for SQL Server Release 2016 and above. These versions of SQL Server support a special syntax to generate hierarchical JSON data. The *[xb:a5_sql_nested_query_to_json_document()]* function will automatically generate and use the SQL Server syntax if possible. This can be up to 10 times faster than using the non-optimized approach.</p>
+                <p>You can control whether or not the optimizations are used with the *[xb:ops.flagUseOptimizedQueryIfPossible]* option. By default, optimizations are used. Setting this option to *[xb:.F.]* will disable optimizations.</p>
+                <p>The non-optimized version of *[xb:a5_sql_nested_query_to_json_document()]* returns JSON in which all properties are strings. The optimized JSON returned, however, does not convert numbers to strings. Enabling *[xb:ops.convertNumbersToStrings]* ensures both the optimized and non-optimized version of the function return the same data by converting numbers to strings. Conversion of numbers to strings is enabled by default. You can disable it by setting *[xb:ops.convertNumbersToStrings]* to *[xb:.F.]*.</p>
+                <p>After the function has run you can examine the *[xb:ops.optimizedSQL]* property to see the optimized SQL that was generated for SQL Server.</p>
+            </description>
         </section>
     </sections>
     <links>
