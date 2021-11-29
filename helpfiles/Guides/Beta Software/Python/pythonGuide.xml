@@ -2,9 +2,169 @@
     <shortlink>python guide</shortlink>
     <topic parent="Python" parentType="guide" elementName="Calling Python From Xbasic">Calling Python From Xbasic</topic>
     <description>
-        <p>A short guide on calling Python scripts in Xbasic.</p>
+        <p>Learn how to utilize Python in your sever-side scripts and events.</p>
     </description>
+    <discussion>
+        <p>All server-side code in an UX and Grid is typically handled using Xbasic code. However, you are not restricted to only Xbasic to build server-side processes. Python scripts can be called every Xbasic is used, including component server-side events, Ajax Callbacks, Xbasic modules, and more. In addition to being able to execute Python, your Python scripts have access to the same variables available to Xbasic scripts.</p>
+        <p>Python offers several advantages to new and existing developers when developing server-side scripts. Python integration with Alpha Anywhere offers developers the option to create server-side scripts using a language they already know. Python includes a vast library of modules you could leverage in your applications.</p>
+        <p>With every advantage, however, comes some drawbacks. At this time, there is no integrated debugger for Python in Alpha Anywhere. You will need to use an external tool to debug your Python scripts, or log variables and status information to a file from Python that you can later inspect.</p>
+        <p>Executing Python from Xbasic uses the following pattern:</p>
+        <p>
+            <list bullet="true">
+                <item>
+                    <name>Create an Xbasic code stub or function.</name>
+                </item>
+                <item>
+                    <name>Call a Python function from Xbasic using helper::Python::Call().</name>
+                </item>
+                <item>
+                    <name>Capture the return value from the Python function in an Xbasic variable.</name>
+                </item>
+                <item>
+                    <name>Return the return value from the Python function (if desired).</name>
+                </item>
+            </list>
+        </p>
+        <p>The Python function called from Xbasic must be defined in a Python module. A Python module is a text file with a .py extension containing one or more Python function definitions. All Python modules in your project must be stored in a folder called Python in the Web Project.</p>
+    </discussion>
     <sections>
+        <section>
+            <tip>
+                <p>To add a Python folder to your Web Project you can click the More... button on the Web Project Control Panel and then select the Python, Create a 'Python' folder in the Web Project command.</p>
+            </tip>
+        </section>
+        <section>
+            <title>Calling Python in an Ajax Callback</title>
+            <description>
+                <p>Assume you have a button in your component that makes an Ajax Callback to an Xbasic function called *[xb:myXbasicFunction]*. In this callback function, you would like to call *[py:myfunc]*, a Python function. *[py:myfunc]*, shown below, returns JavaScript that displays a popup with the message "Hello from Python".</p>
+                <p>
+                    <example code="py" caption="Python function that returns JavaScript to display a popup message."><![CDATA[def myfunc(e,session,request):
+
+    #Your code can read all of the properties in the e object
+    #Your code can read and set session variables
+    #Your code can read the request object
+
+    #Create a variable with the value you want to return to the Xbasic stub code
+    fn = "alert('Hello from Python');"
+    #return the value
+    return fn]]></example>
+                </p>
+                <p>This Python function is saved in a file called "mypython.py" in the Python folder in the Web Projects directory.</p>
+                <p>Here is how you would implement the *[xb:myXbasicFunction]* function to call *[py:myfunc]*:</p>
+                <p>
+                    <example code="xb"><![CDATA[function myXbasicFunction as c (e as p)
+    'Force a reload of the Python modules so that any changes you have
+    'made to the Python code during development are picked up
+    'Remove this line when you're ready to publish your app to production:
+    helper::Python::ReloadModule("mypython")
+
+    dim returnValue as c
+
+    'Call the myfunc function in the mypython module.
+    'When you call helper::Python::Call(), you must pass in e, session, and request
+    'This gives your Python function access to read and set session variables. 
+    'All data in the e and request objects is also accessible in your Python code
+    returnValue = helper::Python::Call("mypython","myfunc",e,session,request)
+
+    'Return the value the Python function returned from the Xbasic function
+    return returnValue
+
+end function]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Executing SQL Queries in Python</title>
+            <description>
+                <p>One of the significant benefits of writing your server-side code in Xbasic is AlphaDOA which makes it extremely easy to connect to a wide multitude of SQL databases and perform CRUD operations using portable SQL. When you call Python code from within Alpha Anywhere you can get access to the AlphaDAO classes, which means that working with SQL databases in Python is just as easy as it is in Xbasic.</p>
+                <p>You can certainly import specialized libraries into your Python functions in order to execute SQL commands, but you might find it easier to use the AlphaDAO objects that are built into Alpha Anywhere.</p>
+                <p>Below is some sample Python code that executes a SQL Select statement on the sample Northwind database.</p>
+                 <p>
+                    <example code="py"><![CDATA[#import the AApySQL library so that your Python code can access AlphaDAO object
+import AApySQL
+
+#create a connection object
+cn = AApySQL.Connection()
+
+#your Python code has access to your database connection strings
+connectionString = "::Name::AADemo-Northwind"
+
+#open a connection to the Database. The method name (.Open() is case-sensitive!)
+flag = cn.Open(connectionString)
+
+sql = "Select * from Customers"
+
+#execute a SQL command
+flag = cn.Execute(sql)
+if flag:
+    #get the data in JSON format
+    json = cn.ResultSet.ToJSON()]]></example>
+                 </p>
+            </description>
+        </section>
+        <section>
+            <title>Accessing Xbasic Functions in Python</title>
+            <description>
+                <p>Your Python code can execute any of the many functions available in Xbasic. In the example below the Python function executes the Xbasic api_uuidcreate() function to generate a GUID.</p>
+                <p>
+                    <example code="py"><![CDATA[#import AAPy to that your Python code can reference Xbasic functions
+import AAPy
+
+guid = AApy.xbasic("api_uuidcreate()")]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Accessing Xbasic Classes in Python</title>
+            <description>
+                <p>Alpha Anywhere exposes a large number of useful classes to your Xbasic code. These classes can all be used in your Python code.</p>
+                <p>In the example below the Python function uses the css::styledef class to generate a CSS style.</p>
+                <p>Notice that the import AAPY statement is needed to import the Alpha Anywhere library for calling Xbasic from Python. The *[py:AApy.xbasic()]* method is called to create a Python object from the Xbasic css::styledef class.</p>
+                <p>
+                    <example code="py"><![CDATA[#import AAPy to that your Python code can reference Xbasic classes
+import AAPy
+
+ss = AApy.xbasic("new css::styledef()")
+ss.background_color = "green"
+string = ss.toString()]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Debugging Python in an Alpha Anywhere App</title>
+            <description>
+                <p>There is no integrated debugger available to debug into your Python code (unlike Xbasic which has a very easy to use debugger). So the only way to debug your Python code is by writing variable values to a file. Here is sample Python code that you can use to write to a file:</p>
+                <p>
+                    <example code="py"><![CDATA[f = open("c:/debug/pythondebug.txt", "w")
+f.write("write some text")
+f.close()]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+        </section>
+        <section>
+            <videos>
+                <title>Calling Python Functions in Server-side Code</title>
+                <description>
+                    <p>Typically, all server-side code in a UX or Grid is written using Xbasic. But if you are already familiar with Python, you might prefer to write server-side code using Python.</p>
+                    <p>In this video, we show how you can write server-side code using Python.</p>
+                </description>
+                <date>2021-11-20</date>
+                <video>
+                    <name>Watch Video - Part 1</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/callingPythonFromXbasic1.mp4</link>
+                </video>
+                <video>
+                    <name>Watch Video - Part 2</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/callingPythonFromXbasic2.mp4</link>
+                </video>
+            </videos>
+        </section>
+    </sections>
+</page>
+<!--
         <section>
             <description>
                 <p>Python methods, run arbitrary code, or run a simple python expression from xbasic.</p>
@@ -89,5 +249,4 @@ helper::Python::ReloadModule("greet")
                 <p>Call the ReloadModule if the module you are using has changed after you have run it.</p>
             </description>
         </section>
-    </sections>
-</page>
+-->
