@@ -1,4 +1,4 @@
-<page>
+<page build="0">
     <shortlink>File Upload Amazon S3 Storage or Alpha Anywhere Server</shortlink>
     <topic>File Upload - Amazon S3 Storage or Alpha Anywhere Server</topic>
     <description>Upload one or more files to Amazon S3 or to the Alpha Anywhere server.</description>
@@ -26,12 +26,16 @@
                                     <description-title>Description</description-title>
                                 </item>
                                 <item>
-                                    <name>S3</name>
-                                    <description>Images will be uploaded to Amazon S3. Specific information about the destination S3 bucket is specified in the [Amazon S3 File Upload Properties].</description>
-                                </item>
-                                <item>
                                     <name>AlphaAnywhere</name>
                                     <description>Files will be uploaded to the Alpha Anywhere Server. You must define an [Xbasic function] to handle the files after they have been uploaded.</description>
+                                </item>
+                                <item>
+                                    <name>AmazonS3</name>
+                                    <description>Files will be uploaded to Amazon S3. Specific information about the destination S3 bucket is specified in the [Amazon S3 File Upload Properties].</description>
+                                </item>
+                                <item build="7947">
+                                    <name>AmazonS3Indirect</name>
+                                    <description>Files will be uploaded to the Alpha Anywhere Server and then to Amazon S3 or Wasabi. Uploading the files to the Application Server first enables options for creating image thumbnails or dynamically computing the destination folder in the bucket.</description>
                                 </item>
                             </list>
                         </p>
@@ -40,13 +44,22 @@
                 <case>
                     <figure>
                         <title>Options available for the 'S3' Upload target.</title>
+                        <alt>Options available for the 'S3' Upload target.</alt>
                         <link>images/fileUploadS3_S3.png</link>
                     </figure>
                 </case>
                 <case>
                     <figure>
                         <title>Options available for the 'AlphaAnywhere' Upload target.</title>
+                        <alt>Options available for the 'AlphaAnywhere' Upload target.</alt>
                         <link>images/fileUploadS3_AlphaAnywhere.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <figure>
+                        <title>Options available for the 'AmazonS3Indirect' Upload target.</title>
+                        <alt>Options available for the 'AmazonS3Indirect' Upload target.</alt>
+                        <link>images/fileUploadS3_S3Indirect.png</link>
                     </figure>
                 </case>
                 <case>
@@ -161,18 +174,73 @@ dim pi.type as c = default ""]]></example>
             <cases>
                 <case>
                     <title nested="2">Method for selecting files</title>
-                    <description>Specify if the user can select the file(s) to be uploaded, or if the data for the file to be uploaded will be supplied (in the form of a base64 encoded string  -- that is formatted as a 'data URI' e.g. data:image/jpeg;base64,/sjsakjjs....). Choices include *[ui:User selects file(s)]*, *[ui:Base64Data]*.</description>
+                    <description>Specify if the user can select the file(s) to be uploaded, or if the data for the file to be uploaded will be supplied (in the form of a base64 encoded string  -- that is formatted as a 'data URI' e.g. data:image/jpeg;base64,/sjsakjjs....). Choices include *[ui:User selects file(s)]* and *[ui:Base64Data]*.</description>
                 </case>
                 <case>
                     <title nested="2">Javascript function to get base64 encoded data</title>
-                    <description>Specify the name of the Javascript function that will return the base64 encoded data to be uploaded. Returned base64 data is expected to be in data URI format. e.g. data:image/jpeg;base64,/skaakjfhaksdfh......</description>
+                    <description>
+                        <p>This property is only available if *[ui:Method fo selecting files]* has been set to 'Base64Data'.</p>
+                        <p>Specify the name of the Javascript function that will return the base64 encoded data to be uploaded. Returned base64 data is expected to be in data URI format. (e.g. data:image/jpeg;base64,/skaakjfhaksdfh.....).</p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+        <section build="7947">
+            <title>Images Properties</title>
+            <description>
+                <p>These properties are only available if the *[ui:Upload target]* has been set to 'AmazonS3Indirect'.</p>
+            </description>
+            <cases>
+                <case>
+                    <title nested="2">Image file extensions</title>
+                    <description>
+                        <p>A comma delimited list of allowed image filename extensions. If the user uploads an image that does not match an allowed extension, the operation is aborted. Defaults to '.png,.jpg,.jpeg'.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Scale image</title>
+                    <description>
+                        <p>An optional scaling applied to the image before it is saved to storage.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Create thumbnails for images</title>
+                    <description>
+                        <p>If checked, a thumbnail will be created for the image and saved to storage.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Thumbnail definition</title>
+                    <description>
+                        <p>This property is only available if *[ui:Create thumbnails for images]* is checked.</p>
+                        <p>Defines how to generate the image thumbnail. There are two methods for generating thumbnails:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name>Specify a ratio</name>
+                                    <description>
+                                        <p>The ratio specifies how to scale the image. Ratio is specified as decimal value representing the percentage to scale the image. A value less than 1 will scale the thumbnail smaller than the original image while a value greater than 1 will scale the thumbnail larger. For example, to make the image 50% (half) it's original size, you would enter *[0.5]*. A value of 1.5 would generate a thumbnail image 150% of the original image (50% larger).</p>
+                                        <p>If the ratio is *[0]* or *[1]*, no scaling is applied.</p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>Specify absolute image size</name>
+                                    <description>
+                                        <p>The absolute image size defines a fixed width and/or height for the thumbnail. You can either choose to scale the image proportionally, to preserve the image ratio, or specify the width and height of the thumbnail independently of each other.</p>
+                                        <p>If the *[ui:Scaling method]* is set to scale the width and height proportionally, you must define the maximum dimension for the scaled image (in either inches or pixels). The maximum dimension can be either the *[ui:Width]*, *[ui:Height]*, or whichever dimension is longer (the *[ui:Maximum dimention]*). If the *[ui:Dimension]* is set to *[0]*, no scaling is applied.</p>
+                                        <p>If scaling is done independently, you must specify both the *[ui:Width]* and *[ui:Height]* of the thumbnail. If both the width and height are set to *[0]*, no scaling is applied.</p>
+                                    </description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
                 </case>
             </cases>
         </section>
         <section>
             <title>Amazon S3 File Upload Properties Properties</title>
             <description>
-                <p>These properties are only available if the *[ui:Upload target]* has been set to 'S3'.</p>
+                <p>These properties are only available if the *[ui:Upload target]* has been set to 'AmazonS3' or 'AmazonS3Indirect'.</p>
             </description>
             <cases>
                 <case>
@@ -215,7 +283,7 @@ dim pi.type as c = default ""]]></example>
         <AllowedHeader>origin</AllowedHeader>
     </CORSRule>
 </CORSConfiguration>
-]]></example>
+]]>                            </example>
                         </p>
                     </description>
                 </case>
@@ -226,6 +294,17 @@ dim pi.type as c = default ""]]></example>
                 <case>
                     <title nested="2">S3 Timeout</title>
                     <description>Specify the S3 timeout in milliseconds. This is the amount of time allowed before authorization to upload files to S3 will expire. If you have a lot of files to upload, you may want to increase this value. Suggested value is *[ui:600]*.</description>
+                </case>
+                <case build="7947">
+                    <title nested="2">S3 Object name function</title>
+                    <description>
+                        <p>This property is only available if the *[ui:Upload target]* has been set to 'AmazonS3Indirect'.</p>
+                        <p>The name of an Xbasic function to call to generate the object name for the S3 file. If you want to store the file in a folder in the bucket, you can use this function to return the folder name. If you want to specify the target folder without having to define an Xbasic function, use the following syntax:</p>
+                        <p>
+                            <example><![CDATA[folder:name_of_folder]]></example>
+                        </p>
+                        <p>Where *[em:name_of_folder]* is the name of the folder in the bucket.</p>
+                    </description>
                 </case>
             </cases>
         </section>
