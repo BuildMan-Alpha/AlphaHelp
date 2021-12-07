@@ -1,0 +1,191 @@
+<page build="7967">
+    <shortlink>ux enter code control</shortlink>
+    <topic>Enter Code Control</topic>
+    <description>An interface for entering a two-factor authentication code that provides animated feedback when the code is incorrect.</description>
+    <discussion>
+        <p>The Enter Code control prompts the user to enter a code with a fixed number of characters. The control displays a box for each character. Once the user has entered values into each of the boxes, the onComplete event fires, which you can use to validate the code and initiate the next step in the process.</p>
+    </discussion>
+    <sections>
+        <section>
+            <figure>
+                <title>Enter Code control</title>
+                <alt>Enter Code control</alt>
+                <link>images/entercode1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>The Enter Code control includes a "shake" behavior that is triggered using JavaScript. The shake behavior can be used to indicate the value in the Enter Code control is invalid -- a behavior often seen in systems that use two-factor authentication.</p>
+            </description>
+            <figure>
+                <title>If the user enters an invalid code, you can shake the control to alert the user that the code is invalid</title>
+                <alt>The Enter Code control shaking because an incorrect code was entered</alt>
+                <link>images/shake.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>To add an Enter Code control to your UX, select the *[ui:[More...]]* button from the *[ui:Data Controls]* toolbox.</p>
+            </description>
+            <figure>
+                <title>Open the More controls dialog</title>
+                <alt>Open the More controls dialog</alt>
+                <link>images/add1.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>Then select the *[ui:EnterCode]* control.</p>
+            </description>
+            <figure>
+                <title>Select EnterCode from the list</title>
+                <alt>Select EnterCode from the list</alt>
+                <link>images/add2.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Control Properties</title>
+            <description>
+                <p>Once you have added the control to your UX you can can configure it using the *[ui:Control properties]* property.</p>
+            </description>
+            <figure>
+                <title>Enter Code control properties</title>
+                <alt>Enter Code control properties</alt>
+                <link>images/entercode4.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p></p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Property</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>Number of characters</name>
+                            <description>The number of characters in the code. Default value is *[6]*.</description>
+                        </item>
+                        <item>
+                            <name>Allow digits</name>
+                            <description>Whether the code can include numbers. Default value is checked.</description>
+                        </item>
+                        <item>
+                            <name>Allow lowercase characters</name>
+                            <description>Whether the code can include lower case letters. Default value is unchecked.</description>
+                        </item>
+                        <item>
+                            <name>Allow uppercase characters</name>
+                            <description>Whether the code can include upper case letters. Default value is unchecked.</description>
+                        </item>
+                        <item>
+                            <name>Allow symbols</name>
+                            <description>Whether the code can include symbols. Default value is unchecked.</description>
+                        </item>
+                        <item>
+                            <name>ClassName</name>
+                            <description>One or more CSS class names to apply to the data entry boxes. Default value is blank.</description>
+                        </item>
+                        <item>
+                            <name>Style</name>
+                            <description>
+                                <p>In-line CSS styling for the data entry boxes. The default value is shown below.</p>
+                                <p>
+                                    <example code="css"><![CDATA[outline:none;border: 1px solid #d7d3d3; border-radius: 4px; padding: 6px 0px;]]></example>
+                                </p>
+                            </description>
+                        </item>
+                        <item>
+                            <name>Spacing between data entry boxes</name>
+                            <description>Spacing between boxes in CSS units. Default value is *[2px]*.</description>
+                        </item>
+                        <item>
+                            <name>onComplete Function</name>
+                            <description>
+                                <p>Name of the Javascript function to call when the user has entered a value in every data entry box. Your JavaScript function must validate the code entered and perform all necessary actions to either indicate that the code is invalid or proceed to the next step in the process.</p>
+                                <p>You can call the Enter Code control's *[js:shake()]* method to indicate the code is invalid. (See below)</p>
+                            </description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Implementing the onComplete Function</title>
+            <description>
+                <p>When every data entry box has a value, the onComplete function is called. The onComplete function does the work of validating the value entered in the control to determine whether or not the code is valid. Validation may often occur server-side. To validate the code server-side, your JavaScript function needs to make an Ajax Callback. For example, the *[js:dataEntered()]* function shown below makes an Ajax Callback to an Xbasic function called "validateCode".</p>
+                <p>
+                    <example code="js"><![CDATA[function dataEntered() { 
+    {dialog.object}.ajaxCallback('','','validateCode')
+}]]></example>
+                </p>
+                <p>The *[xb:validateCode()]* function checks the submitted value of the "EnterCode" control against the expected value. In this example, the expected value is always the same -- "123456". If the value of the "EnterCode" control matches, JavaScript is returned to display a popup message. If the value doesn't match, it returns JavaScript to shake the "EnterCode" control.</p>
+                <p>
+                    <example code="xb"><![CDATA[function validateCode as c (e as p)
+    ' Get the value for the Enter Code control named "EnterCode":
+    dim codeSubmitted as c  = e.dataSubmitted.EnterCode
+    dim js as c 
+
+    if codeSubmitted = "123456" then 
+        ' Code is valid. Display a popup message.
+        js = "alert('code is valid');"
+    else
+        ' Code is invalid. Shake the EnterCode control.
+        js = "var obj = {dialog.object}.getControl('EnterCode'); obj.shake();"
+    end if 
+
+    ' Return JavaScript to execute on the client
+    return js
+
+end function ]]></example>
+                </p>
+                <p>The above example can be adapted to perform a more complicated check, such as validate a two-factor authentication code you sent to the user's device using another method. It can also be changed to do something, such as navigate to another .a5w page or panel, instead of displaying a JavaScript *[js:alert()]* if the validation succeeds.</p>
+            </description>
+        </section>
+        <section>
+            <title>Client-side Methods</title>
+            <description>
+                <p>In addition to the [standard methods] for working with Data Controls, you can use the below methods for the Enter Code JavaScript control object to manipulate the Enter Code control. Use [{dialog.object}.getControl()] to get the Enter Code control's JavaScript object:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name>[shakeControlObj.shake()]</name>
+                            <description>Triggers the Enter Code control's shake animation. The shake animation is used to indicate the value is incorrect.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Videos</title>
+        </section>
+        <section>
+            <videos>
+                <title>Using the Enter Code Control</title>
+                <description>
+                    <p>A common design pattern when building applications that prompt the user to enter a two-factor authentication code (for example a login screen) is to provide data entry boxes for the user to type in the code. As the user types the code, focus is automatically moved to the next box. Once the user has typed in all of the characters in the code, an Ajax callback is made to the server to validate the code. If the code is not valid, the control shakes (thus giving feedback to the user that they have not entered a valid code).</p>
+                    <p>In this video we show how an Enter Code control can be added to an UX component.</p>
+                </description>
+                <date>2021-12-03</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>http://alphamediacapture.s3.amazonaws.com/videos/entercode.mp4</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>http://alphamediacapture.s3.amazonaws.com/videos/entercode.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="UX Controls Data Controls#section1_Working with Data Controls in Javascript">standard methods</link>
+        <link link="enter code control shake method">shakeControlObj.shake()</link>
+        <link link="ux%20component%20getcontrol%20method">{dialog.object}.getControl()</link>
+    </links>
+    <see>
+        <ref link="ux entercode object methods">Enter Code Control Object Methods</ref>
+    </see>
+</page>
