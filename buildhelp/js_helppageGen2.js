@@ -47,7 +47,7 @@ var indentLevelCalc = function(txt) {
     return 0;
 };
 var processLink = function(linkDef) {
-    var parts = linkDef.split("{");
+    var parts = linkDef.replace(/\}[\s]*\{/g,' Object - ').split("{");
     if (parts.length === 2) {
         linkDef = parts[0] + " " + parts[1].replace("}", "") + " Object";
     }
@@ -199,10 +199,11 @@ var buildContext = function(content,buildNum) {
             }
 
             if (!build.context[context]) {
-                var allParts = context.split('.');
+                var allParts = context.split(/[\.\{]/g);
                 if (allParts.length > 1) {
                     var parentContext = build.context[allParts[0]];
                     if (parentContext) {
+                        if(context.indexOf("{") != -1) console.log('!!!!! sub object !!!!\n'+allParts)
                         var tContext = allParts.shift();
                         var tParentContext = null;
                         for (var j = 0; j < allParts.length - 1; j++) {
@@ -210,12 +211,15 @@ var buildContext = function(content,buildNum) {
                             if (tParentContext) {
                                 allParts[j] += '_' + tParentContext.type;
                             } else {
-								if(allParts[j][0].toUpperCase() ===  allParts[j][0]) allParts[j] += '_class';
+                                console.log(allParts[j][allParts[j].length-1])
+                                if(allParts[j][allParts[j].length-1] == '}')  allParts[j] = allParts[j].substr(0,allParts[j].length-1)+'_object';
+								else if(allParts[j][0].toUpperCase() ===  allParts[j][0]) allParts[j] += '_class';
 								else allParts[j] += '_namespace';
                             }
+                            
                         }
-                        build.context[context] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type, build: buildNum};
-                        console.log("Added context: " + context + " - path: " + allParts);
+                        build.context[context.replace(/\{/g,'.').replace(/\}/g,'')] = { path: parentContext.path + '/' + allParts.join('/') + '_' + type, classname: context, type: type, build: buildNum};
+                        console.log("Added context: " + context.replace(/\{/g,'.').replace(/\}/g,'') + " - path: " + allParts);
                     } else {
                         console.log("Could not find parent: " + allParts[0]);
                     }
@@ -371,10 +375,10 @@ var generateXMLHelp = function(content,buildNum) {
 
             if (type) {
                 if (type === "context") {
-                    context = line.substring(splitPos + 1).trim();
+                    context = line.substring(splitPos + 1).trim().replace(/\{/g,'.').replace(/\}/g,'');
                     topContext = context;
                 } else if (type === "namespace" || type === "class" || type === "object") {
-                    context = line.substring(splitPos + 1).trim();
+                    context = line.substring(splitPos + 1).trim().replace(/\{/g,'.').replace(/\}/g,'');
 					console.log('B type:'+type+' ctx: '+context);
                     if (context.indexOf('.') < 0 && type === "object" && topContext) {
                         // Object does not have a fully qualified name
@@ -620,9 +624,9 @@ var generateXMLHelp = function(content,buildNum) {
         if (pageName.indexOf(" Method") > 0) {
             var lastDotPos = pageName.lastIndexOf(".");
             if (lastDotPos > 0) {
-                if (map && map.type === "namespace") {
-                    console.log("classOrNamespace is a namespace");
-                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"namespace\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
+                if (map && (map.type === "namespace" || map.type === 'object')) {
+                    console.log("classOrNamespace is a "+map.type);
+                    topStartTag = "\t<topic parent=\"" + context + "\" parentType=\""+map.type+"\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
                 } else {
                     topStartTag = "\t<topic parent=\"" + context + "\" parentType=\"class\" elementName=\"" + pageName.substring(lastDotPos + 1) + "\" >";
                 }
@@ -655,8 +659,11 @@ var generateXMLHelp = function(content,buildNum) {
             if (lastDotPos > 0) {
                 parentContextName = context.substring(0, lastDotPos);
 				console.log('looking: '+parentContextName)
+                console.log('JSON: '+JSON.stringify(build.context[parentContextName]))
                 if (build.context[parentContextName].type === "class") {
                     parentContextType = "class";
+                } else if (build.context[parentContextName].type === "object") {
+                    parentContextType = "object";
                 } else {
                     parentContextType = "namespace";
                 }
