@@ -1,0 +1,110 @@
+<page api="xb">
+    <shortlink>api sys shell wait function</shortlink>
+    <topic>SYS_SHELL_WAIT_RESULT Function</topic>
+    <description>Run a program and wait until the program closes before returning.</description>
+    <prototype>C sys_shell_wait_result(C command_line [,L show_window [, N timeout [, L terminateOnTimeout]]])</prototype>
+    <arguments>
+        <argument>
+            <name>Command_Line</name>
+            <type>C</type>
+            <description>The Windows command that you wish to run.</description>
+        </argument>
+        <argument optional="true">
+            <name>Show_Window</name>
+            <type>L</type>
+            <description>Default = .T. If .T., Display window. If .F., Hide window.</description>
+        </argument>
+        <argument optional="true">
+            <name>Timeout</name>
+            <type>N</type>
+            <description>Default = -1. Length in milliseconds to wait before timing out. -1 = INFINITE.</description>
+        </argument>
+        <argument optional="true">
+            <name>TerminateOnTimeout</name>
+            <type>L</type>
+            <description>Default = .F.. If a timeout occurs and this parameter is set to true, the created process will be terminated.
+					Note that SYS_SHELL_WAIT_RESULT sends a signal to exit by calling the .Net function Process.CloseMainWindow().
+					If that function returns false or does not exit within 100 milliseconds, a signal is sent to the console using the Win32 function GenerateConsoleCtrlEvent().
+					If the application does not close 200 milliseconds after that signal, Process.Kill() is called to terminate the process.
+					All of this complexity is to prevent handles from remaining locked. Process.Kill() may not release handles gracefully.</description>
+        </argument>
+    </arguments>
+    <note>SYS_SHELL_WAIT_RESULT() does not throw any errors if something fails.</note>
+    <discussion>The SYS_SHELL_WAIT_RESULT() function runs a command and waits until it is completed before returning control to Alpha Anywhere.
+		The status of the command is returned on the first line.  Possible values are SUCCESS, ERROR, TIMEOUT and EXCEPTION.
+		Error and/or standard output of the command is returned on the following lines depending on the result of the command.
+		</discussion>
+    <sections>
+        <section>
+            <important>
+                <p>When used in web or mobile applications, you *[cannot]* run any programs with *[xb:SYS_SHELL_WAIT_RESULT()]* that require user input. *[xb:SYS_SHELL_WAIT_RESULT()]* is executed on the Application Server in web and mobile applications, and the user cannot interact with the script.</p>
+            </important>
+        </section>
+        <section>
+            <description>If the command succeeds, the first line of output will have SUCCESS as its content.
+			In the following example, we are invoking ping.exe to check for a response from www.google.com.
+			</description>
+            <example>
+                <![CDATA[x = sys_shell_wait_result("ping www.google.com -n 2", .f., 3000, .t.)
+?x
+= SUCCESS
+Pinging www.google.com [142.251.40.100] with 32 bytes of data:
+Reply from 142.251.40.100: bytes=32 time=10ms TTL=115
+Reply from 142.251.40.100: bytes=32 time=10ms TTL=115
+...
+
+]]>
+            </example>
+        </section>
+        <section>
+            <description>If the command returns standard error output succeeds, the first line of output will have ERROR as its content.
+			In the following example, we are invoking the DIR command, but have invalid syntax that looks like an unrecognized parameter (switch).
+			</description>
+            <example>
+                <![CDATA[x = sys_shell_wait_result("dir *.*\/", .f., 500, .t.)
+?x
+= ERROR
+Invalid switch - "".
+]]>
+            </example>
+        </section>
+        <section>
+            <description>If you provide a timeout greater than zero, and the command takes longer than that number of milliseconds, the first line of output will have TIMEOUT as its content.
+			If the function times out and the value of TerminateOnTimeout is set to true, the invoked process is terminated.  
+			If the function times out and the value of TerminateOnTimeout is set to false, the process is abandoned.
+			The value of the timeout is returned on the second line.
+			In the example below, the command is given only a milliseconed to complete and a timeout is forced.
+			</description>
+            <example>
+                <![CDATA[x = sys_shell_wait_result("ping www.google.com", .f., 1, .t.)
+?x
+= TIMEOUT
+1
+]]>
+            </example>
+        </section>
+        <section>
+            <description>If an exception happens while starting or handling the process or the standard error output begins with "Unhandled Exception:", the first line of output will have EXCEPTION as its content.
+			The contents of standard error and then standard output (if any) will be returned on the following lines.
+			In the example below, the command is calls a test program that always throws an unhandled exception.
+			</description>
+            <example>
+                <![CDATA[x = sys_shell_wait_result("c:\temp\throwexception.exe", .f., 1500, .t.)
+?x
+= EXCEPTION
+Unhandled Exception: System.Exception: This is a test exception.
+   at ThrowException.Program.Main(String[] args)
+]]>
+            </example>
+        </section>
+    </sections>
+    <see>
+        <ref link="System Functions">System Functions</ref>
+        <ref link="SYS_SHELL_WAIT Function">SYS_OPEN()</ref>
+        <ref link="SYS_OPEN Function">SYS_OPEN()</ref>
+        <ref link="run function">Run()</ref>
+        <ref link="api sys shell function">sys_shell()</ref>
+        <ref link="api sys shell result function source">sys_shell_result()</ref>
+    </see>
+    <terms>system,control,display,function</terms>
+</page>
