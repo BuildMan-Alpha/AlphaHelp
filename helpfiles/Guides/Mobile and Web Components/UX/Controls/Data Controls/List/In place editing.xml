@@ -167,13 +167,13 @@ lObj.editInplaceCancel(2);]]></example>
                             <name>After new row is saved</name>
                             <description>Fires when a new row is saved. Return *[ui:false]* to cancel saving the new row.</description>
                         </item>
-                        <item>
+                        <item build="6249">
                             <name>Show Edit row icon</name>
-                            <description>Fires when the edit icon is added to the row. Return *[ui:false]* to hide the edit icon.</description>
+                            <description>Called before the Edit row icon is shown. Return *[js:false]* to cancel display of the Edit row icon.</description>
                         </item>
-                        <item>
+                        <item build="6249">
                             <name>Show Add row icon</name>
-                            <description>Fires when the add row icon is added to the row. Return *[ui:false]* to hide the add icon.</description>
+                            <description>Called before the Add row icon is shown. Return *[js:false]* to cancel display of the Add row icon.</description>
                         </item>
                         <item build="7175">
                             <name>Show Delete row icon</name>
@@ -605,16 +605,16 @@ if (lObj) {
                         <item>
                             <name>onKeyDown</name>
                         </item>
-                        <item build="6249">
-                            <name>Show Edit row icon</name>
+                        <item build="6348">
+                            <name>onEdit</name>
                             <description>
-                                <p>Called before the Edit row icon is shown. Return *[js:false]* to cancel display of the Edit row icon.</p>
+                                <p>Triggered when the List row goes into edit mode. This event can be used to format the data for editing. See [onEdit and afterEdit Events] below for more information.</p>
                             </description>
                         </item>
-                        <item build="6249">
-                            <name>Show Add row icon</name>
+                        <item build="6348">
+                            <name>afterEdit</name>
                             <description>
-                                <p>Called before the Add row icon is shown. Return *[js:false]* to cancel display of the Add row icon.</p>
+                                <p>Triggered when the List data is saved. This event can be used to un-format data. See [onEdit and afterEdit Events] below for more information.</p>
                             </description>
                         </item>
                     </list>
@@ -623,6 +623,40 @@ if (lObj) {
             <important>
                 <p>Not all input-editing control types support the full list of events.</p>
             </important>
+        </section>
+        <section build="6348">
+            <title>onEdit and afterEdit Events</title>
+            <description>
+                <p>The *[ui:onEdit]* and *[ui:afterEdit]* events can be used to apply custom formatting to the data before displaying it in the in-place editing control for the field.</p>
+                <p>For example, assume you have a List that has a field called "DOB" (date of birth), and the data type of this field in the list's SQL data source is *[sql:datetime]*. If the regional settings of the machine running the Application Server is set to US (United States), the data in the list will be stored in this format: *[js:MM/dd/yyyy]*. So, a particular value might be *[js:12/24/1972]*.</p>
+                <p>You may prefer to display the value using a different format, such as *[js:dd.MM.yy]*. This format can be applied by setting the *[ui:Date/time display format]* property as shown in the image below:</p>
+            </description>
+            <figure>
+                <title>Date/time display format property</title>
+                <alt>Date/time display format property</alt>
+                <link>images/datetimedisplayformat.gif</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>After applying the formatting, the List will display the date value *[js:12/24/1972]* as *[js:24.12.72]*. However, when the List row is put into edit mode, the value in the in-place editing field will be displayed as *[js:12/24/1972]*. This happens because the actual value that is stored in the List's data is *[js:12/24/1972]*.</p>
+                <p>In-place editing values must be formatted using the *[ui:onEdit]* and *[ui:afterEdit]* events if you want them to match the formatted displayed value. For example, to format the DOB field to match the *[ui:Date/time display format]* specified above, you could add the following JavaScript to the *[ui:onEdit]* event:</p>
+                <p>
+                    <example code="js"><![CDATA[var d = new Date();
+
+//parse the date value string using the format that it is currently stored in
+d.fromFormat(data.dob,'MM/dd/yyyy');
+
+//generate a date string in the required format
+data.dob = d.toFormat('dd.MM.yy');]]></example>
+                </p>
+                <p>When the row is saved, you must also translate the value back into the format stored in the list's data source. This is done using the *[ui:afterEdit]* event. Using the example above, the JavaScript shown below translates the DOB value back into the expected format:</p>
+                <p>
+                    <example code="js"><![CDATA[var d = new Date();
+d.fromFormat(data.dob,'dd.MM.yy');
+data.dob = d.toFormat('MM/dd/yyyy');]]></example>
+                </p>
+            </description>
         </section>
         <section build="6249">
             <title>Security</title>
