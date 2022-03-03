@@ -1,0 +1,425 @@
+<page build="4223">
+    <shortlink>ux rgraph charts</shortlink>
+    <topic>Configuring RGraph SVG Javascript Charts</topic>
+    <description></description>
+    <sections>
+        <section>
+            <description>
+                <p></p>
+            </description>
+        </section>
+        <section>
+            <title>Understanding the Pattern Used for RGraph Chart Javascript</title>
+            <description>
+                <p>All of the sample charts insert Javascript that follows the same pattern. </p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() {
+    //function that returns an RGraph settings object
+}
+
+var _chart = new RGraph.SVG.Bar(_settings()).draw()
+
+{dialog.object}._jsCharts['{chartName}'] = {};
+{dialog.object}._jsCharts['{chartName}'].settings = [_settings];
+{dialog.object}._jsCharts['{chartName}'].object = [_chart];]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Depending the RGraph chart type (e.g. Pie, Line, Bar, etc.), the appropriate RGraph function is called to render the chart. </p>
+                <p>A settings object is passed to the RGraph function. This settings object is created by calling the *[js:_settings()]* function. </p>
+            </description>
+            <note>
+                <p>You do not need to include the RGraph charting Javascript libraries yourself in your UX component. The libraries are automatically loaded by Alpha Anywhere. </p>
+            </note>
+        </section>
+        <section>
+            <description>
+                <p>The Chart settings are stored in the *[js:_jsCharts]* object in the UX component object. These settings are stored to enable the chart to be refreshed with new data, to be changed on the fly by changing any of the chart properties, or to be dynamically resized. Notice that the *[js:settings]* object and the *[js:object]* object are arrays. This is because a chart can actually be composed of multiple charts each drawn on the same DIV.</p>
+                <p>The Javascript for the chart uses two special placeholders:</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>Placeholder</name-title>
+                    <description-title>Description</description-title>
+                </item>
+                <item>
+                    <name>{chartDiv}</name>
+                    <description>The id of the div where the chart will be rendered.</description>
+                </item>
+                <item>
+                    <name>{chartName}</name>
+                    <description>The name of the chart. This resolves to the Chart Id shown in the Javascript Chart property sheet.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Using Real Data in an RGraph SVG Chart</title>
+            <description>
+                <p>When you select a Sample Chart, the Javascript that is inserted into the Javascript window in the Javascript Chart builder uses static data. This is fine initially when you are designing a chart, but at some point you will want to replace the static sample data with 'real' data.</p>
+                <p>The source of this 'real' data must be client-side data. For example, it might be data from a column in a List control. You will need to create a Javascript function that gets the data from the List and then set the *[js:data]* property in the Chart settings to the this function.</p>
+                <p>In many cases the 'real' data will be data that you want to get by querying a database, calling a service (REST, SOAP, etc.), or running some custom server-side code. In the case where the data you want to use in your chart originates on the server, you will need to define a [Data Series] that retrieves the necessary data. (When you define the *[ui:Data Series]* you will need to specify that the *[ui:Data Series]* data should be 'published' to the client-side.)</p>
+                <p>For example, here are the settings for a simple bar chart that uses static sample data:</p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() {
+    var settings = {
+        id: '{chartDiv}',
+        data: [8,5,9,3,5,2,4],
+        options: {
+            gutterTop: 50,
+            hmargin: 20,
+            xaxisLabels: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+            tooltips: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],                
+            title: 'A basic Bar chart',
+            titleSubtitle: 'A chart showing daily values for a week',
+            titleSubtitleItalic: true,                
+            colors: ['#7e9cf6'],
+            shadow: true,
+            shadowOpacity: 0.2,
+            attribution: false
+        }
+    };
+    return settings;
+}
+var _chart = new RGraph.SVG.Bar(_settings()).draw();]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the chart data is defined by the *[js:data]* property in the *[js:settings]* object.</p>
+                <p>Say we have a Javascript function that returns an array of values and we want to use the data returned by this function in the Chart. For example, the function that return an array of values could be defined as follows:</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+    return [1,2,3,4,5,6,7];
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>To base the Javascript Chart on the data returned by this function, we simply change the data property in the Chart settings to:</p>
+            </description>
+            <example code="js"><![CDATA[....
+id: '{chartDiv}',
+data: getData(),
+options: {....]]></example>
+        </section>
+        <section>
+            <description>
+                <p>In the case where the data comes from a column in a List control, the Javascript function that gets the data would be something like this (assuming that the column in the List that contains the data is called 'Sales'):</p>
+            </description>
+            <example code="js"><![CDATA[function getData() {
+    var lObj = {dialog.object}.getControl('myList');
+    var _d = lObj._data //get list data
+    var _a = []; //make empty array
+    for(var i = 0; i < _d.length; i++) {
+        _a.push(_d[i].Sales); //push data from the 'Sales' column onto the array
+    };
+    return _a;
+}]]></example>
+        </section>
+        <section>
+            <description>
+                <p>If the data you want to use in your chart originates server-side, then you will need to create a *[ui:Data Series]*. Assume you have created a Data Series called *[js:Sales]*, with two sub-series, *[js:Amount]* and *[js:Month]*.</p>
+                <p>The data in the Sales *[ui:Data Series]* might look something like this:</p>
+            </description>
+        </section>
+        <section>
+            <content><![CDATA[<table style="width:100%; max-width:300px; text-align:center;" border="1px" cellpadding="0" cellspacing="0">
+                    <tr><th style="width:50%;">Month</th><th style="width:50%;">Amount</th></tr>
+                    <tr><td>Jan</td><td>200</td></tr>
+                    <tr><td>Feb</td><td>220</td></tr>
+                    <tr><td>Mar</td><td>190</td></tr>
+                    <tr><td>Apr</td><td>250</td></tr>
+                    <tr><td>May</td><td>270</td></tr>
+                    <tr><td>Jun</td><td>210</td></tr>
+                    <tr><td>Jul</td><td>300</td></tr>
+                    <tr><td>Aug</td><td>320</td></tr>
+                    <tr><td>Sep</td><td>290</td></tr>
+                    <tr><td>Oct</td><td>330</td></tr>
+                    <tr><td>Nov</td><td>300</td></tr>
+                    <tr><td>Dec</td><td>350</td></tr>
+                </table>]]></content>
+        </section>
+        <section>
+            <description>
+                <p>You can reference data from *[js:Amount]* column in the above Data Series using this syntax:</p>
+            </description>
+            <example code="js"><![CDATA[{dialog.object}._dataSeriesData.Sales.Amount]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Using this syntax, you could change the *[js:settings]* object for the example bar chart to:</p>
+            </description>
+            <example code="js"><![CDATA[var _settings = function() { 
+    var settings = {
+        id: '{chartDiv}',
+        data: {dialog.object}._dataSeriesData.Sales.Amount,
+        options: {
+            gutterTop: 50,
+            hmargin: 20,
+            xaxisLabels: {dialog.object}._dataSeriesData.Sales.Month,
+            tooltips: {dialog.object}._dataSeriesData.Sales.Month,
+            title: 'A basic Bar chart',
+            titleSubtitle: 'A chart showing sales by month',
+            titleSubtitleItalic: true,
+            colors: ['#7e9cf6'],
+            shadow: true,
+            shadowOpacity: 0.2,
+            attribution: false
+        }
+    };
+    return settings;
+}
+var _chart = new RGraph.SVG.Bar(_settings()).draw();]]></example>
+        </section>
+        <section>
+            <description>
+                <p>Notice that the chart data, X axis labels and tooltips are all based on Data Series data.</p>
+            </description>
+        </section>
+        <section>
+            <title>Computing RGraph Chart Properties Dynamically</title>
+            <description>
+                <p>In the above examples, the Chart's *[js:data]* property is set to the result of a Javascript function call (first example), or to the value in a Data Series (second example). However, it is not just the Chart's *[js:data]* that can be dynamic. Any property in the Chart settings can be set to a Javascript function or Data Series value.</p>
+                <p>For example, in the above example, the RGraph Chart Title is defined using the *[js:titleSubtitle]* setting:</p>
+            </description>
+            <example code="js"><![CDATA[titleSubtitle: 'A chart showing sales by month']]></example>
+        </section>
+        <section>
+            <description>
+                <p>You could change this code to compute the *[js:titleSubtitle]* dynamically with a function call:</p>
+            </description>
+            <example code="js"><![CDATA[titleSubtitle: getChartTitle()]]></example>
+        </section>
+        <section>
+            <title>Working in the Javascript Chart Builder</title>
+            <description>When you are working in the Javascript Chart builder, the dialog has these buttons and hyperlinks.</description>
+            <figure>
+                <link>images/chartWindowTools.png</link>
+            </figure>
+        </section>
+        <section>
+            <description>The purpose of each of these tools is:</description>
+            <list>
+                <item>
+                    <name-title>Tool</name-title>
+                    <description-title>Action</description-title>
+                </item>
+                <item>
+                    <name>Select Sample Chart </name>
+                    <description>Opens a window showing sample charts. You can select a chart and the Javascript for the selected chart will be entered into the builder.</description>
+                </item>
+                <item>
+                    <name>Preview Chart</name>
+                    <description>Previews the chart in the bottom half of the window.</description>
+                </item>
+                <item>
+                    <name>Define Chart CSS</name>
+                    <description>In some cases your Chart settings will use CSS classes for some aspect of the Chart (for example, formatting tooltips). You can define the CSS classes here.</description>
+                </item>
+                <item>
+                    <name>Color</name>
+                    <description>Allows you to insert the value of a color into the Javascript code. If you highlight an existing color in the Javascript code before you click on the Color hyperlink, the highlighted color will be shown in the color picker. The color you select will be inserted into the Chart Javascript.</description>
+                </item>
+                <item>
+                    <name>Property name</name>
+                    <description>The Javascript shown in the code window after you select a Sample Chart typically only sets a small number of the available properties for the Chart. If you click the hyperlink you get a list of some of the other available properties for RGraph Charts. This list may include properties that are not appropriate for the type of chart you are designing. To read documentation about the available properties, please refer to the RGraph web site. (*[extlink:http://RGraph.net]*)</description>
+                </item>
+                <item>
+                    <name>Validate Javascript</name>
+                    <description>The code you enter into the Code window in the Javascript Chart builder is Javascript. It must, of course, be valid Javascript. This hyperlink lets you validate the Javascript so you can check that you have not made any syntax errors when editing the sample code.</description>
+                </item>
+                <item>
+                    <name>Select Data Series</name>
+                    <description>If you want to set the value of any property in the Chart Settings to data in a *[ui:Data Series]* you can click this hyperlink to insert the Javascript to reference a *[ui:Data Series]*. When you click the hyperlink, a window showing all of the available *[ui:Data Series]* will be shown. You can define new *[ui:Data Series]* in this window. When you select a *[ui:Data Series]* (and sub-series if the selected *[ui:Data Series]* has sub-series) the appropriate Javascript is entered into the code.</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Setting an RGraph Chart's Background Color or Border</title>
+            <description>In some cases, you will want to set the background color or border of a chart. For example, the Chart shown below has a black background.</description>
+            <figure>
+                <link>images/chartblackbackground.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>You can set the Chart background color and border using the Javascript Chart's *[ui:Style]* property.</description>
+            <figure>
+                <link>images/chartstyleproperty.gif</link>
+            </figure>
+        </section>
+        <section>
+            <title>Videos</title>
+            <videos>
+                <title>Introduction</title>
+                <description>
+                    <p>Javascript RGraph Charts allow you to create a variety of different chart types using Javascript. Because the charts are created client-side, using Javascript, these types of charts are ideal for disconnected applications where the Chart control cannot be used (as this control type produces charts server-side).</p>
+                    <p> In this video we show how to set up a basic Javascript RGraph Charts.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/fe1f46f0</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Binding RGraph Chart Data to a Javascript Function</title>
+                <description>
+                    <p>The data shown in a Javascript RGraph Chart can be obtained by calling a Javascript function.</p>
+                    <p>In this video show show how to bind the Chart data to a Javascript function.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/99a5ed35</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/basingDataOnJSFunction.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Binding RGraph Chart Data to Data From a SQL Database - Using a Data Series for RGraph Chart Data</title>
+                <description>
+                    <p> The data shown in a Javascript RGraph Chart can be obtained by querying a SQL database.</p>
+                    <p>In this video show show how to bind the RGraph Chart data to data from a SQL database table by binding the Chart data to the data in a Data Series. The Data Series is populated with data from a SQL database table.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/ca32ee70</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Binding RGraph Chart Properties to a Javascript Function</title>
+                <description>
+                    <p>Any property of a chart can be made dynamic by binding the property to the result of a Javascript function.</p>
+                    <p>In this video we show how properties of the RGraph Chart (in addition to the Chart data) can be made dynamic.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/520a5985</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/basingChartPropertiesOnJSFunction.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Action Javascript Methods for Working With Javascript RGraph Charts</title>
+                <description>
+                    <p>Action Javascript exposes several methods for working with Javascript RGraph Charts.</p>
+                    <p>In this video we show how you can use Action Javascript to resize a Javascript RGraph Chart.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/f5ebb353</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/uxjschart_resizeUsingActionJavascript.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Setting an RGraph Chart Property Using Action Javascript vs. Binding an RGraph Chart Property to a Javascript Function</title>
+                <description>
+                    <p>Action Javascript allows you to dynamically change properties (such as the RGraph Chart colors, or title) after the RGraph Chart has been rendered. However, you can also achieve the same result by binding the RGraph Chart properties to Javascript functions.</p>
+                    <p>In this video we contrast the two methods for setting RGraph Chart properties.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/5c271bf2</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/changeChartProperties.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Using Action Javascript to Refresh RGraph Chart Data</title>
+                <description>
+                    <p>Action Javascript allows you to refresh the data shown in an RGraph Chart. If the RGraph Chart data is based on a Data Series, an Ajax callback to the server will be made to refresh the data in the Data Series on which the RGraph Chart depends and then the Chart will be redrawn, showing the new data.</p>
+                    <p>In this video we show how Action Scripting is used to refresh the RGraph Chart data.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/7506a3b7</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>In Depth Example - RGraph Chart Based on SQL Data</title>
+                <description>
+                    <p>This example shows an RGraph pie chart populated from a multi-table SQL query against the sample Northwind database. The RGraph Chart is based on a custom Data Series to generate the Chart data. The user can select the country for which the RGraph Chart should be shown from a dropdownbox control.</p>
+                    <p>In this video we show how this RGraph Chart is set up.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/47dc6c4b</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/jsChart_NW_ProductsPie.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Understanding the Structure of the Javascript that Defines a Javascript RGraph Chart</title>
+                <description>
+                    <p>The Javascript used to define a Javascript RGraph Chart has a well defined structure, described in this video.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/7453666c</link>
+                </video>
+            </videos>
+        </section>
+        <section>
+            <videos>
+                <title>Javascript RGraph Chart Events</title>
+                <description>
+                    <p>In this example we show a RGraph Chart with a Tooltip event. After the RGraph Chart is resized, the Tooltip events must be re-registered.</p>
+                </description>
+                <date>2017-03-26</date>
+                <video>
+                    <name>Watch Video</name>
+                    <link>https://www.viddler.com/v/25ad3696</link>
+                </video>
+                <resources>
+                    <resource>
+                        <link>https://www.ajaxvideotutorials.com/V12Videos/onTooltipEvent.zip</link>
+                    </resource>
+                </resources>
+            </videos>
+        </section>
+    </sections>
+    <links>
+        <link link="UX Properties Data Series">Data Series</link>
+        <link link=""></link>
+    </links>
+    <see>
+        <ref link="ux javascript chart control">Javascript Chart</ref>
+    </see>
+</page>
