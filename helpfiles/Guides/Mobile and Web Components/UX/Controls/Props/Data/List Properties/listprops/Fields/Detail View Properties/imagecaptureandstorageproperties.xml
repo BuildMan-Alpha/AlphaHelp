@@ -3,7 +3,279 @@
     <topic>Image capture and storage properties</topic>
     <description>Specify properties for storing the image. For example, if the bound field is a character field, specify the folder where the image filename should be stored.</description>
     <important>This property only apply when the image in this field is set using the '[Image Capture for List-Detail View]' action in Action Javascript.</important>
+    <sections>
+        <section>
+            <figure>
+                <title>Image Capture Properties dialog</title>
+                <alt>Image Capture Properties dialog</alt>
+                <link>images/imageCaptureProperties.png</link>
+            </figure>
+        </section>
+        <section>
+            <title>Properties</title>
+            <cases>
+                <case>
+                    <title nested="2">Upload folder</title>
+                    <description>
+                        <p>This property is ignored if the [upload target] is set to S3.</p>
+                        <p>When images are uploaded to the Server, they are stored initially in a temporary session storage. Once the record is saved, a permanent file is created on the server. The *[ui:Upload Folder]* is where images are permanently stored once they have been uploaded to the server, and the current record is saved. The Upload Folder can be specified as:</p>
+                        <p>
+                            <list bullet="true">
+                                <item>
+                                    <name>A relative folder</name>
+                                </item>
+                                <item>
+                                    <name>An absolute folder with a drive letter</name>
+                                </item>
+                                <item>
+                                    <name>An absolute UNC folder</name>
+                                </item>
+                                <item>
+                                    <name>A folder that contains an [alias]</name>
+                                </item>
+                            </list>
+                        </p>
+                        <p>If you specify a relative folder, the folder is relative to the location of the component in the application webroot on the server.</p>
+                        <p>Upload Folder Examples:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Example</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>images\products</name>
+                                    <description>A relative folder path, relative to the webroot</description>
+                                </item>
+                                <item>
+                                    <name>[myimages]</name>
+                                    <description>An alias that defines the folder. Aliases are defined in your [Web Publishing Profile]. For example, you might define an alias called [myimages] that resolves to c:\myimages\productImages.</description>
+                                </item>
+                                <item>
+                                    <name>[PathAlias.ADB_Path]</name>
+                                    <description>An alias that defines the folder. [PathAlias.ADB_Path] defaults to the [location of the workspace directory] in the development environment.</description>
+                                </item>
+                                <item>
+                                    <name>[PathAlias.ADB_Path]\images</name>
+                                    <description>An alias with a folder path.</description>
+                                </item>
+                                <item>
+                                    <name>c:\images\products</name>
+                                    <description>An absolute folder path. The path is the location on the Server.</description>
+                                </item>
+                                <item>
+                                    <name>\\images\products</name>
+                                    <description>A UNC (Universal Naming Convention) folder name. </description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                    <important>
+                        <p>Uploading to a folder on the server is not supported on Alpha Cloud. Use S3 storage.</p>
+                    </important>
+                </case>
+                <case>
+                    <title nested="2">File exists action</title>
+                    <description>
+                        <p>This property is ignored if the [upload target] is set to S3.</p>
+                        <p>The *[ui:File exists action]* defines what should happen when a file is uploaded to the server with the same name as a file that already exists. You can either overwrite the existing file or rename the uploaded file.</p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Stored filename transformation expression</title>
+                    <description>
+                        <p>This property is ignored if the [upload target] is set to S3.</p>
+                        <p>When an image is uploaded to the server, it's stored as file in the *[ui:Upload Folder]*. For example, you might have specified an Upload folder of:</p>
+                        <p>
+                            <example><![CDATA[c:\images\products]]></example>
+                        </p>
+                        <p>If the user uploads an image called "bike.png", then a file will be created in the Upload folder called:</p>
+                        <p>
+                            <example><![CDATA[c:\images\products\bike.png]]></example>
+                        </p>
+                        <p>The image filename can be stored as the full file path and file name in the Image field or transformed, for example, by removing the folder path or replacing part of the path with an alias.</p>
+                        <p>If no transformation expression is defined, the full path and filename will be stored in the field. For example:</p>
+                        <p>
+                            <example><![CDATA[c:\images\products\bike.png]]></example>
+                        </p>
+                        <p>Suppose you only want to only store part of the filename:</p>
+                        <p>
+                            <example><![CDATA[products\bike.png]]></example>
+                        </p>
+                        <p>In this case, you will want to transform the filename before it is stored in the Image field. To transform the filename, you create a *[ui:Transformation Expression]*. The *[ui:Transformation Expression]* is an Xbasic expression that uses special placeholders.</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Placeholder</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>&lt;Filename&gt;</name>
+                                    <description>The uploaded filename, including drive and path</description>
+                                </item>
+                                <item>
+                                    <name>&lt;ShortFilename&gt;</name>
+                                    <description>The uploaded filename without the drive and path</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>In the "bike.png" example, the placeholders resolve to the following values:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Placeholder</name-title>
+                                    <description-title>Value</description-title>
+                                </item>
+                                <item>
+                                    <name>&lt;Filename&gt;</name>
+                                    <description>c:\images\products\bike.png</description>
+                                </item>
+                                <item>
+                                    <name>&lt;ShortFilename&gt;</name>
+                                    <description>bike.png</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>To store the filename as "products\bike.png", you would specify the following *[ui:Transformation Expression]*:</p>
+                        <p>
+                            <example><![CDATA["products\<ShortFilename>"]]></example>
+                        </p>
+                        <p>Here are some additional *[ui:Transformation Expression]* examples</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Expression</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name><![CDATA[filename_encode("<filename>")]]></name>
+                                    <description>Encode the filename to use an alias. If an alias called 'ProductImages' (c:\images\products) was defined, would resolve to [ProductImages]\bike.png</description>
+                                </item>
+                                <item>
+                                    <name><![CDATA["<filename>"]]></name>
+                                    <description>Resolves to the uploaded filename (e.g. c:\images\products\bike.png)</description>
+                                </item>
+                                <item>
+                                    <name><![CDATA["<ShortFilename>"]]></name>
+                                    <description>Resolves to the short filename (e.g. bike.png)</description>
+                                </item>
+                                <item>
+                                    <name><![CDATA["<PhoneGapAjaxURL>"]]></name>
+                                    <description>Only meaningful in a Cordova mobile application. Resolves to URL used for Ajax callbacks</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                    <figure>
+                        <title>Filename Transformation Expression dialog</title>
+                        <alt>Filename Transformation Expression dialog</alt>
+                        <link>images/fileTransformExpression.png</link>
+                    </figure>
+                </case>
+                <case>
+                    <title nested="2">beforeUploadedFileSave Xbasic</title>
+                    <description>
+                        <p>This property only applies when the image is uploaded to the application server and the Image Capture action's [Data capture mode] mode has been set to *[ui:filename]*. This property is ignored if the [upload target] is set to S3.</p>
+                        <p>The *[ui:beforeUploadedFileSave Xbasic]* defines is an optional Xbasic function to call prior to saving the file on the server. The Xbasic function is passed an object called *[xb:e]* with the following variables:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Variable</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>The UX component definition.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.targetName]*</name>
+                                    <description>The suggested name to use for saving the file.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.targetFolder]*</name>
+                                    <description>The suggested folder where the file should be saved.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.listFieldName]*</name>
+                                    <description>The name of the List field where the uploaded image filename is saved.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.listName]*</name>
+                                    <description>The List name to which the uploaded image is bound.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.filenameOnDevice]*</name>
+                                    <description>The file name on the mobile device.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Your Xbasic function can set the following values in the *[xb:e]* object:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Variable</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.newTargetName]*</name>
+                                    <description>The filename to use. Overrides *[xb:e.targetName]*.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.newTargetFolder]*</name>
+                                    <description>The folder where the image should be stored. Overrides *[xb:e.targetFolder]*.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>You can use the *[ui:beforeUploadedFileSave Xbasic]* to dynamically set the file name or folder location for the uploaded file. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function beforeUpload as v (e as p)
+    e.newTargetFolder = "otherImages"
+end function]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">afterUploadedFileSave Xbasic</title>
+                    <description>
+                        <p>This property only applies when the image is uploaded to the application server and the Image Capture action's [Data capture mode] has been set to *[ui:filename]*. This property is ignored if the [upload target] is set to S3.</p>
+                        <p>The *[ui:afterUploadedFileSave Xbasic]* defines is an optional Xbasic function to call after the file has been uploaded and saved on the server. The Xbasic function is passed an object called *[xb:e]* with the following variables:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Variable</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.tmpl]*</name>
+                                    <description>The UX component definition.</description>
+                                </item>
+                                <item>
+                                    <name>*[xb:e.filename]*</name>
+                                    <description>The filename used to save the uploaded file.</description>
+                                </item>
+                            </list>
+                        </p>
+                        <p>Your Xbasic function can return JavaScript to execute on the client. JavaScript is passed using the *[xb:e.javascript]* argument. For example:</p>
+                        <p>
+                            <example code="xb"><![CDATA[function afterUpload as v (e as p)
+    dim fn as c = js_escape(e.filename);
+    dim js as c = "alert('"+fn+" has been uploaded.');"
+
+    e.javascript = js
+
+end function]]></example>
+                        </p>
+                    </description>
+                </case>
+            </cases>
+        </section>
+    </sections>
     <links>
+        <link link="web%20project%20profile%20properties#section2_Aliases">alias</link>
+        <link link="web%20project%20profile%20properties#section2_Aliases">Web Publishing Profile</link>
+        <link link="api%20desktop%20api%20a5%20object%20get%20path%20function">location of the workspace directory/link>
+        <link link="action%20javascript%20image%20capture%20for%20listdetail%20view%20cameraphoto%20library#section2_Data%20capture%20mode">Data capture mode</link>
+        <link link="ux%20list%20detail%20view%20properties%20media%20files%20settings">upload target</link>
         <link link="action javascript image capture for listdetail view cameraphoto library">Image Capture for List-Detail View</link>
     </links>
 </page>
