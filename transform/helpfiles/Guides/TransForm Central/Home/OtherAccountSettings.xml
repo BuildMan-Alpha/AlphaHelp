@@ -1,0 +1,625 @@
+<page>
+    <shortlink>otherAccountSettings</shortlink>
+    <topic>Calling Web Services in TransForm Forms</topic>
+    <description>Other account settings is used to define request templates for making web service calls using the ajaxSendRequestFromServer() function.</description>
+    <sections>
+        <section>
+            <description>
+                <p>Calls to third party services can be made using TPL's ajaxGET() and ajaxSendRequest() methods. Both methods make a request to the specified URL directly from the filler application. If the service requires API keys or other forms of authentication sent as either the request URL or body, credentials are included in the call.</p>
+                <p>TPL is executed client side. In the web filler, this means your API credentials can potentially be exposed to the end user. All modern web browsers include debugging tools which can be used to access the underlying code implementing a web page. TPL code is no exception and can be seen as clear text in the web filler.</p>
+                <p>To avoid exposing API keys and other credentials in the web filler, use the new ajaxSendRequestFromServer() function. ajaxSendRequestFromServer() is a new TPL function that makes calls to web services on the server instead of the client using Request Templates. Request Templates specify the URL to call, the method to use (e.g. GET, POST), required query parameters, and the body template for making the web service call. You can create a Request Template in Other account settings on the Home tab.</p>
+                <p>Other account settings is a JSON definition for creating Request Templates. For example, the following JSON defines a Request Template called getUsers that makes a GET request against the JSON Placeholder API's users endpoint (https://jsonplaceholder.typicode.com/users):</p>
+                <p>
+                <example code="json"><![CDATA[{
+    "sendrequest": {
+        "templates": {
+            "getUsers": {
+                "method": "GET",
+                "url": "https://jsonplaceholder.typicode.com/users"
+            }
+        }
+    }
+}
+]]></example>
+                </p>
+                <p>When calling the endpoint using ajaxSendRequestFromServer(), the Request Template name is passed as the first parameter to the function. For example:</p>
+                <p>
+                <example code="json"><![CDATA[r = ajaxSendRequestFromServer("getUsers")]]></example>
+                </p>
+                <p>ajaxSendRequestFromServer() returns an object with details about the call outcome. The object can have the following properties:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Property</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[js:error]*</name>
+                            <description>If an error occurred calling the web service, error contains details about why the call failed. Otherwise, error will be an empty string.</description>
+                        </item>
+                        <item>
+                            <name>*[js:status]*</name>
+                            <description>If error is blank, contains the call result status.</description>
+                        </item>
+                        <item>
+                            <name>*[js:timeout]*</name>
+                            <description>The timeout in milliseconds specified for the request. Timeout defaults to 10000, but can be set in the Request Template to another value.</description>
+                        </item>
+                        <item>
+                            <name>*[js:responseText]*</name>
+                            <description>The content returned by the request.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Specifying a Request Template</title>
+            <description>
+                <p>A request template is a named object defined in the templates portion of the sendrequest object. For example:</p>
+                <p>
+                <example code="json"><![CDATA[{
+    "sendrequest": {
+        "templates": {
+            "getUsers": {
+                "method": "GET",
+                "url": "https://jsonplaceholder.typicode.com/users"
+            }
+        }
+    }
+}
+]]></example>
+                </p>
+                <p>The request template defines the following properties:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Property</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[js:method]*</name>
+                            <description>String. The type of request operation. Can be one of "GET", "POST", "PUT", "DELETE", or "HEAD". Defaults to "GET" when no body is defined or "POST" when body is defined.</description>
+                        </item>
+                        <item>
+                            <name>*[js:timeout]*</name>
+                            <description>Number. Optional. The amount of time to wait in milliseconds before the request is assumed to have timed out. Defaults to 10000 if not set or is set to a value of 0.</description>
+                        </item>
+                        <item>
+                            <name>*[js:url]*</name>
+                            <description>String. Required. The request URL.</description>
+                        </item>
+                        <item>
+                            <name>*[js:query]*</name>
+                            <description>String or array of strings and objects. Optional. Query parameters to include in the request. Multiple query parameters must be separated with an ampersand *[js:&amp;]*. See [Defining Request Template Query Parameters, Headers, and Body].</description>
+                        </item>
+                        <item>
+                            <name>*[js:headers]*</name>
+                            <description>String or array of strings and objects. Optional. Additional headers to include in the request. Multiple headers must be separated with a new line *[js:\n]*. See [Defining Request Template Query Parameters, Headers, and Body].</description>
+                        </item>
+                        <item>
+                            <name>*[js:body]*</name>
+                            <description>String or array of strings and objects. Optional. The body portion to include in the request.</description>
+                        </item>
+                    </list>
+                </p>
+                <p></p>
+            </description>
+        </section>
+        <section>
+            <title>Defining Request Template Query Parameters, Headers, and Body Content</title>
+            <description>
+                <p>Query parameters, headers, and body content are specified as either a string</p>
+                <p>
+                <example><![CDATA["query":"state=MA&city=Boston"]]></example>
+                </p>
+                <p>Or an array of strings or objects defining how the value is computed using the following format:</p>
+                <p>
+                <example code="json"><![CDATA[{
+    "type": valueType,
+    "value": valueSource,
+    "filter": filterType
+}
+]]></example>
+                </p>
+                <p>For example, the string for the query "state=MA&amp;city=Boston" could be written as two objects:</p>
+                <p>
+                <example code="json"><![CDATA["query": [
+    {
+        "type":"string",
+        "value":"state=MA"
+    },
+    {
+        "type":"string",
+        "value":"&city=Boston"
+    }
+]
+]]></example>
+                </p>
+                <p>type can be one of three values:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Value</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[js:string]*</name>
+                            <description>The value is a string.</description>
+                        </item>
+                        <item>
+                            <name>*[js:arg]*</name>
+                            <description>The value is an argument passed to ajaxSendRequestFromTemplate(). See [Passing Arguments to ajaxSendRequestFromServer()].</description>
+                        </item>
+                        <item>
+                            <name>*[js:constant]*</name>
+                            <description>The value is a constant, defined in the constants portion of the sendrequest definition. See [Using Constants].</description>
+                        </item>
+                    </list>
+                </p>
+                <p>Depending on the specified type, value can be one of the following:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Value</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>A string</name>
+                            <description>If type is "string", then the content of value is included verbatim.</description>
+                        </item>
+                        <item>
+                            <name>A number</name>
+                            <description>If type is "arg", value is a number indicating which argument passed to ajaxSendRequstFromTemplate() to include. E.g. "value":2 would include the value of the second argument passed to ajaxSendRequestFromTemplate().</description>
+                        </item>
+                        <item>
+                            <name>The name of a constant</name>
+                            <description>If type is "constant", value is the name of the constant to include. E.g. "value":"myAPIKey". See [Using Constants].</description>
+                        </item>
+                    </list>
+                </p>
+                <p>You can specify an optional filter to process the value before including it in the query string, header, or body. Two filters are available:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Value</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>*[js:alphanumeric]*</name>
+                            <description>Strips all characters out of the string that are not numbers or letters.</description>
+                        </item>
+                        <item>
+                            <name>*[js:jsescape]*</name>
+                            <description>Escapes characters in the string (such as double quotes ") to make the content safe to include in a JSON object. Useful when building a JSON string that will be sent as the body of the web service call.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>The strings and objects are concatenated together to form the value for the query parameters, headers, or body. For example:</p>
+                <p>
+                    <example><![CDATA["body": [
+    "This is a string",
+    { "type":"arg","value":1},
+    "This is a string"
+]
+]]></example>
+                </p>
+                <p>This produces the following string when the ajaxSendRequestFromServer() is called with the value "This is an argument" passed as the first argument to the function:</p>
+                <p>
+                    <example><![CDATA[This is a stringThis is an argumentThis is a string]]></example>
+                </p>
+                <p>Note that the string does not contain any line breaks. Line breaks are added using the special "\n" escape character. "\n" is JavaScript for a new line (line break). For example:</p>
+                <p>
+                    <example><![CDATA["body": [
+    "This is a string",
+    "\n",
+    {"type":"arg","value":1},
+    "\n",
+    "This is a string"
+]
+]]></example>
+                </p>
+                <p>With the addition of new lines, the generated string for the body is now:</p>
+                <p>
+                    <example><![CDATA[This is a string
+This is an argument
+This is a string
+]]></example>
+                </p>
+                <p>When defining headers, line breaks are required after each header entry if you plan to include more than one header. For example, "\n" is included at the end of the first two strings in the headers array to insert a new line after the header value:</p>
+                <p>
+                    <example><![CDATA["header": [
+    "x-api-key:API_KEY_HERE\n",
+    "Content-Type:application/json; charset=utf-8\n",
+    "Access-Control-Allow-Origin:http://example.org"
+]
+]]></example>
+                </p>
+                <p>If the value included is computed from an argument or constant, you can add new lines as individual entries in the array. You can also include them separately for improved readability after strings. For example:</p>
+                <p>
+                    <example><![CDATA["header": [
+    {
+        "type":"constant",
+        "value":"myAPIKey"
+    },
+    "\n",
+    "Content-Type: application/json; charset=utf-8",
+    "\n",
+    "Access-Control-Allow-Origin: http://example.org"
+]
+]]></example>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Passing Arguments to ajaxSendRequestFromServer()</title>
+            <description>
+                <p>If your request requires additional information gathered from the form, it can be passed to the request as arguments when using ajaxSendRequestFromServer(). Arguments can be passed as an array or a comma-delimited list of values after the template name in ajaxSendRequestFromServer()</p>
+            </description>
+        </section>
+        <section>
+            <pages>
+                <page>
+                    <prototypes>
+                        <prototype>ajaxSendRequestFromServer(templateName, arguments_array)</prototype>
+                        <prototype>ajaxSendRequestFromServer(templateName, arg1, arg2, arg3, ...)</prototype>
+                    </prototypes>
+                </page>
+            </pages>
+        </section>
+        <section>
+            <description>
+                <p>Arguments are referenced in the order they're passed to the function. If passed as an array, the first value in the array is argument 1, the second argument 2, and so on. If passed as a comma delimited list of values, the first value is argument 1, the second argument 2, etc.</p>
+                <p>Arguments can be used in the Request Template to populate query strings, headers, or the body. For example:</p>
+                <p>
+                    <example code="json"><![CDATA[{
+    "sendrequest": {
+        "templates": {
+            "createPost": {
+                "method": "POST",
+                "url": "https://jsonplaceholder.typicode.com/posts",
+                "headers": "Content-type: application/json; charset=UTF-8",
+                "body": [
+                    "{\"title\":\"",
+                    {
+                        "type": "arg",
+                        "value": 1
+                    },
+                    "\",",
+                    "\"body\":\"",
+                    {
+                        "type": "arg",
+                        "value": 2
+                    },
+                    "\",",
+                    "\"userid\":",
+                    {
+                        "type": "arg",
+                        "value": 3
+                    },
+                    "}"
+                ]
+            }
+        }
+    }
+}
+]]></example>
+                </p>
+                <p>In the example request template above, createPost, the body is created dynamically from three arguments. When executing the createPost request, the arguments could be passed to the request template as an array, shown in the example TPL function below:</p>
+                <p>
+                    <example code="tpl"><![CDATA[FUNCTION @createPost
+    arguments = array()
+    arrayPush(arguments, "My Title")
+    arrayPush(arguments, "My Message")
+    arrayPush(arguments, "3")
+
+    r = ajaxSendRequestFromServer("createPost", arguments)
+
+    if (r.error)
+        msgShowWarning("Error doing Send Request Server", r.error)
+        return
+    endif
+    return r.responseText
+ENDFUNCTION
+]]></example>
+                </p>
+                <p>If fewer arguments are supplied than required by the request, the missing arguments will resolve to a blank value.</p>
+            </description>
+        </section>
+        <section>
+            <title>Using Constants</title>
+            <description>
+                <p>You can create constants that can be used in web service calls. Constants are useful for defining commonly used strings, such as headers, storing API credentials, and other commonly used in your Request Templates.</p>
+                <p>Constants are defined as a sibling to "template". For example:</p>
+                <p>
+                <example code="json"><![CDATA[{
+    "sendrequest": {
+        "templates": {
+            ...
+        },
+        "constants": {
+            "name": "value",
+            "name2": "value2",
+            ...
+        }
+    }
+}
+]]></example>
+                </p>
+                <p>Each constant is defined as a "name":"value" pair. The name is the name referenced in the Request Template in the value property for a query parameter, header, or body array entry. The value is a string inserted into the Request Template where referenced.</p>
+                <p>If you reference a constant that doesn't exist, the constant will resolve to a blank value.</p>
+            </description>
+        </section>
+        <section>
+            <title>How to Convert a JSON body into an array for use in ajaxSendRequestFromServer()</title>
+            <description>
+                <p>Many web services accept data posted to an endpoint in the form of JSON in the body of the request. JSONPlaceholder is a fake API for testing and prototyping. We will use the /posts JSONPlaceholder endpoint in this exercise to demonstrate how to convert the JSON for a request body into a format required by a TransForm Request Template.</p>
+                <p>The JSONPlaceholder /posts endpoint (https://jsonplaceholder.typicode.com/posts) is a POST request that creates a new post (i.e. blog post) for a user. The post is submitted to the endpoint as JSON in the body. For example:</p>
+                <p>
+                <example code="json"><![CDATA[{
+    "title": "My Title",
+    "body": "This is the post body",
+    "userId": "1"
+}
+]]></example>
+                </p>
+                <p>title, body, and userId are the parameters that specify the post title, body, and the user that created the post for the /posts endpoint. "My Title", "this is the post body", and 1 are the values for those parameters.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>Quote and Escape everything and put it in array</p>
+                        <p>
+                            <example><![CDATA[[
+    "{",
+    "\"title\": \"My Title\",",
+    "\"body\": \"This is the post body\",",
+    "\"userId\": \"1\"",
+    "}"
+]]]></example>
+                        </p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Replace string values with objects</p>
+                        <p>
+                            <example><![CDATA[[
+    "{",
+    "\"title\": \"",
+    {
+        "type":"string",
+        "value":"My Title"
+    },
+    "\",",
+    "\"body\": \"",
+    {
+        "type":"string",
+        "value":"This is the post body"
+    },
+    "\",",
+    "\"userId\":",
+    {
+        "type":"string",
+        "value":"1"
+    },
+    "}"
+]]]></example>
+                        </p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Add Arguments, Constants, and optional Filters</p>
+                        <p>
+                            <example><![CDATA[[
+    "{",
+    "\"title\": \"",
+    {
+        "type":"arg",
+        "value": 1,
+        "filter":"jsescape" /*Optional*/
+    },
+    "\",",
+    "\"body\": \"",
+    {
+        "type":"arg",
+        "value": 2,
+        "filter":"jsescape" /*Optional*/
+    },
+    "\",",
+    "\"userId\":",
+    {
+        "type":"constant",
+        "value":"userId"
+    },
+    "}"
+]
+]]></example>
+                        </p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Create the Request Template and Constants and save it Other account settings</p>
+                        <p>
+                            <example><![CDATA[{
+    "sendrequest": {
+        "templates": {
+            "createPost":{
+                "method":"POST",
+                "url":"https://jsonplaceholder.typicode.com/posts",
+                "headers":"Content-type: application/json; charset=UTF-8",
+                "body":[
+                    "{",
+                    "\"title\": \"",
+                    {
+                        "type":"arg",
+                        "value": 1,
+                        "filter":"jsescape"
+                    },
+                    "\",",
+                    "\"body\": \"",
+                    {
+                        "type":"arg",
+                        "value": 2,
+                        "filter":"jsescape"
+                    },
+                    "\",",
+                    "\"userId\":",
+                    {
+                        "type":"constant",
+                        "value":"userId"
+                    },
+                    "}"
+                ]
+            }
+        },
+    }
+    "constants": [
+        "userId": "1"
+    ]
+}
+]]></example>
+                        </p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Call the request from TPL</p>
+                        <p>
+                            <example code="tpl"><![CDATA[FUNCTION @createPost
+    arguments = array()
+    arrayPush(arguments, "My Title")
+    arrayPush(arguments, "This is the post body")
+
+    r = ajaxSendRequestFromServer("createPost", arguments)
+
+    if (r.error)
+        msgShowWarning("Error doing Send Request Server", r.error)
+        return
+    endif
+    return r.responseText
+ENDFUNCTION
+]]></example>
+                        </p>
+                    </description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <title>Common Error Messages</title>
+            <description>
+                <p>Since ajaxSendRequestFromServer() is a new feature in the Web Filler release, we don't have any data on the most frequently encountered error messages while using the function. However, we thought we'd share some of the error messages we ran into when creating these release notes:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Error</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>No url</name>
+                            <description>The Request Template doesn't exist or doesn't define the url property.</description>
+                        </item>
+                    </list>
+                </p>
+            </description>
+        </section>
+        <section>
+            <title>Common Statuses</title>
+            <description>
+                <p>If error is blank, it doesn't mean the request didn't fail. status contains an HTTP status code for the request. The status code indicates whether or not the request succeeded. Some common status codes are listed below:</p>
+                <p>
+                    <list>
+                        <item>
+                            <name-title>Status Code</name-title>
+                            <description-title>Description</description-title>
+                        </item>
+                        <item>
+                            <name>200</name>
+                            <description>The request succeeded.</description>
+                        </item>
+                        <item>
+                            <name>201</name>
+                            <description>The request succeeded and a resource was created.</description>
+                        </item>
+                        <item>
+                            <name>301</name>
+                            <description>The endpoint has moved to a new permanent location.</description>
+                        </item>
+                        <item>
+                            <name>302</name>
+                            <description>The endpoint has moved temporarily.</description>
+                        </item>
+                        <item>
+                            <name>400</name>
+                            <description>The request cannot be completed due to an issue with how the request was sent. For example, a missing query parameter.</description>
+                        </item>
+                        <item>
+                            <name>401</name>
+                            <description>Unauthorized. Typically sent when authentication has not been provided and is required.</description>
+                        </item>
+                        <item>
+                            <name>403</name>
+                            <description>You don't have permission to access the endpoint.</description>
+                        </item>
+                        <item>
+                            <name>404</name>
+                            <description>The endpoint doesn't exist.</description>
+                        </item>
+                        <item>
+                            <name>405</name>
+                            <description>You are not allowed to make requests to the endpoint.</description>
+                        </item>
+                        <item>
+                            <name>429</name>
+                            <description>Too many requests have been made to the endpoint in a given time period. This is usually seen with APIs that impose rate limiting.</description>
+                        </item>
+                        <item>
+                            <name>500</name>
+                            <description>The server hosting the web service encountered a situation it doesn't know how to handle.</description>
+                        </item>
+                    </list>
+                </p>
+                <p>If you receive a 3xx, 4xx, or 5xx status, the request failed. See *[extlink:HTTP response status codes (MDN)@https://developer.mozilla.org/en-US/docs/Web/HTTP/Status]* for more detailed information about HTTP status codes and their meanings.</p>
+            </description>
+        </section>
+        <section>
+            <title>Handling 3xx Responses</title>
+            <description>
+                <p>ajaxSendRequestFromServer() does not return detailed response information for 3xx requests. For example, if you get a 301 response, no additional information is provided in the response. </p>
+                <p>Example 301 result:</p>
+                <p>
+                <example><![CDATA[{
+  "error":"",
+  "status":"301",
+  "timeout":10000,
+  "responseText":""
+}
+]]></example>
+                </p>
+                <p>If you receive a 3xx response, you will need to consult your API documentation to determine the new endpoint or use a third-party tool to execute the request and get the full text of the response, which usually contains the location where the endpoint has moved.</p>
+            </description>
+        </section>
+        <section>
+            <title>Handling 4xx Responses</title>
+            <description>
+                <p>If you receive a 4xx status, it means something is incorrect with the request. For example, the endpoint doesn't exist (404), you don't have permissions to access the endpoint (403), or you didn't include your access credentials (401). Consult your API documentation for information about 4xx status codes and how to resolve them.</p>
+            </description>
+        </section>
+        <section>
+            <title>Handling 5xx Responses</title>
+            <description>
+                <p>A 5xx response often indicates something is wrong with the server hosting the web service. Contact your API provider if you receive a 5xx response status.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link href="#section1_Defining%20Request%20Template%20Query%20Parameters,%20Headers,%20and%20Body%20Content">Defining Request Template Query Parameters, Headers, and Body</link>
+        <link href="#section1_Passing%20Arguments%20to%20ajaxSendRequestFromServer()">Passing Arguments to ajaxSendRequestFromServer()</link>
+        <link href="#section1_Using%20Constants">Using Constants</link>
+    </links>
+    <see>
+        <ref link="transform%20central%20home">TransForm Central Home</ref>
+    </see>
+</page>
