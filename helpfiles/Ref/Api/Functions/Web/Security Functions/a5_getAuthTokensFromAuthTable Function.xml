@@ -1,0 +1,173 @@
+<page api="xb" build="8130">
+    <shortlink>a5_getAuthTokensFromAuthTable function</shortlink>
+    <topic>a5_getAuthTokensFromAuthTable Function</topic>
+    <description>
+        <p>Retrieves the access and refresh token from authenticationKeys table for a named resource provider. If the access token has expired and a refresh token is available, token can be refreshed and stored in the authenticationKeys table</p>
+    </description>
+    <prototypes>
+        <prototype>a5_getAuthTokensFromAuthTable as p (C namedresource [, L flagRefreshTokenIfExpired [, L flagSaveRefreshedTokenInAuthenticationKeysTable]])</prototype>
+    </prototypes>
+    <arguments>
+        <argument>
+            <name>namedresource</name>
+            <type>C</type>
+            <description>
+                <p>A named resource provider. See [Resource Providers] for more information.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>flagRefreshTokenIfExpired</name>
+            <type>L</type>
+            <description>
+                <p>Default = *[xb:.t.]*.</p>
+            </description>
+        </argument>
+        <argument optional="true">
+            <name>flagSaveRefreshedTokenInAuthenticationKeysTable</name>
+            <type>L</type>
+            <description>
+                <p>Default = *[xb:.t.]*.</p>
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>result</name>
+            <type>P</type>
+            <description>
+                <p>Returns an object with the following properties:</p>
+            </description>
+            <properties>
+                <property>
+                    <name>error</name>
+                    <type>L</type>
+                    <description>*[xb:.f.]* if no error occurred. *[xb:.t.]* if an error occurred.</description>
+                </property>
+                <property>
+                    <name>errorText</name>
+                    <type>C</type>
+                    <description>If *[xb:error]* is *[xb:.t.]*, contains additional information about the error.</description>
+                </property>
+                <property>
+                    <name>Access_token</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>Access_token_expires</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>Access_token_secret</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>oauth_version</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>refresh_token</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>ResourceURL</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>scopes</name>
+                    <type>C</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>expired</name>
+                    <type>L</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+                <property>
+                    <name>wasRefreshed</name>
+                    <type>L</type>
+                    <description>
+                        <p></p>
+                        <p>This property only exists if *[xb:error]* is *[xb:.f.]*.</p>
+                    </description>
+                </property>
+            </properties>
+        </return>
+    </returns>
+    <discussion>
+        <p>When you complete an oAuth flow to authorize an external resource such as Salesforce, you can specify that the tokens returned should be stored in a sql table (see [Project Properties Authentication Keys table]).</p>
+        <p>After you have performed an initial authentication for a named resource, the Authentication Keys table will contain a record for the specified named provider.</p>
+        <p>The a5_getAuthTokensFromAuthTable() function will query the Authentication Keys table and it will return an object with the access token for the service so that you can make an API call.</p>
+        <p>If the access token has expired, and it a refresh token is available, the function will automatically get a new access token and write this new token to the Authentication Keys table.</p>
+        <p>Using this function, it is possible to bypass the oAuth authentication flow that would normally be required before making an API call, as long as a prior authentication flow has been completed and a record has been written to the Authentication Keys table.</p>
+        <p>Example:</p>
+        <p>
+            <example code="xb"><![CDATA[dim p as p
+
+'get tokens for the "salesforce" named provider
+p = a5_getAuthTokensFromAuthTable("salesforce")
+]]>            </example>
+        </p>
+        <p>If there is no record in the Authentication Keys table, the p object will contain:</p>
+        <p>
+            <example code="xb"><![CDATA[{
+     "error": true,
+     "errorText": "token not found"
+}]]></example>
+        </p>
+        <p>If a record was found in the Authentication Keys table, the p object will contain:</p>
+        <p>
+            <example code="xb"><![CDATA[{
+     "Access_token": "your token",
+     "Access_token_expires": "20220409115123124",
+     "Access_token_secret": "",
+     "oauth_version": "2.0",
+     "refresh_token": "your refresh token",
+     "ResourceURL": "you resource URL",
+     "scopes": "",
+     "expired": false,
+     "error": false,
+     "wasRefreshed": false,
+     "errorText": ""
+}]]></example>
+        </p>
+        <p>The refresh_token will only be present if the initial authentication requested a refresh_token. This is typically specified in the scopes parameter.</p>
+        <p>The wasRefreshed property will be true if the access_token had expired and the refresh_token had to be used to refresh the access token.</p>
+    </discussion>
+    <links>
+        <link link="server%20ref%20web%20project%20settings#section1_Resource%20Providers">Resource Providers</link>
+        <link link="server%20ref%20web%20project%20settingsl#section1_Authentication%20Keys%20Table%20Settings">Project Properties Authentication Keys table</link>
+    </links>
+    <see>
+        <ref link="server%20ref%20web%20project%20settings#section1_Resource%20Providers">Resource Providers</ref>
+    </see>
+</page>
