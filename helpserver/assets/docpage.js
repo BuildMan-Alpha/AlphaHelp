@@ -79,6 +79,8 @@ function loaded() {
     }
     ele.setAttribute('defaultTop',t);
     document.body.onscroll = function(){
+        if(window.adjustingNav) return false;
+        window.adjustingNav = true;
         var ele = document.getElementById('page-nav');
         if(ele && ele.hasAttribute('defaultTop')){
             var fixed = false;
@@ -86,6 +88,7 @@ function loaded() {
             if(ele.classList.contains('fixed') && !fixed)  ele.classList.toggle('fixed',false);
             else if(!ele.classList.contains('fixed') && fixed) ele.classList.toggle('fixed',true);
         }
+        setTimeout(function(){window.adjustingNav = false;},100);
     }
 }
 
