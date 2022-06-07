@@ -71,24 +71,27 @@ function loaded() {
 
     // fix positioned page nav
     var ele = document.getElementById('page-nav');
-    var pEle = ele;
-    var t = 0;
-    while(pEle && pEle.offsetParent){
-        pEle = pEle.offsetParent;
-        t += pEle.offsetTop;
-    }
-    ele.setAttribute('defaultTop',t);
-    document.body.onscroll = function(){
-        if(window.adjustingNav) return false;
-        window.adjustingNav = true;
-        var ele = document.getElementById('page-nav');
-        if(ele && ele.hasAttribute('defaultTop')){
-            var fixed = false;
-            if(document.documentElement.scrollTop > Number(ele.getAttribute('defaultTop'))) fixed = true;
-            if(ele.classList.contains('fixed') && !fixed)  ele.classList.toggle('fixed',false);
-            else if(!ele.classList.contains('fixed') && fixed) ele.classList.toggle('fixed',true);
+    var dEle = document.getElementById('doc');
+    if(dEle.offsetHeight > ele.offsetHeight){
+        var pEle = ele;
+        var t = 0;
+        while(pEle && pEle.offsetParent){
+            pEle = pEle.offsetParent;
+            t += pEle.offsetTop;
         }
-        setTimeout(function(){window.adjustingNav = false;},100);
+        ele.setAttribute('defaultTop',t);
+        document.body.onscroll = function(){
+            if(window.adjustingNav) return false;
+            window.adjustingNav = true;
+            var ele = document.getElementById('page-nav');
+            if(ele && ele.hasAttribute('defaultTop')){
+                var fixed = false;
+                if(document.documentElement.scrollTop > Number(ele.getAttribute('defaultTop'))) fixed = true;
+                if(ele.classList.contains('fixed') && !fixed)  ele.classList.toggle('fixed',false);
+                else if(!ele.classList.contains('fixed') && fixed) ele.classList.toggle('fixed',true);
+            }
+            setTimeout(function(){window.adjustingNav = false;},100);
+        }
     }
 }
 
