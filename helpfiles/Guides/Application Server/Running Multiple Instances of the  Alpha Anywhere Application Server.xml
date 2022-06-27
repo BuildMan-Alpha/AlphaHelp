@@ -1,328 +1,293 @@
 <page>
-	<shortlink>server Running Multiple Instances of the Alpha Anywhere Application Server</shortlink>
-	<topic>Running Multiple Instances of the Alpha Anywhere Application Server</topic>
-	<description>Step by step instructions for running multiple instances of the application server:</description>
-	<sections>
-		<section>
-			<title>Alpha Anywhere Application Server for IIS</title>
-			<description>The Alpha Anywhere Application Server can be configured to run multiple instances on the same server, however this approach is made obsolete by the [Alpha Anywhere Application Server for IIS]. All the benefits from creating multiple instances of Application Server are built-in to the Application Server for IIS. The Application Server for IIS also supports virtual hosting, restarting the server when the system reboots, and is able to scale the number of Application Server instances on-demand to handle surges in application requests.</description>
-		</section>
-		<section>
-			<title>Running Multiple Instances of the Application Server on Windows</title>
-			<description>Multiple, separate instances of the Alpha Anywhere Application Server can be run on a single Windows server. Running multiple instances offers several benefits, including:</description>
-			<list bullet="true">
-				<item>
-					<name>Servicing multiple URLs (www addresses) for separate applications.</name>
-				</item>
-				<item>
-					<name>Fully utilizing the machine's capacity.</name>
-				</item>
-				<item>
-					<name>Building test environments independent from production applications.</name>
-				</item>
-			</list>
-		</section>
-		<section>
-			<description>
-				<p>Configuring Windows to run multiple instances of the Alpha Anywhere Application Server is not difficult if you know how. And that's where this document comes in. We'll look at the process step-by-step starting with this overview. (We'll refer to the Alpha Anywhere Application Server simply as "Application Server" throughout this document).</p>
-			</description>
-		</section>
-		<section>
-			<title>An Overview of Running Multiple Alpha Anywhere App Server Instances</title>
-			<description>At the high level, here are the steps needed to run multiple instances of the Application Server:</description>
-			<steps>
-				<step>
-					<description>Make a note of the IP addresses you have been assigned.</description>
-				</step>
-				<step>
-					<description>Point your domain name system (DNS) server to the corresponding IPs.</description>
-				</step>
-				<step>
-					<description>Configure Microsoft's IIS server so it doesn't conflict with the Application Server.</description>
-				</step>
-				<step>
-					<description>Build a Windows Shortcut for each Application Server instance.</description>
-				</step>
-				<step>
-					<description>Create a Configuration File for each instance.</description>
-				</step>
-				<step>
-					<description>Wrap each instance up to run as a service.</description>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>Some of these steps may be optional depending on your setup. (For example if you don't plan to use the IIS web server, you can skip step 3.)</description>
-		</section>
-		<section>
-			<title>Step 1: Gather your IP Addresses</title>
-			<description>
-				<p>Quick review: An IP address is like a phone number that uniquely identifies your computer on the Internet (or an intranet). For example, *[extlink:www.alphasoftware.com@https://www.alphasoftware.com]* has a an IP of: 162.247.131.85. If you type *[extlink:http://162.247.131.85@http://162.247.131.85]* into your web browser from practically anywhere in the world, you'll get to the Alpha Software website.</p>
-				<p>So in order to set up Application Server so that it can be seen on the Internet, you'll need an IP address for each instance of Application Server you plan to run. In addition, if you are planning on running Microsoft IIS as well - you will need an IP for that, too. IP addresses are assigned to you by your hosting provider. So, if you are hosting your server say at GoDaddy, GoDaddy will provide you with your IP addresses.</p>
-				<p>Of course people don't normally type these numbers into their web browsers, they type in URLs like "www.alphasoftware.com" and a separate server called the DNS (domain name system) server looks up the request and then converts it to the correct IP address.</p>
-				<p>We'll talk about the DNS in the next step, for now this is what you need to know. For each separate instance of the Application Server you'll need a separate IP address and (optionally) a separate URL (like *[bold:www.alphasoftware.com]*). You'll also need a different IP and URL if you are planning on using the IIS server as well.</p>
-				<p>Using the chart below as a guide, fill out the URLs and IPs you plan to use.</p>
-			</description>
-			<list>
-				<item>
-					<name-title>URL</name-title>
-					<description-title>IP</description-title>
-				</item>
-				<item>
-					<name>www.alphasoftware.com</name>
-					<description>162.247.131.85</description>
-				</item>
-			</list>
-		</section>
-		<section>
-			<title>Step 2: Point your DNS Servers to the Correct IPs</title>
-			<description>
-				<p>Quick Review: A DNS (Domain Name System) server coverts the URL a user types into their browser, like www.alphasoftware.com(external link), into a numerical IP address so they can find your website.</p>
-				<p>For each URL you want to use, like say: www.alphasoftware.com(external link), you're going to need to point the domain to the correct IP address.</p>
-				<p>Some hosting providers (like GoDaddy) provide a self-service interface that lets you manager your domain names. Here is what their interface looks like:</p>
-			</description>
-			<figure>
-				<link>images/DNS2.jpg</link>
-			</figure>
-		</section>
-		<section>
-			<description>
-				<p>This is just one example of an interface used to manage your domain. The interface you use (unless you use GoDaddy) will be different. And in some cases your web hosting provider (or whoever manages your DNS servers) may need to help you.</p>
-				<p>It may take a little while for the change to propagate - depending on how long the TTL setting was set to before you changed the IP. TTL (or "time to live") indicates the duration a specific IP address is good for - before it is considered outdated information and needs to be looked up again.</p>
-				<p>Now that the DNS servers are pointed to the right IPs, it's time to configure IIS so that it won't conflict with Application Server. If you're not going to use IIS, you can skip the next step.</p>
-			</description>
-		</section>
-		<section>
-			<title>Step 3: Configure IIS to work with Application Server</title>
-			<tip>To avoid the complications of working with both the Application Server and IIS running on the same server, use the Alpha Anywhere Application Server for IIS instead.</tip>
-		</section>
-		<section>
-			<description>
-				<p>If you don't plan to use IIS - you can skip this step. But many people (including Alpha Software) have some legacy pages written in ASP that they would like to continue to run rather than rewrite them as A5W pages.</p>
-				<p>To allow Alpha Anywhere and IIS to run together and both use port 80 (which is the standard port for web traffic) - you'll need to assign them to different IPs.</p>
-				<p>Set the IP address to use in the IIS Manager as shown below (enter YOUR IP address in the IP address textbox, not the IP address shown):</p>
-			</description>
-			<figure>
-				<link>images/iis.jpg</link>
-			</figure>
-		</section>
-		<section>
-			<description>
-				<p>OK - in theory that should be all. But with IIS 6.0 there is a "gotcha". While IIS will now only serve pages that are requested from this IP - it still takes control of all the other IPs anyway so you can't use them with the Application Server. (If you try to run the Alpha Anywhere Application Server on port 80, you'll get a message saying that there is a conflict.)</p>
-				<p>However, Microsoft makes a free tool that fixes this problem. You can find complete instructions in the Microsoft support article, "[Setting metabase property DisableSocketPooling has no effect]". (Don't let the long, technical title of this article scare you. The instructions are actually quite straightforward.)</p>
-			</description>
-		</section>
-		<section>
-			<title>Step 4: Build a Windows Shortcut for each Application Server instance</title>
-			<description>
-				<p>In this step we're going to build desktop shortcuts that you can use to manually open new instances of the Alpha Anywhere server. Later on, we'll set up Application Server to run automatically. But for now we'll start each instance manually so that we can configure them.</p>
-				<p>This step assumes that you already have the Alpha Anywhere Application Server (Application Server) installed. If you haven't installed Application Server, please do so now using the link sent to you via email from Alpha Software.</p>
-				<p>Once installed we're going to make a new shortcut to the program, and in that shortcut we're going to specify the location of the configuration file.</p>
-			</description>
-			<steps>
-				<step>
-					<description>Right-click on the Windows desktop and choose New &gt; Shortcut from the right-click menu. The Create Shortcut wizard appears.</description>
-				</step>
-				<step>
-					<description>In the Type the Location of the Item box, type C:\ and click Next.</description>
-				</step>
-				<step>
-					<description>Give the shortcut a name, like "Instance 1" or "www.alphasoftware.com". The name will is used to differentiate instances of the Application Server.</description>
-				</step>
-				<step>
-					<description>Click Finish. A new shortcut icon will appear on the desktop.</description>
-				</step>
-				<step>
-					<description>Right-click on the shortcut just created and choose Properties from the right-click menu. </description>
-				</step>
-				<step>
-					<description>In the Target Box, enter the following:</description>
-					<example>
-						<![CDATA["C:\Program Files (x86)\a5v12 ApplicationServer\A5ApplicationServer.exe" -CONFIGFILE="C:\Config1.xml"]]>
-					</example>
-					<note>The last part -CONFIGFILE="C:\Config1.xml" specifies the name and location of the server's configuration file. Here we've named it Config1.xml, but feel free to give it a different name and save it in a different location.</note>
-				</step>
-				<step>
-					<description>In the Start In box, enter the following:</description>
-					<example>
-						<![CDATA["C:\Program Files (x86)\a5v12 ApplicationServer"]]>
-					</example>
-				</step>
-				<step>
-					<description>Click OK to save your changes.</description>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>Test the shortcut by double-clicking it. The Application Server splash screen should appear followed by an error stating the configuration file cannot be found. This error is normal because the configuration file hasn't been created. Creating the configuration file is the next step.</description>
-		</section>
-		<section>
-			<description>
-				<p>Each instance of the Application Server requires a separate shortcut with an unique configuration file. A quick way to create multiple shortcuts is to duplicate the first shortcut on the desktop. Right-click on each copy of the shortcut and change its properties. Only the shortcut name and XML file need to be changed.</p>
-			</description>
-		</section>
-		<section>
-			<title>Step 5: Create the Application Server Configuration Files</title>
-			<description>
-				<p>In the last step, you created shortcuts for each instance of the Application Server you wanted to run. However, when you launched one of these shortcuts, you got an error telling you that the Application Server couldn't find the configuration file.</p>
-				<p>Creating this file is quite easy. All you need to do is create a blank text document and give it the filename you specified when you created the shortcut.</p>
-				<p>In our example, the configuration file we specified was C:\Config1.xml, so we'd create a new text file called config1.xml using Windows Explorer. Here are the step-by-step instructions.</p>
-			</description>
-			<steps>
-				<step>
-					<description>Right-click on the Windows Start menu and choose Explore to open Windows Explorer</description>
-				</step>
-				<step>
-					<description>Navigate to the folder where you specified the configuration file would be. (In our example this was c:\)</description>
-				</step>
-				<step>
-					<description>From the Tools Menu, choose Folder Options. The Folder Options dialog box appears.</description>
-				</step>
-				<step>
-					<description>Click the View tab.</description>
-				</step>
-				<step>
-					<description>Make sure that that the Hide Extensions for Known File Types checkbox is unchecked. (You need to see the file extensions) </description>
-					<figure>
-						<link>images/folderoptions.jpg</link>
-					</figure>
-				</step>
-				<step>
-					<description>Click OK to close the Folder Options dialog box.</description>
-				</step>
-				<step>
-					<description>From the File menu, choose New > Text Document.</description>
-				</step>
-				<step>
-					<description>Give the new text document the name you specified earlier (in our example, it was config.xml). Windows Explorer will warn you that you are changing the file's extension.</description>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>
-				<p>You'll need to repeat this process for each instance. To save time, simply copy, paste and rename the configuration file you just created.</p>
-				<p>So what's the with all these configuration files anyway? Well Application Server uses the configuration file to store its settings. Some of these settings include what port to use, whether to to enable security, the location of the Webroot, and what IP it should use.</p>
-				<p>To create these settings in the configuration file, you'll use Application Server itself to do it for you.</p>
-			</description>
-			<steps>
-				<step>
-					<description>Double-click on one of the desktop shortcuts you created earlier. This time you should not receive any errors because you created the configuration file. The Application Server icon appears in the system tray. </description>
-				</step>
-				<step>
-					<description>Right-click on the Application Server icon and choose Configure Server. The Configuration dialog box appears.</description>
-					<figure>
-						<link>images/config1.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>In the *[ui:Document Root]* textbox, choose the location of the webroot for this server instance. The webroot is where you keep your A5w pages, html pages, images and other files. It's the "public" folder that will be accessible via the Internet.</description>
-					<figure>
-						<link>images/config2.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>Check the Enable Security Framework checkbox.</description>
-					<figure>
-						<link>images/config3.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>Enter the serial number you want to use for the server by clicking the *[ui:Add License]* link.</description>
-					<figure>
-						<link>images/config4.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>Click the Advanced tab.</description>
-					<figure>
-						<link>images/config5.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>In the Systray Caption box, enter a name for this server instance, so that you can easily identify later when you have multiple instances running. You might name it after the URL that points to it. For example, we might have called this instance www.alphasoftware.com</description>
-					<figure>
-						<link>images/config6.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>In the IP Address binding box, type in the IP address associated with this instance. This tells Alpha Anywhere only to serve pages to requests that come from this IP. (Refer back to step 1 where you wrote these down.)</description>
-					<figure>
-						<link>images/config7.png</link>
-					</figure>
-				</step>
-				<step>
-					<description>Click *[ui:Save]* to save your settings and close the Application Server Settings window.</description>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>You're almost done. Now it's time to test.</description>
-			<steps>
-				<step>
-					<description>Start the server by right-clicking on the Application Server icon in the system tray, and choose Start Server from the right-click menu.</description>
-				</step>
-				<step>
-					<description>Open a web browser and type in http:// followed by the IP address for the server and press Enter. In our example it was http://162.247.131.85.</description>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>
-				<p>If the webroot you specified above does not contain any files, you should get back a warning page telling you either that security files are incomplete or that directory browsing is not allowed. Either of these are indicators that you have set things up properly. And these warnings will disappear once you have published your files to the webroot.</p>
-				<p>If you get an error that says "Bad Header Request" it means that you have conflict with IIS, and you should check your work back in Step 3.</p>
-				<p>If you get no response back, it could mean that either you entered the wrong IP into the Application Server. But it could also be caused by a firewall preventing access to port 80. If your server is offsite at a hosting provider, you may need to ask them to open port 80 for you.</p>
-				<p>Once the changes to your DNS have taken affect, you should also be able to connect to the web server using its URL.</p>
-				<p>Repeat these steps to configure each instance you want to run.</p>
-			</description>
-		</section>
-		<section>
-			<title>Step 6: Running Each Instance as a Service</title>
-			<description>So far we have set up each instance so that they can be run manually by double-clicking on their corresponding shortcut icon.</description>
-			<figure>
-				<link>images/icons.jpg</link>
-			</figure>
-		</section>
-		<section>
-			<description>
-				<p>However, that solution is not adequate if you want to keep the servers running 24/7. That's because when windows restarts (such as after a Windows update) the servers are shut down, and you have to manually start them again.</p>
-				<p>The solution to that problem is to configure Windows so that your instances of Application Server run as services (in the background) whenever the machine is rebooted. Many Alpha Anywhere developers use 3rd Party tools to accomplish this task. However, the Alpha Anywhere Application Server can be configured as a service using a free tool from Microsoft.</p>
-				<p>The article, "[Running the Alpha Anywhere Application Server as a Service]", explains how to setup a single instance of the Application Server to run as a service. Two changes are required to setup multiple instances of the Application Server to run as a service:</p>
-			</description>
-			<steps>
-				<step>
-					<description>A service with a descriptive name must be created for each Application Server instance. This can be done using the following command on the command line (replace *[SERVICE NAME]* with a descriptive name for the Application Server instance):</description>
-					<example><![CDATA[instsrv.exe SERVICE NAME c:\srvmkr\srvany.exe]]></example>
-					<figure>
-						<title>3 instances listed in the registry created using the instsrv.exe command: a5Server, A5Server2, and A5ShowcaseServer.</title>
-						<link>images/registry.jpg</link>
-					</figure>
-				</step>
-				<step>
-					<description>Both the location of the Application Server and the configuration files must be specified. For example:</description>
-					<example>
-						<![CDATA[C:\Program Files (x86)\a5V12 ApplicationServer\A5ApplicationServer.exe -CONFIGFILE="C:\A5Showcase.xml"]]>
-					</example>
-				</step>
-			</steps>
-		</section>
-		<section>
-			<description>
-				<p>For more information, see [Running the Alpha Anywhere Application Server as a Service].</p>
-			</description>
-		</section>
-		<section>
-			<title>A Few Final Notes...</title>
-			<description>
-				<p>*[Congratulations!]* You have provisioned a server to run multiple instances Alpha Anywhere. There is no strict upper limit to the number of instances you can run. At Alpha Software, we currently run 5 instances along side IIS on a single server, and the performance is quite good.</p>
-				<p>In the introduction we said that you can run Alpha Anywhere on different cores of a multi-core processor. The Application Server actually handles this for you. So if you have a Quad processor, the Application Server will determine the best core of the four available cores to run on each time you start a new instance. Everything is handled automatically.</p>
-			</description>
-		</section>
-	</sections>
-	<links>
-		<link link="IIS Overview">IIS</link>
-		<link link="IIS Overview">Alpha Anywhere Application Server for IIS</link>
-		<link link="running alpha anywhere as a service">Running the Alpha Anywhere Application Server as a Service</link>
-		<link href="https://support.microsoft.com/en-us/kb/813368">Setting metabase property DisableSocketPooling has no effect</link>
-	</links>
-	<tags>load balancer</tags>
+    <shortlink>server Running Multiple Instances of the Alpha Anywhere Application Server</shortlink>
+    <topic>Running Multiple Instances of the Alpha Anywhere Application Server</topic>
+    <description>Step by step instructions for running multiple instances of the application server:</description>
+    <sections>
+        <section>
+            <title>Alpha Anywhere Application Server for IIS</title>
+            <description>The Alpha Anywhere Application Server can be configured to run multiple instances on the same server, however this approach is made obsolete by the [Alpha Anywhere Application Server for IIS]. All the benefits from creating multiple instances of Application Server are built-in to the Application Server for IIS. The Application Server for IIS also supports virtual hosting, restarting the server when the system reboots, and is able to scale the number of Application Server instances on-demand to handle surges in application requests.</description>
+        </section>
+        <section>
+            <title>Running Multiple Instances of the Application Server on Windows</title>
+            <description>Multiple, separate instances of the Alpha Anywhere Application Server can be run on a single Windows server. Running multiple instances offers several benefits, including:</description>
+            <list bullet="true">
+                <item>
+                    <name>Servicing multiple URLs (www addresses) for separate applications.</name>
+                </item>
+                <item>
+                    <name>Fully utilizing the machine's capacity.</name>
+                </item>
+                <item>
+                    <name>Building test environments independent from production applications.</name>
+                </item>
+            </list>
+        </section>
+        <section>
+            <description>
+                <p>Configuring Windows to run multiple instances of the Alpha Anywhere Application Server is not difficult if you know how. And that's where this document comes in. We'll look at the process step-by-step starting with this overview. (We'll refer to the Alpha Anywhere Application Server simply as "Application Server" throughout this document).</p>
+            </description>
+        </section>
+        <section>
+            <title>An Overview of Running Multiple Alpha Anywhere App Server Instances</title>
+            <description>At the high level, here are the steps needed to run multiple instances of the Application Server:</description>
+            <steps>
+                <step>
+                    <description>Make a note of the IP addresses you have been assigned.</description>
+                </step>
+                <step>
+                    <description>Point your domain name system (DNS) server to the corresponding IPs.</description>
+                </step>
+                <step>
+                    <description>Configure Microsoft's IIS server so it doesn't conflict with the Application Server.</description>
+                </step>
+                <step>
+                    <description>Build a Windows Shortcut for each Application Server instance.</description>
+                </step>
+                <step>
+                    <description>Create a Configuration File for each instance.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>Some of these steps may be optional depending on your setup. (For example if you don't plan to use the IIS web server, you can skip step 3.)</description>
+        </section>
+        <section>
+            <title>Step 1: Gather your IP Addresses</title>
+            <description>
+                <p>Quick review: An IP address is like a phone number that uniquely identifies your computer on the Internet (or an intranet). For example, *[extlink:www.alphasoftware.com@https://www.alphasoftware.com]* has a an IP of: 162.247.131.85. If you type *[extlink:http://162.247.131.85@http://162.247.131.85]* into your web browser from practically anywhere in the world, you'll get to the Alpha Software website.</p>
+                <p>So in order to set up Application Server so that it can be seen on the Internet, you'll need an IP address for each instance of Application Server you plan to run. In addition, if you are planning on running Microsoft IIS as well - you will need an IP for that, too. IP addresses are assigned to you by your hosting provider. So, if you are hosting your server say at GoDaddy, GoDaddy will provide you with your IP addresses.</p>
+                <p>Of course people don't normally type these numbers into their web browsers, they type in URLs like "www.alphasoftware.com" and a separate server called the DNS (domain name system) server looks up the request and then converts it to the correct IP address.</p>
+                <p>We'll talk about the DNS in the next step, for now this is what you need to know. For each separate instance of the Application Server you'll need a separate IP address and (optionally) a separate URL (like *[bold:www.alphasoftware.com]*). You'll also need a different IP and URL if you are planning on using the IIS server as well.</p>
+                <p>Using the chart below as a guide, fill out the URLs and IPs you plan to use.</p>
+            </description>
+            <list>
+                <item>
+                    <name-title>URL</name-title>
+                    <description-title>IP</description-title>
+                </item>
+                <item>
+                    <name>www.alphasoftware.com</name>
+                    <description>162.247.131.85</description>
+                </item>
+            </list>
+        </section>
+        <section>
+            <title>Step 2: Point your DNS Servers to the Correct IPs</title>
+            <description>
+                <p>Quick Review: A DNS (Domain Name System) server coverts the URL a user types into their browser, like www.alphasoftware.com(external link), into a numerical IP address so they can find your website.</p>
+                <p>For each URL you want to use, like say: www.alphasoftware.com(external link), you're going to need to point the domain to the correct IP address.</p>
+                <p>Some hosting providers (like GoDaddy) provide a self-service interface that lets you manager your domain names. Here is what their interface looks like:</p>
+            </description>
+            <figure>
+                <link>images/DNS2.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>This is just one example of an interface used to manage your domain. The interface you use (unless you use GoDaddy) will be different. And in some cases your web hosting provider (or whoever manages your DNS servers) may need to help you.</p>
+                <p>It may take a little while for the change to propagate - depending on how long the TTL setting was set to before you changed the IP. TTL (or "time to live") indicates the duration a specific IP address is good for - before it is considered outdated information and needs to be looked up again.</p>
+                <p>Now that the DNS servers are pointed to the right IPs, it's time to configure IIS so that it won't conflict with Application Server. If you're not going to use IIS, you can skip the next step.</p>
+            </description>
+        </section>
+        <section>
+            <title>Step 3: Configure IIS to work with Application Server</title>
+            <tip>To avoid the complications of working with both the Application Server and IIS running on the same server, use the Alpha Anywhere Application Server for IIS instead.</tip>
+        </section>
+        <section>
+            <description>
+                <p>If you don't plan to use IIS - you can skip this step. But many people (including Alpha Software) have some legacy pages written in ASP that they would like to continue to run rather than rewrite them as A5W pages.</p>
+                <p>To allow Alpha Anywhere and IIS to run together and both use port 80 (which is the standard port for web traffic) - you'll need to assign them to different IPs.</p>
+                <p>Set the IP address to use in the IIS Manager as shown below (enter YOUR IP address in the IP address textbox, not the IP address shown):</p>
+            </description>
+            <figure>
+                <link>images/iis.jpg</link>
+            </figure>
+        </section>
+        <section>
+            <description>
+                <p>OK - in theory that should be all. But with IIS 6.0 there is a "gotcha". While IIS will now only serve pages that are requested from this IP - it still takes control of all the other IPs anyway so you can't use them with the Application Server. (If you try to run the Alpha Anywhere Application Server on port 80, you'll get a message saying that there is a conflict.)</p>
+                <p>However, Microsoft makes a free tool that fixes this problem. You can find complete instructions in the Microsoft support article, "[Setting metabase property DisableSocketPooling has no effect]". (Don't let the long, technical title of this article scare you. The instructions are actually quite straightforward.)</p>
+            </description>
+        </section>
+        <section>
+            <title>Step 4: Build a Windows Shortcut for each Application Server instance</title>
+            <description>
+                <p>In this step we're going to build desktop shortcuts that you can use to manually open new instances of the Alpha Anywhere server. Later on, we'll set up Application Server to run automatically. But for now we'll start each instance manually so that we can configure them.</p>
+                <p>This step assumes that you already have the Alpha Anywhere Application Server (Application Server) installed. If you haven't installed Application Server, please do so now using the link sent to you via email from Alpha Software.</p>
+                <p>Once installed we're going to make a new shortcut to the program, and in that shortcut we're going to specify the location of the configuration file.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>Right-click on the Windows desktop and choose New &gt; Shortcut from the right-click menu. The Create Shortcut wizard appears.</description>
+                </step>
+                <step>
+                    <description>In the Type the Location of the Item box, type C:\ and click Next.</description>
+                </step>
+                <step>
+                    <description>Give the shortcut a name, like "Instance 1" or "www.alphasoftware.com". The name will is used to differentiate instances of the Application Server.</description>
+                </step>
+                <step>
+                    <description>Click Finish. A new shortcut icon will appear on the desktop.</description>
+                </step>
+                <step>
+                    <description>Right-click on the shortcut just created and choose Properties from the right-click menu. </description>
+                </step>
+                <step>
+                    <description>In the Target Box, enter the following:</description>
+                    <example>
+                        <![CDATA["C:\Program Files (x86)\a5v12 ApplicationServer\A5ApplicationServer.exe" -CONFIGFILE="C:\Config1.xml"]]>
+                    </example>
+                    <note>The last part -CONFIGFILE="C:\Config1.xml" specifies the name and location of the server's configuration file. Here we've named it Config1.xml, but feel free to give it a different name and save it in a different location.</note>
+                </step>
+                <step>
+                    <description>In the Start In box, enter the following:</description>
+                    <example>
+                        <![CDATA["C:\Program Files (x86)\a5v12 ApplicationServer"]]>
+                    </example>
+                </step>
+                <step>
+                    <description>Click OK to save your changes.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>Test the shortcut by double-clicking it. The Application Server splash screen should appear followed by an error stating the configuration file cannot be found. This error is normal because the configuration file hasn't been created. Creating the configuration file is the next step.</description>
+        </section>
+        <section>
+            <description>
+                <p>Each instance of the Application Server requires a separate shortcut with an unique configuration file. A quick way to create multiple shortcuts is to duplicate the first shortcut on the desktop. Right-click on each copy of the shortcut and change its properties. Only the shortcut name and XML file need to be changed.</p>
+            </description>
+        </section>
+        <section>
+            <title>Step 5: Create the Application Server Configuration Files</title>
+            <description>
+                <p>In the last step, you created shortcuts for each instance of the Application Server you wanted to run. However, when you launched one of these shortcuts, you got an error telling you that the Application Server couldn't find the configuration file.</p>
+                <p>Creating this file is quite easy. All you need to do is create a blank text document and give it the filename you specified when you created the shortcut.</p>
+                <p>In our example, the configuration file we specified was C:\Config1.xml, so we'd create a new text file called config1.xml using Windows Explorer. Here are the step-by-step instructions.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>Right-click on the Windows Start menu and choose Explore to open Windows Explorer</description>
+                </step>
+                <step>
+                    <description>Navigate to the folder where you specified the configuration file would be. (In our example this was c:\)</description>
+                </step>
+                <step>
+                    <description>From the Tools Menu, choose Folder Options. The Folder Options dialog box appears.</description>
+                </step>
+                <step>
+                    <description>Click the View tab.</description>
+                </step>
+                <step>
+                    <description>Make sure that that the Hide Extensions for Known File Types checkbox is unchecked. (You need to see the file extensions) </description>
+                    <figure>
+                        <link>images/folderoptions.jpg</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Click OK to close the Folder Options dialog box.</description>
+                </step>
+                <step>
+                    <description>From the File menu, choose New > Text Document.</description>
+                </step>
+                <step>
+                    <description>Give the new text document the name you specified earlier (in our example, it was config.xml). Windows Explorer will warn you that you are changing the file's extension.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>You'll need to repeat this process for each instance. To save time, simply copy, paste and rename the configuration file you just created.</p>
+                <p>So what's the with all these configuration files anyway? Well Application Server uses the configuration file to store its settings. Some of these settings include what port to use, whether to to enable security, the location of the Webroot, and what IP it should use.</p>
+                <p>To create these settings in the configuration file, you'll use Application Server itself to do it for you.</p>
+            </description>
+            <steps>
+                <step>
+                    <description>Double-click on one of the desktop shortcuts you created earlier. This time you should not receive any errors because you created the configuration file. The Application Server icon appears in the system tray. </description>
+                </step>
+                <step>
+                    <description>Right-click on the Application Server icon and choose Configure Server. The Configuration dialog box appears.</description>
+                    <figure>
+                        <link>images/config1.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>In the *[ui:Document Root]* textbox, choose the location of the webroot for this server instance. The webroot is where you keep your A5w pages, html pages, images and other files. It's the "public" folder that will be accessible via the Internet.</description>
+                    <figure>
+                        <link>images/config2.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Check the Enable Security Framework checkbox.</description>
+                    <figure>
+                        <link>images/config3.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Enter the serial number you want to use for the server by clicking the *[ui:Add License]* link.</description>
+                    <figure>
+                        <link>images/config4.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Click the Advanced tab.</description>
+                    <figure>
+                        <link>images/config5.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>In the Systray Caption box, enter a name for this server instance, so that you can easily identify later when you have multiple instances running. You might name it after the URL that points to it. For example, we might have called this instance www.alphasoftware.com</description>
+                    <figure>
+                        <link>images/config6.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>In the IP Address binding box, type in the IP address associated with this instance. This tells Alpha Anywhere only to serve pages to requests that come from this IP. (Refer back to step 1 where you wrote these down.)</description>
+                    <figure>
+                        <link>images/config7.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>Click *[ui:Save]* to save your settings and close the Application Server Settings window.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>You're almost done. Now it's time to test.</description>
+            <steps>
+                <step>
+                    <description>Start the server by right-clicking on the Application Server icon in the system tray, and choose Start Server from the right-click menu.</description>
+                </step>
+                <step>
+                    <description>Open a web browser and type in http:// followed by the IP address for the server and press Enter. In our example it was http://162.247.131.85.</description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
+                <p>If the webroot you specified above does not contain any files, you should get back a warning page telling you either that security files are incomplete or that directory browsing is not allowed. Either of these are indicators that you have set things up properly. And these warnings will disappear once you have published your files to the webroot.</p>
+                <p>If you get an error that says "Bad Header Request" it means that you have conflict with IIS, and you should check your work back in Step 3.</p>
+                <p>If you get no response back, it could mean that either you entered the wrong IP into the Application Server. But it could also be caused by a firewall preventing access to port 80. If your server is offsite at a hosting provider, you may need to ask them to open port 80 for you.</p>
+                <p>Once the changes to your DNS have taken affect, you should also be able to connect to the web server using its URL.</p>
+                <p>Repeat these steps to configure each instance you want to run.</p>
+            </description>
+        </section>
+        <section>
+            <title>About Running Instances as a Service</title>
+            <description>Running the Alpha Anywhere Classic Application Server as a Windows service is not supported, either directly or by using third party utilities. The Alpha Anywhere Application Server for IIS should be used where running as a service is required.</description>
+        </section>
+        <section>
+            <title>A Few Final Notes...</title>
+            <description>
+                <p>*[Congratulations!]* You have provisioned a server to run multiple instances Alpha Anywhere. There is no strict upper limit to the number of instances you can run. At Alpha Software, we currently run 5 instances along side IIS on a single server, and the performance is quite good.</p>
+                <p>In the introduction we said that you can run Alpha Anywhere on different cores of a multi-core processor. The Application Server actually handles this for you. So if you have a Quad processor, the Application Server will determine the best core of the four available cores to run on each time you start a new instance. Everything is handled automatically.</p>
+            </description>
+        </section>
+    </sections>
+    <links>
+        <link link="IIS Overview">IIS</link>
+        <link link="IIS Overview">Alpha Anywhere Application Server for IIS</link>
+        <link href="https://support.microsoft.com/en-us/kb/813368">Setting metabase property DisableSocketPooling has no effect</link>
+    </links>
+    <tags>load balancer</tags>
 </page>
