@@ -1,9 +1,11 @@
-<page api="xb">
-    <shortlink>api sql namespace resultset tocsvfile function</shortlink>
-    <topic parent="SQL::ResultSet" parentType="class" elementName="ToCSVFile Method">SQL::ResultSet ToCSVFile Method</topic>
-    <description>Write a ResultSet to a file in Comma Separated Variable (CSV) format.</description>
+<page api="xb" build="0">
+    <shortlink>sql connection tocsvfile method</shortlink>
+    <topic parent="SQL::Connection" parentType="class" elementName="ToCSVFile Method">SQL::Connection ToCSVFile Method</topic>
+    <description>
+        <p>Fetch data using a SQL query and save the data to file as a CSV formatted string.</p>
+    </description>
     <prototypes>
-        <prototype>dim result as C = ToCSVFile(TargetFile as C [ IncludeHeaderRow as L = .f. [, RowsToCopy as N = -1 [, StartRow as N = -1 [, UpperCaseNames as L = .f. [, DateTimeFormat as C = "" [, DateFormat as C = "" [, TextToSubstituteForBinary as C]]]]]]])</prototype>
+        <prototype>dim result as C = ToCSVFile(TargetFile as C, SQLStatement as C [, Arguments as SQL::Arguments] [, IncludeHeaderRow as L = .f. [, RowsToCopy as N = -1[, StartRow as N = -1 [, UpperCaseNames as L = .f. [, DateTimeFormat  as C = "" [, DateFormat  as C = "" [, TextToSubstituteForBinary = "&lt;Binary Data&gt;"]]]]]]]])</prototype>
     </prototypes>
     <arguments>
         <argument>
@@ -12,6 +14,16 @@
                 <type>C</type>
             </types>
             <description>The name of the file to store the data, including the file path.</description>
+        </argument>
+        <argument>
+            <name>SQLStatement</name>
+            <type>C</type>
+            <description>A SQL SELECT statement.</description>
+        </argument>
+        <argument optional="true">
+            <name>Arguments</name>
+            <type>SQL::Arguments</type>
+            <description>Default = *[xb:null_value()]*. A SQL::Arguments object. One or more arguments to be resolved when the SELECT statement is executed.</description>
         </argument>
         <argument optional="true">
             <name>IncludeHeaderRow</name>
@@ -45,22 +57,21 @@
             <name>DateTimeFormat</name>
             <type>C</type>
             <description>
-                <p>Default = *[xb:""]*. The date time format.</p>
+                <p>Default = *[xb:""]*. The date time format. See [Date and Time Format Elements] for more information about date time formats.</p>
             </description>
         </argument>
         <argument optional="true">
             <name>DateFormat</name>
             <type>C</type>
             <description>
-                <p>Default = *[xb:""]*. The date format.</p>
+                <p>Default = *[xb:""]*. The date format. See [Date and Time Format Elements] for more information about date time formats.</p>
             </description>
         </argument>
         <argument optional="true">
             <name>TextToSubstituteForBinary</name>
-            <types>
-                <type>C</type>
-            </types>
-            <description>Default = "&lt;Binary Data&gt;".</description>
+            <description>
+                <p>Default = *[xb:"&lt;Binary Data&gt;"]*</p>
+            </description>
         </argument>
     </arguments>
     <returns>
@@ -72,35 +83,12 @@
             <description>Returns *[xb:.T.]* if the data was successfully saved to a CSV file. If result is *[xb:.F.]*, the file was not created. Check the result of SQL::ResultSet's callResult object for more info about the error.</description>
         </return>
     </returns>
-    <sections>
-        <section>
-            <example>
-                <![CDATA[dim cn as SQL::Connection
+    <example code="xb"><![CDATA[dim cn as SQL::Connection
+cn.open("::Name::AADemo-Northwind")
 
-' open the connection
-if (cn.open("::Name::conn")) then
+dim filename as c = "C:\Users\someuser\Documents\orders.csv"
+dim sql as c = "select FIRST 5 * from orders"
 
-    ' Query the database
-    if (cn.execute("SELECT * FROM Customers") then
-
-        ' Save the query to a CSV file:
-        dim filename as c = "C:/customers.csv"
-        if (cn.resultSet.toCSVFile(filename)) then
-            ui_msg_box("Success!","Customer query written to " + filename)
-        else
-            ' CSV File creation failed. Check the callResult for more info.
-            showvar(cn.resultSet.callResult)
-        end if
-    else
-        ' SELECT failed. Check callResult for more info.
-        showvar(cn.callResult)
-    end if
-    cn.close()
-else
-    ' Unable to establish connection. Check callResult for more info.
-    showvar(cn.callResult)
-end if]]>
-            </example>
-        </section>
-    </sections>
+? cn.toCSVFile(filename,sql)
+= .T.]]></example>
 </page>
