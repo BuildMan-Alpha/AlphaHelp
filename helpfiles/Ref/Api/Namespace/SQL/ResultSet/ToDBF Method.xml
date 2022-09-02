@@ -1,101 +1,88 @@
 <page api="xb">
     <shortlink>api sql namespace result set object to dbf function</shortlink>
-   <topic parent="SQL::ResultSet" parentType="class" elementName="ToDBF Method">SQL::ResultSet ToDBF Method</topic>
+    <topic parent="SQL::ResultSet" parentType="class" elementName="ToDBF Method">SQL::ResultSet ToDBF Method</topic>
     <description>Create a local copy of the result set in a .DBF table</description>
-   <prototype>Formatted_Data as C = ToDBF(FileName as C [, EventScript =  as C [, Rows = -1 as N [, StartRow = -1 as N [, Append = .t. as L [, DictionaryName =  as C [, MapByPosition = .f. as L [, TableInfo as SQL::TableInfo]]]]]]])</prototype>
-   <arguments>
-     <argument>
-         <name>Formatted_Data</name>
-         <description>Character</description>
-     </argument>
-     <argument>
-         <name><![CDATA[<SQL::ResultSet>]]>
-</name>
-         <description>
- 
-A SQL::ResultSet object.
- </description>
-     </argument>
-     
-     
-     
-     
-     <argument>
-         <name>FileName</name>
-         <description>The path and filename of the Alpha Anywhere table.
-</description>
-     </argument>
-     <argument>
-         <name> EventScript = </name>
-         <description>Optional. Default = "". An Xbasic Script implementing any of the following functions. In each case, the Context argument is the connection itself.
-</description>
-
-<list>
-<item>
-<name>UpdateBegin()</name>
-</item>
-
-<item>
-<name>UpdateProgress()</name>
-</item>
-
-<item>
-<name>UpdateEnd()</name>
-</item>
-
-</list>
-
-
-     </argument>
-     <argument>
-         <name> Rows</name>
-         <description>Optional. Default = -1 (all). The number of rows to copy.
-</description>
-     </argument>
-     <argument>
-         <name> StartRow</name>
-         <description>Optional. Default = -1 (current). The first row to copy.
-</description>
-     </argument>
-     <argument>
-         <name> Append</name>
-         <description>Optional. Whether to overwrite the existing data.
-</description>
-     </argument>
-     <argument>
-         <name> DictionaryName</name>
-         <description>Optional. An advanced option for internal use at Alpha.
-</description>
-     </argument>
-     <argument>
-         <name> MapByPosition</name>
-         <description>Logical</description>
-     </argument>
-     <argument>
-         <name> TableInfo</name>
-         <description>Optional. A SQL::TableInfo object.
-</description>
-     </argument>
-   </arguments>
-  
-   <discussion>
-The SQL::ResultSet.ToDBF() method fetches rows to a new or overwritten local table .
-   </discussion>
-   <example><![CDATA[
-dim conn as SQL::Connection
+    <prototype>Result as L = ToDBF(FileName as C [, EventScript =  as C [, Rows = -1 as N [, StartRow = -1 as N [, Append = .t. as L [, DictionaryName =  as C [, MapByPosition = .f. as L [, TableInfo as SQL::TableInfo]]]]]]])</prototype>
+    <arguments>
+        <argument>
+            <name>FileName</name>
+            <type>C</type>
+            <description>The path and filename of the Alpha Anywhere table.</description>
+        </argument>
+        <argument optional="true">
+            <name>EventScript</name>
+            <type>C</type>
+            <description>Default = "". An Xbasic Script implementing any of the following functions. In each case, the Context argument is the connection itself.
+            </description>
+            <list>
+                <item>
+                    <name>UpdateBegin()</name>
+                </item>
+                <item>
+                    <name>UpdateProgress()</name>
+                </item>
+                <item>
+                    <name>UpdateEnd()</name>
+                </item>
+            </list>
+        </argument>
+        <argument>
+            <name>Rows</name>
+            <type>N</type>
+            <description>Default = -1 (all). The number of rows to copy.</description>
+        </argument>
+        <argument>
+            <name>StartRow</name>
+            <type>N</type>
+            <description>Default = -1 (first row). The first row to copy.</description>
+        </argument>
+        <argument>
+            <name>Append</name>
+            <type>L</type>
+            <description>Default = .t.. Whether to overwrite the existing data.</description>
+        </argument>
+        <argument>
+            <name>DictionaryName</name>
+            <type>C</type>
+            <description>Default = "". Internal use only.</description>
+        </argument>
+        <argument>
+            <name>MapByPosition</name>
+            <type>L</type>
+            <description>Default = .f.. Maps by position.</description>
+        </argument>
+        <argument>
+            <name>TableInfo</name>
+            <type>SQL::TableInfo</type>
+            <description>Default = null_value(). Table info.</description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <types>
+                <type>L</type>
+            </types>
+            <description>
+                <p>Returns *[xb:.t.]* if successful. Otherwise *[xb:.f.]*.</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>The SQL::ResultSet.ToDBF() method fetches rows to a new or overwritten local DBF table.</discussion>
+    <example code="xb"><![CDATA[dim conn as SQL::Connection
 dim sql as C
-dim vCity as C
+dim country as C
 dim args as SQL::Arguments
 dim cs as C
 dim rs as SQL::ResultSet
-cs = "{A5API=Access,FileName='C:\Program Files\a5v8\MDBFiles\Alphasports.mdb', UserName='Admin'}"
-vCity = ui_get_text("City", "Show Companies in what city?")
-sql = "select lastname, firstname from customer where bill_city = :city Order By Company"
+cs = "::Name::AADemo-Northwind"
+country = ui_get_text("Country", "Show Companies in what country?")
+sql = "select contactname from customers where country = :country"
 if .not. conn.open(cs)
     ui_msg_box("Error", conn.CallResult.text)
     end
 end if
-if .not. args.Set("city", vCity)
+if .not. args.Set("country", country)
     conn.close()
     end
 end if
@@ -105,14 +92,10 @@ if .not. conn.execute(sql, args)
     end
 end if
 rs = conn.ResultSet
-if .not. rs.ToDBF("c:\program files\a5v8\samples\alphasports\newtable.dbf", "", 3, 1 )
+if .not. rs.ToDBF("C:\Users\YOUR_USER_NAME\Documents\newtable.dbf", "", 3, 1 )
     ui_msg_box("Error", rs.CallResult.text)
 end if
-conn.close()
-]]></example>
-   
-   <see>
-      <ref link="SQL::ResultSet Object">SQL::ResultSet Object</ref>
-   </see>
-  <terms>sql,arguments,defaults,filename,function,logical,number,object,script,Xbasic</terms>
+conn.close()]]></example>
+    <limitations>Not supported on Community Edition</limitations>
+    <terms>sql,arguments,defaults,filename,function,logical,number,object,script,Xbasic</terms>
 </page>
