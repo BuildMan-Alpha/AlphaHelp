@@ -1,71 +1,119 @@
 <page generated="true">
-	<shortlink>api extension namespace json class jwt verify method</shortlink>
-	<topic parent="Extension::Json" parentType="class" elementName="JWTVerify Method">Extension::Json JWTVerify Method</topic>
-	<prototype static="true">.JWTVerify as c (token as C, secret as C[,options as c])</prototype>
-	<arguments>
-		<argument>
-			<name>token</name>
-			<description>JWT Token</description>
-		</argument>
-		<argument>
-			<name>secret</name>
-			<description>Secret that token was hashed againstt.</description>
-		</argument>
-		<argument>
-			<name>options</name>
-			<description>Specify a Algorithm used to hash, or pass complext options.</description>
-		</argument>
-	</arguments>
-	<description>Verify a  javascript web token, return json if valid, otherwise return an empty string.</description>
-	<example>
-' First create a token	
+    <shortlink>api extension namespace json class jwt verify method</shortlink>
+    <topic parent="Extension::Json" parentType="class" elementName="JWTVerify Method">Extension::Json JWTVerify Method</topic>
+    <description>Verifies a javascript web token.</description>
+    <prototype static="true">Extension::JSON::JWTVerify as c (token as C, secret as C[,options as c])</prototype>
+    <arguments>
+        <argument>
+            <name>token</name>
+            <description>JWT Token</description>
+        </argument>
+        <argument>
+            <name>secret</name>
+            <description>Secret that token was hashed against.</description>
+        </argument>
+        <argument>
+            <name>options</name>
+            <types>
+                <type>C</type>
+                <type>JSON String</type>
+            </types>
+            <description>
+                <p>A comma-delimited list of hashes to use or a JSON string defining one or more of the following options:</p>
+            </description>
+            <properties>
+                <property optional="true">
+                    <name>algorithms</name>
+                    <type>Character Array</type>
+                    <description>A comma-delimited list of hashes.</description>
+                </property>
+                <property optional="true">
+                    <name>audience</name>
+                    <type>C</type>
+                    <description>Identifies the recipients that the JWT is intended for.</description>
+                </property>
+                <property optional="true">
+                    <name>issuer</name>
+                    <type>C</type>
+                    <description>Identifies principal that issued the JWT.</description>
+                </property>
+                <property optional="true">
+                    <name>ignoreexpiration</name>
+                    <type>L</type>
+                    <description>Decode the token even if it is expired.</description>
+                </property>
+                <property optional="true">
+                    <name>ignorenotbefore</name>
+                    <type>L</type>
+                    <description>Decode the token even if it is not ready.</description>
+                </property>
+                <property optional="true">
+                    <name>subject</name>
+                    <type>C</type>
+                    <description>Identifies the subject of the JWT.</description>
+                </property>
+                <property optional="true">
+                    <name>clocktolerance</name>
+                    <type>N</type>
+                    <description>Number of seconds of error to tolerate on notbefore and expiration.</description>
+                </property>
+            </properties>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <types>
+                <type>C</type>
+            </types>
+            <description>
+                <p>Returns JSON if valid, otherwise return the string "null".</p>
+            </description>
+        </return>
+    </returns>
+    <sections>
+        <section>
+            <example code="xb"><![CDATA[' First create a token
 dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!")
 ? token
-= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ3Nzc3OTA2M30.xwGMV_POhwEoj-mH1PsgscL-uqOfBMLnNsD2SsOtqXE"
+= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTY2MzE1OTI1OX0.sL1T91egdCSZPVoRF3Eye_2xi1Q85LzX8seLy4zTdpY"
 
 ' Verify will return JSON packet if the supplied secret is valid
 ? extension::JSON::JWTVerify(token,"shhhh!")
-= {"fname":"john","lname":"public","iat":1477779063}
+= {"fname":"john","lname":"public","iat":1663159259}
 
 ' Pass it an incorrect secret - and verify will return a blank string
 ? extension::JSON::JWTVerify(token,"boo!")
-= ""
-	</example>
-    <sections> 
+= "null"]]></example>
+        </section>
         <section>
-            <title>Using the optional parameter to specifiy alternate algorithms.</title>
+            <title>Using the optional parameter to specify alternate algorithms.</title>
             <description>
-            The default behaviour is to try the various hash schemas, you can specify the exact hash schemes using a comma separated list.
+                <p>By default, *[xb:Extension::JSON::JWTVerify()]* will try various hash schemas. You can explicitly define the hash schemes to use as a comma-delimited list.</p>
             </description>
-            <example>
-            dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!","HS512")
+            <example code="xb"><![CDATA[dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!","HS512")
 ? token
-= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4MzczNTY1MH0.EBW04-jWCb405BUzbSuzoq19pWiAo6gLKhHfPic2WBClD6TKKqPzfttYtzTEPr45JoxTmK8oIcYKaVg5FZ4CAg"
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTY2MzE1OTMxMn0.kK1WKMO-qKkZ4ez0bGB4bspB6HpZLk96DK_blVfy3yDEwvV6r0W1twXrifVM3cUR9J-IeuQt4E8mmYwI1M3OlQ"
 
 ' We are using a different hash
 ? extension::JSON::JWTVerify(token,"shhhh!","HS256")
-= ""
+= "null"
 
 ' So include the hash we are using
 ? extension::JSON::JWTVerify(token,"shhhh!","HS512")
-= {"fname":"john","lname":"public","iat":1483735650}
+= {"fname":"john","lname":"public","iat":1663159312}
 
 ' Comma separated list of accepted hash encodings works as well.
 ? extension::JSON::JWTVerify(token,"shhhh!","HS256,HS512")
-= {"fname":"john","lname":"public","iat":1483735650}
-
-            </example>
+= {"fname":"john","lname":"public","iat":1663159312}]]></example>
         </section>
         <section>
             <title>More Complex Options</title>
             <description>
-            <p>Just like the JWTSign method, JWTVerify can take complex options.</p>
-            <p>In the following example, we sign a token that expires in 30 seconds (this is from the JWTSign examples).</p>
-            <p>After the token has expired, the JWTVerify() default behaviour is to report the token is invalid, but there is an
-            option 'ignoreexpiration' that allows us to decode the packet for expired tokens,  this feature is useful for debugging 
-            to determine why verify failed.</p>
+                <p>Just like the JWTSign method, JWTVerify can take complex options.</p>
+                <p>The following example signs a token that expires in 30 seconds. After the token has expired, the JWTVerify() will report the token is invalid (returns "null"). You can use the 'ignoreexpiration' option to decode the expired tokens. The 'ignoreexpiration' option is useful for debugging cases where verified failed unexpectedly.</p>
             </description>
-            <example>
+            <example code="xb"><![CDATA[dim optionsSign as P
 dim optionsSign.algorithm as c = "HS512"
 dim optionsSign.expiresin as n = 30
 dim optionsjson as c  = json_generate(optionsSign)
@@ -77,15 +125,14 @@ dim optionsjson as c  = json_generate(optionsSign)
 
 dim token as c = extension::JSON::JWTSign(json_sanitize("{ fname : 'john' , lname : 'public'}"),"shhhh!",optionsjson)
 ? token
-= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTQ4Mzc0MDUzNCwiZXhwIjoxNDgzNzQwNTY0fQ.KMcq2PQWsu0ouqnaZRRAWFa73UOiWI09r4GkE6YWydqJEQYJxhPhkEoa2crLJvfcOxZV5JIN6RFXx0s0Mlk-sA"
-
+= "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJmbmFtZSI6ImpvaG4iLCJsbmFtZSI6InB1YmxpYyIsImlhdCI6MTY2MzE1OTQwNCwiZXhwIjoxNjYzMTU5NDM0fQ.TzyiihEB2JRhAalC6g6pKx2dtITADHqgyEU22Dt5Q3u7mXRQGyZC8euA9o9uq0WtsieYso6kqx5lABc-axLhTw"
 
 ? extension::JSON::JWTVerify(token,"shhhh!","HS512")
-= {"fname":"john","lname":"public","iat":1483740534,"exp":1483740564}
+= {"fname":"john","lname":"public","iat":1663159404,"exp":1663159434}
 
 ' Wait for 30 seconds
 ? extension::JSON::JWTVerify(token,"shhhh!","HS512")
-= ""
+= "null"
 
 dim optionsVer.algorithms[1] as c = "HS512"
 dim optionsVer.ignoreexpiration as l = .t.
@@ -93,31 +140,14 @@ dim optionsjson as c  = json_generate(optionsVer)
 ? optionsjson
 = {
 	"algorithms": [
-		"HS512"	
-],
+	"HS512"],
 	"ignoreexpiration": true
 }
 
+
 ' Explicity ignore the expiration (can be used to determine if token is expired rather than using the wrong secret)
 ? extension::JSON::JWTVerify(token,"shhhh!",optionsjson)
-= {"fname":"john","lname":"public","iat":1483740534,"exp":1483740564}           
-            </example>
+= {"fname":"john","lname":"public","iat":1663159404,"exp":1663159434}]]></example>
         </section>
-        <section>
-            <title>Optional Fields</title>
-            <description>
-		        <table>
-		        	<tr><th>Field</th><th>Description</th></tr>
-					<tr><td>algorithms</td><td>Optional character array - specifies which algorithms allowed.</td></tr>
-					<tr><td>audience</td><td>Identifies the recipients that the JWT is intended for.</td></tr>
-					<tr><td>issuer</td><td>Identifies principal that issued the JWT.</td></tr>
-					<tr><td>ignoreexpiration</td><td>Decode the token even if it is expired.</td></tr>
-					<tr><td>ignorenotbefore</td><td>Decode the token even if it is not ready.</td></tr>
-					<tr><td>subject</td><td>Identifies the subject of the JWT.</td></tr>
-					<tr><td>clocktolerance</td><td>Number of seconds of error to tolerate on notbefore and expiration.</td></tr>
-		        </table>
-            </description>
-        </section>
-        
-    </sections>	
+    </sections>
 </page>
