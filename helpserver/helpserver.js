@@ -1539,6 +1539,28 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
                     res.setHeader(headerIndex, options.stdHeaders[headerIndex]);
                 }
             }
+            // If settings file defines 
+            //   metadatafiles - an array of strings, for valid filenames
+            //   metadatapath - the path these files are served from
+            // then these will be served up.
+            //   i.e.
+            //   "metadatafiles" : "robots.txt",
+            //   "metadatapath" : "/dev/AlphaHelp/metadata/",
+            if (options.metadatafiles && help.config.metadatapath) {                
+                if(options.metadatafiles.indexOf(req.path.substring(1)) > -1) {
+                    var metadataFile = help.config.metadatapath + req.path.substring(1);
+                    var fs = require("fs");
+                    fs.readFile(metadataFile, function(err, data) {
+                        if( err ) {
+                            res.status(404).send('Not found');
+                        } else {
+                            help.onSendExpress(res);
+                            res.send(data);
+                        }
+                    });
+                    return;
+                }
+            }
             if (req.path.substring(0, 10) == "/describe/" || req.path.substring(0, 14) == "/web/describe/") {
                 var relPath = req.path.substring(9);
                 if (req.path.substring(0, 14) == "/web/describe/")
