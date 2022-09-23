@@ -1546,7 +1546,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
             //   i.e.
             //   "metadatafiles" : "robots.txt",
             //   "metadatapath" : "/dev/AlphaHelp/metadata/",
-            if (options.metadatafiles && help.config.metadatapath) {                
+            if (options.metadatafiles && help.config.metadatapath && req.path.length > 1 ) {                
                 if(options.metadatafiles.indexOf(req.path.substring(1)) > -1) {
                     var metadataFile = help.config.metadatapath + req.path.substring(1);
                     var fs = require("fs");
