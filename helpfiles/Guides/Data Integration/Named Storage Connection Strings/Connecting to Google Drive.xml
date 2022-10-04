@@ -42,6 +42,7 @@
             </steps>
         </section>
         <section>
+            <title>Defining the Google Drive Storage Connection</title>
             <description>
                 <p>Once you have completed all of the above, you can then create a named storage connection string.</p>
                 <p>To create the names storage connection string you will need:</p>
@@ -55,14 +56,124 @@
                         </item>
                     </list>
                 </p>
+            </description>
+            <steps>
+                <step>
+                    <description>
+                        <p>Open the Named Storage Connection builder by selecting *[ui:Tools]* &gt; *[ui:Storage Connection strings]* on the Web Projects Control Panel</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Click *[ui:New]* to create a new Storage Connection. Click the *[ui:Build]* button in the Add New Storage Connection dialog to open the Storage Connection builder.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>In the *[ui:Storage Connection String Builder]*, select *[Google]* from the list of *[ui:Storage Providers]*.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Enter the folder id in the *[ui:Google Folder Id]*.</p>
+                        <p>Using *[ui:Load Credentials From file]*, load the JSON file you downloaded when you created a key for your service account.</p>
+                    </description>
+                    <figure>
+                        <title>Google Drive Storage Provider Settings</title>
+                        <alt>Google Drive Storage Provider Settings</alt>
+                        <link>images/googledrive.png</link>
+                    </figure>
+                </step>
+                <step>
+                    <description>
+                        <p>Optionally configure *[ui:Advanced Settings...]* (see [below]).</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Click *[ui:Test]* to verify your Google Drive settings are valid.</p>
+                    </description>
+                </step>
+                <step>
+                    <description>
+                        <p>Click *[ui:OK]* to save the configuration. Give the Storage Connection a name. Then click *[ui:OK]* to save the Storage Connection String.</p>
+                    </description>
+                </step>
+            </steps>
+        </section>
+        <section>
+            <description>
                 <p>Once you have created a named storage connection string for Google Drive you can then use any of the [a5storage* functions] (except *[xb:a5storage_copyFiles()]*) to read and save files to Google Drive.</p>
             </description>
         </section>
-<!--        <section>
-            <title>Defining the Google Drive Storage Connection</title>
+        <section>
+            <title>Handling Duplicate Objects in Google Drive</title>
             <description>
-                <p></p>
+                <p>When you save a file to Google Drive, by default duplicate objects are not created. For example, you upload a file called c:\mydata\file1.txt and a file named "file1.txt" already exists in the Google Drive folder, the existing "file1.txt" will be replaced by "c:\mydata\file1.txt".</p>
+                <p>The *[ui:Advanced Settings...]* option in the Storage Connection dialog can be used to configure what happens when a duplicate object is encountered during file upload to Google Drive.</p>
             </description>
+            <cases>
+                <case>
+                    <title nested="2"> What is a "duplicate" object?</title>
+                    <description>
+                        <p> When you save a new object in Google Drive, the object is automatically given a unique id (the object id). So, if you upload a file and give it an existing object name (called a short name), the new object does not overwrite the existing object. Instead it will be given a unique object Id. The fully qualified object name will be a combination of the short name name you specified and the unique object id (automatically assigned). The syntax for the object name is the short name followed by the object Id in parentheses. For example: *[em:short name(object Id)]*. </p>
+                        <p> If you select the *[ui:Require ID]* option in the Advanced Settings, the fully qualified object name is required in order to retrieve or delete an object when duplicate objects exist. For example, assume you have uploaded a file twice with a short name of "file1.txt". Google Drive will have two objects with the names, e.g. file1.txt(1234) and file1.txt(12345) where 1234 and 12345 are the unique object ids that were assigned to the object when the objects were created.</p>
+                        <p> When you use the a5storage* functions to list, retrieve, or edit storage objects, you can specify a fully qualified object name.</p>
+                        <p> When you list objects in the bucket, duplicate objects are fully qualified. If an object is not a duplicate only the short name is shown.</p>
+                        <p> On the other hand, if you use the Pick Newest option you do need to specify fully qualified object names. You can use short names and if there is a duplicate, the newest object will be selected. When you list objects in the bucket, only short names will be shown (even if the bucket contains objects with duplicate short names).</p>
+                    </description>
+                    <figure>
+                        <title>Handling Duplicate objects in Google Drive</title>
+                        <alt>Handling Duplicate objects in Google Drive</alt>
+                        <link>images/googledriveadvanced.jpg</link>
+                    </figure>
+                </case>
+                <case>
+                    <description>
+                        <p>The following advanced options are available to configure the Google Drive file behavior:</p>
+                        <p>
+                            <list>
+                                <item>
+                                    <name-title>Property</name-title>
+                                    <description-title>Description</description-title>
+                                </item>
+                                <item>
+                                    <name>Handle Duplicate</name>
+                                    <description>
+                                        <p>Defines how to handle duplicate items in a Google Drive folder:</p>
+                                        <p>
+                                            <list bullet="true">
+                                                <item>
+                                                    <name>*[ui:Require ID]* - Requires including the object ID in the filename when multiple files in the Google Drive folder have the same filename. If duplicate names exist, the *[xb:a5storage_listFiles()]* function will return fully qualified names that include the file ID for any duplicate files in the drive. The format of the fully qualified name is *[em:filename(object ID)]*.</name>
+                                                </item>
+                                                <item>
+                                                    <name>*[ui:Pick Newest]* - If multiple files in the Google Drive folder have the same name, chooses the file that was most recently modified. The *[xb:a5storage_listFiles()]* function will return the short name form of the files in the drive.</name>
+                                                </item>
+                                            </list>
+                                        </p>
+                                    </description>
+                                </item>
+                                <item>
+                                    <name>Timeout</name>
+                                    <description>The number of milliseconds to wait for a response from Google Drive before giving up. Defaults to "Default".</description>
+                                </item>
+                                <item>
+                                    <name>Number of Tries</name>
+                                    <description>If accessing the Google Drive fails, how many times should the action be retried. Defaults to 3.</description>
+                                </item>
+                                <item>
+                                    <name>Follow Redirects</name>
+                                    <description>Whether or not to follow redirects. Typically not needed in most situations. Defaults to "Default".</description>
+                                </item>
+                                <item>
+                                    <name>Number of Redirects</name>
+                                    <description>The number of redirects to follow before giving up. Defaults to 10.</description>
+                                </item>
+                            </list>
+                        </p>
+                    </description>
+                </case>
+            </cases>
         </section>
         <section>
             <title>Revoking Google Drive Access</title>
@@ -77,7 +188,7 @@
                 </step>
                 <step>
                     <description>
-                        <p>To restrict access to read only, change the Service Account's permissions from "Editing" to "View"</p>
+                        <p>To restrict access to read only, change the Service Account's permissions from "Editing" to "View".</p>
                     </description>
                 </step>
                 <step>
@@ -86,7 +197,121 @@
                     </description>
                 </step>
             </steps>
-        </section>-->
+        </section>
+        <section>
+            <title>Xbasic Examples</title>
+            <description>
+                <p>A Google Drive storage connection can be used with the Xbasic [Storage functions]. The examples below demonstrate basic upload, download, and file listing.</p>
+            </description>
+            <cases>
+                <case>
+                    <title>Uploading a File</title>
+                    <description>
+                        <p>
+                            <example code="xb"><![CDATA[dim filename as c = "D:\images\aalogo.bmp"
+dim itemname as c = "aalogo2.bmp"
+dim result as p
+dim callResult as L
+
+callResult = a5Storage_saveFile("googledrive",filename,itemname,"",result)
+
+? callResult
+= .T.
+
+? result
+= AbsolutePath = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+ContentType = "image/bmp"
+hasError = .F.
+ModifiedTime = 10/04/2022 11:36:41 88 am
+Name = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+size = 15258
+timeTakenMilliseconds = 1819]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title>Downloading a File</title>
+                    <description>
+                        <p>
+                            <example code="xb"><![CDATA[dim objectname as c = "aalogo2.bmp"
+dim result as p
+dim callResult as L
+dim file as B
+
+file = a5storage_getitem_as_blob("googledrive",objectname,result)
+
+?result
+= AbsolutePath = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+ContentType = ""
+hasError = .F.
+ModifiedTime = 10/04/2022 11:36:41 88 am
+Name = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+size = 15258
+timeTakenMilliseconds = 1002
+
+?file
+= 0000 : 42 4d 9a 3b 00 00 00 00 00 00 8a 00 00 00 7c 00 
+0010 : 00 00 78 00 00 00 3f 00 00 00 01 00 10 00 03 00 
+0020 : 00 00 10 3b 00 00 23 2e 00 00 23 2e 00 00 00 00 
+0030 : 00 00 00 00 00 00 00 f8 00 00 e0 07 00 00 1f 00 
+0040 : 00 00 00 00 00 00 42 47 52 73 00 00 00 00 00 00 
+0050 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+0060 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+0070 : 00 00 00 00 00 00 00 00 00 00 02 00 00 00 00 00 
+0080 : 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff 
+0090 : ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+''... truncated ...]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title>Listing Files</title>
+                    <description>
+                        <p>
+                            <example code="xb"><![CDATA[dim files as c
+files =  a5Storage_listitems("googledrive")
+
+? files
+= aalogo.bmp
+aalogo2.bmp
+drivedemo
+inPlaceEdit_DataSeries.png
+itemA.jpg]]></example>
+                        </p>
+                    </description>
+                </case>
+                <case>
+                    <title nested="2">Deleting a File</title>
+                    <example code="xb"><![CDATA[dim objectname as c = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+dim result as p
+dim callResult as L
+
+callResult = a5storage_deleteItem("googledrive",objectname,result)
+
+? callResult
+= .T.
+
+? result
+= AbsolutePath = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+ContentType = ""
+hasError = .F.
+ModifiedTime = 10/04/2022 11:36:41 88 am
+Name = "aalogo2.bmp(1NZO9pAVnr-gpnzCe7ijty3hGXGsaNbLU)"
+size = 15258
+timeTakenMilliseconds = 721
+
+? a5storage_listItems("googledrive")
+= aalogo.bmp
+D:\images\aalogo.bmp
+drivedemo
+inPlaceEdit_DataSeries.png
+itemA.jpg]]></example>
+                    <important>
+                        <p>If the account that deletes an object from the Google Drive folder is not the account that added the object, the object is still visible to all other users who have access to the Google Drive folder. See *[extlink:Why deleted file still shows up in Google Drive (Stack Overflow)@https://stackoverflow.com/questions/67914230/why-deleted-file-still-show-up-in-result-while-query-by-google-drive-api]* for an explanation.</p>
+                    </important>
+                </case>
+            </cases>
+        </section>
         <section>
             <title>Videos</title>
             <videos>
@@ -103,6 +328,7 @@
         </section>
     </sections>
     <links>
+        <link href="#section1_Handling%20Duplicate%20Objects%20in%20Google%20Drive">below</link>
         <link link="a5storage%20functions">a5storage* functions</link>
     </links>
     <see>
