@@ -248,8 +248,13 @@ function getGitTimestamp() {
     if (!ele) {
         return;
     }
-    var path = window.location.href
-    path = path.split("pages")[1];
+    var path = window.location.href;
+    var searchTerm = "/pages";
+    var indexOfPages = path.indexOf(searchTerm);
+    if (indexOfPages === -1) {return;}
+    path = path.slice(indexOfPages+searchTerm.length);
+    if (path == "") {return;}
+
     var url = "https://api.github.com/repos/BuildMan-Alpha/AlphaHelp/commits?page=1&per_page=1&path=/helpfiles" + path;
 
     var callbackFunc = function (status, jsonObj) {
