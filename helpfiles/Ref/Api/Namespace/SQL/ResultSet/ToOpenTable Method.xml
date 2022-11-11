@@ -1,89 +1,68 @@
 <page api="xb">
-  <shortlink>api sql namespace result set object to open table function</shortlink>
-   <topic parent="SQL::ResultSet" parentType="class" elementName="ToOpenTable Method">SQL::ResultSet ToOpenTable Method</topic>
-   <description>Fetch data from a result set to an open .DBF table</description>
-   <prototype>Result_Flag as L = ToOpenTable(Table as P [, EventScript =  as C [, Rows = -1 as N [, StartRow = -1 as N [, Append = .t. as L [, MapByPosition = .f. as L ]]]]])</prototype>
-   <arguments>
-   <argument>
-         <name>Result_Flag</name>
-         <description>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).
-</description>
-     </argument>
-     <argument>
-         <name>SQL::ResultSet</name>
-         <description>A SQL::ResultSet object created with a DIM statement.
-</description>
-     </argument>
-     
-     
-     <argument>
-         <name>Table</name>
-         <description>A pointer to an open DBF table.
-</description>
-     </argument>
-     <argument>
-         <name> EventScript</name>
-         <description>Optional. Default = "". An Xbasic Script implementing any of the following functions. In each case, the Context argument is the connection itself.
-</description>
-<list>
-<item>
-<name>UpdateBegin()</name>
-</item>
-
-<item>
-<name>UpdateProgress()</name>
-</item>
-
-<item>
-<name>UpdateEnd()</name>
-</item>
-
-</list>
-
-     </argument>
-     <argument>
-         <name> Rows</name>
-         <description>Optional. Default = -1 (all). The number of rows to copy.
-</description>
-     </argument>
-     <argument>
-         <name> StartRow</name>
-         <description>Optional. Default = -1 (first). The first row to copy.
-</description>
-     </argument>
-     <argument>
-         <name> Append</name>
-         <description>Optional. Default = .T. . Whether to append the data to the Table.
-</description>
-     </argument>
-     <argument>
-         <name> MapByPosition</name>
-         <description>Optional. Default = .F. . If MapByPosition is false, AlphaDAO only copies column names in the result set that match a local table column.
-</description>
-     </argument>
-   </arguments>
-  <sections>
-      <section>
-<note>1. If MapByPosition is false (the default) only column names in the result set that match a local table column will be copied.
-</note>
-
-  
-  </section>
-  <section>
-      <note>2. The column types in the result set must match the respective column in the local table.</note>
-  </section>
-  
-  <section>
-  <description>The ToOpenTable() method fetches data from the current SQL::ResultSet to an existing and open .DBF table. Columns in the query must match the type of the columns in the table. The query must not have more columns than the table.
-</description>
-<note>If this query had been SELECT * FROM customer, it would not have worked. The reason is that the data types of the customer_id columns in the Access customer and Alpha Anywhere customer tables are different.
-  </note>
-   </section><section><title>Example</title>
-  
-  
-  
-   <example><![CDATA[
-dim conn as SQL::Connection
+    <shortlink>api sql namespace result set object to open table function</shortlink>
+    <topic parent="SQL::ResultSet" parentType="class" elementName="ToOpenTable Method">SQL::ResultSet ToOpenTable Method</topic>
+    <description>Fetch data from a result set to an open .DBF table</description>
+    <prototype>Result as L = ToOpenTable(Table as P [, EventScript =  as C [, Rows = -1 as N [, StartRow = -1 as N [, Append = .t. as L [, MapByPosition = .f. as L ]]]]])</prototype>
+    <arguments>
+        <argument>
+            <name>Table</name>
+            <description>A pointer to an open DBF table. The column types in the result set must match the respective column in the table.</description>
+        </argument>
+        <argument>
+            <name> EventScript</name>
+            <description>Optional. Default = "". An Xbasic Script implementing any of the following functions. In each case, the Context argument is the connection itself.
+            </description>
+            <list>
+                <item>
+                    <name>UpdateBegin()</name>
+                </item>
+                <item>
+                    <name>UpdateProgress()</name>
+                </item>
+                <item>
+                    <name>UpdateEnd()</name>
+                </item>
+            </list>
+        </argument>
+        <argument>
+            <name> Rows</name>
+            <description>Optional. Default = -1 (all). The number of rows to copy.
+            </description>
+        </argument>
+        <argument>
+            <name> StartRow</name>
+            <description>Optional. Default = -1 (first). The first row to copy.
+            </description>
+        </argument>
+        <argument>
+            <name> Append</name>
+            <description>Optional. Default = .T. . Whether to append the data to the Table.
+            </description>
+        </argument>
+        <argument>
+            <name> MapByPosition</name>
+            <description>Optional. Default = .F. . If MapByPosition is false (the default) only column names in the result set that match a local table column will be copied.
+            </description>
+        </argument>
+    </arguments>
+    <returns>
+        <return>
+            <name>Result</name>
+            <types>
+                <type>L</type>
+            </types>
+            <description>
+                <p>TRUE (.T.) if the operation was successful; otherwise FALSE (.F.).</p>
+            </description>
+        </return>
+    </returns>
+    <discussion>
+        <p>The ToOpenTable() method fetches data from the current SQL::ResultSet to an existing and open .DBF table. Columns in the query must match the type of the columns in the table. The query must not have more columns than the table.</p>
+    </discussion>
+    <sections>
+        <section>
+            <title>Example</title>
+            <example code="xb"><![CDATA[dim conn as SQL::Connection
 dim rs as SQL::ResultSet
 dim connString as C
 dim select_exp as C
@@ -92,25 +71,22 @@ connString = "{A5API='Access', FileName='c:\program files\a5v8\mdbfiles\alphaspo
 select_exp = "select firstname, lastname, phone from customer where bill_state_region = 'ny'"
 tbl = table.open("customer")
 if .not. conn.open(connString)
-   ui_msg_box("Error", conn.CallResult.text)
-   end
+    ui_msg_box("Error", conn.CallResult.text)
+    end
 end if
 if .not. conn.execute(select_exp)
-   ui_msg_box("Error", conn.CallResult.text)
-   goto close_script
+    ui_msg_box("Error", conn.CallResult.text)
+    goto close_script
 end if
 rs = conn.ResultSet
 if .not. rs.ToOpenTable(tbl, "", -1, -1, .T., .T.)
-   ui_msg_box("Error", rs.CallResult.text)
-end if
+    ui_msg_box("Error", rs.CallResult.text)
+end if 
 close_script:
 tbl.close()
-conn.close()
-]]></example>
-   </section></sections>
-   <see>
-      <ref link="SQL::ResultSet Object">SQL::ResultSet Object</ref>
-     
-   </see>
- <terms>sql,arguments,column,defaults,function,number,object,operation,pointer,query,script,Xbasic</terms>
+conn.close()]]></example>
+        </section>
+    </sections>
+    <limitations>Not supported in Community Edition</limitations>
+    <terms>sql,arguments,column,defaults,function,number,object,operation,pointer,query,script,Xbasic</terms>
 </page>

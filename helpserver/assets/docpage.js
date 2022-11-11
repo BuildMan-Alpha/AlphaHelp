@@ -72,25 +72,27 @@ function loaded() {
     // fix positioned page nav
     var ele = document.getElementById('page-nav');
     var dEle = document.getElementById('doc');
-    if(dEle.offsetHeight > ele.offsetHeight){
-        var pEle = ele;
-        var t = 0;
-        while(pEle && pEle.offsetParent){
-            pEle = pEle.offsetParent;
-            t += pEle.offsetTop;
-        }
-        ele.setAttribute('defaultTop',t);
-        document.body.onscroll = function(){
-            clearTimeout(window.navAdjust);
-            window.navAdjust = setTimeout(function(){
-                var ele = document.getElementById('page-nav');
-                if(ele && ele.hasAttribute('defaultTop')){
-                    var fixed = false;
-                    if(document.documentElement.scrollTop > Number(ele.getAttribute('defaultTop'))) fixed = true;
-                    if(ele.classList.contains('fixed') && !fixed)  ele.classList.toggle('fixed',false);
-                    else if(!ele.classList.contains('fixed') && fixed) ele.classList.toggle('fixed',true);
-                }
-            },10);
+    if (dEle && ele) {
+        if(dEle.offsetHeight > ele.offsetHeight){
+            var pEle = ele;
+            var t = 0;
+            while(pEle && pEle.offsetParent){
+                pEle = pEle.offsetParent;
+                t += pEle.offsetTop;
+            }
+            ele.setAttribute('defaultTop',t);
+            document.body.onscroll = function(){
+                clearTimeout(window.navAdjust);
+                window.navAdjust = setTimeout(function(){
+                    var ele = document.getElementById('page-nav');
+                    if(ele && ele.hasAttribute('defaultTop')){
+                        var fixed = false;
+                        if(document.documentElement.scrollTop > Number(ele.getAttribute('defaultTop'))) fixed = true;
+                        if(ele.classList.contains('fixed') && !fixed)  ele.classList.toggle('fixed',false);
+                        else if(!ele.classList.contains('fixed') && fixed) ele.classList.toggle('fixed',true);
+                    }
+                },10);
+            }
         }
     }
 }
@@ -200,9 +202,10 @@ function showAnnouncement() {
     }
     
     var ele = document.getElementById("announcement");
-    ele.style.display = "block";
-    ele.innerHTML = "We will be upgrading the Alpha Cloud servers beginning " + maintenance.start.toLocaleString() + ".  <strong>During this time, access to both Alpha Cloud and Alpha TransForm Server will not be available for several hours.</strong>  The Alpha TransForm App will continue to work, but you will not be able to synchronize forms with the TransForm Cloud nor log into your Alpha TransForm account if you were previously logged out or your login expired.  We appreciate your patience during this time. <a href=\"https://www.alphasoftware.com/blog/major-upgrades-coming-to-alpha-cloud-june-23\" alt=\"Major Upgrades Coming to Alpha Cloud\" target=\"blog\">Click here</a> to learn more about the scheduled service outage and exciting new features coming to Alpha Cloud.";
-
+    if (ele) {
+        ele.style.display = "block";
+        ele.innerHTML = "We will be upgrading the Alpha Cloud servers beginning " + maintenance.start.toLocaleString() + ".  <strong>During this time, access to both Alpha Cloud and Alpha TransForm Server will not be available for several hours.</strong>  The Alpha TransForm App will continue to work, but you will not be able to synchronize forms with the TransForm Cloud nor log into your Alpha TransForm account if you were previously logged out or your login expired.  We appreciate your patience during this time. <a href=\"https://www.alphasoftware.com/blog/major-upgrades-coming-to-alpha-cloud-june-23\" alt=\"Major Upgrades Coming to Alpha Cloud\" target=\"blog\">Click here</a> to learn more about the scheduled service outage and exciting new features coming to Alpha Cloud.";
+    }
 
 }
 
@@ -241,8 +244,17 @@ function desktopPageTag() {
 
 // Pull the GitHub Last Modified Timestamp for the page content.
 function getGitTimestamp() {
-    var path = window.location.href
-    path = path.split("pages")[1];
+    var ele = document.getElementById('report-issue-timestamp');
+    if (!ele) {
+        return;
+    }
+    var path = window.location.href;
+    var searchTerm = "/pages";
+    var indexOfPages = path.indexOf(searchTerm);
+    if (indexOfPages === -1) {return;}
+    path = path.slice(indexOfPages+searchTerm.length);
+    if (path == "") {return;}
+
     var url = "https://api.github.com/repos/BuildMan-Alpha/AlphaHelp/commits?page=1&per_page=1&path=/helpfiles" + path;
 
     var callbackFunc = function (status, jsonObj) {
