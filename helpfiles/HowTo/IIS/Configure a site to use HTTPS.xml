@@ -1,0 +1,225 @@
+<page>
+    <shortlink>howto configure site use https iis</shortlink>
+    <topic>How to configure a site to use HTTPS under IIS</topic>
+    <description>
+	<p>Installing an SSL/HTTPS certificate for a site running under IIS is straight forward. The IIS server maintains a list of available
+	certificates that have been added to it and each site has an HTTPS binding that uses one of those certificates.</p>
+	<p>A certificate authority typically has 
+	it's own form for making a certificate request, but you may also create a standard certificate request file that is a plain text file and can be 
+	used by a certificate authority instead. This may be needed if the certificate authority's certificate request form does not have all the settings
+	that you need for specifying certificate properites.</p>
+	<p>The instructions below show how a certificate request file can be created, how the returned .pfx or .cer certificate from the certificate authority can be added to an IIS server,
+	and how to set which certificate is used by a site in IIS.</p>
+	</description>
+    <groups>
+        <group>
+            <title>Request and Install a Certificate from a Certificate Authority</title>
+            <sections>
+                <section>
+                    <description>
+                        IIS Manager can be used to create a certificate request with &quot;Create Certificate Request...&quot; and then install the certificate with 
+						&quot;Complete Certificate Request...&quot;. These options are located under the &quot;Server Certificates&quot; feature in IIS Manager.
+                    </description>
+                    <steps>
+                        <step>
+                            <description>Select the server node in the &quot;Connections&quot; pane</description>
+                        </step>
+                        <step>
+                            <description>Double click on the &quot;Server Certificates&quot; feature in the center pane in the &quot;IIS&quot; section.</description>
+							<figure>
+                                <link>images/iisManagerServerNode.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The &quot;Server Certificates&quot; feature will show the available certificates as well as the operations that can be done in the &quot;Actions&quot; pane on the right hand side.</description>
+							<figure>
+                                <link>images/iisManagerServerCertificates.png</link>
+                            </figure>
+                        </step>
+                        <step>
+                            <description>The certificate authority that you use may have its own way to create a certificate request. If it does, make sure that a &quot;Subject Alternative Name (SAN)&quot; is included in 
+							the request. A certificate is required to have the host name in it to define what site the certificate is for. For 
+							example &quot;www.alphasoftware.com&quot;. This host name also needs to be included as a Subject Alternative Name in the certificate otherwise 
+							browsers may not validate the certificate. The &quot;Create certificate request...&quot; action in IIS Manager does not create a certificate request that 
+							includes a Subject Alternative Name. Use the following steps to create a certificate request with a Subject Alternative Name.</description>
+							<steps>
+								<step>
+									<description>
+										Open the machine management console (run MMC.exe).
+									</description>
+								</step>
+								<step>
+									<description>
+										Choose &quot;Add/Remove snap-in...&quot; from the File menu.
+									</description>
+									<figure>
+										<link>images/createCertRequestAddSnapin.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Select the &quot;Certificates&quot; snap-in from the left list, click the &quot;Add&quot; button in the middle of the dialog and then choose the &quot;Computer account&quot;. Click through the rest of th wizard to finish.
+									</description>
+									<figure>
+										<link>images/createCertRequestCertificatesSnapin.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Open the &quot;Certificates (Local Computer)&quot; node and right click on the &quot;Personal&quot; node, choose &quot;All Tasks&quot;, &quot;Advanced Operations&quot;, &quot;Create Custom Request...&quot;.
+									</description>
+									<figure>
+										<link>images/createCertRequestCustomRequest.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Click &quot;Next&quot; then select &quot;Proceed without enrollment policy&quot;. Click &quot;Next&quot;.
+									</description>
+									<figure>
+										<link>images/createCertRequestNoEnrollmentPolicy.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Click &quot;Next&quot; with the default on this page.
+									</description>
+									<figure>
+										<link>images/createCertRequestCNGkey.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Click the little down arrow next to the word &quot;Details&quot;. Click on the &quot;Properties&quot; button.
+									</description>
+									<figure>
+										<link>images/createCertRequestDetailsChevron.png</link>
+									</figure>
+									<figure>
+										<link>images/createCertRequestProperties.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Set the certificate request's name and description on the &quot;General&quot; tab.
+									</description>
+									<figure>
+										<link>images/createCertRequestName.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Set the certificate subject name type to &quot;Common name&quot;, set the value to the site's host name, and click the &quot;Add&quot; button on the &quot;Subject&quot; tab.
+									</description>
+									<figure>
+										<link>images/createCertRequestSubject.png</link>
+									</figure>
+									<figure>
+										<link>images/createCertRequestSubjectAdded.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Set the certificate alternative name type to &quot;DNS&quot;, set the value to the site's host name, and click the &quot;Add&quot; button on the &quot;Subject&quot; tab.
+									</description>
+									<figure>
+										<link>images/createCertRequestAlternative.png</link>
+									</figure>
+									<figure>
+										<link>images/createCertRequestAlternativeAdded.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Set the key size to 2048 and enable the private key to be exportable on the &quot;Private Key&quot; tab.
+									</description>
+									<figure>
+										<link>images/createCertRequestKeyOptions.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Click the &quot;OK&quot; button at the bottom of the &quot;Properties&quot; dialog and then the &quot;Next&quot; button on the certificate enrollment wizard.
+									</description>
+								</step>
+								<step>
+									<description>
+										Give a name for the file for the certificate request to be saved in. This file will be text file and a .txt extension is used in the image example below.
+									</description>
+									<figure>
+										<link>images/createCertRequestSave.png</link>
+									</figure>
+								</step>
+								<step>
+									<description>
+										Give a name for the file for the certificate request to be saved in.
+									</description>
+								</step>
+								<step>
+									<description>
+										This file can now be used to request a certificate from a certificate authority.
+									</description>
+								</step>
+							</steps>
+                        </step>
+                        <step>
+                            <description><p>Once you have a certificate, the certificate can be added to IIS by choosing &quot;Complete Certificate Request...&quot; from the &quot;Actions&quot; pane. Once added, the new certificate will be listed in the center pane as an available certificate.</p>
+							<p>IIS can use certificates with a .pfx extension or a .cer extension. Use the &quot;Import...&quot; option to install
+							a .pfx certificate. Use the &quot;Complete Certificate Request...&quot; option to install a .cer certificate. You may be able to request
+							the specific file type that the certificate authority returns as part of the certificate request. For instance, a certificate authority's web page
+							would have prompts for email address, type of certificate to return, and a certificate request file to be uploaded.</p>
+							</description>
+							<figure>
+                                <link>images/iisManagerServerCertificates.png</link>
+                            </figure>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+        <group>
+            <title>Configure Certificate Used by a Site</title>
+            <sections>
+                <section>
+                    <description></description>
+                </section>
+                <section>
+                    <steps>
+                        <step>
+                            <description>
+                                <p>Select the site in IIS Manager.</p>
+                            </description>
+							<figure>
+								<link>images/setCertSite.png</link>
+							</figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Click the &quot;Bindings...&quot; link in the &quot;Actions&quot; pane on the right hand side.</p>
+                            </description>
+							<figure>
+								<link>images/setCertBindingLink.png</link>
+							</figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Click the &quot;Edit...&quot; button to edit an existing https binding or the &quot;Add...&quot; button to add an https binding.</p>
+                            </description>
+							<figure>
+								<link>images/setCertSiteBindings.png</link>
+							</figure>
+                        </step>
+                        <step>
+                            <description>
+                                <p>Make sure the host name matches what was requested in the certificate request then choose the certificate from the &quot;SSL certificate&quot; drop down list. Click &quot;OK&quot; and you're done.</p>
+                            </description>
+							<figure>
+								<link>images/setCertSiteBindingsDialog.png</link>
+							</figure>
+                        </step>
+                    </steps>
+                </section>
+            </sections>
+        </group>
+	</groups>
+</page>
