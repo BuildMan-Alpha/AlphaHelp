@@ -1,6 +1,6 @@
 # Editing Help Files
 
-An XML Markup is supported and described here [Using the Documentation XML](Using the Documentation XML.HTM).
+An XML Markup is supported and described here [Using the Documentation XML](https://documentation.alphasoftware.com/documentation/pages/Using%20the%20Documentation%20XML.htm).
 
 # Moving images
 
