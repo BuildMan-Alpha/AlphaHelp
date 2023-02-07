@@ -1270,7 +1270,7 @@ console.log("Enter translateXML");
         return title;
     };
     events.postProcessContent = function(data, basepath) {
-		return pe.postProcessContent(data, basepath, help);
+		return pe.postProcessContent(data, basepath, help,aliases);
     };
 
     events.embedXmlPage = function(data) {
