@@ -1,7 +1,7 @@
 
 var buildClasses = require("./builds.json");
 
-function postProcessContent(data, basepath) {
+function postProcessContent(data, basepath, help) {
 	basepath = basepath || "/documentation/";
 	if (data.indexOf('class="buildBadge" data-build="') > 0) {
 		// Lets change build badge entries on the fly...
