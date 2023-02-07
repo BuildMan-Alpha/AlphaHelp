@@ -593,6 +593,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
 
     var xsltproc = require('xsltproc');
     events.translateXML = function(xmlFile, htmlFile, callback, basepath) {
+console.log("Enter translateXML");
         basepath = basepath || "/documentation/";
         fs.readFile(xmlFile, "utf8", function(err, data) {
             var xsltTransformFile = function(xmlFile, htmlFile, callback) {
@@ -1269,7 +1270,7 @@ var loader = function(settingsFile, runHelpServer, searchLocalFlag, noSearchFlag
         return title;
     };
     events.postProcessContent = function(data, basepath) {
-		return pe.postProcessContent(data, basepath);
+		return pe.postProcessContent(data, basepath, help);
     };
 
     events.embedXmlPage = function(data) {
