@@ -1,7 +1,10 @@
-
+//
+// If you make changes to the exported function(s) you'll need to test helpserver.js and editorHelper.js (see the code for command line usage).
+// editorHelper.js is used by tge XML help document editor in the IDE to preview a rendered document.
+//
 var buildClasses = require("./builds.json");
 
-function postProcessContent(data, basepath, help,aliases) {
+function postProcessContent(data, basepath, help, aliases) {
 	basepath = basepath || "/documentation/";
 	if (data.indexOf('class="buildBadge" data-build="') > 0) {
 		// Lets change build badge entries on the fly...
