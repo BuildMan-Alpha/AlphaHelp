@@ -113,7 +113,94 @@
             <description>
 				<p>
 				The Universal Installer can be run in unattended mode by using the *[xb:/unattended]* command line switch specifying an unattended configuration file.
-				<syntax>/unattended="C:\temp\unattended.json"</syntax>
+				*[xb:/unattended="C:\temp\unattended.json"]*
+				</p>
+				<p>The Universal Installer will output log messages to the console as well as writing the log messages to the log file. If you do not want log messages written to the console
+				use the *[xb:/silent]* command line switch.</p>
+				<p>An offline installer package can also be used in unattended mode by including the *[xb:/OfflinePackage]* switch as 
+				you would without the *[xb:/unattended]* switch. </p>
+				<p>The following are example command lines:</p>
+			</description>
+			<example><![CDATA[InstallAlphaAnywhere /unattended="C:\temp\unattended.json"
+			
+InstallAlphaAnywhere /unattended="C:\temp\unattended.json" /silent
+
+InstallAlphaAnywhere /unattended="C:\temp\unattended.json" /OfflinePackage="C:\packages\AlphaAnywhereDE_8029.zip"]]></example>
+		</section>
+		<section>
+			<title>Universal Installer unattened mode exit codes</title>
+			<description>
+				<p></p>
+				<table>
+					<tr>
+						<th>*[Code]*</th><th>*[Description]*</th>
+					</tr>
+					<tr>
+						<td>0</td><td>Success</td>
+					</tr>
+					<tr>
+						<td>1</td><td>An unattended install configuration JSON file was not specified with the /unattended command line parameter.</td>
+					</tr>
+					<tr>
+						<td>2</td><td>The unattended install configuration JSON file was not found.</td>
+					</tr>
+					<tr>
+						<td>3</td><td>The unattended install configuration JSON file is empty.</td>
+					</tr>
+					<tr>
+						<td>13</td><td>The installer operation failed. </td>
+					</tr>
+					<tr>
+						<td>23</td><td>The installer operation was partialy successful. A reboot is required to complete the installer operation.</td>
+					</tr>
+					<tr>
+						<td>33</td><td>The installer operation was canceled.</td>
+					</tr>
+					<tr>
+						<td>53</td><td>There was a problem running the installer in offline mode.</td>
+					</tr>
+					<tr>
+						<td>73</td><td>No installer steps were defined. No operations were performed.</td>
+					</tr>
+					<tr>
+						<td>99</td><td>The unattended install configuration JSON was in error.</td>
+					</tr>
+					<tr>
+						<td>999</td><td>An unhandled exception occured running the installer.</td>
+					</tr>
+				</table>
+				<p></p>
+				<p>It is best to run the Universal Installer in unattended mode from a batch file in order to handle exit codes for the 
+				result of the installer operation.</p>
+				<p>
+					<example caption="Example batch file for running in unattended mode."><![CDATA[
+InstallAlphaAnywhere /unattended="C:\temp\unattended.json"
+if %errorlevel% EQU 999 (
+	echo An unhandled exception occured running the installer.
+) else if %errorlevel% EQU 99 (
+	echo The unattended install configuration JSON was in error.
+) else if %errorlevel% EQU 73 (
+	echo No installer steps were defined. No operations were performed.
+) else if %errorlevel% EQU 53 (
+	echo There was a problem running the installer in offline mode.
+) else if %errorlevel% EQU 33 (
+	echo The installer operation was canceled.
+) else if %errorlevel% EQU 23 (
+	echo The installer operation was partialy successful. A reboot is required to complete the installer operation.
+) else if %errorlevel% EQU 13 (
+	echo The installer operation failed.
+) else if %errorlevel% EQU 3 (
+	echo The unattended install configuration JSON file is empty.
+) else if %errorlevel% EQU 2 (
+	echo The unattended install configuration JSON file was not found.
+) else if %errorlevel% EQU 1 (
+	echo An unattended install configuration JSON file was not specified with the /unattended command line parameter.
+) else if %errorlevel% EQU 0 (
+	echo Success
+) else (
+	echo Unknown exit code %errorlevel%
+)
+]]></example>
 				</p>
 			</description>
 		</section>
