@@ -585,7 +585,19 @@
                 <xsl:call-template name="text-html" />
             </xsl:when>
             <xsl:when test="list">
+                <xsl:call-template name="list" />
+            </xsl:when>
+            <xsl:when test="ul">
                 <xsl:call-template name="text-html" />
+            </xsl:when>
+            <xsl:when test="ol">
+                <xsl:call-template name="text-html" />
+            </xsl:when> 
+            <xsl:when test="td">
+                <xsl:call-template name="text-html" />
+            </xsl:when>
+            <xsl:when test="li">
+                <xsl:value-of select="." />
             </xsl:when>
             <xsl:otherwise>
                 <p><xsl:value-of select="." /></p>
@@ -621,6 +633,20 @@
                 <xsl:when test="local-name()='list'">
                     <xsl:call-template name="list"/>
                 </xsl:when>
+                <xsl:when test="local-name()='ul'">
+					<ul class="A5List">
+                    <xsl:for-each select="li">
+						<li><xsl:value-of select="." /></li>
+                    </xsl:for-each>
+					</ul>
+				</xsl:when>
+                <xsl:when test="local-name()='ol'">
+					<ol class="A5List">
+                    <xsl:for-each select="li">
+						<li><xsl:value-of select="." /></li>
+                    </xsl:for-each>
+					</ol>
+				</xsl:when>
                 <xsl:when test="local-name()='table'">
                     <div class="A5EmbeddedTable"><table class="A5Table">
                     <xsl:for-each select="tr">
