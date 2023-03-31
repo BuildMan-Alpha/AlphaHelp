@@ -1,7 +1,7 @@
 <page api="xb">
     <shortlink>api http fetch function</shortlink>
     <topic>HTTP_FETCH Function</topic>
-    <description>Sends an HTTP request to a server and retrieves the response</description>   
+    <description>Sends an HTTP request to a server and retrieves the response</description>
     <prototype>Result as P = http_fetch(settings as P [,show_before_send as L [,SSLCipherList as C [, minTLSLevel as n]]])</prototype>
     <arguments>
         <argument>
@@ -18,7 +18,7 @@
                 <property optional="true">
                     <name>port</name>
                     <type>N</type>
-                    <description>Default = 80 for HTTP (.ssl_on=.f.) and 443 for HTTPS (.ssl_on=.t.). The TCP/IP port on the server with which to communicate.</description>
+                    <description>Default = 0. The TCP/IP port on the server with which to communicate.</description>
                 </property>
                 <property optional="true">
                     <name>page</name>
@@ -109,6 +109,13 @@ X-Company: My company
             <type>N</type>
             <description>Default = *[xb:1.2]*. Minimum TLS version to use. You can set this to explicitly use an older TLS version, however this is strongly discouraged.</description>
         </argument>
+        <section build="8596">
+		<argument optional="true">
+			<name>Redirects.follow</name>
+			<type>L</type>
+			<description>Default = .F.. By default, this function will not follow any server redirects. Set this to .T. to follow redirects. The maximum allowed number of redirects is 20.</description>
+        </argument>
+        </section>
     </arguments>
     <returns>
         <return>
@@ -201,7 +208,7 @@ XPoweredBy = "ASP.NET"]]></example>
         </section>
         <section>
             <title>Handling Redirects</title>
-            <description>When the server responds with a 30* code, HTTP_POST() does not automatically use the new URL. The developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</description>
+            <description>When the server responds with a 301, 302, 307, or 308 code, HTTP_GET() does not automatically use the new URL. As of build 8596, developers my optionally specify that redirects should be followed by using the settings.Redirects.follow property. In earlier builds or if automatice redirect handling is not desired, the developer needs to examine result.parsed_headers.status_code, then if appropriate, try the URL provided in result.parsed_headers.location. Refer to [HTTP_GET()] for an example.</description>
         </section>
         <section>
             <title>Example: SSL Enabled</title>
@@ -255,7 +262,7 @@ result = http_fetch(settings)
 
 if (result.error_code <> 0) then
     showvar(result)
-else if (result.parsed_headers.status_code == 201) then 
+else if (result.parsed_headers.status_code == 201) then
     ' API returns 201 (Created) if successful
     showvarjson(result.body)
 else
@@ -313,9 +320,9 @@ else
         '' can be used to return the downloaded file
         context.session.SaveDataAsFile(filename,result.body)
         context.response.SendFile(context.session.FormatFileDataURL(filename))
-        
+
         '' !! Important !!
-        '' if file is being downloaded in an Ajax Callback in a component, 
+        '' if file is being downloaded in an Ajax Callback in a component,
         '' you cannot use context.response. You have to use the
         '' a5Helper_generateFileDownloadJS() method to generate the JavaScript
         '' to return to the client to download the file.
