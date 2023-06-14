@@ -294,6 +294,75 @@ dlg_title = "Chrome in an Xdialog"
 ui_dlg_box(dlg_title,dlg_body,dlg_event)]]></example>
    
    </section>
+   <section>
+      <title>Posting Data asynchronously back to XBasic</title>
+      <description>
+          <p>When invoking XBasic from javascript, often it is useful to send a payload, for example all the values harvested from controls on the HTML page, for this we will use a POST instead of a GET, and will use the 'a5xbasicasync' protocol as well as mapping rules (in place of using the custom protocols directly).</p>
+          <p>The replacement rule for a 'POST' supports a placeholder '__value__' for the posted data, and {quoted_wildcard} placeholder for the path (that matches the '*' in the pattern).</p>
+          <p>In this example, If the URL contains "/post/" in the path (can be any pattern you pick - like "/submit/") will call an xbasic function called handlePost with the remainder of the path and the POST data payload</p>
+          <p>The Page is populated by the second fallback rule that handles http GET, by mapping that to a call to htmlContent().</p>
+      </description>
+   </section>
+   <section>   
+      <example><![CDATA[
+dim cr as helper::Chrome
+
+cr.url = "http://localhost/index.html"
+
+dim rules as c
+rules = <<%xstr%
+replace:
+http://localhost/post/*:=a5xbasicasync:handlePost({quoted_wildcard},__value__)
+http://localhost/*:=a5xbasic:htmlContent({quoted_wildcard})
+paths:
+%xstr%
+cr.ParseRules(rules)
+
+
+ui_dlg_box("TYPEFOX example",<<%dlg%
+{chrome=150,30cr};
+<refresh>
+%dlg%,<<%code%
+if a_dlg_button = "refresh" then
+a_dlg_button = ""
+cr.Reload(.t.)
+end if
+%code%)
+
+
+function htmlContent as a(fullpath as c)
+    if left(fullpath,10) = "index.html" then
+	     htmlContent = <<%html%
+<script>
+<!--
+function postFormData() {
+	 var client = new XMLHttpRequest();
+     client.open('POST', '/post/myform', true);
+     var data = { 
+      firstname: document.getElementById('firstname').value,
+      lastname: document.getElementById('lastname').value
+     };
+     client.send(JSON.stringify(data));
+}
+-->
+</script>
+<body>
+Firstname <input id="firstname" value="Joe" ></input> <br/>
+Lastname <input id="lastname" value="Smith"></input> <br/>
+<button onclick="postFormData()">Submit</button>
+</body>
+%html%
+	else
+	   ' Other callbacks
+	end if
+end function
+
+function handlePost as c(fullpath as c,data as c)
+	handlePost = "success"
+	showvar(data,"path = "+fullpath)
+end function
+]]></example>
+   </section>
    </sections></group>
    <group> <title>Using Built In Images</title><sections>
    
