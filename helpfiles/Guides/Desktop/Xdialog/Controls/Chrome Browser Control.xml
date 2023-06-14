@@ -295,6 +295,61 @@ ui_dlg_box(dlg_title,dlg_body,dlg_event)]]></example>
    
    </section>
    <section>
+     <title>Writing a mini web server in Xdialog for hosted Chrome Control</title>
+     <description>
+        <p>A useful pattern for hosting HTML in an XDialog is to use the ParseRules() method
+        of the chrome object to remap HTTP requests to calls into an xbasic function.</p>
+        <p>This is effectively like having a Mini web server implemented by a single xbasic function.</p>
+        <p>In the below example, notice that the function returns data type 'A' (any) this allows either a string or a blob to be returned.</p>
+        <p>The top level page is called index.html, the javascript that the button on the page calls into is a separate JS file, and the image
+        is returned from one of the built-in images serialized to binary data.</p>
+     </description>
+   </section>
+   <section>
+     <example><![CDATA[
+dim cr as helper::Chrome
+
+cr.url = "http://localhost/index.html"
+
+dim rules as c
+rules = <<%xstr%
+replace:
+http://localhost/*:=a5xbasic:handledRequest({quoted_wildcard})
+paths:
+%xstr%
+cr.ParseRules(rules)
+
+
+ui_dlg_box("Mini Server",<<%dlg%
+{chrome=150,30cr};
+%dlg%)
+
+
+function handledRequest as a(fullpath as c)
+    if fullpath = "index.html" then
+	     handledRequest = <<%html%
+<script src="myfun.js">
+</script>
+<body>
+<img src="word.png"/><br>
+Hello<br>
+<button onclick="sayHello()">Say Hello</button>
+</body>
+%html%
+	else if fullpath = "myfun.js" then
+	    handledRequest = <<%js%
+function sayHello() {    
+    alert("Hello World!");
+}
+%js%
+	else if fullpath = "word.png" then
+	    handledRequest = bitmap_to_png(ui_bitmap_save("$$application.ms.word"))
+	else
+	   ' Other callbacks
+	end if
+end function
+]]></example></section>
+   <section>
       <title>Posting Data asynchronously back to XBasic</title>
       <description>
           <p>When invoking XBasic from javascript, often it is useful to send a payload, for example all the values harvested from controls on the HTML page, for this we will use a POST instead of a GET, and will use the 'a5xbasicasync' protocol as well as mapping rules (in place of using the custom protocols directly).</p>
