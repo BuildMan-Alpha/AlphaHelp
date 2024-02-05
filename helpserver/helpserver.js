@@ -677,7 +677,7 @@ console.log("Enter translateXML");
             if (err) {
                 // Need to redirect to search page
                 var pathParts = xmlFile.split('/');
-                dataOut = '<meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 1].replace(".xml", "") + '" />';
+                dataOut = '<meta name="robots" content="noindex" /><meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 1].replace(".xml", "") + '" />';
                 callback(null, dataOut);
             } else {
                 var symlink = extractTag(data, "<symlink>", "</symlink>");
@@ -1377,9 +1377,9 @@ console.log("Enter translateXML");
 
         var pathParts = page.split('/');
         if (pathParts.length > 1 && pathParts[pathParts.length - 1] == '')
-            dataOut = '<meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 2] + '" />';
+            dataOut = '<meta name="robots" content="noindex" /><meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 2] + '" />';
         else
-            dataOut = '<meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 1] + '" />';
+            dataOut = '<meta name="robots" content="noindex" /><meta http-equiv="refresh" content="0;URL=\'' + basepath + 'index?search=' + pathParts[pathParts.length - 1] + '" />';
         callback(null, dataOut);
     };
 
