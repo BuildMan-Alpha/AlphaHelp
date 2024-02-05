@@ -926,7 +926,7 @@ console.log("Enter translateXML");
         pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page, '/', '\\') + " -->";
         var relLink = replaceAll(page, '\\', '/');
         relLink = relLink.replace(".xml", ".html");
-        pageSource =  '<link rel="canonical" href="https://www.documentation.alphasoftware.com/page/'+ relLink +'" />'+ pageSource;
+        pageSource =  '<link rel="canonical" href="https://www.documentation.alphasoftware.com/documenation/pages'+ relLink +'" />\n'+ pageSource;
         if (symName) {
             pageSource += "\n    <!-- link:  *[link:" + symName + "]* -->";
         }
