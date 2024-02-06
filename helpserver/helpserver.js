@@ -920,13 +920,14 @@ console.log("Enter translateXML");
         }
         return title;
     };
-    events.addPageSourceComment = function(page, symName) {
+    events.addPageSourceComment = function(page, symName,basepath) {
+        basepath = basepath || "/documentation/";
         var pageSource;
         page = page.replace(".xml_html", ".xml");
         pageSource = "<!-- page location: c:\\dev\\AlphaHelp\\helpfiles" + replaceAll(page, '/', '\\') + " -->";
         var relLink = replaceAll(page, '\\', '/');
         relLink = relLink.replace(".xml", ".html");
-        pageSource =  '<link rel="canonical" href="https://documentation.alphasoftware.com'+absolutePath+'pages'+ relLink +'" />\n'+ pageSource;
+        pageSource =  '<link rel="canonical" href="https://documentation.alphasoftware.com'+basepath+'pages'+ relLink +'" />\n'+ pageSource;
         if (symName) {
             pageSource += "\n    <!-- link:  *[link:" + symName + "]* -->";
         }
