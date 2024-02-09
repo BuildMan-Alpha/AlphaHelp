@@ -1,4 +1,5 @@
 # AlphaHelp
+
 Alpha Software Documentation
 
 # Guidelines
