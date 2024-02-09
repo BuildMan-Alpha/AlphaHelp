@@ -1,6 +1,6 @@
 # AlphaHelp
 
-Alpha Software Documentation 
+Alpha Software Documentation
 
 # Guidelines
 
