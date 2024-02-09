@@ -1,4 +1,5 @@
 # AlphaHelp
+
 Alpha Software Documentation
 
 # Guidelines
@@ -245,3 +246,4 @@ in GIT caused by this problem, it is necessary to occasionally run git-unite aga
 ```cmd
 C:\dev\3rdParty\Git\git-unite\src\Git.Unite\bin\Debug>Git.Unite.exe C:\dev\AlphaHelp
 ```
+
