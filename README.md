@@ -119,6 +119,7 @@ sudo npm install
 
 ### If npm complains about nodegit
 
+Node git is no longer maintained
 Make sure version 0.26.1 of nodegit is installed (should be resolved in future versions of helpserver):
 
 ```sh
