@@ -44,13 +44,20 @@ sudo apt-get update
 sudo apt-get -y install elasticsearch=1.4.4
 ```
 
+*UPDATED instructions for installing elasticsearch - last of the above no longer seem to work*
+```
+curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
+sudo apt update
+sudo apt install elasticsearch
+```
+
 Edit the install uncomment line 'network.host: localhost' to restrict access to the elasticsearch service to just the host machine
 
 ```sh
 sudo vi /etc/elasticsearch/elasticsearch.yml
 ```
 
-If you don't have a different editor here is a quick summary of the commands you will need
 
 cursor keys (to navigate) work as expected to move to the file location. 
 x - delete character cursor is over
@@ -60,6 +67,11 @@ Then, start the elastic search service:
 
 ```sh
 sudo start elasticsearch
+```
+
+If using systemd
+```sh
+sudo systemctl start elasticsearch
 ```
 
 ## Installing GIT
@@ -82,6 +94,9 @@ sudo apt-get install -y nodejs
 sudo apt-get install npm
 sudo apt-get install nodejs-legacy
 ```
+
+note - sudo apt-get install nodejs-legacy appears to fail now
+
 
 ## Clone AlphaHelp into the home folder...
 
