@@ -134,7 +134,7 @@ sudo apt-get update
 sudo apt-get install libstdc++4.9-dev
 ```
 
-## Create the helpserver Service
+## Create the helpserver Service (ubuntu 14 and before)
 
 Copy the configuration file(s) to the /etc/init folder
 
@@ -143,6 +143,39 @@ sudo cp  /home/AlphaHelp/helpserver/helpserver.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/init
 ```
+
+## Create the helpserver Service for systemd (later ubuntu distros)
+
+Install the service files...
+
+```sh
+ sudo cp /home/AlphaHelp/helpserver/*.service /etc/systemd/system
+```
+
+Start the systemd services
+
+```sh
+sudo systemctl start elasticsearch
+sudo systemctl start helpserver
+sudo systemctl start transform
+```
+
+Confirm that each service started
+
+```sh
+sudo systemctl status elasticsearch
+sudo systemctl status helpserver
+sudo systemctl status transform
+```
+
+Enable the service(s) so that the helpserver comes up automatically after reboot.
+
+```sh
+sudo systemctl enable elasticsearch
+sudo systemctl enable helpserver
+sudo systemctl enable transform
+```
+
 
 Then, initialize the server. Replace "settings.json" with the name of the JSON file that contains the helpserver settings.
 
