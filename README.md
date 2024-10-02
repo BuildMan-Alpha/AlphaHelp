@@ -25,8 +25,8 @@ If 'sudo add-apt-repository' fails - you will first need to install this.
 ```sh
 sudo apt-get install python-software-properties
 sudo apt-get install apt-file
-apt-file update
-apt-file search add-apt-repository
+sudo apt-file update
+sudo apt-file search add-apt-repository
 sudo apt-get install software-properties-common
 ```
 
@@ -34,10 +34,15 @@ sudo apt-get install software-properties-common
 
 First, installing Elasticsearch is required - install java8 before installing elastic search.
 
+JDK
 ```sh
 sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt-get update
 sudo apt-get -y install openjdk-8-jdk
+```
+
+Elastic searcj
+```sh
 wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add -
 echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' | sudo tee /etc/apt/sources.list.d/elasticsearch.list
 sudo apt-get update
@@ -144,6 +149,23 @@ sudo cp  /home/AlphaHelp/helpserver/elasticsearch.conf /etc/init
 sudo cp  /home/AlphaHelp/helpserver/transform.conf /etc/init
 ```
 
+If using systemd, copy those files after doing initialization (after using the default elasticsearch settings).
+
+
+Then, initialize the server. Replace "settings.json" with the name of the JSON file that contains the helpserver settings.
+
+```sh
+sudo nodejs initializeserver.js ./settings.json
+sudo nodejs updateserver.js ./settings.json
+```
+
+If Initialization fails with CERT_UNTRUSTED, run the commands below. Then try initializing the server again.
+
+```sh
+sudo npm config set strict-ssl false
+```
+
+
 ## Create the helpserver Service for systemd (later ubuntu distros)
 
 Install the service files...
@@ -176,20 +198,6 @@ sudo systemctl enable helpserver
 sudo systemctl enable transform
 ```
 
-
-Then, initialize the server. Replace "settings.json" with the name of the JSON file that contains the helpserver settings.
-
-```sh
-sudo nodejs initializeserver.js ./settings.json
-sudo nodejs updateserver.js ./settings.json
-```
-
-If Initialization fails with CERT_UNTRUSTED, run the commands below. Then try initializing the server again.
-
-```sh
-sudo npm config set strict-ssl false
-```
-
 ## Install xsltproc
 
 Install xsltproc if it is not already installed:
@@ -203,6 +211,12 @@ Then start the server...
 
 ```sh
 sudo start helpserver
+```
+
+or
+
+```sh
+sudo systemctl start helpserver
 ```
 
 ## Initialize the Helpserver TOC and Search Indicies
