@@ -310,3 +310,6 @@ in GIT caused by this problem, it is necessary to occasionally run git-unite aga
 C:\dev\3rdParty\Git\git-unite\src\Git.Unite\bin\Debug>Git.Unite.exe C:\dev\AlphaHelp
 ```
 
+## Note on update stopping on Server
+
+package-lock.json is saved in the repo, so dependabot changes to that file can cause a stash error as installing the revised npm packages can cause a merge conflict when the automated pull request is done.
