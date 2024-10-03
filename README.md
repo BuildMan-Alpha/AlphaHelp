@@ -318,3 +318,4 @@ package-lock.json is saved in the repo, so dependabot changes to that file can c
 
 Unless we move to nvm, we are stuck at version 12.xx of nodejs, as ubuntu seems to prefer that version (even in the latest 22.x version).
 Had to change version for both simple-git and express.
+node - found that I had to separately run 'npm i simple-git'.
