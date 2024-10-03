@@ -313,3 +313,7 @@ C:\dev\3rdParty\Git\git-unite\src\Git.Unite\bin\Debug>Git.Unite.exe C:\dev\Alpha
 ## Note on update stopping on Server
 
 package-lock.json is saved in the repo, so dependabot changes to that file can cause a stash error as installing the revised npm packages can cause a merge conflict when the automated pull request is done.
+
+## Notes on node version
+
+Unless we move to nvm, we are stuck at version 12.xx of nodejs, as ubuntu seems to prefer that version (even in the latest 22.x version).
