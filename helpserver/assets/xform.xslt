@@ -388,7 +388,8 @@
         <xsl:if test="./@build"><div class="buildBadge" data-build="{./@build}"><xsl:comment> </xsl:comment></div> </xsl:if>
         <xsl:if test="title">
             <xsl:variable name="depth"><xsl:choose><xsl:when test="../../@depth"><xsl:value-of select="../../@depth" /></xsl:when><xsl:when test="title/@nested"><xsl:value-of select="title/@nested" /></xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
-            <h3 class="section-level-{$depth}"><xsl:if test="title/@icon"><img src="((A5_BASE_PATH))pages{title/@icon}" /></xsl:if><a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /></a></h3>
+            <h3 class="section-level-{$depth}"><xsl:if test="title/@icon"><img src="((A5_BASE_PATH))pages{title/@icon}" /></xsl:if><a name="section{$depth}_{normalize-space(title)}"><xsl:value-of select="normalize-space(title)" /></a>
+            <xsl:if test="title/@build"><div class="buildBadge" data-build="{title/@build}"><xsl:comment> </xsl:comment></div> </xsl:if></h3>
         </xsl:if>
         <xsl:choose>
             <xsl:when test="content">
